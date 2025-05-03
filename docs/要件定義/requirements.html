@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 要件定義書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+        }
+        h3 {
+            color: #2980b9;
+            margin-top: 20px;
+        }
+        p, ul, ol {
+            margin-bottom: 20px;
+        }
+        ul li {
+            margin-bottom: 5px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-style: italic;
+            color: #666;
+        }
+        code {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 2px 5px;
+            font-family: "Courier New", monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>SES業務システム 要件定義書</h1>
+
+    <h2>1. プロジェクト概要</h2>
+    <ul>
+        <li><strong>目的</strong>: システムエンジニアリングサービス（SES）事業に関わる営業・人材・案件・契約・実績管理業務を一元化し、業務効率とデータ精度を向上させる。</li>
+        <li><strong>対象組織</strong>: 株式会社◯◯（SES事業部、管理本部、経営企画室）</li>
+        <li><strong>開発形態</strong>: クラウドネイティブ Web アプリケーション（モバイル対応）</li>
+        <li><strong>前提技術</strong>: SaaS/PaaS 活用、API ファースト、マイクロサービス指向</li>
+    </ul>
+
+    <h2>2. 目的・ゴール</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>ゴール</th>
+                <th>指標(KPI)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1</td>
+                <td>営業・契約手続きの工数削減</td>
+                <td>手続き所要時間を現行比 50% 以内</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>リソースマッチング精度向上</td>
+                <td>アサイン決定までの平均日数 30% 短縮</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>請求・支払ミス撲滅</td>
+                <td>エラー発生件数を月次 0 件</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>経営可視化</td>
+                <td>主要 KPI ダッシュボードをリアルタイム更新</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>3. ステークホルダーとユーザー</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>区分</th>
+                <th>役割</th>
+                <th>主な操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>営業担当</td>
+                <td>案件登録・選考管理・契約締結</td>
+                <td>Web/UI, モバイル</td>
+            </tr>
+            <tr>
+                <td>人事/採用</td>
+                <td>技術者登録・スキルシート管理</td>
+                <td>Web/UI</td>
+            </tr>
+            <tr>
+                <td>技術者(社員・協力会社)</td>
+                <td>プロフィール更新・勤怠入力</td>
+                <td>Web, モバイル</td>
+            </tr>
+            <tr>
+                <td>PM/現場責任者</td>
+                <td>工数承認・進捗報告</td>
+                <td>Web</td>
+            </tr>
+            <tr>
+                <td>経理</td>
+                <td>請求書発行・支払処理</td>
+                <td>Web, CSV 連携</td>
+            </tr>
+            <tr>
+                <td>経営層</td>
+                <td>KPI閲覧・分析</td>
+                <td>ダッシュボード</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>4. 対象業務範囲（スコープ）</h2>
+    <ol>
+        <li><strong>案件管理</strong>: リード〜受注・契約管理</li>
+        <li><strong>技術者管理</strong>: スキルシート、稼働状況、アサイン履歴</li>
+        <li><strong>マッチング</strong>: 案件×技術者の自動推薦、条件交渉履歴</li>
+        <li><strong>契約管理</strong>: 個別契約・準委任契約・派遣契約の電子締結</li>
+        <li><strong>勤怠・工数管理</strong>: タイムシート、承認フロー、実績データ蓄積</li>
+        <li><strong>請求・支払</strong>: レート計算、請求書・支払依頼書自動生成</li>
+        <li><strong>レポート/KPI</strong>: 売上・粗利・稼働率・要員稼働予測</li>
+        <li><strong>マスタ</strong>: 顧客・パートナー・技術者・レート・契約雛形</li>
+    </ol>
+
+    <h2>5. 現状課題</h2>
+    <ul>
+        <li>Excel/メール中心でデータ分散、転記ミスが多発</li>
+        <li>案件・技術者情報がリアルタイムで共有されず機会損失</li>
+        <li>契約書作成・押印に時間がかかる（紙文化）</li>
+        <li>工数データの回収遅延により請求遅れが発生</li>
+        <li>経営指標を集計するのに週次・月次で手作業</li>
+    </ul>
+
+    <h2>6. 業務フロー（As-Is & To-Be 概要）</h2>
+    <ol>
+        <li>
+            <strong>営業フロー</strong>
+            <ul>
+                <li>As-Is: スプレッドシート管理 → メール連絡 → 契約書 Word 手入力</li>
+                <li>To-Be: 案件登録 → マッチング → 電子契約 → ワークフロー通知</li>
+            </ul>
+        </li>
+        <li>
+            <strong>勤怠承認フロー</strong>
+            <ul>
+                <li>As-Is: 技術者が Excel をメール提出 → 承認 → PDF 化</li>
+                <li>To-Be: モバイル入力 → 承認依頼通知 → ワンクリック承認（詳細フローチャートは別紙参照）</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>7. 機能要件</h2>
+
+    <h3>7.1 案件管理</h3>
+    <ul>
+        <li>案件 CRUD、フェーズ管理（リード/提案/交渉/受注）</li>
+        <li>商流情報（直請/一次/二次）とレート登録</li>
+        <li>関連ドキュメント（NDA, 提案書）アップロード</li>
+    </ul>
+
+    <h3>7.2 技術者管理</h3>
+    <ul>
+        <li>基本情報・スキルタグ・経験年数登録</li>
+        <li>PDF/Word 形式のスキルシート自動生成</li>
+        <li>稼働可能日・希望単価の登録</li>
+    </ul>
+
+    <h3>7.3 マッチングエンジン</h3>
+    <ul>
+        <li>案件要件と技術者スキルのマッチングスコア算出</li>
+        <li>優先度（稼働空き・過去実績）を加味したランキング表示</li>
+        <li>推薦結果から一括提案メール送信</li>
+    </ul>
+
+    <h3>7.4 契約・電子署名</h3>
+    <ul>
+        <li>契約テンプレート管理（SES/派遣/準委任）</li>
+        <li>契約番号自動採番、版管理</li>
+        <li>外部電子署名サービス連携（DocuSign など）</li>
+    </ul>
+
+    <h3>7.5 勤怠・工数管理</h3>
+    <ul>
+        <li>日次/週次工数入力（Web・モバイル）</li>
+        <li>自動リマインド通知（Slack/メール）</li>
+        <li>承認フロー（技術者 → PM → 営業）</li>
+    </ul>
+
+    <h3>7.6 請求・支払</h3>
+    <ul>
+        <li>単価×実績から売上・原価自動計算</li>
+        <li>請求書 PDF/CSV 出力、一括メール送信</li>
+        <li>会計システム（freee/マネフォ）API連携</li>
+    </ul>
+
+    <h3>7.7 レポーティング</h3>
+    <ul>
+        <li>ダッシュボード：売上推移、技術者稼働率、案件状況</li>
+        <li>期間・部門・顧客別の粗利分析</li>
+        <li>CSV エクスポート & API 提供</li>
+    </ul>
+
+    <h2>8. 非機能要件</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>分類</th>
+                <th>要件</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>性能</td>
+                <td>同時ユーザー 500、平均応答時間 < 2 秒</td>
+            </tr>
+            <tr>
+                <td>可用性</td>
+                <td>99.9% / 月、RTO 1 時間、RPO 15 分</td>
+            </tr>
+            <tr>
+                <td>セキュリティ</td>
+                <td>ISMS 準拠、OAuth2 / OpenID Connect、IP 制限、二要素認証</td>
+            </tr>
+            <tr>
+                <td>可観測性</td>
+                <td>ログ集中管理、監視アラート、SLI/SLO 設定</td>
+            </tr>
+            <tr>
+                <td>拡張性</td>
+                <td>マイクロサービス間は REST/GraphQL、CI/CD パイプライン</td>
+            </tr>
+            <tr>
+                <td>運用</td>
+                <td>IaC(Terraform) による環境構築、自動バックアップ</td>
+            </tr>
+            <tr>
+                <td>法令遵守</td>
+                <td>労働者派遣法、個人情報保護法、電子帳簿保存法対応</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>9. データ要件</h2>
+    <ul>
+        <li><strong>主要エンティティ</strong>: 案件, 技術者, 顧客, 契約, 勤怠, 請求, 支払, マスタ類</li>
+        <li><strong>保持期間</strong>: 法定 7 年以上（契約・請求関連）</li>
+        <li><strong>暗号化</strong>: 休止データ AES-256、通信 TLS1.3</li>
+    </ul>
+
+    <h2>10. 外部連携</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>システム</th>
+                <th>方式</th>
+                <th>用途</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>会計 SaaS</td>
+                <td>REST API</td>
+                <td>請求・支払仕訳連携</td>
+            </tr>
+            <tr>
+                <td>チャット(Slack)</td>
+                <td>Webhook</td>
+                <td>通知・承認依頼</td>
+            </tr>
+            <tr>
+                <td>電子契約</td>
+                <td>REST API</td>
+                <td>契約締結</td>
+            </tr>
+            <tr>
+                <td>HRIS</td>
+                <td>SFTP/CSV</td>
+                <td>社員マスタ同期</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>11. 制約・前提</h2>
+    <ul>
+        <li>操作ブラウザは最新版 Chrome, Edge を推奨</li>
+        <li>多言語対応は日本語 UI を優先し将来拡張</li>
+        <li>オンプレとの VPN 連携あり</li>
+    </ul>
+
+    <h2>12. 受入条件</h2>
+    <ul>
+        <li>受入テストで機能要件の 100% をパス</li>
+        <li>主要 KPI ダッシュボードが正しい値を表示</li>
+        <li>操作マニュアル・運用手順書が整備されている</li>
+    </ul>
+
+    <h2>13. マイルストーン（概略）</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>フェーズ</th>
+                <th>期間</th>
+                <th>成果物</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>要件定義</td>
+                <td>2025/05/10〜2025/06/09</td>
+                <td>本書、業務フロー図</td>
+            </tr>
+            <tr>
+                <td>基本設計</td>
+                <td>2025/06/10〜2025/07/09</td>
+                <td>基本設計書 UI/DB/IF</td>
+            </tr>
+            <tr>
+                <td>詳細設計</td>
+                <td>2025/07/10〜2025/08/23</td>
+                <td>詳細設計書、テスト仕様書</td>
+            </tr>
+            <tr>
+                <td>開発</td>
+                <td>2025/08/24〜2025/11/30</td>
+                <td>ソースコード、単体テスト結果</td>
+            </tr>
+            <tr>
+                <td>結合・総合テスト</td>
+                <td>2025/12/01〜2026/01/20</td>
+                <td>テスト報告書</td>
+            </tr>
+            <tr>
+                <td>リリース準備</td>
+                <td>2026/01/21〜2026/02/05</td>
+                <td>運用手順書・移行計画</td>
+            </tr>
+            <tr>
+                <td>本番移行</td>
+                <td>2026/02/06</td>
+                <td>稼働開始</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>14. リスクと対策</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>リスク</th>
+                <th>影響</th>
+                <th>対策</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>要件追加による工期遅延</td>
+                <td>高</td>
+                <td>スコープ管理、CR 手順明確化</td>
+            </tr>
+            <tr>
+                <td>データ移行品質</td>
+                <td>中</td>
+                <td>移行リハーサル、自動チェックツール</td>
+            </tr>
+            <tr>
+                <td>ユーザー定着</td>
+                <td>中</td>
+                <td>操作研修、FAQ、サポート窓口</td>
+            </tr>
+            <tr>
+                <td>法改正</td>
+                <td>中</td>
+                <td>定期レビュー、自動アップデート契約</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>15. 参照資料</h2>
+    <ul>
+        <li>現行業務フローチャート（SES_業務フロー_v1.2.xlsx）</li>
+        <li>契約書テンプレート一式（legal_templates.zip）</li>
+        <li>主要 KPI 定義書（KPI_Definition_2025-04.pdf）</li>
+    </ul>
+
+    <div class="footer">
+        <p>作成日: 2025-05-04<br>
+        作成者: システム化プロジェクトチーム</p>
+    </div>
+</body>
+</html>

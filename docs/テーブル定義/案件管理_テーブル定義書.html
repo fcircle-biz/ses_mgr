@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>案件管理 テーブル定義書</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+        }
+        p {
+            margin-bottom: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        ul {
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>案件管理 テーブル定義書</h1>
+
+    <h2>顧客テーブル (customers)</h2>
+    <p>顧客情報を管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>customer_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td>AUTO_INCREMENT</td>
+                <td>顧客ID</td>
+            </tr>
+            <tr>
+                <td>customer_name</td>
+                <td>VARCHAR(100)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>顧客名</td>
+            </tr>
+            <tr>
+                <td>address</td>
+                <td>VARCHAR(200)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td>住所</td>
+            </tr>
+            <tr>
+                <td>phone_number</td>
+                <td>VARCHAR(20)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td>電話番号</td>
+            </tr>
+            <tr>
+                <td>email</td>
+                <td>VARCHAR(100)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td>メールアドレス</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>DATETIME</td>
+                <td>NO</td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>DATETIME</td>
+                <td>NO</td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (customer_id)</li>
+                <li>INDEX idx_customer_name (customer_name)</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>案件テーブル (projects)</h2>
+    <p>案件情報を管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>project_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td>AUTO_INCREMENT</td>
+                <td>案件ID</td>
+            </tr>
+            <tr>
+                <td>customer_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(customers.customer_id)</td>
+                <td></td>
+                <td>顧客ID</td>
+            </tr>
+            <tr>
+                <td>project_name</td>
+                <td>VARCHAR(100)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>案件名</td>
+            </tr>
+            <tr>
+                <td>project_overview</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>案件概要</td>
+            </tr>
+            <tr>
+                <td>phase</td>
+                <td>ENUM('リード', '提案', '交渉', '受注')</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>'リード'</td>
+                <td>案件フェーズ</td>
+            </tr>
+            <tr>
+                <td>required_personnel</td>
+                <td>INTEGER</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>必要人数</td>
+            </tr>
+            <tr>
+                <td>start_date</td>
+                <td>DATE</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>開始予定日</td>
+            </tr>
+            <tr>
+                <td>end_date</td>
+                <td>DATE</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>終了予定日</td>
+            </tr>
+            <tr>
+                <td>distribution_type</td>
+                <td>ENUM('直請', '一次', '二次')</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>'直請'</td>
+                <td>商流種別</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>DATETIME</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>DATETIME</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (project_id)</li>
+                <li>FOREIGN KEY (customer_id) REFERENCES customers(customer_id)</li>
+                <li>INDEX idx_project_name (project_name)</li>
+                <li>INDEX idx_phase (phase)</li>
+                <li>INDEX idx_start_date (start_date)</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>案件要件テーブル (project_requirements)</h2>
+    <p>案件要件情報を管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>requirement_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td>AUTO_INCREMENT</td>
+                <td>要件ID</td>
+            </tr>
+            <tr>
+                <td>project_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(projects.project_id)</td>
+                <td></td>
+                <td>案件ID</td>
+            </tr>
+            <tr>
+                <td>skill_requirement</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>スキル要件</td>
+            </tr>
+            <tr>
+                <td>years_of_experience</td>
+                <td>INTEGER</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>経験年数</td>
+            </tr>
+            <tr>
+                <td>preferred_unit_price</td>
+                <td>DECIMAL(10,2)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>希望単価</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>DATETIME</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>DATETIME</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (requirement_id)</li>
+                <li>FOREIGN KEY (project_id) REFERENCES projects(project_id)</li>
+                <li>INDEX idx_project_id (project_id)</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>案件ドキュメントテーブル (project_documents)</h2>
+    <p>案件に関連するドキュメントを管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>document_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td>AUTO_INCREMENT</td>
+                <td>ドキュメントID</td>
+            </tr>
+            <tr>
+                <td>project_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(projects.project_id)</td>
+                <td></td>
+                <td>案件ID</td>
+            </tr>
+            <tr>
+                <td>document_name</td>
+                <td>VARCHAR(100)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>ドキュメント名</td>
+            </tr>
+            <tr>
+                <td>file_path</td>
+                <td>VARCHAR(255)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>ファイルパス</td>
+            </tr>
+            <tr>
+                <td>document_type</td>
+                <td>ENUM('NDA', '提案書', '仕様書', 'その他')</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>'その他'</td>
+                <td>ドキュメント種別</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>DATETIME</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>DATETIME</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (document_id)</li>
+                <li>FOREIGN KEY (project_id) REFERENCES projects(project_id)</li>
+                <li>INDEX idx_project_id (project_id)</li>
+                <li>INDEX idx_document_type (document_type)</li>
+            </ul>
+        </li>
+    </ul>
+</body>
+</html>
