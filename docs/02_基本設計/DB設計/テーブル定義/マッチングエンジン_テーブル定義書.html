@@ -1,0 +1,1010 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マッチングエンジン テーブル定義書 (PostgreSQL)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+        }
+        p {
+            margin-bottom: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        ul {
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+        .code-block {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>マッチングエンジン テーブル定義書 (PostgreSQL)</h1>
+
+    <h2>マッチングテーブル (matching)</h2>
+    <p>案件と技術者のマッチング情報を管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>matching_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td></td>
+                <td>マッチングID</td>
+            </tr>
+            <tr>
+                <td>project_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(projects.project_id)</td>
+                <td></td>
+                <td>案件ID</td>
+            </tr>
+            <tr>
+                <td>engineer_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(engineers.engineer_id)</td>
+                <td></td>
+                <td>技術者ID</td>
+            </tr>
+            <tr>
+                <td>matching_score</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>0</td>
+                <td>マッチングスコア（0〜100）</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>'推薦候補'</td>
+                <td>ステータス</td>
+            </tr>
+            <tr>
+                <td>proposed_unit_price</td>
+                <td>NUMERIC(10,2)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>提案単価</td>
+            </tr>
+            <tr>
+                <td>availability_confirmed</td>
+                <td>BOOLEAN</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>FALSE</td>
+                <td>稼働確認フラグ</td>
+            </tr>
+            <tr>
+                <td>priority</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>0</td>
+                <td>優先度（0〜10）</td>
+            </tr>
+            <tr>
+                <td>matching_notes</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>マッチング備考</td>
+            </tr>
+            <tr>
+                <td>created_by</td>
+                <td>INTEGER</td>
+                <td>YES</td>
+                <td></td>
+                <td>FK(users.user_id)</td>
+                <td></td>
+                <td>作成者ID</td>
+            </tr>
+            <tr>
+                <td>updated_by</td>
+                <td>INTEGER</td>
+                <td>YES</td>
+                <td></td>
+                <td>FK(users.user_id)</td>
+                <td></td>
+                <td>更新者ID</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>制約
+            <ul>
+                <li>CHECK (matching_score BETWEEN 0 AND 100)</li>
+                <li>CHECK (priority BETWEEN 0 AND 10)</li>
+                <li>CHECK (status IN ('推薦候補', '提案中', '面談調整中', '面談実施済', '内定', '契約締結', '見送り'))</li>
+                <li>UNIQUE (project_id, engineer_id)</li>
+            </ul>
+        </li>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (matching_id)</li>
+                <li>CREATE INDEX idx_matching_project_id ON matching(project_id);</li>
+                <li>CREATE INDEX idx_matching_engineer_id ON matching(engineer_id);</li>
+                <li>CREATE INDEX idx_matching_status ON matching(status);</li>
+                <li>CREATE INDEX idx_matching_score ON matching(matching_score);</li>
+                <li>CREATE INDEX idx_matching_priority ON matching(priority);</li>
+                <li>CREATE INDEX idx_matching_created_at ON matching(created_at);</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>マッチング履歴テーブル (matching_history)</h2>
+    <p>マッチングの交渉履歴や状態変更を記録するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>history_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td></td>
+                <td>履歴ID</td>
+            </tr>
+            <tr>
+                <td>matching_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(matching.matching_id)</td>
+                <td></td>
+                <td>マッチングID</td>
+            </tr>
+            <tr>
+                <td>previous_status</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>変更前ステータス</td>
+            </tr>
+            <tr>
+                <td>new_status</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>変更後ステータス</td>
+            </tr>
+            <tr>
+                <td>action_type</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>'ステータス変更'</td>
+                <td>アクション種別</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>詳細説明</td>
+            </tr>
+            <tr>
+                <td>performed_by</td>
+                <td>INTEGER</td>
+                <td>YES</td>
+                <td></td>
+                <td>FK(users.user_id)</td>
+                <td></td>
+                <td>実行者ID</td>
+            </tr>
+            <tr>
+                <td>performed_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>実行日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>制約
+            <ul>
+                <li>CHECK (action_type IN ('ステータス変更', '単価交渉', '面談設定', '面談結果登録', '内定通知', '見送り'))</li>
+            </ul>
+        </li>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (history_id)</li>
+                <li>CREATE INDEX idx_matching_history_matching_id ON matching_history(matching_id);</li>
+                <li>CREATE INDEX idx_matching_history_performed_at ON matching_history(performed_at);</li>
+                <li>CREATE INDEX idx_matching_history_performed_by ON matching_history(performed_by);</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>スキルマッチングスコアテーブル (skill_matching_scores)</h2>
+    <p>案件要件と技術者スキルのマッチングスコア詳細を記録するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>score_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td></td>
+                <td>スコアID</td>
+            </tr>
+            <tr>
+                <td>matching_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(matching.matching_id)</td>
+                <td></td>
+                <td>マッチングID</td>
+            </tr>
+            <tr>
+                <td>requirement_id</td>
+                <td>INTEGER</td>
+                <td>YES</td>
+                <td></td>
+                <td>FK(project_requirements.requirement_id)</td>
+                <td></td>
+                <td>案件要件ID</td>
+            </tr>
+            <tr>
+                <td>skill_id</td>
+                <td>INTEGER</td>
+                <td>YES</td>
+                <td></td>
+                <td>FK(skills.skill_id)</td>
+                <td></td>
+                <td>スキルID</td>
+            </tr>
+            <tr>
+                <td>score</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>0</td>
+                <td>個別スコア（0〜100）</td>
+            </tr>
+            <tr>
+                <td>weight</td>
+                <td>NUMERIC(3,2)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>1.00</td>
+                <td>重み付け係数</td>
+            </tr>
+            <tr>
+                <td>weighted_score</td>
+                <td>NUMERIC(5,2)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>0.00</td>
+                <td>重み付けスコア</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>制約
+            <ul>
+                <li>CHECK (score BETWEEN 0 AND 100)</li>
+                <li>CHECK (weight > 0)</li>
+            </ul>
+        </li>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (score_id)</li>
+                <li>CREATE INDEX idx_skill_matching_scores_matching_id ON skill_matching_scores(matching_id);</li>
+                <li>CREATE INDEX idx_skill_matching_scores_requirement_id ON skill_matching_scores(requirement_id);</li>
+                <li>CREATE INDEX idx_skill_matching_scores_skill_id ON skill_matching_scores(skill_id);</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>面談スケジュールテーブル (interview_schedules)</h2>
+    <p>マッチングに関連する面談スケジュールを管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>interview_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td></td>
+                <td>面談ID</td>
+            </tr>
+            <tr>
+                <td>matching_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(matching.matching_id)</td>
+                <td></td>
+                <td>マッチングID</td>
+            </tr>
+            <tr>
+                <td>interview_date</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>面談日時</td>
+            </tr>
+            <tr>
+                <td>interview_type</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>'オンライン'</td>
+                <td>面談形式</td>
+            </tr>
+            <tr>
+                <td>location</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>場所・URL</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>'予定'</td>
+                <td>面談ステータス</td>
+            </tr>
+            <tr>
+                <td>interviewer_names</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>面接官名</td>
+            </tr>
+            <tr>
+                <td>notes</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>備考</td>
+            </tr>
+            <tr>
+                <td>created_by</td>
+                <td>INTEGER</td>
+                <td>YES</td>
+                <td></td>
+                <td>FK(users.user_id)</td>
+                <td></td>
+                <td>作成者ID</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>制約
+            <ul>
+                <li>CHECK (interview_type IN ('オンライン', '訪問', '電話', '社内'))</li>
+                <li>CHECK (status IN ('予定', '実施済', 'キャンセル', '延期'))</li>
+            </ul>
+        </li>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (interview_id)</li>
+                <li>CREATE INDEX idx_interview_schedules_matching_id ON interview_schedules(matching_id);</li>
+                <li>CREATE INDEX idx_interview_schedules_interview_date ON interview_schedules(interview_date);</li>
+                <li>CREATE INDEX idx_interview_schedules_status ON interview_schedules(status);</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>面談結果テーブル (interview_results)</h2>
+    <p>面談の結果と評価を記録するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>result_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td></td>
+                <td>結果ID</td>
+            </tr>
+            <tr>
+                <td>interview_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(interview_schedules.interview_id)</td>
+                <td></td>
+                <td>面談ID</td>
+            </tr>
+            <tr>
+                <td>technical_evaluation</td>
+                <td>INTEGER</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>技術評価（1〜5）</td>
+            </tr>
+            <tr>
+                <td>communication_evaluation</td>
+                <td>INTEGER</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>コミュニケーション評価（1〜5）</td>
+            </tr>
+            <tr>
+                <td>overall_evaluation</td>
+                <td>INTEGER</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>総合評価（1〜5）</td>
+            </tr>
+            <tr>
+                <td>client_feedback</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>顧客フィードバック</td>
+            </tr>
+            <tr>
+                <td>internal_feedback</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>内部メモ</td>
+            </tr>
+            <tr>
+                <td>decision</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>'検討中'</td>
+                <td>判断結果</td>
+            </tr>
+            <tr>
+                <td>decision_reason</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>判断理由</td>
+            </tr>
+            <tr>
+                <td>recorded_by</td>
+                <td>INTEGER</td>
+                <td>YES</td>
+                <td></td>
+                <td>FK(users.user_id)</td>
+                <td></td>
+                <td>記録者ID</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>制約
+            <ul>
+                <li>CHECK (technical_evaluation BETWEEN 1 AND 5)</li>
+                <li>CHECK (communication_evaluation BETWEEN 1 AND 5)</li>
+                <li>CHECK (overall_evaluation BETWEEN 1 AND 5)</li>
+                <li>CHECK (decision IN ('検討中', '採用', '不採用', '保留'))</li>
+            </ul>
+        </li>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (result_id)</li>
+                <li>CREATE UNIQUE INDEX idx_interview_results_interview_id ON interview_results(interview_id);</li>
+                <li>CREATE INDEX idx_interview_results_decision ON interview_results(decision);</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>アラートテーブル (matching_alerts)</h2>
+    <p>マッチングに関する通知やアラートを管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>alert_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td></td>
+                <td>アラートID</td>
+            </tr>
+            <tr>
+                <td>alert_type</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>アラート種別</td>
+            </tr>
+            <tr>
+                <td>subject</td>
+                <td>VARCHAR(200)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>件名</td>
+            </tr>
+            <tr>
+                <td>message</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>メッセージ内容</td>
+            </tr>
+            <tr>
+                <td>related_entity</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>関連エンティティ種別</td>
+            </tr>
+            <tr>
+                <td>entity_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>エンティティID</td>
+            </tr>
+            <tr>
+                <td>target_user_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(users.user_id)</td>
+                <td></td>
+                <td>通知対象ユーザーID</td>
+            </tr>
+            <tr>
+                <td>is_read</td>
+                <td>BOOLEAN</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>FALSE</td>
+                <td>既読フラグ</td>
+            </tr>
+            <tr>
+                <td>read_at</td>
+                <td>TIMESTAMP</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>既読日時</td>
+            </tr>
+            <tr>
+                <td>priority</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>'通常'</td>
+                <td>優先度</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>制約
+            <ul>
+                <li>CHECK (alert_type IN ('新規マッチング', '状態変更', '面談設定', '面談結果', '単価交渉', '内定通知', 'その他'))</li>
+                <li>CHECK (related_entity IN ('matching', 'project', 'engineer', 'interview'))</li>
+                <li>CHECK (priority IN ('低', '通常', '高', '緊急'))</li>
+            </ul>
+        </li>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (alert_id)</li>
+                <li>CREATE INDEX idx_matching_alerts_target_user_id ON matching_alerts(target_user_id);</li>
+                <li>CREATE INDEX idx_matching_alerts_is_read ON matching_alerts(is_read);</li>
+                <li>CREATE INDEX idx_matching_alerts_created_at ON matching_alerts(created_at);</li>
+                <li>CREATE INDEX idx_matching_alerts_priority ON matching_alerts(priority);</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>テーブル作成用SQL</h2>
+    <div class="code-block">
+-- 更新タイムスタンプ用のトリガー関数
+CREATE OR REPLACE FUNCTION update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- マッチングテーブル
+CREATE TABLE matching (
+    matching_id SERIAL PRIMARY KEY,
+    project_id INTEGER NOT NULL REFERENCES projects(project_id),
+    engineer_id INTEGER NOT NULL REFERENCES engineers(engineer_id),
+    matching_score INTEGER NOT NULL DEFAULT 0 CHECK (matching_score BETWEEN 0 AND 100),
+    status TEXT NOT NULL DEFAULT '推薦候補' 
+        CHECK (status IN ('推薦候補', '提案中', '面談調整中', '面談実施済', '内定', '契約締結', '見送り')),
+    proposed_unit_price NUMERIC(10,2),
+    availability_confirmed BOOLEAN NOT NULL DEFAULT FALSE,
+    priority INTEGER NOT NULL DEFAULT 0 CHECK (priority BETWEEN 0 AND 10),
+    matching_notes TEXT,
+    created_by INTEGER REFERENCES users(user_id),
+    updated_by INTEGER REFERENCES users(user_id),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (project_id, engineer_id)
+);
+
+CREATE INDEX idx_matching_project_id ON matching(project_id);
+CREATE INDEX idx_matching_engineer_id ON matching(engineer_id);
+CREATE INDEX idx_matching_status ON matching(status);
+CREATE INDEX idx_matching_score ON matching(matching_score);
+CREATE INDEX idx_matching_priority ON matching(priority);
+CREATE INDEX idx_matching_created_at ON matching(created_at);
+
+CREATE TRIGGER update_matching_timestamp
+BEFORE UPDATE ON matching
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+-- マッチング履歴テーブル
+CREATE TABLE matching_history (
+    history_id SERIAL PRIMARY KEY,
+    matching_id INTEGER NOT NULL REFERENCES matching(matching_id),
+    previous_status TEXT,
+    new_status TEXT NOT NULL,
+    action_type TEXT NOT NULL DEFAULT 'ステータス変更'
+        CHECK (action_type IN ('ステータス変更', '単価交渉', '面談設定', '面談結果登録', '内定通知', '見送り')),
+    description TEXT,
+    performed_by INTEGER REFERENCES users(user_id),
+    performed_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_matching_history_matching_id ON matching_history(matching_id);
+CREATE INDEX idx_matching_history_performed_at ON matching_history(performed_at);
+CREATE INDEX idx_matching_history_performed_by ON matching_history(performed_by);
+
+-- スキルマッチングスコアテーブル
+CREATE TABLE skill_matching_scores (
+    score_id SERIAL PRIMARY KEY,
+    matching_id INTEGER NOT NULL REFERENCES matching(matching_id),
+    requirement_id INTEGER REFERENCES project_requirements(requirement_id),
+    skill_id INTEGER REFERENCES skills(skill_id),
+    score INTEGER NOT NULL DEFAULT 0 CHECK (score BETWEEN 0 AND 100),
+    weight NUMERIC(3,2) NOT NULL DEFAULT 1.00 CHECK (weight > 0),
+    weighted_score NUMERIC(5,2) NOT NULL DEFAULT 0.00,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_skill_matching_scores_matching_id ON skill_matching_scores(matching_id);
+CREATE INDEX idx_skill_matching_scores_requirement_id ON skill_matching_scores(requirement_id);
+CREATE INDEX idx_skill_matching_scores_skill_id ON skill_matching_scores(skill_id);
+
+-- 面談スケジュールテーブル
+CREATE TABLE interview_schedules (
+    interview_id SERIAL PRIMARY KEY,
+    matching_id INTEGER NOT NULL REFERENCES matching(matching_id),
+    interview_date TIMESTAMP NOT NULL,
+    interview_type TEXT NOT NULL DEFAULT 'オンライン'
+        CHECK (interview_type IN ('オンライン', '訪問', '電話', '社内')),
+    location TEXT,
+    status TEXT NOT NULL DEFAULT '予定'
+        CHECK (status IN ('予定', '実施済', 'キャンセル', '延期')),
+    interviewer_names TEXT,
+    notes TEXT,
+    created_by INTEGER REFERENCES users(user_id),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_interview_schedules_matching_id ON interview_schedules(matching_id);
+CREATE INDEX idx_interview_schedules_interview_date ON interview_schedules(interview_date);
+CREATE INDEX idx_interview_schedules_status ON interview_schedules(status);
+
+CREATE TRIGGER update_interview_schedules_timestamp
+BEFORE UPDATE ON interview_schedules
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+-- 面談結果テーブル
+CREATE TABLE interview_results (
+    result_id SERIAL PRIMARY KEY,
+    interview_id INTEGER NOT NULL REFERENCES interview_schedules(interview_id),
+    technical_evaluation INTEGER CHECK (technical_evaluation BETWEEN 1 AND 5),
+    communication_evaluation INTEGER CHECK (communication_evaluation BETWEEN 1 AND 5),
+    overall_evaluation INTEGER CHECK (overall_evaluation BETWEEN 1 AND 5),
+    client_feedback TEXT,
+    internal_feedback TEXT,
+    decision TEXT NOT NULL DEFAULT '検討中'
+        CHECK (decision IN ('検討中', '採用', '不採用', '保留')),
+    decision_reason TEXT,
+    recorded_by INTEGER REFERENCES users(user_id),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX idx_interview_results_interview_id ON interview_results(interview_id);
+CREATE INDEX idx_interview_results_decision ON interview_results(decision);
+
+CREATE TRIGGER update_interview_results_timestamp
+BEFORE UPDATE ON interview_results
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+-- アラートテーブル
+CREATE TABLE matching_alerts (
+    alert_id SERIAL PRIMARY KEY,
+    alert_type TEXT NOT NULL 
+        CHECK (alert_type IN ('新規マッチング', '状態変更', '面談設定', '面談結果', '単価交渉', '内定通知', 'その他')),
+    subject VARCHAR(200) NOT NULL,
+    message TEXT NOT NULL,
+    related_entity TEXT NOT NULL
+        CHECK (related_entity IN ('matching', 'project', 'engineer', 'interview')),
+    entity_id INTEGER NOT NULL,
+    target_user_id INTEGER NOT NULL REFERENCES users(user_id),
+    is_read BOOLEAN NOT NULL DEFAULT FALSE,
+    read_at TIMESTAMP,
+    priority TEXT NOT NULL DEFAULT '通常'
+        CHECK (priority IN ('低', '通常', '高', '緊急')),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_matching_alerts_target_user_id ON matching_alerts(target_user_id);
+CREATE INDEX idx_matching_alerts_is_read ON matching_alerts(is_read);
+CREATE INDEX idx_matching_alerts_created_at ON matching_alerts(created_at);
+CREATE INDEX idx_matching_alerts_priority ON matching_alerts(priority);
+    </div>
+
+</body>
+</html>

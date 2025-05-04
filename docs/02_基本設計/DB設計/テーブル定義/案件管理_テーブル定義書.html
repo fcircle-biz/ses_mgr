@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>案件管理 テーブル定義書 (PostgreSQL)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+        }
+        p {
+            margin-bottom: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        ul {
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+        .code-block {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>案件管理 テーブル定義書 (PostgreSQL)</h1>
+
+    <h2>顧客テーブル (customers)</h2>
+    <p>顧客情報を管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>customer_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td>顧客ID</td>
+            </tr>
+            <tr>
+                <td>customer_name</td>
+                <td>VARCHAR(100)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>顧客名</td>
+            </tr>
+            <tr>
+                <td>address</td>
+                <td>VARCHAR(200)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td>住所</td>
+            </tr>
+            <tr>
+                <td>phone_number</td>
+                <td>VARCHAR(20)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td>電話番号</td>
+            </tr>
+            <tr>
+                <td>email</td>
+                <td>VARCHAR(100)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td>メールアドレス</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (customer_id)</li>
+                <li>CREATE INDEX idx_customer_name ON customers(customer_name);</li>
+            </ul>
+        </li>
+        <li>トリガー
+            <ul>
+                <li>更新日時を自動更新するトリガー</li>
+            </ul>
+        </li>
+    </ul>
+
+    <div class="code-block">
+-- 更新日時を自動更新するトリガー関数
+CREATE OR REPLACE FUNCTION update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- トリガーの設定
+CREATE TRIGGER update_customers_timestamp
+BEFORE UPDATE ON customers
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+    </div>
+
+    <h2>案件テーブル (projects)</h2>
+    <p>案件情報を管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>project_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td></td>
+                <td>案件ID</td>
+            </tr>
+            <tr>
+                <td>customer_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(customers.customer_id)</td>
+                <td></td>
+                <td>顧客ID</td>
+            </tr>
+            <tr>
+                <td>project_name</td>
+                <td>VARCHAR(100)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>案件名</td>
+            </tr>
+            <tr>
+                <td>project_overview</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>案件概要</td>
+            </tr>
+            <tr>
+                <td>phase</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>'リード'</td>
+                <td>案件フェーズ</td>
+            </tr>
+            <tr>
+                <td>required_personnel</td>
+                <td>INTEGER</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>必要人数</td>
+            </tr>
+            <tr>
+                <td>start_date</td>
+                <td>DATE</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>開始予定日</td>
+            </tr>
+            <tr>
+                <td>end_date</td>
+                <td>DATE</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>終了予定日</td>
+            </tr>
+            <tr>
+                <td>distribution_type</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>'直請'</td>
+                <td>商流種別</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>制約
+            <ul>
+                <li>CHECK (phase IN ('リード', '提案', '交渉', '受注'))</li>
+                <li>CHECK (distribution_type IN ('直請', '一次', '二次'))</li>
+            </ul>
+        </li>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (project_id)</li>
+                <li>FOREIGN KEY (customer_id) REFERENCES customers(customer_id)</li>
+                <li>CREATE INDEX idx_project_name ON projects(project_name);</li>
+                <li>CREATE INDEX idx_phase ON projects(phase);</li>
+                <li>CREATE INDEX idx_start_date ON projects(start_date);</li>
+            </ul>
+        </li>
+        <li>トリガー
+            <ul>
+                <li>更新日時を自動更新するトリガー</li>
+            </ul>
+        </li>
+    </ul>
+
+    <div class="code-block">
+-- トリガーの設定
+CREATE TRIGGER update_projects_timestamp
+BEFORE UPDATE ON projects
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+    </div>
+
+    <h2>案件要件テーブル (project_requirements)</h2>
+    <p>案件要件情報を管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>requirement_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td></td>
+                <td>要件ID</td>
+            </tr>
+            <tr>
+                <td>project_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(projects.project_id)</td>
+                <td></td>
+                <td>案件ID</td>
+            </tr>
+            <tr>
+                <td>skill_requirement</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>スキル要件</td>
+            </tr>
+            <tr>
+                <td>years_of_experience</td>
+                <td>INTEGER</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>経験年数</td>
+            </tr>
+            <tr>
+                <td>preferred_unit_price</td>
+                <td>NUMERIC(10,2)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>希望単価</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (requirement_id)</li>
+                <li>FOREIGN KEY (project_id) REFERENCES projects(project_id)</li>
+                <li>CREATE INDEX idx_project_id ON project_requirements(project_id);</li>
+            </ul>
+        </li>
+        <li>トリガー
+            <ul>
+                <li>更新日時を自動更新するトリガー</li>
+            </ul>
+        </li>
+    </ul>
+
+    <div class="code-block">
+-- トリガーの設定
+CREATE TRIGGER update_project_requirements_timestamp
+BEFORE UPDATE ON project_requirements
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+    </div>
+
+    <h2>案件ドキュメントテーブル (project_documents)</h2>
+    <p>案件に関連するドキュメントを管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>document_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td></td>
+                <td>ドキュメントID</td>
+            </tr>
+            <tr>
+                <td>project_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(projects.project_id)</td>
+                <td></td>
+                <td>案件ID</td>
+            </tr>
+            <tr>
+                <td>document_name</td>
+                <td>VARCHAR(100)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>ドキュメント名</td>
+            </tr>
+            <tr>
+                <td>file_path</td>
+                <td>VARCHAR(255)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>ファイルパス</td>
+            </tr>
+            <tr>
+                <td>document_type</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>'その他'</td>
+                <td>ドキュメント種別</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>制約
+            <ul>
+                <li>CHECK (document_type IN ('NDA', '提案書', '仕様書', 'その他'))</li>
+            </ul>
+        </li>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (document_id)</li>
+                <li>FOREIGN KEY (project_id) REFERENCES projects(project_id)</li>
+                <li>CREATE INDEX idx_project_id ON project_documents(project_id);</li>
+                <li>CREATE INDEX idx_document_type ON project_documents(document_type);</li>
+            </ul>
+        </li>
+        <li>トリガー
+            <ul>
+                <li>更新日時を自動更新するトリガー</li>
+            </ul>
+        </li>
+    </ul>
+
+    <div class="code-block">
+-- トリガーの設定
+CREATE TRIGGER update_project_documents_timestamp
+BEFORE UPDATE ON project_documents
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+    </div>
+
+    <h2>テーブル作成用SQL</h2>
+    <div class="code-block">
+-- 更新タイムスタンプ用のトリガー関数
+CREATE OR REPLACE FUNCTION update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 顧客テーブル
+CREATE TABLE customers (
+    customer_id SERIAL PRIMARY KEY,
+    customer_name VARCHAR(100) NOT NULL,
+    address VARCHAR(200),
+    phone_number VARCHAR(20),
+    email VARCHAR(100),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_customer_name ON customers(customer_name);
+
+CREATE TRIGGER update_customers_timestamp
+BEFORE UPDATE ON customers
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+-- 案件テーブル
+CREATE TABLE projects (
+    project_id SERIAL PRIMARY KEY,
+    customer_id INTEGER NOT NULL REFERENCES customers(customer_id),
+    project_name VARCHAR(100) NOT NULL,
+    project_overview TEXT,
+    phase TEXT NOT NULL DEFAULT 'リード' CHECK (phase IN ('リード', '提案', '交渉', '受注')),
+    required_personnel INTEGER,
+    start_date DATE,
+    end_date DATE,
+    distribution_type TEXT NOT NULL DEFAULT '直請' CHECK (distribution_type IN ('直請', '一次', '二次')),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_project_name ON projects(project_name);
+CREATE INDEX idx_phase ON projects(phase);
+CREATE INDEX idx_start_date ON projects(start_date);
+
+CREATE TRIGGER update_projects_timestamp
+BEFORE UPDATE ON projects
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+-- 案件要件テーブル
+CREATE TABLE project_requirements (
+    requirement_id SERIAL PRIMARY KEY,
+    project_id INTEGER NOT NULL REFERENCES projects(project_id),
+    skill_requirement TEXT,
+    years_of_experience INTEGER,
+    preferred_unit_price NUMERIC(10,2),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_project_id ON project_requirements(project_id);
+
+CREATE TRIGGER update_project_requirements_timestamp
+BEFORE UPDATE ON project_requirements
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+-- 案件ドキュメントテーブル
+CREATE TABLE project_documents (
+    document_id SERIAL PRIMARY KEY,
+    project_id INTEGER NOT NULL REFERENCES projects(project_id),
+    document_name VARCHAR(100) NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
+    document_type TEXT NOT NULL DEFAULT 'その他' CHECK (document_type IN ('NDA', '提案書', '仕様書', 'その他')),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_project_documents_project_id ON project_documents(project_id);
+CREATE INDEX idx_document_type ON project_documents(document_type);
+
+CREATE TRIGGER update_project_documents_timestamp
+BEFORE UPDATE ON project_documents
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+    </div>
+
+</body>
+</html>
