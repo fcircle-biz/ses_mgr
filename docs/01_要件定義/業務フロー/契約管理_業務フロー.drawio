@@ -1,0 +1,368 @@
+<mxfile host="Electron" modified="2025-05-04T00:00:00.000Z" agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/22.0.3 Chrome/114.0.5735.289 Electron/25.8.4 Safari/537.36" etag="abcdefghijklmnopqrstuvwxyz" version="22.0.3" type="device">
+  <diagram id="contract_management_flow" name="契約管理業務フロー">
+    <mxGraphModel dx="1186" dy="775" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="契約管理業務フロー" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=24;fontStyle=1" vertex="1" parent="1">
+          <mxGeometry x="400" y="20" width="300" height="40" as="geometry" />
+        </mxCell>
+
+        <!-- 営業担当のスイムレーン -->
+        <mxCell id="sales_lane" value="営業担当" style="swimlane;childLayout=stackLayout;resizeParent=1;resizeParentMax=0;horizontal=1;startSize=30;horizontalStack=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="1">
+          <mxGeometry x="40" y="80" width="1080" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="sales_process" value="" style="swimlane;startSize=30;horizontal=0;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="sales_lane">
+          <mxGeometry y="30" width="1080" height="140" as="geometry" />
+        </mxCell>
+
+        <!-- 営業担当のアクション -->
+        <mxCell id="contract_template_selection" value="契約テンプレート選択" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="sales_process">
+          <mxGeometry x="60" y="20" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="contract_type_selection" value="契約種別選択" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="sales_process">
+          <mxGeometry x="60" y="80" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="contract_creation" value="契約書作成" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="sales_process">
+          <mxGeometry x="240" y="45" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="contract_review_internal" value="社内レビュー" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="sales_process">
+          <mxGeometry x="420" y="45" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="contract_adjustments" value="契約内容調整" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="sales_process">
+          <mxGeometry x="600" y="45" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="signature_request" value="電子署名依頼送信" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" vertex="1" parent="sales_process">
+          <mxGeometry x="780" y="45" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="contract_archiving" value="契約書登録・保管" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="sales_process">
+          <mxGeometry x="940" y="45" width="120" height="50" as="geometry" />
+        </mxCell>
+
+        <!-- 営業担当のフロー接続 -->
+        <mxCell id="flow_1" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" edge="1" parent="sales_process" source="contract_template_selection" target="contract_creation">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="280" as="sourcePoint" />
+            <mxPoint x="560" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow_2" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="sales_process" source="contract_type_selection" target="contract_creation">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="280" as="sourcePoint" />
+            <mxPoint x="560" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow_3" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="sales_process" source="contract_creation" target="contract_review_internal">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="280" as="sourcePoint" />
+            <mxPoint x="560" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow_4" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="sales_process" source="contract_review_internal" target="contract_adjustments">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="280" as="sourcePoint" />
+            <mxPoint x="560" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow_5" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="sales_process" source="contract_adjustments" target="signature_request">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="280" as="sourcePoint" />
+            <mxPoint x="560" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="flow_6" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="sales_process" source="signature_request" target="contract_archiving">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="280" as="sourcePoint" />
+            <mxPoint x="560" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- 法務部門のスイムレーン -->
+        <mxCell id="legal_lane" value="法務部門" style="swimlane;childLayout=stackLayout;resizeParent=1;resizeParentMax=0;horizontal=1;startSize=30;horizontalStack=0;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="40" y="260" width="1080" height="120" as="geometry" />
+        </mxCell>
+        <mxCell id="legal_process" value="" style="swimlane;startSize=30;horizontal=0;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="legal_lane">
+          <mxGeometry y="30" width="1080" height="90" as="geometry" />
+        </mxCell>
+        
+        <!-- 法務部門のアクション -->
+        <mxCell id="template_management" value="契約テンプレート管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="legal_process">
+          <mxGeometry x="60" y="20" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="legal_review" value="法的審査" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="legal_process">
+          <mxGeometry x="420" y="20" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="legal_advice" value="法的助言提供" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="legal_process">
+          <mxGeometry x="600" y="20" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="compliance_check" value="コンプライアンス確認" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="legal_process">
+          <mxGeometry x="780" y="20" width="120" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- 法務部門のフロー接続 -->
+        <mxCell id="legal_flow_1" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="template_management" target="contract_template_selection">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="310" as="sourcePoint" />
+            <mxPoint x="600" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legal_flow_2" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="legal_review" target="contract_review_internal">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="310" as="sourcePoint" />
+            <mxPoint x="600" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legal_flow_3" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="legal_advice" target="contract_adjustments">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="310" as="sourcePoint" />
+            <mxPoint x="600" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="legal_flow_4" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="compliance_check" target="signature_request">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="310" as="sourcePoint" />
+            <mxPoint x="600" y="260" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- クライアント/技術者のスイムレーン -->
+        <mxCell id="client_lane" value="クライアント/技術者" style="swimlane;childLayout=stackLayout;resizeParent=1;resizeParentMax=0;horizontal=1;startSize=30;horizontalStack=0;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="1">
+          <mxGeometry x="40" y="390" width="1080" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="client_process" value="" style="swimlane;startSize=30;horizontal=0;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="client_lane">
+          <mxGeometry y="30" width="1080" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- クライアント/技術者のアクション -->
+        <mxCell id="contract_review_external" value="契約内容確認" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="client_process">
+          <mxGeometry x="600" y="20" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="term_negotiation" value="契約条件交渉" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="client_process">
+          <mxGeometry x="600" y="80" width="120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="electronic_signature" value="電子署名実施" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="client_process">
+          <mxGeometry x="780" y="35" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="contract_confirmation" value="契約書確認" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" vertex="1" parent="client_process">
+          <mxGeometry x="940" y="35" width="120" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- クライアント/技術者のフロー接続 -->
+        <mxCell id="client_flow_1" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="client_process" source="contract_review_external" target="electronic_signature">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="280" as="sourcePoint" />
+            <mxPoint x="560" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="client_flow_2" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="client_process" source="electronic_signature" target="contract_confirmation">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="280" as="sourcePoint" />
+            <mxPoint x="560" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="client_flow_3" value="" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="client_process" source="term_negotiation" target="term_negotiation">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="280" as="sourcePoint" />
+            <mxPoint x="560" y="230" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="560" y="95" />
+              <mxPoint x="560" y="110" />
+              <mxPoint x="760" y="110" />
+              <mxPoint x="760" y="95" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- 営業担当とクライアント/技術者間の接続 -->
+        <mxCell id="inter_flow_1" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="contract_adjustments" target="contract_review_external">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="410" as="sourcePoint" />
+            <mxPoint x="600" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="inter_flow_2" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="signature_request" target="electronic_signature">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="410" as="sourcePoint" />
+            <mxPoint x="600" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="inter_flow_3" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="contract_confirmation" target="contract_archiving">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="410" as="sourcePoint" />
+            <mxPoint x="600" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="inter_flow_4" value="" style="endArrow=classic;html=1;rounded=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.75;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="term_negotiation" target="contract_adjustments">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="410" as="sourcePoint" />
+            <mxPoint x="600" y="360" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="560" y="485" />
+              <mxPoint x="560" y="340" />
+              <mxPoint x="690" y="340" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- 契約管理システムのスイムレーン -->
+        <mxCell id="system_lane" value="契約管理システム" style="swimlane;childLayout=stackLayout;resizeParent=1;resizeParentMax=0;horizontal=1;startSize=30;horizontalStack=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="1">
+          <mxGeometry x="40" y="550" width="1080" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="system_process" value="" style="swimlane;startSize=30;horizontal=0;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="system_lane">
+          <mxGeometry y="30" width="1080" height="130" as="geometry" />
+        </mxCell>
+        
+        <!-- システムのアクション -->
+        <mxCell id="template_library" value="契約テンプレート管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="system_process">
+          <mxGeometry x="60" y="40" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="document_generation" value="契約書自動生成" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="system_process">
+          <mxGeometry x="240" y="40" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="revision_tracking" value="変更履歴管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="system_process">
+          <mxGeometry x="420" y="40" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="negotiation_history" value="交渉履歴記録" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="system_process">
+          <mxGeometry x="600" y="40" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="e_signature_process" value="電子署名プロセス管理" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="system_process">
+          <mxGeometry x="780" y="40" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="contract_repository" value="契約書リポジトリ" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" vertex="1" parent="system_process">
+          <mxGeometry x="940" y="40" width="120" height="50" as="geometry" />
+        </mxCell>
+        
+        <!-- システムフロー接続 -->
+        <mxCell id="system_flow_1" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="system_process" source="template_library" target="document_generation">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="280" as="sourcePoint" />
+            <mxPoint x="560" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="system_flow_2" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="system_process" source="document_generation" target="revision_tracking">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="280" as="sourcePoint" />
+            <mxPoint x="560" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="system_flow_3" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="system_process" source="revision_tracking" target="negotiation_history">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="280" as="sourcePoint" />
+            <mxPoint x="560" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="system_flow_4" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="system_process" source="negotiation_history" target="e_signature_process">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="280" as="sourcePoint" />
+            <mxPoint x="560" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="system_flow_5" value="" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="system_process" source="e_signature_process" target="contract_repository">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="510" y="280" as="sourcePoint" />
+            <mxPoint x="560" y="230" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- ユーザーとシステム間の接続 -->
+        <mxCell id="user_system_1" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="template_management" target="template_library">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="410" as="sourcePoint" />
+            <mxPoint x="600" y="360" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="user_system_2" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="contract_creation" target="document_generation">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="410" as="sourcePoint" />
+            <mxPoint x="600" y="360" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="300" y="250" />
+              <mxPoint x="300" y="460" />
+              <mxPoint x="300" y="540" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="user_system_3" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="contract_adjustments" target="negotiation_history">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="410" as="sourcePoint" />
+            <mxPoint x="600" y="360" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="660" y="210" />
+              <mxPoint x="520" y="210" />
+              <mxPoint x="520" y="520" />
+              <mxPoint x="660" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="user_system_4" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="signature_request" target="e_signature_process">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="410" as="sourcePoint" />
+            <mxPoint x="600" y="360" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="840" y="250" />
+              <mxPoint x="720" y="250" />
+              <mxPoint x="720" y="520" />
+              <mxPoint x="840" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="user_system_5" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="contract_archiving" target="contract_repository">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="410" as="sourcePoint" />
+            <mxPoint x="600" y="360" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="1000" y="250" />
+              <mxPoint x="1100" y="250" />
+              <mxPoint x="1100" y="520" />
+              <mxPoint x="1000" y="520" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        
+        <!-- 契約種別のスイムレーン -->
+        <mxCell id="contract_type_lane" value="契約種別" style="swimlane;childLayout=stackLayout;resizeParent=1;resizeParentMax=0;horizontal=1;startSize=30;horizontalStack=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="40" y="720" width="1080" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="contract_type_process" value="" style="swimlane;startSize=30;horizontal=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="contract_type_lane">
+          <mxGeometry y="30" width="1080" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- 契約種別のアクション -->
+        <mxCell id="direct_contract" value="個人契約" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="contract_type_process">
+          <mxGeometry x="60" y="15" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="delegation_contract" value="業務委託契約" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="contract_type_process">
+          <mxGeometry x="240" y="15" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="dispatch_contract" value="派遣契約" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="contract_type_process">
+          <mxGeometry x="420" y="15" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="nda" value="NDA/秘密保持契約" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="contract_type_process">
+          <mxGeometry x="600" y="15" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="master_contract" value="基本契約" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="contract_type_process">
+          <mxGeometry x="780" y="15" width="120" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="project_contract" value="個別案件契約" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="contract_type_process">
+          <mxGeometry x="940" y="15" width="120" height="40" as="geometry" />
+        </mxCell>
+        
+        <!-- 契約種別のフロー接続 -->
+        <mxCell id="type_flow_1" value="" style="endArrow=classic;html=1;rounded=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="direct_contract" target="contract_type_selection">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="550" y="710" as="sourcePoint" />
+            <mxPoint x="600" y="660" as="targetPoint" />
+            <Array as="points">
+              <mxPoint x="120" y="700" />
+              <mxPoint x="120" y="670" />
+              <mxPoint x="120" y="640" />
+              <mxPoint x="40" y="640" />
+              <mxPoint x="40" y="180" />
+              <mxPoint x="120" y="180" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
