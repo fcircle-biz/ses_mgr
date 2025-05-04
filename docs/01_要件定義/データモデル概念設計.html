@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム データモデル概念設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+        }
+        h3 {
+            color: #2980b9;
+            margin-top: 20px;
+        }
+        p, ul, ol {
+            margin-bottom: 20px;
+        }
+        ul li {
+            margin-bottom: 5px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-style: italic;
+            color: #666;
+        }
+        code {
+            font-family: 'Courier New', monospace;
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            display: block;
+            white-space: pre;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>SES業務システム データモデル概念設計</h1>
+
+    <h2>1. はじめに</h2>
+    <p>本ドキュメントは、SES業務システムのデータモデルを概念レベルで記述したものです。このデータモデル概念設計は、基本設計フェーズでのER図やテーブル定義書の詳細設計に先立ち、システムで扱う主要なエンティティ（情報の単位）とその関連性を整理することを目的としています。</p>
+
+    <h2>2. 主要エンティティ</h2>
+    <p>システムで管理する主要エンティティは以下の通りです：</p>
+
+    <h3>2.1 マスタ系エンティティ（基本情報）</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>エンティティ名</th>
+                <th>概要</th>
+                <th>主要な属性</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>会社</strong></td>
+                <td>自社、顧客企業、協力会社などの会社情報</td>
+                <td>会社ID、会社名、会社種別（自社/顧客/協力会社）、住所、電話番号、契約窓口担当者</td>
+            </tr>
+            <tr>
+                <td><strong>ユーザー</strong></td>
+                <td>システムを利用するユーザー情報</td>
+                <td>ユーザーID、氏名、会社ID、メールアドレス、電話番号、役割（営業/人事/技術者/PM/経理/経営層）</td>
+            </tr>
+            <tr>
+                <td><strong>スキル</strong></td>
+                <td>技術者が保有するスキル情報のマスタ</td>
+                <td>スキルID、スキル名、スキルカテゴリ（言語/DB/OS/フレームワークなど）</td>
+            </tr>
+            <tr>
+                <td><strong>契約種別</strong></td>
+                <td>契約の種別を管理</td>
+                <td>契約種別ID、契約種別名（準委任/派遣/請負）、説明</td>
+            </tr>
+            <tr>
+                <td><strong>契約テンプレート</strong></td>
+                <td>契約書の雛形</td>
+                <td>テンプレートID、テンプレート名、契約種別ID、本文テンプレート</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>2.2 トランザクション系エンティティ（業務データ）</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>エンティティ名</th>
+                <th>概要</th>
+                <th>主要な属性</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>案件</strong></td>
+                <td>顧客から受注する案件情報</td>
+                <td>案件ID、案件名、顧客ID、案件フェーズ（リード/提案/交渉/受注）、開始予定日、終了予定日、必要スキル、募集人数、単価レンジ、勤務地、担当営業ID</td>
+            </tr>
+            <tr>
+                <td><strong>技術者</strong></td>
+                <td>案件にアサインする技術者情報</td>
+                <td>技術者ID、ユーザーID、所属会社ID、稼働状況、単価情報、経験年数</td>
+            </tr>
+            <tr>
+                <td><strong>技術者スキル</strong></td>
+                <td>技術者が保有するスキル</td>
+                <td>技術者スキルID、技術者ID、スキルID、経験年数、スキルレベル</td>
+            </tr>
+            <tr>
+                <td><strong>マッチング</strong></td>
+                <td>案件と技術者のマッチング情報</td>
+                <td>マッチングID、案件ID、技術者ID、マッチングスコア、推薦日、ステータス（提案中/面談調整中/面談済/成約/不成立）</td>
+            </tr>
+            <tr>
+                <td><strong>契約</strong></td>
+                <td>成約した案件の契約情報</td>
+                <td>契約ID、案件ID、技術者ID（複数可）、顧客ID、契約種別ID、契約開始日、契約終了日、契約書ファイル、単価、支払レート、電子署名ステータス</td>
+            </tr>
+            <tr>
+                <td><strong>勤怠</strong></td>
+                <td>技術者の日次勤怠情報</td>
+                <td>勤怠ID、技術者ID、日付、開始時間、終了時間、休憩時間、作業内容、承認状態</td>
+            </tr>
+            <tr>
+                <td><strong>工数</strong></td>
+                <td>月次の工数集計情報</td>
+                <td>工数ID、技術者ID、年月、総稼働日数、総稼働時間、残業時間、承認者ID、承認状態</td>
+            </tr>
+            <tr>
+                <td><strong>請求</strong></td>
+                <td>顧客への請求情報</td>
+                <td>請求ID、顧客ID、契約ID、請求年月、請求金額、請求書発行日、支払期限、支払状態</td>
+            </tr>
+            <tr>
+                <td><strong>支払</strong></td>
+                <td>技術者/協力会社への支払情報</td>
+                <td>支払ID、技術者ID/会社ID、契約ID、支払年月、支払金額、支払予定日、支払状態</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>2.3 レポート系エンティティ</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>エンティティ名</th>
+                <th>概要</th>
+                <th>主要な属性</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>売上実績</strong></td>
+                <td>売上に関する実績データ</td>
+                <td>売上ID、顧客ID、案件ID、年月、売上金額、原価金額、粗利金額</td>
+            </tr>
+            <tr>
+                <td><strong>稼働実績</strong></td>
+                <td>技術者の稼働に関する実績データ</td>
+                <td>稼働実績ID、技術者ID、年月、稼働率、売上貢献額</td>
+            </tr>
+            <tr>
+                <td><strong>KPI</strong></td>
+                <td>経営指標データ</td>
+                <td>KPI_ID、指標名、年月、目標値、実績値、達成率</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>3. エンティティ間の関連性</h2>
+    <p>主要なエンティティ間の関連性は以下の通りです：</p>
+
+    <h3>3.1 案件管理に関する関連</h3>
+    <ul>
+        <li><strong>会社（顧客）</strong> - <strong>案件</strong> : 1対多
+            <ul>
+                <li>1つの顧客企業は複数の案件を発注することができる</li>
+            </ul>
+        </li>
+        <li><strong>ユーザー（営業担当）</strong> - <strong>案件</strong> : 1対多
+            <ul>
+                <li>1人の営業担当者は複数の案件を担当することができる</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>3.2 技術者管理に関する関連</h3>
+    <ul>
+        <li><strong>会社（自社/協力会社）</strong> - <strong>技術者</strong> : 1対多
+            <ul>
+                <li>1つの会社には複数の技術者が所属する</li>
+            </ul>
+        </li>
+        <li><strong>技術者</strong> - <strong>技術者スキル</strong> : 1対多
+            <ul>
+                <li>1人の技術者は複数のスキルを持つことができる</li>
+            </ul>
+        </li>
+        <li><strong>スキル</strong> - <strong>技術者スキル</strong> : 1対多
+            <ul>
+                <li>1つのスキルは複数の技術者に紐づく</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>3.3 マッチングに関する関連</h3>
+    <ul>
+        <li><strong>案件</strong> - <strong>マッチング</strong> : 1対多
+            <ul>
+                <li>1つの案件に対して複数の技術者がマッチングされる</li>
+            </ul>
+        </li>
+        <li><strong>技術者</strong> - <strong>マッチング</strong> : 1対多
+            <ul>
+                <li>1人の技術者は複数の案件にマッチングされる</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>3.4 契約に関する関連</h3>
+    <ul>
+        <li><strong>案件</strong> - <strong>契約</strong> : 1対多
+            <ul>
+                <li>1つの案件から複数の契約が生成される（複数の技術者が参画する場合）</li>
+            </ul>
+        </li>
+        <li><strong>技術者</strong> - <strong>契約</strong> : 多対多
+            <ul>
+                <li>1人の技術者は複数の契約に関連付けられる</li>
+                <li>1つの契約は複数の技術者を含むことがある（チーム単位の契約の場合）</li>
+            </ul>
+        </li>
+        <li><strong>契約種別</strong> - <strong>契約</strong> : 1対多
+            <ul>
+                <li>1つの契約種別は複数の契約に使用される</li>
+            </ul>
+        </li>
+        <li><strong>契約テンプレート</strong> - <strong>契約</strong> : 1対多
+            <ul>
+                <li>1つの契約テンプレートから複数の契約が生成される</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>3.5 勤怠・工数管理に関する関連</h3>
+    <ul>
+        <li><strong>技術者</strong> - <strong>勤怠</strong> : 1対多
+            <ul>
+                <li>1人の技術者は複数の勤怠情報を持つ</li>
+            </ul>
+        </li>
+        <li><strong>技術者</strong> - <strong>工数</strong> : 1対多
+            <ul>
+                <li>1人の技術者は複数の工数情報を持つ</li>
+            </ul>
+        </li>
+        <li><strong>ユーザー（承認者）</strong> - <strong>工数</strong> : 1対多
+            <ul>
+                <li>1人の承認者は複数の工数承認を行う</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>3.6 請求・支払に関する関連</h3>
+    <ul>
+        <li><strong>契約</strong> - <strong>請求</strong> : 1対多
+            <ul>
+                <li>1つの契約から複数の請求が発生する（月次請求の場合）</li>
+            </ul>
+        </li>
+        <li><strong>会社（顧客）</strong> - <strong>請求</strong> : 1対多
+            <ul>
+                <li>1つの顧客企業に対して複数の請求が発生する</li>
+            </ul>
+        </li>
+        <li><strong>契約</strong> - <strong>支払</strong> : 1対多
+            <ul>
+                <li>1つの契約から複数の支払が発生する（月次支払の場合）</li>
+            </ul>
+        </li>
+        <li><strong>技術者/会社</strong> - <strong>支払</strong> : 1対多
+            <ul>
+                <li>1人の技術者または1つの会社に対して複数の支払が発生する</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>3.7 レポート系に関する関連</h3>
+    <ul>
+        <li><strong>案件</strong> - <strong>売上実績</strong> : 1対多
+            <ul>
+                <li>1つの案件は複数の売上実績を持つ</li>
+            </ul>
+        </li>
+        <li><strong>技術者</strong> - <strong>稼働実績</strong> : 1対多
+            <ul>
+                <li>1人の技術者は複数の稼働実績を持つ</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>4. 多重度と主要関連図</h2>
+    <p>主要なエンティティ間の多重度は以下の通りです：</p>
+
+    <h3>4.1 案件管理とマッチング</h3>
+    <code>
+会社(顧客) 1 ---- * 案件 1 ---- * マッチング * ---- 1 技術者
+                    |                              |
+                    |                              |
+                    |                              |
+                    * -------- 1 契約 * ---------- *
+    </code>
+
+    <h3>4.2 技術者管理とスキル</h3>
+    <code>
+会社 1 ---- * 技術者 1 ---- * 技術者スキル * ---- 1 スキル
+    </code>
+
+    <h3>4.3 勤怠・工数と請求・支払</h3>
+    <code>
+技術者 1 ---- * 勤怠
+       |
+       1
+       |
+       * 工数 1 ---- 1 請求 1 ---- 1 顧客
+              |
+              1
+              |
+              * 支払 1 ---- 1 技術者/会社
+    </code>
+
+    <h2>5. 今後の設計に向けて</h2>
+    <p>このデータモデル概念設計は、基本設計フェーズでの詳細な設計作業の基礎となります。基本設計フェーズでは、以下の内容を詳細化していきます：</p>
+    <ol>
+        <li>物理テーブル設計（テーブル名、カラム名の決定）</li>
+        <li>データ型と制約の詳細定義</li>
+        <li>インデックス設計</li>
+        <li>正規化の適用</li>
+        <li>パフォーマンスを考慮した設計最適化</li>
+    </ol>
+    <p>基本設計では、このドキュメントで示した概念モデルをER図として視覚化し、テーブル定義書として詳細化します。</p>
+
+    <div class="footer">
+        <p>作成日: 2025-05-04<br>
+        作成者: システム化プロジェクトチーム</p>
+    </div>
+</body>
+</html>
