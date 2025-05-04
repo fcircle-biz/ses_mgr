@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 売上レポート画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../レポーティング画面設計.html">レポーティング画面設計</a></li>
+            <li class="active">売上レポート画面</li>
+        </ul>
+    </nav>
+
+    <h1>RPT-002: 売上レポート画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>RPT-002</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>売上レポート</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>期間・顧客・部門別の売上状況をレポートおよびグラフで表示する画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>経営層、管理者、部門管理者、一般ユーザー（権限によって表示内容が異なる）</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>RPT-001: KPIダッシュボード、メニュー画面</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>RPT-003: 粗利レポート、RPT-006: レポート作成</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [売上レポート画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>画面構成要素</h2>
+    <h3>1. 検索・フィルター部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>rpt002_001</td>
+            <td>集計期間</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>○</td>
+            <td>売上の集計期間（月次、四半期、年次、カスタム）</td>
+        </tr>
+        <tr>
+            <td>rpt002_002</td>
+            <td>カスタム期間（開始）</td>
+            <td>日付選択</td>
+            <td>日付形式</td>
+            <td>△</td>
+            <td>カスタム期間の開始日（集計期間でカスタムを選択した場合のみ表示）</td>
+        </tr>
+        <tr>
+            <td>rpt002_003</td>
+            <td>カスタム期間（終了）</td>
+            <td>日付選択</td>
+            <td>日付形式</td>
+            <td>△</td>
+            <td>カスタム期間の終了日（集計期間でカスタムを選択した場合のみ表示）</td>
+        </tr>
+        <tr>
+            <td>rpt002_004</td>
+            <td>対象年月</td>
+            <td>年月選択</td>
+            <td>-</td>
+            <td>△</td>
+            <td>集計対象の年月（集計期間で月次を選択した場合のみ表示）</td>
+        </tr>
+        <tr>
+            <td>rpt002_005</td>
+            <td>対象四半期</td>
+            <td>四半期選択</td>
+            <td>-</td>
+            <td>△</td>
+            <td>集計対象の四半期（集計期間で四半期を選択した場合のみ表示）</td>
+        </tr>
+        <tr>
+            <td>rpt002_006</td>
+            <td>対象年度</td>
+            <td>年度選択</td>
+            <td>-</td>
+            <td>△</td>
+            <td>集計対象の年度（集計期間で年次を選択した場合のみ表示）</td>
+        </tr>
+        <tr>
+            <td>rpt002_007</td>
+            <td>顧客</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>対象顧客の選択（全顧客、または特定顧客）</td>
+        </tr>
+        <tr>
+            <td>rpt002_008</td>
+            <td>部門</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>対象部門の選択（全部門、または特定部門）</td>
+        </tr>
+        <tr>
+            <td>rpt002_009</td>
+            <td>集計方法</td>
+            <td>ラジオボタン</td>
+            <td>-</td>
+            <td>○</td>
+            <td>集計方法の選択（請求ベース、契約ベース）</td>
+        </tr>
+        <tr>
+            <td>rpt002_010</td>
+            <td>表示単位</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>○</td>
+            <td>金額の表示単位（円、千円、万円）</td>
+        </tr>
+        <tr>
+            <td>rpt002_011</td>
+            <td>比較期間</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>前年同期との比較を表示するかどうか</td>
+        </tr>
+        <tr>
+            <td>rpt002_012</td>
+            <td>レポート生成ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>選択した条件でレポートを生成</td>
+        </tr>
+    </table>
+
+    <h3>2. グラフ表示エリア</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>rpt002_013</td>
+            <td>売上推移グラフ</td>
+            <td>折れ線/棒グラフ</td>
+            <td>期間ごとの売上推移を表示（月別、四半期別、年度別）</td>
+        </tr>
+        <tr>
+            <td>rpt002_014</td>
+            <td>前年同期比較グラフ</td>
+            <td>棒グラフ（並列）</td>
+            <td>当期と前年同期の売上を比較表示（比較期間にチェックがある場合のみ表示）</td>
+        </tr>
+        <tr>
+            <td>rpt002_015</td>
+            <td>顧客別売上構成グラフ</td>
+            <td>円グラフ/ドーナツグラフ</td>
+            <td>顧客別の売上構成比を表示</td>
+        </tr>
+        <tr>
+            <td>rpt002_016</td>
+            <td>部門別売上構成グラフ</td>
+            <td>円グラフ/ドーナツグラフ</td>
+            <td>部門別の売上構成比を表示</td>
+        </tr>
+        <tr>
+            <td>rpt002_017</td>
+            <td>グラフ表示切替タブ</td>
+            <td>タブ</td>
+            <td>各種グラフ間の切り替え</td>
+        </tr>
+        <tr>
+            <td>rpt002_018</td>
+            <td>グラフ種類切替ボタン</td>
+            <td>アイコンボタン</td>
+            <td>グラフの種類（棒、折れ線、面、円など）を切り替える</td>
+        </tr>
+    </table>
+
+    <h3>3. データ表示エリア</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>rpt002_019</td>
+            <td>売上サマリー</td>
+            <td>テキスト表示</td>
+            <td>期間内の総売上、平均月次売上、最高/最低月の売上などのサマリー情報</td>
+        </tr>
+        <tr>
+            <td>rpt002_020</td>
+            <td>売上推移テーブル</td>
+            <td>テーブル</td>
+            <td>期間ごとの売上データを表形式で表示（月別、四半期別、年度別）</td>
+        </tr>
+        <tr>
+            <td>rpt002_021</td>
+            <td>顧客別売上テーブル</td>
+            <td>テーブル</td>
+            <td>顧客別の売上データを表形式で表示（売上額、構成比、前年同期比など）</td>
+        </tr>
+        <tr>
+            <td>rpt002_022</td>
+            <td>部門別売上テーブル</td>
+            <td>テーブル</td>
+            <td>部門別の売上データを表形式で表示（売上額、構成比、前年同期比など）</td>
+        </tr>
+        <tr>
+            <td>rpt002_023</td>
+            <td>案件別売上テーブル</td>
+            <td>テーブル</td>
+            <td>案件別の売上データを表形式で表示（売上額、構成比など）</td>
+        </tr>
+        <tr>
+            <td>rpt002_024</td>
+            <td>表示切替タブ</td>
+            <td>タブ</td>
+            <td>各種テーブル間の切り替え</td>
+        </tr>
+        <tr>
+            <td>rpt002_025</td>
+            <td>ページネーション</td>
+            <td>ページ制御</td>
+            <td>テーブルデータの複数ページ表示制御</td>
+        </tr>
+    </table>
+
+    <h3>4. 操作ボタン</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>rpt002_026</td>
+            <td>CSVエクスポートボタン</td>
+            <td>ボタン</td>
+            <td>表示中のレポートデータをCSV形式でエクスポート</td>
+        </tr>
+        <tr>
+            <td>rpt002_027</td>
+            <td>PDFエクスポートボタン</td>
+            <td>ボタン</td>
+            <td>表示中のレポートをPDF形式でエクスポート</td>
+        </tr>
+        <tr>
+            <td>rpt002_028</td>
+            <td>Excelエクスポートボタン</td>
+            <td>ボタン</td>
+            <td>表示中のレポートデータをExcel形式でエクスポート</td>
+        </tr>
+        <tr>
+            <td>rpt002_029</td>
+            <td>レポート共有ボタン</td>
+            <td>ボタン</td>
+            <td>レポートを他のユーザーと共有（メール送信など）</td>
+        </tr>
+        <tr>
+            <td>rpt002_030</td>
+            <td>レポート印刷ボタン</td>
+            <td>ボタン</td>
+            <td>レポートを印刷用フォーマットで表示</td>
+        </tr>
+        <tr>
+            <td>rpt002_031</td>
+            <td>粗利レポート切替ボタン</td>
+            <td>リンクボタン</td>
+            <td>同条件で粗利レポート画面（RPT-003）に切り替え</td>
+        </tr>
+        <tr>
+            <td>rpt002_032</td>
+            <td>カスタムレポート作成ボタン</td>
+            <td>リンクボタン</td>
+            <td>レポート作成画面（RPT-006）へ遷移</td>
+        </tr>
+    </table>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、当月の全社データを表示する</li>
+        <li>集計期間を変更すると、関連する期間選択フィールド（対象年月、対象四半期、対象年度、カスタム期間）が適切に表示/非表示される</li>
+        <li>レポート生成ボタンをクリックすると、選択した条件でレポートデータが生成される</li>
+        <li>グラフ表示エリアでは、タブを切り替えることで異なるグラフを表示できる</li>
+        <li>グラフ種類切替ボタンで、同じデータを異なる種類のグラフ（棒、折れ線、面、円など）で表示できる</li>
+        <li>データ表示エリアでは、タブを切り替えることで異なるテーブルデータを表示できる</li>
+        <li>テーブルの各列ヘッダーをクリックすると、その列でソートされる（昇順/降順の切り替え可能）</li>
+        <li>各グラフはマウスオーバーで詳細データのツールチップが表示される</li>
+        <li>各グラフはクリック/ドリルダウンで、より詳細なデータビューを表示できる:
+            <ul>
+                <li>顧客別グラフの特定顧客をクリックすると、その顧客の月別売上データが表示される</li>
+                <li>部門別グラフの特定部門をクリックすると、その部門の顧客別売上データが表示される</li>
+                <li>月別グラフの特定月をクリックすると、その月の顧客別・部門別売上データが表示される</li>
+            </ul>
+        </li>
+        <li>CSVエクスポートボタンをクリックすると、表示中のレポートデータがCSVファイルとしてダウンロードされる</li>
+        <li>PDFエクスポートボタンをクリックすると、表示中のレポート（グラフとテーブル）がPDFファイルとしてダウンロードされる</li>
+        <li>Excelエクスポートボタンをクリックすると、表示中のレポートデータがExcelファイルとしてダウンロードされる</li>
+        <li>レポート共有ボタンをクリックすると、レポートの共有オプション（メール送信、リンク共有など）が表示される</li>
+        <li>レポート印刷ボタンをクリックすると、印刷用に最適化されたレポート表示に切り替わる</li>
+        <li>粗利レポート切替ボタンをクリックすると、同じ条件設定のまま粗利レポート画面（RPT-003）に遷移する</li>
+        <li>カスタムレポート作成ボタンをクリックすると、現在の条件を引き継いでレポート作成画面（RPT-006）に遷移する</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意事項：</strong></p>
+        <ul>
+            <li>ユーザーの権限レベルによって、表示されるデータ範囲や操作可能な機能が異なる:
+                <ul>
+                    <li>経営層・管理者: 全社データの閲覧が可能</li>
+                    <li>部門管理者: 自部門のデータのみ閲覧可能</li>
+                    <li>一般ユーザー: 担当案件・顧客のデータのみ閲覧可能</li>
+                </ul>
+            </li>
+            <li>売上データは請求ベースと契約ベースの2種類の集計方法を提供する（会計処理の違いに対応）</li>
+            <li>大量データ処理時には、パフォーマンスを考慮した非同期処理とプログレスインジケータを表示する</li>
+            <li>比較期間を有効にすると、前年同期とのパーセント差分が色分け表示される（増加: 緑、減少: 赤）</li>
+            <li>過去5年分のデータが参照可能だが、それ以前のデータは別途アーカイブから取得する必要がある</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

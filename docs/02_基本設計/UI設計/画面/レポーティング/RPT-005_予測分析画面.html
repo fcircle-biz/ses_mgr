@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 予測分析画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../レポーティング画面設計.html">レポーティング画面設計</a></li>
+            <li class="active">予測分析画面</li>
+        </ul>
+    </nav>
+
+    <h1>RPT-005: 予測分析画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>RPT-005</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>予測分析</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>過去のデータに基づいて将来の売上・稼働等を予測するトレンド分析および「what-if」シミュレーションを行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>経営層、管理者、部門管理者（権限によって表示内容が異なる）</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>RPT-001: KPIダッシュボード、RPT-004: 稼働率レポート、メニュー画面</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>RPT-006: レポート作成</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [予測分析画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>画面構成要素</h2>
+    <h3>1. 分析設定部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>rpt005_001</td>
+            <td>分析対象</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>○</td>
+            <td>予測分析の対象指標（売上、粗利、稼働率、要員数、人件費など）</td>
+        </tr>
+        <tr>
+            <td>rpt005_002</td>
+            <td>予測期間</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>○</td>
+            <td>予測する期間（3ヶ月後、6ヶ月後、1年後、2年後）</td>
+        </tr>
+        <tr>
+            <td>rpt005_003</td>
+            <td>トレンド分析期間</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>○</td>
+            <td>分析の基礎となる過去データの期間（直近6ヶ月、1年、2年、3年）</td>
+        </tr>
+        <tr>
+            <td>rpt005_004</td>
+            <td>予測粒度</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>○</td>
+            <td>予測結果の時間粒度（日次、週次、月次、四半期、年次）</td>
+        </tr>
+        <tr>
+            <td>rpt005_005</td>
+            <td>全社/部門別</td>
+            <td>ラジオボタン</td>
+            <td>-</td>
+            <td>○</td>
+            <td>予測範囲の選択（全社、部門別）</td>
+        </tr>
+        <tr>
+            <td>rpt005_006</td>
+            <td>部門</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>-</td>
+            <td>△</td>
+            <td>対象部門の選択（部門別を選択した場合のみ表示）</td>
+        </tr>
+        <tr>
+            <td>rpt005_007</td>
+            <td>シナリオ分析</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>複数シナリオの比較分析を行うかどうか</td>
+        </tr>
+        <tr>
+            <td>rpt005_008</td>
+            <td>予測実行ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>選択した条件で予測分析を実行</td>
+        </tr>
+    </table>
+
+    <h3>2. シナリオ設定部分（シナリオ分析にチェックがある場合のみ表示）</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>rpt005_009</td>
+            <td>シナリオ数</td>
+            <td>数値入力</td>
+            <td>1-5</td>
+            <td>○</td>
+            <td>比較するシナリオの数</td>
+        </tr>
+        <tr>
+            <td>rpt005_010</td>
+            <td>基本シナリオ名</td>
+            <td>テキスト入力</td>
+            <td>最大50文字</td>
+            <td>○</td>
+            <td>基本シナリオの名称</td>
+        </tr>
+        <tr>
+            <td>rpt005_011</td>
+            <td>シナリオ1名</td>
+            <td>テキスト入力</td>
+            <td>最大50文字</td>
+            <td>△</td>
+            <td>シナリオ1の名称</td>
+        </tr>
+        <tr>
+            <td>rpt005_012</td>
+            <td>シナリオ1変数設定</td>
+            <td>複合コントロール</td>
+            <td>-</td>
+            <td>△</td>
+            <td>シナリオ1の変数設定（変数名と調整値）</td>
+        </tr>
+        <tr>
+            <td>rpt005_013</td>
+            <td>シナリオ2名</td>
+            <td>テキスト入力</td>
+            <td>最大50文字</td>
+            <td>△</td>
+            <td>シナリオ2の名称</td>
+        </tr>
+        <tr>
+            <td>rpt005_014</td>
+            <td>シナリオ2変数設定</td>
+            <td>複合コントロール</td>
+            <td>-</td>
+            <td>△</td>
+            <td>シナリオ2の変数設定（変数名と調整値）</td>
+        </tr>
+        <tr>
+            <td>rpt005_015</td>
+            <td>シナリオ3名</td>
+            <td>テキスト入力</td>
+            <td>最大50文字</td>
+            <td>△</td>
+            <td>シナリオ3の名称</td>
+        </tr>
+        <tr>
+            <td>rpt005_016</td>
+            <td>シナリオ3変数設定</td>
+            <td>複合コントロール</td>
+            <td>-</td>
+            <td>△</td>
+            <td>シナリオ3の変数設定（変数名と調整値）</td>
+        </tr>
+        <tr>
+            <td>rpt005_017</td>
+            <td>シナリオ4名</td>
+            <td>テキスト入力</td>
+            <td>最大50文字</td>
+            <td>△</td>
+            <td>シナリオ4の名称</td>
+        </tr>
+        <tr>
+            <td>rpt005_018</td>
+            <td>シナリオ4変数設定</td>
+            <td>複合コントロール</td>
+            <td>-</td>
+            <td>△</td>
+            <td>シナリオ4の変数設定（変数名と調整値）</td>
+        </tr>
+    </table>
+
+    <h3>3. トレンド分析結果表示エリア</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>rpt005_019</td>
+            <td>予測グラフ</td>
+            <td>折れ線グラフ</td>
+            <td>過去の実績データと未来の予測データを連続的に表示するグラフ（信頼区間付き）</td>
+        </tr>
+        <tr>
+            <td>rpt005_020</td>
+            <td>予測サマリー</td>
+            <td>テキスト表示</td>
+            <td>予測結果の要約情報（予測値、変化率、信頼度など）</td>
+        </tr>
+        <tr>
+            <td>rpt005_021</td>
+            <td>予測詳細テーブル</td>
+            <td>テーブル</td>
+            <td>時点ごとの予測値、信頼区間上限/下限、前年同期比などを表形式で表示</td>
+        </tr>
+        <tr>
+            <td>rpt005_022</td>
+            <td>影響要因分析</td>
+            <td>棒グラフ/テキスト</td>
+            <td>予測結果に影響を与える主要要因とその影響度を表示</td>
+        </tr>
+        <tr>
+            <td>rpt005_023</td>
+            <td>予測精度指標</td>
+            <td>テキスト表示</td>
+            <td>予測モデルの精度情報（RMSE、MAE、R²など）</td>
+        </tr>
+    </table>
+
+    <h3>4. シナリオ分析結果表示エリア（シナリオ分析を選択した場合のみ表示）</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>rpt005_024</td>
+            <td>シナリオ比較グラフ</td>
+            <td>折れ線グラフ（複数系列）</td>
+            <td>複数シナリオの予測結果を重ねて表示するグラフ</td>
+        </tr>
+        <tr>
+            <td>rpt005_025</td>
+            <td>シナリオ比較テーブル</td>
+            <td>テーブル</td>
+            <td>各シナリオの予測結果を比較する表</td>
+        </tr>
+        <tr>
+            <td>rpt005_026</td>
+            <td>シナリオインパクト分析</td>
+            <td>レーダーチャート/棒グラフ</td>
+            <td>各シナリオが重要KPIに与える影響を比較表示</td>
+        </tr>
+        <tr>
+            <td>rpt005_027</td>
+            <td>感度分析グラフ</td>
+            <td>トルネードチャート</td>
+            <td>変数の変化が結果に与える影響度を表示</td>
+        </tr>
+    </table>
+
+    <h3>5. 操作ボタン</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>rpt005_028</td>
+            <td>CSVエクスポートボタン</td>
+            <td>ボタン</td>
+            <td>予測データをCSV形式でエクスポート</td>
+        </tr>
+        <tr>
+            <td>rpt005_029</td>
+            <td>PDFエクスポートボタン</td>
+            <td>ボタン</td>
+            <td>予測レポートをPDF形式でエクスポート</td>
+        </tr>
+        <tr>
+            <td>rpt005_030</td>
+            <td>Excelエクスポートボタン</td>
+            <td>ボタン</td>
+            <td>予測データをExcel形式でエクスポート</td>
+        </tr>
+        <tr>
+            <td>rpt005_031</td>
+            <td>レポート共有ボタン</td>
+            <td>ボタン</td>
+            <td>予測レポートを他のユーザーと共有（メール送信など）</td>
+        </tr>
+        <tr>
+            <td>rpt005_032</td>
+            <td>予測保存ボタン</td>
+            <td>ボタン</td>
+            <td>予測結果をシステムに保存し、後で参照可能にする</td>
+        </tr>
+        <tr>
+            <td>rpt005_033</td>
+            <td>予測履歴ボタン</td>
+            <td>ボタン</td>
+            <td>過去に保存した予測結果の一覧を表示</td>
+        </tr>
+        <tr>
+            <td>rpt005_034</td>
+            <td>変数調整ボタン</td>
+            <td>ボタン</td>
+            <td>予測モデルの変数を手動で調整するためのモーダルを表示</td>
+        </tr>
+    </table>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、デフォルト設定（売上の6ヶ月予測、直近1年のデータを基に月次粒度で全社分析）が選択される</li>
+        <li>分析対象を変更すると、その指標に適した予測モデルが自動選択される</li>
+        <li>予測期間、トレンド分析期間、予測粒度を選択して予測実行ボタンをクリックすると、予測分析が開始される</li>
+        <li>分析処理中はプログレスインジケータが表示され、処理完了後に予測結果が表示される</li>
+        <li>予測グラフには以下の要素が表示される:
+            <ul>
+                <li>過去の実績データ（実線）</li>
+                <li>未来の予測データ（点線）</li>
+                <li>信頼区間（バンド表示: 70%信頼区間=薄い色、95%信頼区間=濃い色）</li>
+                <li>重要なイベントや季節性（マーカーや注釈で表示）</li>
+            </ul>
+        </li>
+        <li>予測サマリーには、最終予測時点の予測値、現在からの変化率、予測の信頼度などが表示される</li>
+        <li>影響要因分析には、予測結果に影響を与える主要因子とその影響度（正/負）が表示される</li>
+        <li>シナリオ分析にチェックを入れると、シナリオ設定部分が表示され、複数シナリオの比較分析が可能になる</li>
+        <li>シナリオ変数設定では、以下のような変数を調整できる:
+            <ul>
+                <li>顧客増加率</li>
+                <li>案件単価変動率</li>
+                <li>技術者採用数</li>
+                <li>離職率</li>
+                <li>単価上昇率</li>
+                <li>稼働率想定</li>
+                <li>経済指標連動</li>
+            </ul>
+        </li>
+        <li>シナリオ比較グラフでは、各シナリオの予測結果が異なる色の線で表示され、視覚的に比較できる</li>
+        <li>シナリオインパクト分析では、各シナリオが重要KPI（売上、粗利、稼働率、人員数、ROI）に与える影響が比較表示される</li>
+        <li>感度分析グラフでは、各変数を±10%変動させた場合の結果への影響度がトルネードチャートで表示される</li>
+        <li>CSVエクスポートボタンをクリックすると、予測データがCSVファイルとしてダウンロードされる</li>
+        <li>PDFエクスポートボタンをクリックすると、グラフや分析結果を含む予測レポートがPDFファイルとしてダウンロードされる</li>
+        <li>Excelエクスポートボタンをクリックすると、予測データと分析結果がExcelファイルとしてダウンロードされる</li>
+        <li>レポート共有ボタンをクリックすると、予測レポートの共有オプション（メール送信、リンク共有など）が表示される</li>
+        <li>予測保存ボタンをクリックすると、現在の予測結果とその設定がシステムに保存され、後で参照可能になる</li>
+        <li>予測履歴ボタンをクリックすると、過去に保存した予測結果の一覧が表示され、過去の予測と実績の比較も可能になる</li>
+        <li>変数調整ボタンをクリックすると、予測モデルの詳細変数を手動で調整するためのモーダルが表示される（高度な分析機能）</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意事項：</strong></p>
+        <ul>
+            <li>予測機能は意思決定支援ツールであり、その精度には限界があることを理解して使用すること</li>
+            <li>予測結果は過去データのパターンに基づくものであり、予期せぬ外部要因の影響は考慮されていない場合がある</li>
+            <li>予測の信頼度は予測期間が長くなるほど低下する傾向があるため、長期予測は参考程度に留めること</li>
+            <li>シナリオ分析では極端な変数設定を避け、現実的な範囲内で設定すること</li>
+            <li>ユーザーの権限レベルによって、使用できる予測機能の範囲が異なる:
+                <ul>
+                    <li>経営層・上級管理者: 全ての予測機能（長期予測、複雑なシナリオ分析など）が利用可能</li>
+                    <li>部門管理者: 自部門のデータに関する基本的な予測機能のみ利用可能</li>
+                    <li>一般ユーザー: 原則として利用不可（特別な権限付与が必要）</li>
+                </ul>
+            </li>
+            <li>予測処理は計算負荷が高いため、複雑な分析を実行する場合は処理に時間がかかる場合がある</li>
+            <li>予測結果の解釈には専門知識が必要なため、必要に応じて経営分析の専門家に相談することを推奨</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

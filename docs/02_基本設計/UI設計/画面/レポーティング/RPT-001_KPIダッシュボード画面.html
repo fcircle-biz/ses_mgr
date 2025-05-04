@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム KPIダッシュボード画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../レポーティング画面設計.html">レポーティング画面設計</a></li>
+            <li class="active">KPIダッシュボード画面</li>
+        </ul>
+    </nav>
+
+    <h1>RPT-001: KPIダッシュボード画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>RPT-001</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>KPIダッシュボード</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>主要KPI指標をグラフィカルに一覧表示するダッシュボード画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>経営層、管理者、部門管理者、一般ユーザー（権限によって表示内容が異なる）</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CMN-002: ダッシュボード、メニュー画面</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>RPT-002: 売上レポート、RPT-003: 粗利レポート、RPT-004: 稼働率レポート、RPT-005: 予測分析</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [KPIダッシュボード画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>画面構成要素</h2>
+    <h3>1. フィルター・設定部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>rpt001_001</td>
+            <td>表示期間</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>○</td>
+            <td>表示するデータの期間（当月、当四半期、当年、過去12ヶ月、カスタム）</td>
+        </tr>
+        <tr>
+            <td>rpt001_002</td>
+            <td>カスタム期間（開始）</td>
+            <td>日付選択</td>
+            <td>日付形式</td>
+            <td>△</td>
+            <td>カスタム期間の開始日（表示期間でカスタムを選択した場合のみ表示）</td>
+        </tr>
+        <tr>
+            <td>rpt001_003</td>
+            <td>カスタム期間（終了）</td>
+            <td>日付選択</td>
+            <td>日付形式</td>
+            <td>△</td>
+            <td>カスタム期間の終了日（表示期間でカスタムを選択した場合のみ表示）</td>
+        </tr>
+        <tr>
+            <td>rpt001_004</td>
+            <td>部門</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>表示する部門（全社、特定部門）</td>
+        </tr>
+        <tr>
+            <td>rpt001_005</td>
+            <td>表示更新ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>選択した条件でダッシュボードを更新</td>
+        </tr>
+        <tr>
+            <td>rpt001_006</td>
+            <td>レイアウト設定</td>
+            <td>ボタン（モーダル表示）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ダッシュボードのレイアウトをカスタマイズするための設定ボタン</td>
+        </tr>
+    </table>
+
+    <h3>2. KPI概要エリア</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>rpt001_007</td>
+            <td>売上KPIカード</td>
+            <td>カード表示</td>
+            <td>当期の売上合計、前期比増減率、目標達成率を表示</td>
+        </tr>
+        <tr>
+            <td>rpt001_008</td>
+            <td>利益KPIカード</td>
+            <td>カード表示</td>
+            <td>当期の粗利合計、前期比増減率、目標達成率を表示</td>
+        </tr>
+        <tr>
+            <td>rpt001_009</td>
+            <td>稼働率KPIカード</td>
+            <td>カード表示</td>
+            <td>当期の平均稼働率、前期比増減率、目標達成率を表示</td>
+        </tr>
+        <tr>
+            <td>rpt001_010</td>
+            <td>案件数KPIカード</td>
+            <td>カード表示</td>
+            <td>当期の進行中案件数、前期比増減率を表示</td>
+        </tr>
+        <tr>
+            <td>rpt001_011</td>
+            <td>待機人数KPIカード</td>
+            <td>カード表示</td>
+            <td>当期の待機技術者数、前期比増減率を表示</td>
+        </tr>
+    </table>
+
+    <h3>3. グラフ表示エリア</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>rpt001_012</td>
+            <td>売上推移グラフ</td>
+            <td>折れ線/棒グラフ</td>
+            <td>期間内の売上推移を表示（月次または週次）</td>
+        </tr>
+        <tr>
+            <td>rpt001_013</td>
+            <td>利益推移グラフ</td>
+            <td>折れ線/棒グラフ</td>
+            <td>期間内の利益推移を表示（月次または週次）</td>
+        </tr>
+        <tr>
+            <td>rpt001_014</td>
+            <td>稼働率推移グラフ</td>
+            <td>折れ線グラフ</td>
+            <td>期間内の稼働率推移を表示（月次または週次）</td>
+        </tr>
+        <tr>
+            <td>rpt001_015</td>
+            <td>顧客別売上構成円グラフ</td>
+            <td>円グラフ/ドーナツグラフ</td>
+            <td>顧客別の売上構成比を表示</td>
+        </tr>
+        <tr>
+            <td>rpt001_016</td>
+            <td>部門別売上構成円グラフ</td>
+            <td>円グラフ/ドーナツグラフ</td>
+            <td>部門別の売上構成比を表示</td>
+        </tr>
+        <tr>
+            <td>rpt001_017</td>
+            <td>スキル別稼働状況グラフ</td>
+            <td>棒グラフ/ヒートマップ</td>
+            <td>スキル別の技術者稼働状況を表示</td>
+        </tr>
+    </table>
+
+    <h3>4. その他の表示エリア</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>rpt001_018</td>
+            <td>アラート表示エリア</td>
+            <td>アラートリスト</td>
+            <td>注意が必要なKPI変動や閾値超過の警告を表示</td>
+        </tr>
+        <tr>
+            <td>rpt001_019</td>
+            <td>KPI目標設定ボタン</td>
+            <td>ボタン（モーダル表示）</td>
+            <td>KPI目標値を設定するモーダルを表示（管理者権限のみ）</td>
+        </tr>
+        <tr>
+            <td>rpt001_020</td>
+            <td>詳細レポートリンク</td>
+            <td>リンクボタン</td>
+            <td>各KPIの詳細レポート画面へのリンク</td>
+        </tr>
+        <tr>
+            <td>rpt001_021</td>
+            <td>ダッシュボード共有ボタン</td>
+            <td>ボタン</td>
+            <td>現在のダッシュボード設定をPDF/画像としてエクスポートまたはメール共有</td>
+        </tr>
+    </table>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、当月のデータを全社レベルで表示する</li>
+        <li>表示期間を変更し、表示更新ボタンをクリックすると、選択した期間のデータでダッシュボードが更新される</li>
+        <li>カスタム期間を選択した場合は、開始日と終了日の入力が必須となる</li>
+        <li>各KPIカードには、以下の情報が表示される:
+            <ul>
+                <li>当期の実績値（合計または平均）</li>
+                <li>前期比の増減率（%、上昇/下降を色で区別）</li>
+                <li>目標に対する達成率（%、ゲージ表示）</li>
+            </ul>
+        </li>
+        <li>グラフエリアの各グラフは、マウスオーバーで詳細データのツールチップが表示される</li>
+        <li>グラフエリアの各グラフは、クリックで該当する詳細レポート画面へ遷移する</li>
+        <li>レイアウト設定ボタンをクリックすると、ダッシュボードのカスタマイズが可能なモーダルが表示される:
+            <ul>
+                <li>表示するKPI・グラフの選択</li>
+                <li>KPI・グラフの表示順序の変更</li>
+                <li>グラフの種類変更（棒/折れ線/エリアなど）</li>
+                <li>グラフの色設定</li>
+            </ul>
+        </li>
+        <li>KPI目標設定ボタン（管理者権限のみ表示）をクリックすると、各KPIの目標値を設定するモーダルが表示される</li>
+        <li>ダッシュボード共有ボタンをクリックすると、現在表示中のダッシュボードをPDFまたは画像としてエクスポート、または指定ユーザーへメール送信するオプションが表示される</li>
+        <li>アラート表示エリアには、以下のような警告が表示される:
+            <ul>
+                <li>前月比で10%以上の売上減少</li>
+                <li>目標稼働率を5%以上下回っている</li>
+                <li>待機人数が基準値を超えている</li>
+                <li>特定顧客への依存度が高い（売上構成比が30%以上など）</li>
+            </ul>
+        </li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意事項：</strong></p>
+        <ul>
+            <li>ユーザーの権限レベルによって、表示されるデータ範囲や操作可能な機能が異なる:
+                <ul>
+                    <li>経営層・管理者: 全社データの閲覧と全ての機能が利用可能</li>
+                    <li>部門管理者: 自部門のデータのみ閲覧可能</li>
+                    <li>一般ユーザー: 担当案件・顧客のデータのみ閲覧可能、カスタマイズ機能は制限される</li>
+                </ul>
+            </li>
+            <li>データ更新頻度: 基本的には日次更新だが、リアルタイム性の高いKPI（稼働状況など）は、より高頻度で更新される</li>
+            <li>大量データの表示処理では、パフォーマンスを考慮し、適切なデータサマリーと遅延読み込み（Lazy Loading）を実装する</li>
+            <li>モバイル端末での表示時は、レスポンシブデザインにより重要KPIを優先表示する</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

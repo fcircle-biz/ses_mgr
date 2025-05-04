@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム レポーティング画面設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .mockup {
+            font-family: monospace;
+            white-space: pre;
+            background-color: #f8f8f8;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        .screen-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .screen-list li {
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .screen-list a {
+            display: block;
+            padding: 15px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            background-color: #f8f9fa;
+            transition: background-color 0.2s;
+        }
+        .screen-list a:hover {
+            background-color: #e9ecef;
+        }
+        .screen-list .screen-id {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+        .screen-list .screen-desc {
+            display: block;
+            color: #666;
+            font-weight: normal;
+            margin-top: 8px;
+            padding-left: 5px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>SES業務システム レポーティング画面設計</h1>
+
+    <h2>画面一覧</h2>
+    <p>レポーティング機能では、以下の画面を提供します。各画面の詳細設計は、リンク先のドキュメントを参照してください。</p>
+    
+    <ul class="screen-list">
+        <li>
+            <a href="画面/レポーティング/RPT-001_KPIダッシュボード画面.html">
+                <span class="screen-id">RPT-001</span> KPIダッシュボード画面
+                <span class="screen-desc">主要KPI指標のグラフィカルなダッシュボード表示（売上、利益、稼働率、案件数など）</span>
+            </a>
+        </li>
+        <li>
+            <a href="画面/レポーティング/RPT-002_売上レポート画面.html">
+                <span class="screen-id">RPT-002</span> 売上レポート画面
+                <span class="screen-desc">期間・顧客・部門別の売上状況のレポートとグラフ表示</span>
+            </a>
+        </li>
+        <li>
+            <a href="画面/レポーティング/RPT-003_粗利レポート画面.html">
+                <span class="screen-id">RPT-003</span> 粗利レポート画面
+                <span class="screen-desc">期間・顧客・部門別の粗利状況のレポートとグラフ表示</span>
+            </a>
+        </li>
+        <li>
+            <a href="画面/レポーティング/RPT-004_稼働率レポート画面.html">
+                <span class="screen-id">RPT-004</span> 稼働率レポート画面
+                <span class="screen-desc">期間・部門別の技術者稼働率レポートとグラフ表示</span>
+            </a>
+        </li>
+        <li>
+            <a href="画面/レポーティング/RPT-005_予測分析画面.html">
+                <span class="screen-id">RPT-005</span> 予測分析画面
+                <span class="screen-desc">売上・稼働のトレンド分析およびシミュレーション機能</span>
+            </a>
+        </li>
+        <li>
+            <a href="画面/レポーティング/RPT-006_レポート作成画面.html">
+                <span class="screen-id">RPT-006</span> レポート作成画面
+                <span class="screen-desc">条件指定によるカスタムレポートの作成とエクスポート機能</span>
+            </a>
+        </li>
+    </ul>
+
+    <h2>画面遷移図</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [レポーティング機能の画面遷移図]
+        </div>
+    </div>
+
+    <h2>機能概要</h2>
+    <table>
+        <tr>
+            <th>機能</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>KPIダッシュボード</td>
+            <td>主要KPI指標（売上、利益、稼働率、案件数など）をグラフィカルに表示するダッシュボード機能</td>
+        </tr>
+        <tr>
+            <td>売上レポート</td>
+            <td>期間・顧客・部門別の売上状況を分析するレポートとグラフ表示機能</td>
+        </tr>
+        <tr>
+            <td>粗利レポート</td>
+            <td>期間・顧客・部門別の粗利状況を分析するレポートとグラフ表示機能</td>
+        </tr>
+        <tr>
+            <td>稼働率レポート</td>
+            <td>期間・部門別の技術者稼働率を分析するレポートとグラフ表示機能</td>
+        </tr>
+        <tr>
+            <td>予測分析</td>
+            <td>過去データから将来の売上・稼働を予測するトレンド分析およびシミュレーション機能</td>
+        </tr>
+        <tr>
+            <td>カスタムレポート作成</td>
+            <td>条件を自由に指定してカスタムレポートを作成し、CSV/PDF/Excelなどにエクスポートする機能</td>
+        </tr>
+        <tr>
+            <td>データ可視化</td>
+            <td>様々な種類のグラフ（棒グラフ、折れ線グラフ、円グラフ、散布図など）でデータを可視化する機能</td>
+        </tr>
+    </table>
+
+    <div class="note">
+        <p><strong>注意：</strong> ユーザーの権限レベルによって、表示されるデータやレポートの範囲が異なります。</p>
+        <ul>
+            <li>一般ユーザー：担当する顧客や案件に関するレポートのみ閲覧可能</li>
+            <li>部門管理者：自部門のデータ全体を閲覧可能</li>
+            <li>経営層・管理者：全社のデータを閲覧可能</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>
