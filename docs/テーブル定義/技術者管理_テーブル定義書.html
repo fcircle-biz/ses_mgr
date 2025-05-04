@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技術者管理 テーブル定義書 (PostgreSQL)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+        }
+        p {
+            margin-bottom: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        ul {
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 5px;
+        }
+        .code-block {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            margin-bottom: 20px;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>技術者管理 テーブル定義書 (PostgreSQL)</h1>
+
+    <h2>技術者テーブル (engineers)</h2>
+    <p>技術者の基本情報を管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>engineer_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td></td>
+                <td>技術者ID</td>
+            </tr>
+            <tr>
+                <td>company_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(companies.company_id)</td>
+                <td></td>
+                <td>所属会社ID</td>
+            </tr>
+            <tr>
+                <td>engineer_name</td>
+                <td>VARCHAR(100)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>技術者名</td>
+            </tr>
+            <tr>
+                <td>furigana</td>
+                <td>VARCHAR(100)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>フリガナ</td>
+            </tr>
+            <tr>
+                <td>email</td>
+                <td>VARCHAR(100)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>メールアドレス</td>
+            </tr>
+            <tr>
+                <td>phone_number</td>
+                <td>VARCHAR(20)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>電話番号</td>
+            </tr>
+            <tr>
+                <td>birth_date</td>
+                <td>DATE</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>生年月日</td>
+            </tr>
+            <tr>
+                <td>employment_type</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>'正社員'</td>
+                <td>雇用形態</td>
+            </tr>
+            <tr>
+                <td>join_date</td>
+                <td>DATE</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>入社日</td>
+            </tr>
+            <tr>
+                <td>years_of_experience</td>
+                <td>INTEGER</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td>0</td>
+                <td>経験年数</td>
+            </tr>
+            <tr>
+                <td>preferred_work_location</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>希望勤務地</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>'稼働可能'</td>
+                <td>ステータス</td>
+            </tr>
+            <tr>
+                <td>availability_date</td>
+                <td>DATE</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>稼働可能日</td>
+            </tr>
+            <tr>
+                <td>preferred_unit_price</td>
+                <td>NUMERIC(10,2)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>希望単価</td>
+            </tr>
+            <tr>
+                <td>profile_text</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>プロフィール文</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>制約
+            <ul>
+                <li>CHECK (employment_type IN ('正社員', '契約社員', 'パートナー', 'フリーランス'))</li>
+                <li>CHECK (status IN ('稼働可能', 'アサイン中', '研修中', '休職中', '退職'))</li>
+            </ul>
+        </li>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (engineer_id)</li>
+                <li>CREATE INDEX idx_engineers_company_id ON engineers(company_id);</li>
+                <li>CREATE INDEX idx_engineers_status ON engineers(status);</li>
+                <li>CREATE INDEX idx_engineers_availability_date ON engineers(availability_date);</li>
+                <li>CREATE INDEX idx_engineers_preferred_unit_price ON engineers(preferred_unit_price);</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>所属会社テーブル (companies)</h2>
+    <p>自社および協力会社を管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>company_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td>会社ID</td>
+            </tr>
+            <tr>
+                <td>company_name</td>
+                <td>VARCHAR(100)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>会社名</td>
+            </tr>
+            <tr>
+                <td>company_type</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td>'自社'</td>
+                <td>会社種別</td>
+            </tr>
+            <tr>
+                <td>address</td>
+                <td>VARCHAR(200)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td>住所</td>
+            </tr>
+            <tr>
+                <td>phone_number</td>
+                <td>VARCHAR(20)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td>電話番号</td>
+            </tr>
+            <tr>
+                <td>email</td>
+                <td>VARCHAR(100)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td>メールアドレス</td>
+            </tr>
+            <tr>
+                <td>website</td>
+                <td>VARCHAR(200)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td>ウェブサイト</td>
+            </tr>
+            <tr>
+                <td>contract_date</td>
+                <td>DATE</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td>契約日</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>制約
+            <ul>
+                <li>CHECK (company_type IN ('自社', 'パートナー企業', '顧客'))</li>
+            </ul>
+        </li>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (company_id)</li>
+                <li>CREATE INDEX idx_companies_name ON companies(company_name);</li>
+                <li>CREATE INDEX idx_companies_type ON companies(company_type);</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>スキルマスタテーブル (skills)</h2>
+    <p>スキル一覧のマスタデータを管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>skill_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td>スキルID</td>
+            </tr>
+            <tr>
+                <td>skill_name</td>
+                <td>VARCHAR(100)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>スキル名</td>
+            </tr>
+            <tr>
+                <td>skill_category</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>スキルカテゴリ</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td>説明</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>制約
+            <ul>
+                <li>CHECK (skill_category IN ('言語', 'フレームワーク', 'DB', 'OS', 'ミドルウェア', 'クラウド', 'ツール', '資格', 'その他'))</li>
+            </ul>
+        </li>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (skill_id)</li>
+                <li>CREATE UNIQUE INDEX idx_skills_name ON skills(skill_name);</li>
+                <li>CREATE INDEX idx_skills_category ON skills(skill_category);</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>技術者スキルテーブル (engineer_skills)</h2>
+    <p>技術者が保有するスキルを管理する中間テーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>engineer_skill_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td></td>
+                <td>技術者スキルID</td>
+            </tr>
+            <tr>
+                <td>engineer_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(engineers.engineer_id)</td>
+                <td></td>
+                <td>技術者ID</td>
+            </tr>
+            <tr>
+                <td>skill_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(skills.skill_id)</td>
+                <td></td>
+                <td>スキルID</td>
+            </tr>
+            <tr>
+                <td>proficiency_level</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>1</td>
+                <td>習熟度レベル（1〜5）</td>
+            </tr>
+            <tr>
+                <td>years_of_experience</td>
+                <td>NUMERIC(3,1)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td>0</td>
+                <td>経験年数</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>説明・実績</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>制約
+            <ul>
+                <li>CHECK (proficiency_level BETWEEN 1 AND 5)</li>
+                <li>UNIQUE (engineer_id, skill_id)</li>
+            </ul>
+        </li>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (engineer_skill_id)</li>
+                <li>CREATE INDEX idx_engineer_skills_engineer_id ON engineer_skills(engineer_id);</li>
+                <li>CREATE INDEX idx_engineer_skills_skill_id ON engineer_skills(skill_id);</li>
+                <li>CREATE INDEX idx_engineer_skills_proficiency ON engineer_skills(proficiency_level);</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>スキルシートテーブル (skill_sheets)</h2>
+    <p>技術者のスキルシートを管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>sheet_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td></td>
+                <td>シートID</td>
+            </tr>
+            <tr>
+                <td>engineer_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(engineers.engineer_id)</td>
+                <td></td>
+                <td>技術者ID</td>
+            </tr>
+            <tr>
+                <td>sheet_name</td>
+                <td>VARCHAR(100)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>スキルシート名</td>
+            </tr>
+            <tr>
+                <td>version</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>1</td>
+                <td>バージョン</td>
+            </tr>
+            <tr>
+                <td>file_path</td>
+                <td>VARCHAR(255)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>ファイルパス</td>
+            </tr>
+            <tr>
+                <td>file_format</td>
+                <td>TEXT</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>'PDF'</td>
+                <td>ファイル形式</td>
+            </tr>
+            <tr>
+                <td>is_current</td>
+                <td>BOOLEAN</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>TRUE</td>
+                <td>現行バージョンフラグ</td>
+            </tr>
+            <tr>
+                <td>is_public</td>
+                <td>BOOLEAN</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>FALSE</td>
+                <td>公開フラグ</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>制約
+            <ul>
+                <li>CHECK (file_format IN ('PDF', 'DOCX', 'HTML'))</li>
+            </ul>
+        </li>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (sheet_id)</li>
+                <li>CREATE INDEX idx_skill_sheets_engineer_id ON skill_sheets(engineer_id);</li>
+                <li>CREATE INDEX idx_skill_sheets_is_current ON skill_sheets(is_current);</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>資格テーブル (certifications)</h2>
+    <p>技術者の保有資格を管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>certification_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td></td>
+                <td>資格ID</td>
+            </tr>
+            <tr>
+                <td>engineer_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(engineers.engineer_id)</td>
+                <td></td>
+                <td>技術者ID</td>
+            </tr>
+            <tr>
+                <td>certification_name</td>
+                <td>VARCHAR(100)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>資格名</td>
+            </tr>
+            <tr>
+                <td>issuing_organization</td>
+                <td>VARCHAR(100)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>発行団体</td>
+            </tr>
+            <tr>
+                <td>acquisition_date</td>
+                <td>DATE</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>取得日</td>
+            </tr>
+            <tr>
+                <td>expiration_date</td>
+                <td>DATE</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>有効期限</td>
+            </tr>
+            <tr>
+                <td>certification_number</td>
+                <td>VARCHAR(50)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>資格番号</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (certification_id)</li>
+                <li>CREATE INDEX idx_certifications_engineer_id ON certifications(engineer_id);</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>職務経歴テーブル (work_experiences)</h2>
+    <p>技術者の職務経歴を管理するテーブル</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>カラム名</th>
+                <th>データ型</th>
+                <th>NULL</th>
+                <th>主キー</th>
+                <th>外部キー</th>
+                <th>デフォルト</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>experience_id</td>
+                <td>SERIAL</td>
+                <td>NO</td>
+                <td>PK</td>
+                <td></td>
+                <td></td>
+                <td>経歴ID</td>
+            </tr>
+            <tr>
+                <td>engineer_id</td>
+                <td>INTEGER</td>
+                <td>NO</td>
+                <td></td>
+                <td>FK(engineers.engineer_id)</td>
+                <td></td>
+                <td>技術者ID</td>
+            </tr>
+            <tr>
+                <td>project_name</td>
+                <td>VARCHAR(100)</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>プロジェクト名</td>
+            </tr>
+            <tr>
+                <td>client_name</td>
+                <td>VARCHAR(100)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>クライアント名</td>
+            </tr>
+            <tr>
+                <td>start_date</td>
+                <td>DATE</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>開始日</td>
+            </tr>
+            <tr>
+                <td>end_date</td>
+                <td>DATE</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>終了日</td>
+            </tr>
+            <tr>
+                <td>role</td>
+                <td>VARCHAR(100)</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>役割</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>業務内容</td>
+            </tr>
+            <tr>
+                <td>technologies_used</td>
+                <td>TEXT</td>
+                <td>YES</td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td>使用技術</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>TIMESTAMP</td>
+                <td>NO</td>
+                <td></td>
+                <td></td>
+                <td>CURRENT_TIMESTAMP</td>
+                <td>更新日時</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <ul>
+        <li>インデックス
+            <ul>
+                <li>PRIMARY KEY (experience_id)</li>
+                <li>CREATE INDEX idx_work_experiences_engineer_id ON work_experiences(engineer_id);</li>
+                <li>CREATE INDEX idx_work_experiences_start_date ON work_experiences(start_date);</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>テーブル作成用SQL</h2>
+    <div class="code-block">
+-- 更新タイムスタンプ用のトリガー関数
+CREATE OR REPLACE FUNCTION update_timestamp()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 所属会社テーブル
+CREATE TABLE companies (
+    company_id SERIAL PRIMARY KEY,
+    company_name VARCHAR(100) NOT NULL,
+    company_type TEXT NOT NULL DEFAULT '自社' CHECK (company_type IN ('自社', 'パートナー企業', '顧客')),
+    address VARCHAR(200),
+    phone_number VARCHAR(20),
+    email VARCHAR(100),
+    website VARCHAR(200),
+    contract_date DATE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_companies_name ON companies(company_name);
+CREATE INDEX idx_companies_type ON companies(company_type);
+
+CREATE TRIGGER update_companies_timestamp
+BEFORE UPDATE ON companies
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+-- 技術者テーブル
+CREATE TABLE engineers (
+    engineer_id SERIAL PRIMARY KEY,
+    company_id INTEGER NOT NULL REFERENCES companies(company_id),
+    engineer_name VARCHAR(100) NOT NULL,
+    furigana VARCHAR(100),
+    email VARCHAR(100),
+    phone_number VARCHAR(20),
+    birth_date DATE,
+    employment_type TEXT NOT NULL DEFAULT '正社員' 
+        CHECK (employment_type IN ('正社員', '契約社員', 'パートナー', 'フリーランス')),
+    join_date DATE,
+    years_of_experience INTEGER DEFAULT 0,
+    preferred_work_location TEXT,
+    status TEXT NOT NULL DEFAULT '稼働可能' 
+        CHECK (status IN ('稼働可能', 'アサイン中', '研修中', '休職中', '退職')),
+    availability_date DATE,
+    preferred_unit_price NUMERIC(10,2),
+    profile_text TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_engineers_company_id ON engineers(company_id);
+CREATE INDEX idx_engineers_status ON engineers(status);
+CREATE INDEX idx_engineers_availability_date ON engineers(availability_date);
+CREATE INDEX idx_engineers_preferred_unit_price ON engineers(preferred_unit_price);
+
+CREATE TRIGGER update_engineers_timestamp
+BEFORE UPDATE ON engineers
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+-- スキルマスタテーブル
+CREATE TABLE skills (
+    skill_id SERIAL PRIMARY KEY,
+    skill_name VARCHAR(100) NOT NULL,
+    skill_category TEXT NOT NULL 
+        CHECK (skill_category IN ('言語', 'フレームワーク', 'DB', 'OS', 'ミドルウェア', 'クラウド', 'ツール', '資格', 'その他')),
+    description TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX idx_skills_name ON skills(skill_name);
+CREATE INDEX idx_skills_category ON skills(skill_category);
+
+CREATE TRIGGER update_skills_timestamp
+BEFORE UPDATE ON skills
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+-- 技術者スキルテーブル
+CREATE TABLE engineer_skills (
+    engineer_skill_id SERIAL PRIMARY KEY,
+    engineer_id INTEGER NOT NULL REFERENCES engineers(engineer_id),
+    skill_id INTEGER NOT NULL REFERENCES skills(skill_id),
+    proficiency_level INTEGER NOT NULL DEFAULT 1 CHECK (proficiency_level BETWEEN 1 AND 5),
+    years_of_experience NUMERIC(3,1) DEFAULT 0,
+    description TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (engineer_id, skill_id)
+);
+
+CREATE INDEX idx_engineer_skills_engineer_id ON engineer_skills(engineer_id);
+CREATE INDEX idx_engineer_skills_skill_id ON engineer_skills(skill_id);
+CREATE INDEX idx_engineer_skills_proficiency ON engineer_skills(proficiency_level);
+
+CREATE TRIGGER update_engineer_skills_timestamp
+BEFORE UPDATE ON engineer_skills
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+-- スキルシートテーブル
+CREATE TABLE skill_sheets (
+    sheet_id SERIAL PRIMARY KEY,
+    engineer_id INTEGER NOT NULL REFERENCES engineers(engineer_id),
+    sheet_name VARCHAR(100) NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1,
+    file_path VARCHAR(255),
+    file_format TEXT NOT NULL DEFAULT 'PDF' CHECK (file_format IN ('PDF', 'DOCX', 'HTML')),
+    is_current BOOLEAN NOT NULL DEFAULT TRUE,
+    is_public BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_skill_sheets_engineer_id ON skill_sheets(engineer_id);
+CREATE INDEX idx_skill_sheets_is_current ON skill_sheets(is_current);
+
+CREATE TRIGGER update_skill_sheets_timestamp
+BEFORE UPDATE ON skill_sheets
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+-- 資格テーブル
+CREATE TABLE certifications (
+    certification_id SERIAL PRIMARY KEY,
+    engineer_id INTEGER NOT NULL REFERENCES engineers(engineer_id),
+    certification_name VARCHAR(100) NOT NULL,
+    issuing_organization VARCHAR(100),
+    acquisition_date DATE,
+    expiration_date DATE,
+    certification_number VARCHAR(50),
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_certifications_engineer_id ON certifications(engineer_id);
+
+CREATE TRIGGER update_certifications_timestamp
+BEFORE UPDATE ON certifications
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+
+-- 職務経歴テーブル
+CREATE TABLE work_experiences (
+    experience_id SERIAL PRIMARY KEY,
+    engineer_id INTEGER NOT NULL REFERENCES engineers(engineer_id),
+    project_name VARCHAR(100) NOT NULL,
+    client_name VARCHAR(100),
+    start_date DATE NOT NULL,
+    end_date DATE,
+    role VARCHAR(100),
+    description TEXT,
+    technologies_used TEXT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_work_experiences_engineer_id ON work_experiences(engineer_id);
+CREATE INDEX idx_work_experiences_start_date ON work_experiences(start_date);
+
+CREATE TRIGGER update_work_experiences_timestamp
+BEFORE UPDATE ON work_experiences
+FOR EACH ROW
+EXECUTE FUNCTION update_timestamp();
+    </div>
+
+</body>
+</html>
