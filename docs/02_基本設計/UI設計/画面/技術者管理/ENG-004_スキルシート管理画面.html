@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム スキルシート管理画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../技術者管理画面設計.html">技術者管理画面設計</a></li>
+            <li class="active">スキルシート管理画面</li>
+        </ul>
+    </nav>
+
+    <h1>ENG-004: スキルシート管理画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>ENG-004</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>スキルシート管理</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>技術者のスキルシート作成・編集・出力を行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>人事担当者、本人</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>ENG-003: 技術者詳細</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>ENG-003: 技術者詳細</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [スキルシート管理画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>主要な機能</h2>
+    <ul>
+        <li>スキルシートのテンプレート選択</li>
+        <li>スキルシートのプレビュー表示</li>
+        <li>スキルシートの内容編集</li>
+        <li>スキルシートのPDF/Word形式での出力</li>
+    </ul>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、デフォルトのテンプレートでスキルシートのプレビューを表示</li>
+        <li>テンプレート選択ドロップダウンから別のテンプレートを選択すると、選択したテンプレートに応じたプレビューが表示される</li>
+        <li>「編集」ボタンをクリックすると編集モードに切り替わり、スキルシートの内容を編集できるようになる</li>
+        <li>編集モードでの「保存」ボタンクリック時
+            <ul>
+                <li>入力内容のバリデーションを行い、問題がなければスキルシート情報を更新する</li>
+                <li>更新成功時は表示モードに戻り、更新された情報でプレビューが表示される</li>
+                <li>更新失敗時はエラーメッセージを表示し、入力内容を保持したままの状態で再表示する</li>
+            </ul>
+        </li>
+        <li>「PDFエクスポート」ボタンをクリックすると、現在のプレビュー内容がPDF形式でダウンロードされる</li>
+        <li>「Wordエクスポート」ボタンをクリックすると、現在のプレビュー内容がWord形式でダウンロードされる</li>
+        <li>「戻る」ボタンをクリックすると、技術者詳細画面（ENG-003）に戻る</li>
+    </ol>
+
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

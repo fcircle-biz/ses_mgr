@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 技術者登録画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../技術者管理画面設計.html">技術者管理画面設計</a></li>
+            <li class="active">技術者登録画面</li>
+        </ul>
+    </nav>
+
+    <h1>ENG-002: 技術者登録画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>ENG-002</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>技術者登録</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>新規技術者情報を登録する画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>人事担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>ENG-001: 技術者一覧</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>ENG-003: 技術者詳細（登録成功時）、ENG-001: 技術者一覧（キャンセル時）</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [技術者登録画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>画面項目定義</h2>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>eng_reg_001</td>
+            <td>氏名</td>
+            <td>テキスト入力</td>
+            <td>100文字以内</td>
+            <td>◯</td>
+            <td>技術者の氏名</td>
+        </tr>
+        <tr>
+            <td>eng_reg_002</td>
+            <td>氏名（カナ）</td>
+            <td>テキスト入力</td>
+            <td>100文字以内、カタカナのみ</td>
+            <td>◯</td>
+            <td>技術者の氏名（カタカナ）</td>
+        </tr>
+        <tr>
+            <td>eng_reg_003</td>
+            <td>所属区分</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>技術者の所属区分（社員、協力会社など）</td>
+        </tr>
+        <tr>
+            <td>eng_reg_004</td>
+            <td>所属会社</td>
+            <td>テキスト入力</td>
+            <td>100文字以内</td>
+            <td>△</td>
+            <td>協力会社の場合に入力</td>
+        </tr>
+        <tr>
+            <td>eng_reg_005</td>
+            <td>メールアドレス</td>
+            <td>テキスト入力</td>
+            <td>有効なメールアドレス形式</td>
+            <td>◯</td>
+            <td>連絡用メールアドレス</td>
+        </tr>
+        <tr>
+            <td>eng_reg_006</td>
+            <td>電話番号</td>
+            <td>テキスト入力</td>
+            <td>有効な電話番号形式</td>
+            <td>◯</td>
+            <td>連絡用電話番号</td>
+        </tr>
+        <tr>
+            <td>eng_reg_007</td>
+            <td>生年月日</td>
+            <td>日付選択</td>
+            <td>有効な日付</td>
+            <td>◯</td>
+            <td>技術者の生年月日</td>
+        </tr>
+        <tr>
+            <td>eng_reg_008</td>
+            <td>性別</td>
+            <td>ラジオボタン</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>技術者の性別</td>
+        </tr>
+        <tr>
+            <td>eng_reg_009</td>
+            <td>稼働状況</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>現在の稼働状況</td>
+        </tr>
+        <tr>
+            <td>eng_reg_010</td>
+            <td>対応可能日</td>
+            <td>日付選択</td>
+            <td>有効な日付</td>
+            <td>△</td>
+            <td>案件にアサイン可能となる日付</td>
+        </tr>
+        <tr>
+            <td>eng_reg_011</td>
+            <td>経験年数</td>
+            <td>数値入力</td>
+            <td>整数（0〜50）</td>
+            <td>◯</td>
+            <td>IT業界での経験年数</td>
+        </tr>
+        <tr>
+            <td>eng_reg_012</td>
+            <td>希望単価（下限）</td>
+            <td>数値入力</td>
+            <td>整数（0〜999999）</td>
+            <td>◯</td>
+            <td>希望する単価の下限</td>
+        </tr>
+        <tr>
+            <td>eng_reg_013</td>
+            <td>希望単価（上限）</td>
+            <td>数値入力</td>
+            <td>整数（下限以上、999999以下）</td>
+            <td>◯</td>
+            <td>希望する単価の上限</td>
+        </tr>
+        <tr>
+            <td>eng_reg_014</td>
+            <td>最寄り駅</td>
+            <td>テキスト入力</td>
+            <td>100文字以内</td>
+            <td>◯</td>
+            <td>居住地の最寄り駅</td>
+        </tr>
+        <tr>
+            <td>eng_reg_015</td>
+            <td>稼働可能エリア</td>
+            <td>チェックボックスグループ</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>稼働可能な地域</td>
+        </tr>
+        <tr>
+            <td>eng_reg_016</td>
+            <td>リモート対応</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>リモート勤務の可否</td>
+        </tr>
+        <tr>
+            <td>eng_reg_017</td>
+            <td>技術スキル</td>
+            <td>マルチセレクト</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>保有する技術スキル</td>
+        </tr>
+        <tr>
+            <td>eng_reg_018</td>
+            <td>資格</td>
+            <td>マルチセレクト</td>
+            <td>-</td>
+            <td>×</td>
+            <td>保有する資格</td>
+        </tr>
+        <tr>
+            <td>eng_reg_019</td>
+            <td>自己PR</td>
+            <td>テキストエリア</td>
+            <td>1000文字以内</td>
+            <td>×</td>
+            <td>技術者の自己PR</td>
+        </tr>
+        <tr>
+            <td>eng_reg_020</td>
+            <td>備考</td>
+            <td>テキストエリア</td>
+            <td>1000文字以内</td>
+            <td>×</td>
+            <td>その他の補足情報</td>
+        </tr>
+        <tr>
+            <td>eng_reg_021</td>
+            <td>登録ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>技術者情報の登録を実行</td>
+        </tr>
+        <tr>
+            <td>eng_reg_022</td>
+            <td>キャンセルボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>入力をキャンセルして前画面に戻る</td>
+        </tr>
+    </table>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>必須項目が入力されているかをバリデーションチェックする
+            <ul>
+                <li>未入力の必須項目がある場合はエラーメッセージを表示</li>
+                <li>入力形式や値の範囲が不正な場合はエラーメッセージを表示</li>
+            </ul>
+        </li>
+        <li>所属区分で「社員」以外を選択した場合、所属会社の入力欄を必須として表示する</li>
+        <li>稼働状況で「稼働中」を選択した場合、対応可能日の入力欄は非表示とする</li>
+        <li>希望単価の下限が上限を超える値に設定された場合、エラーメッセージを表示する</li>
+        <li>「登録」ボタンをクリックした場合
+            <ul>
+                <li>入力内容のバリデーションを行い、問題がなければ技術者情報を登録する</li>
+                <li>登録成功時は技術者詳細画面（ENG-003）に遷移する</li>
+                <li>登録失敗時はエラーメッセージを表示し、入力内容を保持したままの状態で再表示する</li>
+            </ul>
+        </li>
+        <li>「キャンセル」ボタンをクリックした場合
+            <ul>
+                <li>入力内容を破棄して技術者一覧画面（ENG-001）に戻る</li>
+                <li>入力内容がある場合は確認ダイアログを表示し、ユーザーの意思を確認する</li>
+            </ul>
+        </li>
+    </ol>
+
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

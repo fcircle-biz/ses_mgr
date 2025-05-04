@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 技術者一覧画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../技術者管理画面設計.html">技術者管理画面設計</a></li>
+            <li class="active">技術者一覧画面</li>
+        </ul>
+    </nav>
+
+    <h1>ENG-001: 技術者一覧画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>ENG-001</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>技術者一覧</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>全技術者の一覧表示・検索・フィルタリングを行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>人事担当者、営業担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CMN-002: ダッシュボード</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>ENG-003: 技術者詳細、ENG-002: 技術者登録</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [技術者一覧画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>画面構成要素</h2>
+    <h3>1. 検索・フィルター部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>eng_list_001</td>
+            <td>検索ボックス</td>
+            <td>テキスト入力</td>
+            <td>技術者名、技術者ID、スキルなどでのフリーワード検索</td>
+        </tr>
+        <tr>
+            <td>eng_list_002</td>
+            <td>稼働状況</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>稼働状況によるフィルタリング（稼働中、待機中、予約済み、休職中など）</td>
+        </tr>
+        <tr>
+            <td>eng_list_003</td>
+            <td>スキル</td>
+            <td>マルチセレクト</td>
+            <td>スキルによるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>eng_list_004</td>
+            <td>経験年数</td>
+            <td>レンジスライダー</td>
+            <td>経験年数範囲によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>eng_list_005</td>
+            <td>所属区分</td>
+            <td>セレクトボックス</td>
+            <td>所属区分によるフィルタリング（社員、協力会社など）</td>
+        </tr>
+        <tr>
+            <td>eng_list_006</td>
+            <td>最終更新日</td>
+            <td>日付範囲選択</td>
+            <td>プロフィール更新日によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>eng_list_007</td>
+            <td>検索ボタン</td>
+            <td>ボタン</td>
+            <td>検索条件を適用して結果を表示</td>
+        </tr>
+        <tr>
+            <td>eng_list_008</td>
+            <td>クリアボタン</td>
+            <td>ボタン</td>
+            <td>検索条件をクリア</td>
+        </tr>
+    </table>
+
+    <h3>2. 一覧表示部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>eng_list_009</td>
+            <td>技術者一覧テーブル</td>
+            <td>テーブル</td>
+            <td>検索条件に合致する技術者の一覧</td>
+        </tr>
+        <tr>
+            <td>eng_list_010</td>
+            <td>技術者ID</td>
+            <td>テキスト（リンク）</td>
+            <td>システム内部で管理される技術者の一意識別子。クリックで詳細画面へ</td>
+        </tr>
+        <tr>
+            <td>eng_list_011</td>
+            <td>氏名</td>
+            <td>テキスト（リンク）</td>
+            <td>技術者の氏名。クリックで詳細画面へ</td>
+        </tr>
+        <tr>
+            <td>eng_list_012</td>
+            <td>所属区分</td>
+            <td>テキスト</td>
+            <td>技術者の所属区分（社員、協力会社など）</td>
+        </tr>
+        <tr>
+            <td>eng_list_013</td>
+            <td>稼働状況</td>
+            <td>ラベル（色分け表示）</td>
+            <td>技術者の現在の稼働状況</td>
+        </tr>
+        <tr>
+            <td>eng_list_014</td>
+            <td>主要スキル</td>
+            <td>タグリスト</td>
+            <td>技術者の主要スキル（最大5つ）</td>
+        </tr>
+        <tr>
+            <td>eng_list_015</td>
+            <td>経験年数</td>
+            <td>数値</td>
+            <td>技術者の経験年数</td>
+        </tr>
+        <tr>
+            <td>eng_list_016</td>
+            <td>対応可能日</td>
+            <td>日付</td>
+            <td>案件にアサイン可能となる日付</td>
+        </tr>
+        <tr>
+            <td>eng_list_017</td>
+            <td>アクションボタン</td>
+            <td>ボタングループ</td>
+            <td>詳細表示、スキルシート、マッチング検索などの操作ボタン</td>
+        </tr>
+        <tr>
+            <td>eng_list_018</td>
+            <td>ページネーション</td>
+            <td>ページ制御</td>
+            <td>複数ページにわたる結果のナビゲーション</td>
+        </tr>
+    </table>
+
+    <h3>3. 操作ボタン</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>eng_list_019</td>
+            <td>新規技術者登録ボタン</td>
+            <td>プライマリーボタン</td>
+            <td>新規技術者登録画面への遷移</td>
+        </tr>
+        <tr>
+            <td>eng_list_020</td>
+            <td>CSVエクスポートボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>表示中の技術者一覧をCSV形式でエクスポート</td>
+        </tr>
+        <tr>
+            <td>eng_list_021</td>
+            <td>CSVインポートボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>CSV形式の技術者情報をインポート</td>
+        </tr>
+    </table>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、デフォルトですべての技術者を表示する</li>
+        <li>検索条件を指定して検索ボタンをクリックすると、条件に合致する技術者が一覧表示される</li>
+        <li>一覧の技術者ID・氏名をクリックすると、該当の技術者詳細画面（ENG-003）に遷移する</li>
+        <li>アクションボタンの「詳細」をクリックすると、該当の技術者詳細画面（ENG-003）に遷移する</li>
+        <li>アクションボタンの「スキルシート」をクリックすると、該当の技術者のスキルシート管理画面（ENG-004）に遷移する</li>
+        <li>アクションボタンの「マッチング」をクリックすると、該当技術者とのマッチング検索画面（MTH-001）に遷移する</li>
+        <li>「新規技術者登録」ボタンをクリックすると、技術者登録画面（ENG-002）に遷移する</li>
+        <li>「CSVエクスポート」ボタンをクリックすると、現在の検索結果がCSVファイルとしてダウンロードされる</li>
+        <li>「CSVインポート」ボタンをクリックすると、CSVインポート用のモーダルダイアログが表示される</li>
+        <li>ページネーションを使用して、複数ページにわたる検索結果をナビゲートできる</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> ユーザーの権限レベルによって、表示される操作ボタンや実行可能な操作が異なります。</p>
+        <ul>
+            <li>人事担当者：全技術者の閲覧・編集が可能</li>
+            <li>営業担当者：全技術者の閲覧のみ可能、編集は不可</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

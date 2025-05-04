@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 稼働状況管理画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../技術者管理画面設計.html">技術者管理画面設計</a></li>
+            <li class="active">稼働状況管理画面</li>
+        </ul>
+    </nav>
+
+    <h1>ENG-005: 稼働状況管理画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>ENG-005</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>稼働状況管理</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>技術者の稼働状況をカレンダー形式で管理する画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>人事担当者、営業担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>ENG-001: 技術者一覧</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>ENG-001: 技術者一覧</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [稼働状況管理画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>主要な機能</h2>
+    <ul>
+        <li>稼働状況のカレンダー表示（月次・週次・日次）</li>
+        <li>技術者のフィルタリング（所属、スキル、稼働状況など）</li>
+        <li>稼働状況の更新（案件アサイン、予約など）</li>
+        <li>稼働予測レポートの表示</li>
+    </ul>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、現在の月のカレンダーで全技術者の稼働状況を表示</li>
+        <li>カレンダービューの切り替えボタン（月次・週次・日次）で表示形式を変更</li>
+        <li>期間選択で表示するカレンダーの期間を変更</li>
+        <li>技術者フィルタで表示する技術者を絞り込み</li>
+        <li>カレンダー内の各セルをクリックすると、対応する日付の稼働詳細情報を表示</li>
+        <li>稼働状況を変更する場合、対象の日付/技術者をクリックして詳細ダイアログを表示
+            <ul>
+                <li>案件へのアサイン、予約、休暇などのステータスを設定</li>
+                <li>関連する案件・顧客情報を選択</li>
+                <li>備考情報を入力</li>
+                <li>設定を保存すると、カレンダー表示に反映される</li>
+            </ul>
+        </li>
+        <li>「稼働予測レポート」ボタンをクリックすると、選択期間の稼働予測情報がレポート形式で表示される</li>
+        <li>「一覧に戻る」ボタンをクリックすると、技術者一覧画面（ENG-001）に戻る</li>
+    </ol>
+
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

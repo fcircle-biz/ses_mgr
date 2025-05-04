@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム ログイン画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../共通画面設計.html">共通画面設計</a></li>
+            <li class="active">ログイン画面</li>
+        </ul>
+    </nav>
+
+    <h1>CMN-001: ログイン画面</h1>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>CMN-001</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>ログイン画面</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>システムへのログイン認証を行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>全ユーザー</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>なし</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>CMN-002: ダッシュボード</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [ログイン画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>画面項目定義</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>login-001</td>
+            <td>ユーザーID</td>
+            <td>テキスト入力</td>
+            <td>半角英数字、8〜20文字</td>
+            <td>◯</td>
+            <td>ログイン用ユーザーID</td>
+        </tr>
+        <tr>
+            <td>login-002</td>
+            <td>パスワード</td>
+            <td>パスワード入力</td>
+            <td>半角英数記号、12〜30文字</td>
+            <td>◯</td>
+            <td>ログイン用パスワード</td>
+        </tr>
+        <tr>
+            <td>login-003</td>
+            <td>ログインボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ログイン処理実行用ボタン</td>
+        </tr>
+        <tr>
+            <td>login-004</td>
+            <td>パスワードを忘れた場合</td>
+            <td>リンク</td>
+            <td>-</td>
+            <td>-</td>
+            <td>パスワードリセット画面へのリンク</td>
+        </tr>
+        <tr>
+            <td>login-005</td>
+            <td>多要素認証コード</td>
+            <td>テキスト入力</td>
+            <td>半角数字、6桁</td>
+            <td>△</td>
+            <td>多要素認証が有効な場合に表示される入力欄</td>
+        </tr>
+    </table>
+
+    <h3>画面動作仕様</h3>
+    <ol>
+        <li>ユーザーIDとパスワードを入力し、ログインボタンをクリックする</li>
+        <li>入力値のバリデーションを行う
+            <ul>
+                <li>ユーザーIDまたはパスワードが未入力の場合はエラーメッセージを表示</li>
+                <li>入力形式が不正な場合はエラーメッセージを表示</li>
+            </ul>
+        </li>
+        <li>ユーザー認証を行う
+            <ul>
+                <li>認証に失敗した場合はエラーメッセージを表示</li>
+                <li>5回連続で認証に失敗した場合はアカウントをロックし、管理者への連絡方法を表示</li>
+            </ul>
+        </li>
+        <li>多要素認証が有効な場合
+            <ul>
+                <li>多要素認証画面を表示し、認証コードの入力を求める</li>
+                <li>認証コードが正しければログイン処理を完了、不正の場合はエラーメッセージを表示</li>
+            </ul>
+        </li>
+        <li>認証に成功した場合、ダッシュボード画面に遷移する</li>
+    </ol>
+
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>
