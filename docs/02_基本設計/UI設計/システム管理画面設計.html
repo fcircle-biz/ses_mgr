@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム システム管理画面設計</title>
+    <link rel="stylesheet" href="css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -113,9 +114,49 @@
         </li>
     </ul>
 
+    <h2>機能概要</h2>
+    <table>
+        <tr>
+            <th>機能</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>ユーザー管理</td>
+            <td>システムユーザーの登録・編集・無効化などを管理する機能</td>
+        </tr>
+        <tr>
+            <td>ロール管理</td>
+            <td>ユーザーロールと権限の設定を管理する機能</td>
+        </tr>
+        <tr>
+            <td>マスタ管理</td>
+            <td>システムで使用する各種マスタデータを管理する機能</td>
+        </tr>
+        <tr>
+            <td>ログ管理</td>
+            <td>システムログの閲覧・検索・エクスポートを行う機能</td>
+        </tr>
+        <tr>
+            <td>バッチ管理</td>
+            <td>バッチ処理の実行・スケジュール設定・履歴確認を行う機能</td>
+        </tr>
+    </table>
+
+    <div class="note">
+        <p><strong>注意：</strong> システム管理機能はシステム管理者ロールを持つユーザーのみがアクセスできます。</p>
+        <ul>
+            <li>ユーザー管理：ユーザーアカウントのライフサイクル管理を行います</li>
+            <li>ロール管理：システム全体で使用する権限とロールの設定を行います</li>
+            <li>マスタ管理：システム運用に必要な各種マスタデータのメンテナンスを行います</li>
+            <li>ログ管理：システム操作ログの検索・分析・エクスポートを行います</li>
+            <li>バッチ管理：定期実行・手動実行のバッチ処理を管理します</li>
+        </ul>
+    </div>
+
     <div class="footer">
         <p>作成日: 2025年5月4日<br>
-        バージョン: 1.0</p>
+        バージョン: 1.1</p>
     </div>
+
 </body>
 </html>

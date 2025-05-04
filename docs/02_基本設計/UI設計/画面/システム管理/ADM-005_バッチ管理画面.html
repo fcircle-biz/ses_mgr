@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム バッチ管理画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -57,28 +59,6 @@
         }
         tr:nth-child(even) {
             background-color: #f8f9fa;
-        }
-        .wireframe {
-            border: 1px solid #ddd;
-            padding: 20px;
-            margin: 20px 0;
-            background-color: #f9f9f9;
-            text-align: center;
-        }
-        .wireframe img {
-            max-width: 100%;
-            height: auto;
-        }
-        .wireframe-placeholder {
-            width: 100%;
-            height: 400px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #f2f2f2;
-            border: 2px dashed #ccc;
-            font-style: italic;
-            color: #666;
         }
         .footer {
             margin-top: 50px;
@@ -160,10 +140,11 @@
     </table>
 
     <h3>画面レイアウト</h3>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [バッチ管理画面のワイヤーフレーム]
-        </div>
+    <p>バッチ管理画面の実際のモックアップは以下のとおりです。</p>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="batch-management-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
     <h3>画面項目定義</h3>
@@ -866,5 +847,26 @@
         <p>作成日: 2025年5月4日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // バッチ管理画面モックアップの設定
+            new MockupViewer('batch-management-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '600px',
+                mockups: [
+                    {
+                        name: 'バッチ管理画面',
+                        path: 'mockups/ADM-005_バッチ管理画面.html',
+                        description: 'バッチ処理の実行・スケジュール設定・履歴確認を行う画面です。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>

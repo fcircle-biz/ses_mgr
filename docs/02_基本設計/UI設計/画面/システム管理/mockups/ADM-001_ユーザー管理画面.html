@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ユーザー管理画面 | SES業務システム</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            padding-top: 20px;
+            padding-bottom: 40px;
+        }
+        .system-header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .badge-enabled {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .badge-disabled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .badge-locked {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="system-header d-flex justify-content-between align-items-center pb-3 mb-4">
+            <h1 class="fs-4">SES業務システム</h1>
+            <div class="d-flex align-items-center">
+                <div class="dropdown me-3">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bell"></i>
+                        <span class="badge bg-danger">3</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                        <li><a class="dropdown-item" href="#">未読通知 (3)</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">新しい案件が登録されました</a></li>
+                        <li><a class="dropdown-item" href="#">新しいメッセージがあります</a></li>
+                        <li><a class="dropdown-item" href="#">承認待ちの依頼があります</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        管理者 様
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                        <li><a class="dropdown-item" href="#">設定</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        
+        <div class="row">
+            <div class="col-md-3">
+                <div class="list-group mb-4">
+                    <a href="#" class="list-group-item list-group-item-action">ダッシュボード</a>
+                    <a href="#" class="list-group-item list-group-item-action">案件管理</a>
+                    <a href="#" class="list-group-item list-group-item-action">技術者管理</a>
+                    <a href="#" class="list-group-item list-group-item-action">契約管理</a>
+                    <a href="#" class="list-group-item list-group-item-action">マッチング</a>
+                    <a href="#" class="list-group-item list-group-item-action">勤怠工数管理</a>
+                    <a href="#" class="list-group-item list-group-item-action">請求支払管理</a>
+                    <a href="#" class="list-group-item list-group-item-action">レポーティング</a>
+                    <a href="#" class="list-group-item list-group-item-action active">システム管理</a>
+                </div>
+            </div>
+            
+            <div class="col-md-9">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="fs-3">ユーザー管理</h2>
+                    <button class="btn btn-primary">新規ユーザー登録</button>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#">ユーザー一覧</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">無効ユーザー</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#">ログイン履歴</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="search-box mb-4 p-3 bg-light rounded">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="userId" class="form-label">ユーザーID</label>
+                                    <input type="text" class="form-control form-control-sm" id="userId">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="userName" class="form-label">ユーザー名</label>
+                                    <input type="text" class="form-control form-control-sm" id="userName">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="email" class="form-label">メールアドレス</label>
+                                    <input type="email" class="form-control form-control-sm" id="email">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="role" class="form-label">ロール</label>
+                                    <select class="form-select form-select-sm" id="role">
+                                        <option value="">すべて</option>
+                                        <option value="admin">システム管理者</option>
+                                        <option value="sales">営業担当者</option>
+                                        <option value="hr">人事担当者</option>
+                                        <option value="accounting">経理担当者</option>
+                                        <option value="user">一般ユーザー</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">ステータス</label>
+                                    <div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="status" id="statusAll" value="all" checked>
+                                            <label class="form-check-label" for="statusAll">すべて</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="status" id="statusActive" value="active">
+                                            <label class="form-check-label" for="statusActive">有効</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="status" id="statusInactive" value="inactive">
+                                            <label class="form-check-label" for="statusInactive">無効</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4 d-flex align-items-end">
+                                    <div>
+                                        <button type="button" class="btn btn-primary btn-sm me-2">検索</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm">クリア</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="dropdown">
+                                    <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="bulkActionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                        一括操作
+                                    </button>
+                                    <ul class="dropdown-menu" aria-labelledby="bulkActionDropdown">
+                                        <li><a class="dropdown-item" href="#">選択したユーザーを有効化</a></li>
+                                        <li><a class="dropdown-item" href="#">選択したユーザーを無効化</a></li>
+                                        <li><a class="dropdown-item" href="#">選択したユーザーのロックを解除</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button class="btn btn-outline-secondary btn-sm">CSVエクスポート</button>
+                            </div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover align-middle">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" class="form-check-input"></th>
+                                        <th>ID</th>
+                                        <th>ユーザー名</th>
+                                        <th>メールアドレス</th>
+                                        <th>ロール</th>
+                                        <th>所属部門</th>
+                                        <th>最終ログイン</th>
+                                        <th>状態</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="checkbox" class="form-check-input"></td>
+                                        <td>1001</td>
+                                        <td>山田 太郎</td>
+                                        <td>t.yamada@example.com</td>
+                                        <td>システム管理者</td>
+                                        <td>システム部</td>
+                                        <td>2025/05/04 09:15</td>
+                                        <td><span class="badge badge-enabled">有効</span></td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                                                <button type="button" class="btn btn-outline-secondary"><i class="bi bi-key"></i></button>
+                                                <button type="button" class="btn btn-outline-danger"><i class="bi bi-slash-circle"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="checkbox" class="form-check-input"></td>
+                                        <td>1002</td>
+                                        <td>鈴木 一郎</td>
+                                        <td>i.suzuki@example.com</td>
+                                        <td>営業担当者</td>
+                                        <td>営業部</td>
+                                        <td>2025/05/03 14:22</td>
+                                        <td><span class="badge badge-enabled">有効</span></td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                                                <button type="button" class="btn btn-outline-secondary"><i class="bi bi-key"></i></button>
+                                                <button type="button" class="btn btn-outline-danger"><i class="bi bi-slash-circle"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="checkbox" class="form-check-input"></td>
+                                        <td>1003</td>
+                                        <td>佐藤 花子</td>
+                                        <td>h.sato@example.com</td>
+                                        <td>人事担当者</td>
+                                        <td>人事部</td>
+                                        <td>2025/05/04 11:03</td>
+                                        <td><span class="badge badge-locked">ロック中</span></td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                                                <button type="button" class="btn btn-outline-secondary"><i class="bi bi-key"></i></button>
+                                                <button type="button" class="btn btn-outline-warning"><i class="bi bi-unlock"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="checkbox" class="form-check-input"></td>
+                                        <td>1004</td>
+                                        <td>高橋 次郎</td>
+                                        <td>j.takahashi@example.com</td>
+                                        <td>一般ユーザー</td>
+                                        <td>技術部</td>
+                                        <td>2025/05/02 16:45</td>
+                                        <td><span class="badge badge-enabled">有効</span></td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                                                <button type="button" class="btn btn-outline-secondary"><i class="bi bi-key"></i></button>
+                                                <button type="button" class="btn btn-outline-danger"><i class="bi bi-slash-circle"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="checkbox" class="form-check-input"></td>
+                                        <td>1005</td>
+                                        <td>田中 真理</td>
+                                        <td>m.tanaka@example.com</td>
+                                        <td>経理担当者</td>
+                                        <td>経理部</td>
+                                        <td>2025/05/03 10:18</td>
+                                        <td><span class="badge badge-disabled">無効</span></td>
+                                        <td>
+                                            <div class="btn-group btn-group-sm">
+                                                <button type="button" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></button>
+                                                <button type="button" class="btn btn-outline-secondary"><i class="bi bi-key"></i></button>
+                                                <button type="button" class="btn btn-outline-success"><i class="bi bi-check-circle"></i></button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <nav aria-label="ページネーション" class="mt-3">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">前へ</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">次へ</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ユーザー編集モーダル -->
+    <div class="modal fade" id="userEditModal" tabindex="-1" aria-labelledby="userEditModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userEditModalLabel">ユーザー編集</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editUserId" class="form-label">ユーザーID <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="editUserId" value="1001" readonly>
+                                <div class="form-text">既存ユーザーのIDは変更できません</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editName" class="form-label">氏名 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="editName" value="山田 太郎">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editEmail" class="form-label">メールアドレス <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="editEmail" value="t.yamada@example.com">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDepartment" class="form-label">所属部門 <span class="text-danger">*</span></label>
+                                <select class="form-select" id="editDepartment">
+                                    <option value="1" selected>システム部</option>
+                                    <option value="2">営業部</option>
+                                    <option value="3">人事部</option>
+                                    <option value="4">経理部</option>
+                                    <option value="5">総務部</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editPhone" class="form-label">電話番号</label>
+                                <input type="tel" class="form-control" id="editPhone" value="03-1234-5678">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editRoles" class="form-label">ロール <span class="text-danger">*</span></label>
+                                <select class="form-select" id="editRoles" multiple size="3">
+                                    <option value="1" selected>システム管理者</option>
+                                    <option value="2">営業担当者</option>
+                                    <option value="3">人事担当者</option>
+                                    <option value="4">経理担当者</option>
+                                    <option value="5">一般ユーザー</option>
+                                </select>
+                                <div class="form-text">Ctrlキーを押しながら複数選択できます</div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="edit2FA" checked>
+                                    <label class="form-check-label" for="edit2FA">多要素認証を有効にする</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="editLocked">
+                                    <label class="form-check-label" for="editLocked">アカウントロック</label>
+                                </div>
+                                <div class="form-text">アカウントがロックされている場合、チェックを外すことでロックを解除できます</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- パスワードリセット確認モーダル -->
+    <div class="modal fade" id="passwordResetModal" tabindex="-1" aria-labelledby="passwordResetModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="passwordResetModalLabel">パスワードリセット確認</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>山田 太郎さんのパスワードをリセットします。</p>
+                    <p>仮パスワードがユーザーのメールアドレス（t.yamada@example.com）に送信されます。</p>
+                    <p>よろしいですか？</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-warning">パスワードリセット</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
