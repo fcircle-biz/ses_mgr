@@ -3,18 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ログ管理画面 | SES業務システム</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <title>SES業務システム - ログ管理</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
-            padding-top: 20px;
-            padding-bottom: 40px;
+            background-color: #f8f9fa;
         }
-        .system-header {
-            margin-bottom: 30px;
-            border-bottom: 1px solid #e5e5e5;
+        .navbar-brand {
+            font-weight: 600;
         }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        /* ステータスバッジのスタイル */
+        .badge-draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .badge-proposal {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .badge-active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .badge-contracted {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .badge-completed {
+            background-color: #d3d3d3;
+            color: #444;
+        }
+        .badge-cancelled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* カスタムスタイル */
         .log-level {
             width: 24px;
             height: 24px;
@@ -67,317 +127,343 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="system-header d-flex justify-content-between align-items-center pb-3 mb-4">
-            <h1 class="fs-4">SES業務システム</h1>
-            <div class="d-flex align-items-center">
-                <div class="dropdown me-3">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bell"></i>
-                        <span class="badge bg-danger">3</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
-                        <li><a class="dropdown-item" href="#">未読通知 (3)</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">新しい案件が登録されました</a></li>
-                        <li><a class="dropdown-item" href="#">新しいメッセージがあります</a></li>
-                        <li><a class="dropdown-item" href="#">承認待ちの依頼があります</a></li>
-                    </ul>
-                </div>
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        管理者 様
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="#">プロフィール</a></li>
-                        <li><a class="dropdown-item" href="#">設定</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">ログアウト</a></li>
-                    </ul>
-                </div>
-            </div>
-        </header>
-        
-        <div class="row">
-            <div class="col-md-3">
-                <div class="list-group mb-4">
-                    <a href="#" class="list-group-item list-group-item-action">ダッシュボード</a>
-                    <a href="#" class="list-group-item list-group-item-action">案件管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">技術者管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">契約管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">マッチング</a>
-                    <a href="#" class="list-group-item list-group-item-action">勤怠工数管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">請求支払管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">レポーティング</a>
-                    <a href="#" class="list-group-item list-group-item-action active">システム管理</a>
-                </div>
-            </div>
-            
-            <div class="col-md-9">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="fs-3">ログ管理</h2>
-                    <button class="btn btn-outline-primary">
-                        <i class="bi bi-download"></i> エクスポート
-                    </button>
-                </div>
-                
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <ul class="nav nav-tabs card-header-tabs">
-                            <li class="nav-item">
-                                <a class="nav-link active" href="#" id="tab-operation">操作ログ</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#" id="tab-system">システムログ</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#" id="tab-error">エラーログ</a>
-                            </li>
-                            <li class="nav-item">
-                                <a class="nav-link" href="#" id="tab-security">セキュリティログ</a>
-                            </li>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">システム管理</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">管理</div>
+                            <span>管理者 様</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
                         </ul>
                     </div>
-                    <div class="card-body">
-                        <!-- 検索条件 -->
-                        <div class="search-box">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <div class="row g-2">
-                                        <div class="col-6">
-                                            <label for="startDate" class="form-label">期間（開始）</label>
-                                            <input type="datetime-local" class="form-control form-control-sm" id="startDate" value="2025-05-04T00:00">
-                                        </div>
-                                        <div class="col-6">
-                                            <label for="endDate" class="form-label">期間（終了）</label>
-                                            <input type="datetime-local" class="form-control form-control-sm" id="endDate" value="2025-05-05T23:59">
-                                        </div>
-                                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">システム管理</a></li>
+                <li class="breadcrumb-item active" aria-current="page">ログ管理</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">ログ管理</h2>
+            <div>
+                <button class="btn btn-outline-primary">
+                    <i class="bi bi-download"></i> エクスポート
+                </button>
+            </div>
+        </div>
+
+        <!-- メインコンテンツエリア -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" id="tab-operation">操作ログ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="tab-system">システムログ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="tab-error">エラーログ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="tab-security">セキュリティログ</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <!-- 検索条件 -->
+                <div class="search-box">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label for="startDate" class="form-label">期間（開始）</label>
+                                    <input type="datetime-local" class="form-control form-control-sm" id="startDate" value="2025-05-04T00:00">
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="row g-2">
-                                        <div class="col-6">
-                                            <label for="userId" class="form-label">ユーザーID</label>
-                                            <input type="text" class="form-control form-control-sm" id="userId">
-                                        </div>
-                                        <div class="col-6">
-                                            <label for="ipAddress" class="form-label">IPアドレス</label>
-                                            <input type="text" class="form-control form-control-sm" id="ipAddress">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="row g-2">
-                                        <div class="col-6">
-                                            <label for="logLevel" class="form-label">ログレベル</label>
-                                            <select class="form-select form-select-sm" id="logLevel">
-                                                <option value="">すべて</option>
-                                                <option value="info">INFO</option>
-                                                <option value="warn">WARN</option>
-                                                <option value="error">ERROR</option>
-                                                <option value="fatal">FATAL</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-6">
-                                            <label for="operationType" class="form-label">操作種別</label>
-                                            <select class="form-select form-select-sm" id="operationType">
-                                                <option value="">すべて</option>
-                                                <option value="create">登録</option>
-                                                <option value="update">更新</option>
-                                                <option value="delete">削除</option>
-                                                <option value="view">参照</option>
-                                                <option value="login">ログイン</option>
-                                                <option value="logout">ログアウト</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="keyword" class="form-label">キーワード</label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control form-control-sm" id="keyword" placeholder="メッセージ内容で検索...">
-                                        <button class="btn btn-outline-secondary btn-sm" type="button"><i class="bi bi-search"></i> 検索</button>
-                                        <button class="btn btn-outline-secondary btn-sm" type="button"><i class="bi bi-arrow-clockwise"></i> クリア</button>
-                                    </div>
+                                <div class="col-6">
+                                    <label for="endDate" class="form-label">期間（終了）</label>
+                                    <input type="datetime-local" class="form-control form-control-sm" id="endDate" value="2025-05-05T23:59">
                                 </div>
                             </div>
                         </div>
-                        
-                        <!-- ログ一覧 -->
-                        <div class="table-responsive">
-                            <table class="table table-sm table-hover align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>日時</th>
-                                        <th>レベル</th>
-                                        <th>カテゴリ</th>
-                                        <th>ユーザーID</th>
-                                        <th>IPアドレス</th>
-                                        <th>操作対象</th>
-                                        <th>メッセージ</th>
-                                        <th>詳細</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>2025/05/05 09:45:23</td>
-                                        <td><span class="log-level info" title="INFO"><i class="bi bi-info"></i></span></td>
-                                        <td>ユーザー管理</td>
-                                        <td>admin</td>
-                                        <td>192.168.1.101</td>
-                                        <td>ユーザー</td>
-                                        <td class="log-message">ユーザー 'yamada' を更新しました</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#logDetailModal">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>2025/05/05 09:42:15</td>
-                                        <td><span class="log-level info" title="INFO"><i class="bi bi-info"></i></span></td>
-                                        <td>ユーザー管理</td>
-                                        <td>admin</td>
-                                        <td>192.168.1.101</td>
-                                        <td>ユーザー</td>
-                                        <td class="log-message">ユーザー一覧を参照しました</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-secondary">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>2025/05/05 09:30:05</td>
-                                        <td><span class="log-level info" title="INFO"><i class="bi bi-info"></i></span></td>
-                                        <td>認証</td>
-                                        <td>admin</td>
-                                        <td>192.168.1.101</td>
-                                        <td>ログイン</td>
-                                        <td class="log-message">ユーザー 'admin' がログインしました</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-secondary">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>2025/05/04 18:22:47</td>
-                                        <td><span class="log-level warn" title="WARN"><i class="bi bi-exclamation"></i></span></td>
-                                        <td>マスタ管理</td>
-                                        <td>tanaka</td>
-                                        <td>192.168.1.105</td>
-                                        <td>部門マスタ</td>
-                                        <td class="log-message">関連データが存在するため、部門 'DEPT006' を無効化しました</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-secondary">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>2025/05/04 16:15:32</td>
-                                        <td><span class="log-level error" title="ERROR"><i class="bi bi-x"></i></span></td>
-                                        <td>データベース</td>
-                                        <td>system</td>
-                                        <td>192.168.1.100</td>
-                                        <td>バックアップ</td>
-                                        <td class="log-message">データベースバックアップに失敗しました: ディスク容量不足</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-secondary">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>2025/05/04 15:05:19</td>
-                                        <td><span class="log-level info" title="INFO"><i class="bi bi-info"></i></span></td>
-                                        <td>案件管理</td>
-                                        <td>suzuki</td>
-                                        <td>192.168.1.110</td>
-                                        <td>案件</td>
-                                        <td class="log-message">案件 'PRJ-1025' を登録しました</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-secondary">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>2025/05/04 14:52:08</td>
-                                        <td><span class="log-level info" title="INFO"><i class="bi bi-info"></i></span></td>
-                                        <td>認証</td>
-                                        <td>suzuki</td>
-                                        <td>192.168.1.110</td>
-                                        <td>ログイン</td>
-                                        <td class="log-message">ユーザー 'suzuki' がログインしました</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-secondary">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>2025/05/04 12:30:45</td>
-                                        <td><span class="log-level error" title="ERROR"><i class="bi bi-x"></i></span></td>
-                                        <td>認証</td>
-                                        <td>unknown</td>
-                                        <td>203.0.113.42</td>
-                                        <td>ログイン</td>
-                                        <td class="log-message">ログイン失敗: ユーザー 'admin' - 不正なパスワード（3回目）</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-secondary">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>2025/05/04 10:15:30</td>
-                                        <td><span class="log-level info" title="INFO"><i class="bi bi-info"></i></span></td>
-                                        <td>バッチ処理</td>
-                                        <td>system</td>
-                                        <td>192.168.1.100</td>
-                                        <td>日次集計</td>
-                                        <td class="log-message">日次売上集計バッチ処理が完了しました</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-secondary">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>2025/05/04 09:00:05</td>
-                                        <td><span class="log-level info" title="INFO"><i class="bi bi-info"></i></span></td>
-                                        <td>バッチ処理</td>
-                                        <td>system</td>
-                                        <td>192.168.1.100</td>
-                                        <td>日次集計</td>
-                                        <td class="log-message">日次売上集計バッチ処理を開始しました</td>
-                                        <td>
-                                            <button class="btn btn-sm btn-outline-secondary">
-                                                <i class="bi bi-eye"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
+                        <div class="col-md-6">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label for="userId" class="form-label">ユーザーID</label>
+                                    <input type="text" class="form-control form-control-sm" id="userId">
+                                </div>
+                                <div class="col-6">
+                                    <label for="ipAddress" class="form-label">IPアドレス</label>
+                                    <input type="text" class="form-control form-control-sm" id="ipAddress">
+                                </div>
+                            </div>
                         </div>
-                        
-                        <nav aria-label="ページネーション" class="mt-3">
-                            <ul class="pagination pagination-sm justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">前へ</a>
-                                </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">次へ</a>
-                                </li>
-                            </ul>
-                        </nav>
+                        <div class="col-md-6">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <label for="logLevel" class="form-label">ログレベル</label>
+                                    <select class="form-select form-select-sm" id="logLevel">
+                                        <option value="">すべて</option>
+                                        <option value="info">INFO</option>
+                                        <option value="warn">WARN</option>
+                                        <option value="error">ERROR</option>
+                                        <option value="fatal">FATAL</option>
+                                    </select>
+                                </div>
+                                <div class="col-6">
+                                    <label for="operationType" class="form-label">操作種別</label>
+                                    <select class="form-select form-select-sm" id="operationType">
+                                        <option value="">すべて</option>
+                                        <option value="create">登録</option>
+                                        <option value="update">更新</option>
+                                        <option value="delete">削除</option>
+                                        <option value="view">参照</option>
+                                        <option value="login">ログイン</option>
+                                        <option value="logout">ログアウト</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="keyword" class="form-label">キーワード</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control form-control-sm" id="keyword" placeholder="メッセージ内容で検索...">
+                                <button class="btn btn-outline-secondary btn-sm" type="button"><i class="bi bi-search"></i> 検索</button>
+                                <button class="btn btn-outline-secondary btn-sm" type="button"><i class="bi bi-arrow-clockwise"></i> クリア</button>
+                            </div>
+                        </div>
                     </div>
                 </div>
+                
+                <!-- ログ一覧 -->
+                <div class="table-responsive">
+                    <table class="table table-sm table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>日時</th>
+                                <th>レベル</th>
+                                <th>カテゴリ</th>
+                                <th>ユーザーID</th>
+                                <th>IPアドレス</th>
+                                <th>操作対象</th>
+                                <th>メッセージ</th>
+                                <th>詳細</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2025/05/05 09:45:23</td>
+                                <td><span class="log-level info" title="INFO"><i class="bi bi-info"></i></span></td>
+                                <td>ユーザー管理</td>
+                                <td>admin</td>
+                                <td>192.168.1.101</td>
+                                <td>ユーザー</td>
+                                <td class="log-message">ユーザー 'yamada' を更新しました</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary action-button" data-bs-toggle="modal" data-bs-target="#logDetailModal">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025/05/05 09:42:15</td>
+                                <td><span class="log-level info" title="INFO"><i class="bi bi-info"></i></span></td>
+                                <td>ユーザー管理</td>
+                                <td>admin</td>
+                                <td>192.168.1.101</td>
+                                <td>ユーザー</td>
+                                <td class="log-message">ユーザー一覧を参照しました</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary action-button">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025/05/05 09:30:05</td>
+                                <td><span class="log-level info" title="INFO"><i class="bi bi-info"></i></span></td>
+                                <td>認証</td>
+                                <td>admin</td>
+                                <td>192.168.1.101</td>
+                                <td>ログイン</td>
+                                <td class="log-message">ユーザー 'admin' がログインしました</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary action-button">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025/05/04 18:22:47</td>
+                                <td><span class="log-level warn" title="WARN"><i class="bi bi-exclamation"></i></span></td>
+                                <td>マスタ管理</td>
+                                <td>tanaka</td>
+                                <td>192.168.1.105</td>
+                                <td>部門マスタ</td>
+                                <td class="log-message">関連データが存在するため、部門 'DEPT006' を無効化しました</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary action-button">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025/05/04 16:15:32</td>
+                                <td><span class="log-level error" title="ERROR"><i class="bi bi-x"></i></span></td>
+                                <td>データベース</td>
+                                <td>system</td>
+                                <td>192.168.1.100</td>
+                                <td>バックアップ</td>
+                                <td class="log-message">データベースバックアップに失敗しました: ディスク容量不足</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary action-button">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025/05/04 15:05:19</td>
+                                <td><span class="log-level info" title="INFO"><i class="bi bi-info"></i></span></td>
+                                <td>案件管理</td>
+                                <td>suzuki</td>
+                                <td>192.168.1.110</td>
+                                <td>案件</td>
+                                <td class="log-message">案件 'PRJ-1025' を登録しました</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary action-button">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025/05/04 14:52:08</td>
+                                <td><span class="log-level info" title="INFO"><i class="bi bi-info"></i></span></td>
+                                <td>認証</td>
+                                <td>suzuki</td>
+                                <td>192.168.1.110</td>
+                                <td>ログイン</td>
+                                <td class="log-message">ユーザー 'suzuki' がログインしました</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary action-button">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025/05/04 12:30:45</td>
+                                <td><span class="log-level error" title="ERROR"><i class="bi bi-x"></i></span></td>
+                                <td>認証</td>
+                                <td>unknown</td>
+                                <td>203.0.113.42</td>
+                                <td>ログイン</td>
+                                <td class="log-message">ログイン失敗: ユーザー 'admin' - 不正なパスワード（3回目）</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary action-button">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025/05/04 10:15:30</td>
+                                <td><span class="log-level info" title="INFO"><i class="bi bi-info"></i></span></td>
+                                <td>バッチ処理</td>
+                                <td>system</td>
+                                <td>192.168.1.100</td>
+                                <td>日次集計</td>
+                                <td class="log-message">日次売上集計バッチ処理が完了しました</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary action-button">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>2025/05/04 09:00:05</td>
+                                <td><span class="log-level info" title="INFO"><i class="bi bi-info"></i></span></td>
+                                <td>バッチ処理</td>
+                                <td>system</td>
+                                <td>192.168.1.100</td>
+                                <td>日次集計</td>
+                                <td class="log-message">日次売上集計バッチ処理を開始しました</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary action-button">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <nav aria-label="ページネーション" class="mt-3">
+                    <ul class="pagination pagination-sm justify-content-center">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1" aria-disabled="true">前へ</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">次へ</a>
+                        </li>
+                    </ul>
+                </nav>
             </div>
         </div>
     </div>
@@ -457,7 +543,53 @@
             </div>
         </div>
     </div>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
     
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- カスタムJavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // タブの切り替え処理
+            const tabOperation = document.getElementById('tab-operation');
+            const tabSystem = document.getElementById('tab-system');
+            const tabError = document.getElementById('tab-error');
+            const tabSecurity = document.getElementById('tab-security');
+            
+            if (tabSystem) {
+                tabSystem.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    tabOperation.classList.remove('active');
+                    tabSystem.classList.add('active');
+                    tabError.classList.remove('active');
+                    tabSecurity.classList.remove('active');
+                    // 実際の画面では、ここでシステムログのコンテンツを表示する処理を追加
+                });
+            }
+            
+            if (tabError) {
+                tabError.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    tabOperation.classList.remove('active');
+                    tabSystem.classList.remove('active');
+                    tabError.classList.add('active');
+                    tabSecurity.classList.remove('active');
+                    // 実際の画面では、ここでエラーログのコンテンツを表示する処理を追加
+                });
+            }
+            
+            if (tabSecurity) {
+                tabSecurity.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    tabOperation.classList.remove('active');
+                    tabSystem.classList.remove('active');
+                    tabError.classList.remove('active');
+                    tabSecurity.classList.add('active');
+                    // 実際の画面では、ここでセキュリティログのコンテンツを表示する処理を追加
+                });
+            }
+        });
+    </script>
 </body>
 </html>

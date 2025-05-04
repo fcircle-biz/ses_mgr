@@ -4,17 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>バッチ管理画面 | SES業務システム</title>
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <style>
         body {
-            padding-top: 20px;
-            padding-bottom: 40px;
+            background-color: #f8f9fa;
         }
-        .system-header {
-            margin-bottom: 30px;
-            border-bottom: 1px solid #e5e5e5;
+        .navbar-brand {
+            font-weight: 600;
         }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        /* ステータスバッジのスタイル */
         .status-badge {
             font-size: 0.75rem;
             padding: 0.25rem 0.5rem;
@@ -83,551 +99,611 @@
         .tab-content-box {
             min-height: 500px;
         }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="system-header d-flex justify-content-between align-items-center pb-3 mb-4">
-            <h1 class="fs-4">SES業務システム</h1>
-            <div class="d-flex align-items-center">
-                <div class="dropdown me-3">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bell"></i>
-                        <span class="badge bg-danger">3</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
-                        <li><a class="dropdown-item" href="#">未読通知 (3)</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">新しい案件が登録されました</a></li>
-                        <li><a class="dropdown-item" href="#">新しいメッセージがあります</a></li>
-                        <li><a class="dropdown-item" href="#">承認待ちの依頼があります</a></li>
-                    </ul>
-                </div>
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        管理者 様
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="#">プロフィール</a></li>
-                        <li><a class="dropdown-item" href="#">設定</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">ログアウト</a></li>
-                    </ul>
-                </div>
-            </div>
-        </header>
-        
-        <div class="row">
-            <div class="col-md-3">
-                <div class="list-group mb-4">
-                    <a href="#" class="list-group-item list-group-item-action">ダッシュボード</a>
-                    <a href="#" class="list-group-item list-group-item-action">案件管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">技術者管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">契約管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">マッチング</a>
-                    <a href="#" class="list-group-item list-group-item-action">勤怠工数管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">請求支払管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">レポーティング</a>
-                    <a href="#" class="list-group-item list-group-item-action active">システム管理</a>
-                </div>
-            </div>
-            
-            <div class="col-md-9">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="fs-3">バッチ管理</h2>
-                </div>
-                
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <ul class="nav nav-tabs card-header-tabs" id="batchTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link active" id="scheduled-tab" data-bs-toggle="tab" data-bs-target="#scheduled-content" type="button" role="tab" aria-controls="scheduled-content" aria-selected="true">定期バッチ</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="ondemand-tab" data-bs-toggle="tab" data-bs-target="#ondemand-content" type="button" role="tab" aria-controls="ondemand-content" aria-selected="false">オンデマンドバッチ</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                                <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-content" type="button" role="tab" aria-controls="history-content" aria-selected="false">実行履歴</button>
-                            </li>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">勤怠工数管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">請求支払管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">レポーティング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">システム管理</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown me-3">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-bell"></i>
+                            <span class="badge bg-danger">3</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            <li><a class="dropdown-item" href="#">未読通知 (3)</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">新しい案件が登録されました</a></li>
+                            <li><a class="dropdown-item" href="#">新しいメッセージがあります</a></li>
+                            <li><a class="dropdown-item" href="#">承認待ちの依頼があります</a></li>
                         </ul>
                     </div>
-                    <div class="card-body tab-content-box">
-                        <!-- 定期バッチタブ -->
-                        <div class="tab-pane fade show active" id="scheduled-content" role="tabpanel" aria-labelledby="scheduled-tab">
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <select class="form-select form-select-sm" id="categoryFilter">
-                                        <option selected>カテゴリ：すべて</option>
-                                        <option>データ集計</option>
-                                        <option>請求・支払</option>
-                                        <option>通知</option>
-                                        <option>データメンテナンス</option>
-                                        <option>インポート/エクスポート</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="input-group input-group-sm">
-                                        <input type="text" class="form-control" placeholder="バッチ名で検索...">
-                                        <button class="btn btn-outline-secondary" type="button"><i class="bi bi-search"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="table-responsive">
-                                <table class="table table-sm table-hover align-middle">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>バッチID</th>
-                                            <th>バッチ名</th>
-                                            <th>カテゴリ</th>
-                                            <th>スケジュール</th>
-                                            <th>次回実行予定</th>
-                                            <th>最終実行</th>
-                                            <th>状態</th>
-                                            <th>最終結果</th>
-                                            <th>操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>BATCH001</td>
-                                            <td>日次売上集計</td>
-                                            <td>データ集計</td>
-                                            <td><code>0 5 * * *</code></td>
-                                            <td>2025/05/06 05:00</td>
-                                            <td>2025/05/05 05:00</td>
-                                            <td><span class="status-badge status-enabled">有効</span></td>
-                                            <td><span class="status-badge status-success">成功</span></td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <button type="button" class="btn btn-outline-primary" title="実行" data-bs-toggle="modal" data-bs-target="#batchRunModal"><i class="bi bi-play-fill"></i></button>
-                                                    <button type="button" class="btn btn-outline-secondary" title="設定" data-bs-toggle="modal" data-bs-target="#batchScheduleModal"><i class="bi bi-gear"></i></button>
-                                                    <button type="button" class="btn btn-outline-danger" title="無効化"><i class="bi bi-toggle-off"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>BATCH002</td>
-                                            <td>月次売上集計</td>
-                                            <td>データ集計</td>
-                                            <td><code>0 4 1 * *</code></td>
-                                            <td>2025/06/01 04:00</td>
-                                            <td>2025/05/01 04:00</td>
-                                            <td><span class="status-badge status-enabled">有効</span></td>
-                                            <td><span class="status-badge status-success">成功</span></td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
-                                                    <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
-                                                    <button type="button" class="btn btn-outline-danger" title="無効化"><i class="bi bi-toggle-off"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>BATCH003</td>
-                                            <td>請求書生成</td>
-                                            <td>請求・支払</td>
-                                            <td><code>0 10 25 * *</code></td>
-                                            <td>2025/05/25 10:00</td>
-                                            <td>2025/04/25 10:00</td>
-                                            <td><span class="status-badge status-enabled">有効</span></td>
-                                            <td><span class="status-badge status-success">成功</span></td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
-                                                    <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
-                                                    <button type="button" class="btn btn-outline-danger" title="無効化"><i class="bi bi-toggle-off"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>BATCH004</td>
-                                            <td>勤怠未提出通知</td>
-                                            <td>通知</td>
-                                            <td><code>0 9 * * 1-5</code></td>
-                                            <td>2025/05/06 09:00</td>
-                                            <td>2025/05/05 09:00</td>
-                                            <td><span class="status-badge status-enabled">有効</span></td>
-                                            <td><span class="status-badge status-warning">警告</span></td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
-                                                    <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
-                                                    <button type="button" class="btn btn-outline-danger" title="無効化"><i class="bi bi-toggle-off"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>BATCH005</td>
-                                            <td>ログクリーンアップ</td>
-                                            <td>データメンテナンス</td>
-                                            <td><code>0 2 * * 0</code></td>
-                                            <td>2025/05/11 02:00</td>
-                                            <td>2025/05/04 02:00</td>
-                                            <td><span class="status-badge status-enabled">有効</span></td>
-                                            <td><span class="status-badge status-success">成功</span></td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
-                                                    <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
-                                                    <button type="button" class="btn btn-outline-danger" title="無効化"><i class="bi bi-toggle-off"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>BATCH006</td>
-                                            <td>データベースバックアップ</td>
-                                            <td>データメンテナンス</td>
-                                            <td><code>0 1 * * *</code></td>
-                                            <td>2025/05/06 01:00</td>
-                                            <td>2025/05/05 01:00</td>
-                                            <td><span class="status-badge status-enabled">有効</span></td>
-                                            <td><span class="status-badge status-running">実行中</span></td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <button type="button" class="btn btn-outline-danger" title="停止"><i class="bi bi-stop-fill"></i></button>
-                                                    <button type="button" class="btn btn-outline-secondary" title="設定" disabled><i class="bi bi-gear"></i></button>
-                                                    <button type="button" class="btn btn-outline-danger" title="無効化" disabled><i class="bi bi-toggle-off"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>BATCH007</td>
-                                            <td>会計システム連携</td>
-                                            <td>インポート/エクスポート</td>
-                                            <td><code>0 3 * * 1</code></td>
-                                            <td>2025/05/12 03:00</td>
-                                            <td>2025/05/05 03:00</td>
-                                            <td><span class="status-badge status-disabled">無効</span></td>
-                                            <td><span class="status-badge status-failed">失敗</span></td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
-                                                    <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
-                                                    <button type="button" class="btn btn-outline-success" title="有効化"><i class="bi bi-toggle-on"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        
-                        <!-- オンデマンドバッチタブ -->
-                        <div class="tab-pane fade" id="ondemand-content" role="tabpanel" aria-labelledby="ondemand-tab">
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <select class="form-select form-select-sm" id="categoryFilterOnDemand">
-                                        <option selected>カテゴリ：すべて</option>
-                                        <option>データ集計</option>
-                                        <option>請求・支払</option>
-                                        <option>データメンテナンス</option>
-                                        <option>インポート/エクスポート</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="input-group input-group-sm">
-                                        <input type="text" class="form-control" placeholder="バッチ名で検索...">
-                                        <button class="btn btn-outline-secondary" type="button"><i class="bi bi-search"></i></button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="table-responsive">
-                                <table class="table table-sm table-hover align-middle">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>バッチID</th>
-                                            <th>バッチ名</th>
-                                            <th>カテゴリ</th>
-                                            <th>説明</th>
-                                            <th>最終実行</th>
-                                            <th>状態</th>
-                                            <th>最終結果</th>
-                                            <th>操作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>BATCH101</td>
-                                            <td>売上再集計</td>
-                                            <td>データ集計</td>
-                                            <td>指定期間の売上データを再集計</td>
-                                            <td>2025/04/28 10:15</td>
-                                            <td><span class="status-badge status-enabled">有効</span></td>
-                                            <td><span class="status-badge status-success">成功</span></td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
-                                                    <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>BATCH102</td>
-                                            <td>稼働率再計算</td>
-                                            <td>データ集計</td>
-                                            <td>指定期間の稼働率を再計算</td>
-                                            <td>2025/04/25 14:30</td>
-                                            <td><span class="status-badge status-enabled">有効</span></td>
-                                            <td><span class="status-badge status-success">成功</span></td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
-                                                    <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>BATCH103</td>
-                                            <td>請求データエクスポート</td>
-                                            <td>請求・支払</td>
-                                            <td>指定月の請求データをCSVでエクスポート</td>
-                                            <td>2025/05/01 09:20</td>
-                                            <td><span class="status-badge status-enabled">有効</span></td>
-                                            <td><span class="status-badge status-success">成功</span></td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
-                                                    <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>BATCH104</td>
-                                            <td>技術者データインポート</td>
-                                            <td>インポート/エクスポート</td>
-                                            <td>CSVから技術者データをインポート</td>
-                                            <td>-</td>
-                                            <td><span class="status-badge status-enabled">有効</span></td>
-                                            <td>-</td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
-                                                    <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>BATCH105</td>
-                                            <td>一括メール送信</td>
-                                            <td>通知</td>
-                                            <td>指定条件に合致するユーザーに一斉メール送信</td>
-                                            <td>2025/05/03 15:45</td>
-                                            <td><span class="status-badge status-enabled">有効</span></td>
-                                            <td><span class="status-badge status-success">成功</span></td>
-                                            <td>
-                                                <div class="btn-group btn-group-sm">
-                                                    <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
-                                                    <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                        
-                        <!-- 実行履歴タブ -->
-                        <div class="tab-pane fade" id="history-content" role="tabpanel" aria-labelledby="history-tab">
-                            <div class="search-box mb-3">
-                                <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <div class="row g-2">
-                                            <div class="col-6">
-                                                <label for="startDate" class="form-label">期間（開始）</label>
-                                                <input type="datetime-local" class="form-control form-control-sm" id="startDate" value="2025-05-01T00:00">
-                                            </div>
-                                            <div class="col-6">
-                                                <label for="endDate" class="form-label">期間（終了）</label>
-                                                <input type="datetime-local" class="form-control form-control-sm" id="endDate" value="2025-05-05T23:59">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="row g-2">
-                                            <div class="col-6">
-                                                <label for="batchSelect" class="form-label">バッチ選択</label>
-                                                <select class="form-select form-select-sm" id="batchSelect">
-                                                    <option value="" selected>すべて</option>
-                                                    <option value="BATCH001">日次売上集計</option>
-                                                    <option value="BATCH002">月次売上集計</option>
-                                                    <option value="BATCH003">請求書生成</option>
-                                                    <option value="BATCH004">勤怠未提出通知</option>
-                                                    <option value="BATCH005">ログクリーンアップ</option>
-                                                </select>
-                                            </div>
-                                            <div class="col-6">
-                                                <label class="form-label">結果フィルタ</label>
-                                                <div>
-                                                    <div class="form-check form-check-inline">
-                                                        <input class="form-check-input" type="checkbox" id="resultSuccess" checked>
-                                                        <label class="form-check-label" for="resultSuccess">成功</label>
-                                                    </div>
-                                                    <div class="form-check form-check-inline">
-                                                        <input class="form-check-input" type="checkbox" id="resultWarning" checked>
-                                                        <label class="form-check-label" for="resultWarning">警告</label>
-                                                    </div>
-                                                    <div class="form-check form-check-inline">
-                                                        <input class="form-check-input" type="checkbox" id="resultError" checked>
-                                                        <label class="form-check-label" for="resultError">失敗</label>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="col-12 text-end">
-                                        <button class="btn btn-outline-primary btn-sm"><i class="bi bi-search"></i> 検索</button>
-                                        <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise"></i> クリア</button>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="table-responsive">
-                                <table class="table table-sm table-hover align-middle">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>実行ID</th>
-                                            <th>バッチ名</th>
-                                            <th>開始日時</th>
-                                            <th>終了日時</th>
-                                            <th>処理時間</th>
-                                            <th>実行トリガー</th>
-                                            <th>実行ユーザー</th>
-                                            <th>結果</th>
-                                            <th>詳細</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>EXE2025050501</td>
-                                            <td>日次売上集計</td>
-                                            <td>2025/05/05 05:00:00</td>
-                                            <td>2025/05/05 05:03:45</td>
-                                            <td>3分45秒</td>
-                                            <td>スケジュール</td>
-                                            <td>system</td>
-                                            <td><span class="status-badge status-success">成功</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#batchDetailModal">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>EXE2025050502</td>
-                                            <td>ログクリーンアップ</td>
-                                            <td>2025/05/05 01:00:00</td>
-                                            <td>2025/05/05 01:15:22</td>
-                                            <td>15分22秒</td>
-                                            <td>スケジュール</td>
-                                            <td>system</td>
-                                            <td><span class="status-badge status-success">成功</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-secondary">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>EXE2025050503</td>
-                                            <td>勤怠未提出通知</td>
-                                            <td>2025/05/05 09:00:00</td>
-                                            <td>2025/05/05 09:01:45</td>
-                                            <td>1分45秒</td>
-                                            <td>スケジュール</td>
-                                            <td>system</td>
-                                            <td><span class="status-badge status-warning">警告</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-secondary">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>EXE2025050504</td>
-                                            <td>請求データエクスポート</td>
-                                            <td>2025/05/05 10:15:33</td>
-                                            <td>2025/05/05 10:16:45</td>
-                                            <td>1分12秒</td>
-                                            <td>手動</td>
-                                            <td>admin</td>
-                                            <td><span class="status-badge status-success">成功</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-secondary">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>EXE2025050401</td>
-                                            <td>日次売上集計</td>
-                                            <td>2025/05/04 05:00:00</td>
-                                            <td>2025/05/04 05:04:12</td>
-                                            <td>4分12秒</td>
-                                            <td>スケジュール</td>
-                                            <td>system</td>
-                                            <td><span class="status-badge status-success">成功</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-secondary">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>EXE2025050505</td>
-                                            <td>データベースバックアップ</td>
-                                            <td>2025/05/05 01:00:00</td>
-                                            <td>-</td>
-                                            <td>実行中</td>
-                                            <td>スケジュール</td>
-                                            <td>system</td>
-                                            <td><span class="status-badge status-running">実行中</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-secondary">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>EXE2025050301</td>
-                                            <td>会計システム連携</td>
-                                            <td>2025/05/03 03:00:00</td>
-                                            <td>2025/05/03 03:05:22</td>
-                                            <td>5分22秒</td>
-                                            <td>手動</td>
-                                            <td>admin</td>
-                                            <td><span class="status-badge status-failed">失敗</span></td>
-                                            <td>
-                                                <button class="btn btn-sm btn-outline-secondary">
-                                                    <i class="bi bi-eye"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <nav aria-label="ページネーション" class="mt-3">
-                                <ul class="pagination pagination-sm justify-content-center">
-                                    <li class="page-item disabled">
-                                        <a class="page-link" href="#" tabindex="-1" aria-disabled="true">前へ</a>
-                                    </li>
-                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="#">次へ</a>
-                                    </li>
-                                </ul>
-                            </nav>
-                        </div>
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">管</div>
+                            <span>管理者 様</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">システム管理</a></li>
+                <li class="breadcrumb-item active" aria-current="page">バッチ管理</li>
+            </ol>
+        </nav>
     </div>
-    
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">バッチ管理</h2>
+            <div>
+                <!-- 必要に応じてヘッダーボタンを追加 -->
+            </div>
+        </div>
+
+        <!-- メインコンテンツエリア -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="batchTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="scheduled-tab" data-bs-toggle="tab" data-bs-target="#scheduled-content" type="button" role="tab" aria-controls="scheduled-content" aria-selected="true">定期バッチ</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="ondemand-tab" data-bs-toggle="tab" data-bs-target="#ondemand-content" type="button" role="tab" aria-controls="ondemand-content" aria-selected="false">オンデマンドバッチ</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history-content" type="button" role="tab" aria-controls="history-content" aria-selected="false">実行履歴</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body tab-content-box">
+                <!-- 定期バッチタブ -->
+                <div class="tab-pane fade show active" id="scheduled-content" role="tabpanel" aria-labelledby="scheduled-tab">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <select class="form-select form-select-sm" id="categoryFilter">
+                                <option selected>カテゴリ：すべて</option>
+                                <option>データ集計</option>
+                                <option>請求・支払</option>
+                                <option>通知</option>
+                                <option>データメンテナンス</option>
+                                <option>インポート/エクスポート</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control" placeholder="バッチ名で検索...">
+                                <button class="btn btn-outline-secondary" type="button"><i class="bi bi-search"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>バッチID</th>
+                                    <th>バッチ名</th>
+                                    <th>カテゴリ</th>
+                                    <th>スケジュール</th>
+                                    <th>次回実行予定</th>
+                                    <th>最終実行</th>
+                                    <th>状態</th>
+                                    <th>最終結果</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>BATCH001</td>
+                                    <td>日次売上集計</td>
+                                    <td>データ集計</td>
+                                    <td><code>0 5 * * *</code></td>
+                                    <td>2025/05/06 05:00</td>
+                                    <td>2025/05/05 05:00</td>
+                                    <td><span class="status-badge status-enabled">有効</span></td>
+                                    <td><span class="status-badge status-success">成功</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" title="実行" data-bs-toggle="modal" data-bs-target="#batchRunModal"><i class="bi bi-play-fill"></i></button>
+                                            <button type="button" class="btn btn-outline-secondary" title="設定" data-bs-toggle="modal" data-bs-target="#batchScheduleModal"><i class="bi bi-gear"></i></button>
+                                            <button type="button" class="btn btn-outline-danger" title="無効化"><i class="bi bi-toggle-off"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>BATCH002</td>
+                                    <td>月次売上集計</td>
+                                    <td>データ集計</td>
+                                    <td><code>0 4 1 * *</code></td>
+                                    <td>2025/06/01 04:00</td>
+                                    <td>2025/05/01 04:00</td>
+                                    <td><span class="status-badge status-enabled">有効</span></td>
+                                    <td><span class="status-badge status-success">成功</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
+                                            <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
+                                            <button type="button" class="btn btn-outline-danger" title="無効化"><i class="bi bi-toggle-off"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>BATCH003</td>
+                                    <td>請求書生成</td>
+                                    <td>請求・支払</td>
+                                    <td><code>0 10 25 * *</code></td>
+                                    <td>2025/05/25 10:00</td>
+                                    <td>2025/04/25 10:00</td>
+                                    <td><span class="status-badge status-enabled">有効</span></td>
+                                    <td><span class="status-badge status-success">成功</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
+                                            <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
+                                            <button type="button" class="btn btn-outline-danger" title="無効化"><i class="bi bi-toggle-off"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>BATCH004</td>
+                                    <td>勤怠未提出通知</td>
+                                    <td>通知</td>
+                                    <td><code>0 9 * * 1-5</code></td>
+                                    <td>2025/05/06 09:00</td>
+                                    <td>2025/05/05 09:00</td>
+                                    <td><span class="status-badge status-enabled">有効</span></td>
+                                    <td><span class="status-badge status-warning">警告</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
+                                            <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
+                                            <button type="button" class="btn btn-outline-danger" title="無効化"><i class="bi bi-toggle-off"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>BATCH005</td>
+                                    <td>ログクリーンアップ</td>
+                                    <td>データメンテナンス</td>
+                                    <td><code>0 2 * * 0</code></td>
+                                    <td>2025/05/11 02:00</td>
+                                    <td>2025/05/04 02:00</td>
+                                    <td><span class="status-badge status-enabled">有効</span></td>
+                                    <td><span class="status-badge status-success">成功</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
+                                            <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
+                                            <button type="button" class="btn btn-outline-danger" title="無効化"><i class="bi bi-toggle-off"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>BATCH006</td>
+                                    <td>データベースバックアップ</td>
+                                    <td>データメンテナンス</td>
+                                    <td><code>0 1 * * *</code></td>
+                                    <td>2025/05/06 01:00</td>
+                                    <td>2025/05/05 01:00</td>
+                                    <td><span class="status-badge status-enabled">有効</span></td>
+                                    <td><span class="status-badge status-running">実行中</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-danger" title="停止"><i class="bi bi-stop-fill"></i></button>
+                                            <button type="button" class="btn btn-outline-secondary" title="設定" disabled><i class="bi bi-gear"></i></button>
+                                            <button type="button" class="btn btn-outline-danger" title="無効化" disabled><i class="bi bi-toggle-off"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>BATCH007</td>
+                                    <td>会計システム連携</td>
+                                    <td>インポート/エクスポート</td>
+                                    <td><code>0 3 * * 1</code></td>
+                                    <td>2025/05/12 03:00</td>
+                                    <td>2025/05/05 03:00</td>
+                                    <td><span class="status-badge status-disabled">無効</span></td>
+                                    <td><span class="status-badge status-failed">失敗</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
+                                            <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
+                                            <button type="button" class="btn btn-outline-success" title="有効化"><i class="bi bi-toggle-on"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- オンデマンドバッチタブ -->
+                <div class="tab-pane fade" id="ondemand-content" role="tabpanel" aria-labelledby="ondemand-tab">
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <select class="form-select form-select-sm" id="categoryFilterOnDemand">
+                                <option selected>カテゴリ：すべて</option>
+                                <option>データ集計</option>
+                                <option>請求・支払</option>
+                                <option>データメンテナンス</option>
+                                <option>インポート/エクスポート</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="input-group input-group-sm">
+                                <input type="text" class="form-control" placeholder="バッチ名で検索...">
+                                <button class="btn btn-outline-secondary" type="button"><i class="bi bi-search"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>バッチID</th>
+                                    <th>バッチ名</th>
+                                    <th>カテゴリ</th>
+                                    <th>説明</th>
+                                    <th>最終実行</th>
+                                    <th>状態</th>
+                                    <th>最終結果</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>BATCH101</td>
+                                    <td>売上再集計</td>
+                                    <td>データ集計</td>
+                                    <td>指定期間の売上データを再集計</td>
+                                    <td>2025/04/28 10:15</td>
+                                    <td><span class="status-badge status-enabled">有効</span></td>
+                                    <td><span class="status-badge status-success">成功</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
+                                            <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>BATCH102</td>
+                                    <td>稼働率再計算</td>
+                                    <td>データ集計</td>
+                                    <td>指定期間の稼働率を再計算</td>
+                                    <td>2025/04/25 14:30</td>
+                                    <td><span class="status-badge status-enabled">有効</span></td>
+                                    <td><span class="status-badge status-success">成功</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
+                                            <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>BATCH103</td>
+                                    <td>請求データエクスポート</td>
+                                    <td>請求・支払</td>
+                                    <td>指定月の請求データをCSVでエクスポート</td>
+                                    <td>2025/05/01 09:20</td>
+                                    <td><span class="status-badge status-enabled">有効</span></td>
+                                    <td><span class="status-badge status-success">成功</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
+                                            <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>BATCH104</td>
+                                    <td>技術者データインポート</td>
+                                    <td>インポート/エクスポート</td>
+                                    <td>CSVから技術者データをインポート</td>
+                                    <td>-</td>
+                                    <td><span class="status-badge status-enabled">有効</span></td>
+                                    <td>-</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
+                                            <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>BATCH105</td>
+                                    <td>一括メール送信</td>
+                                    <td>通知</td>
+                                    <td>指定条件に合致するユーザーに一斉メール送信</td>
+                                    <td>2025/05/03 15:45</td>
+                                    <td><span class="status-badge status-enabled">有効</span></td>
+                                    <td><span class="status-badge status-success">成功</span></td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-outline-primary" title="実行"><i class="bi bi-play-fill"></i></button>
+                                            <button type="button" class="btn btn-outline-secondary" title="設定"><i class="bi bi-gear"></i></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- 実行履歴タブ -->
+                <div class="tab-pane fade" id="history-content" role="tabpanel" aria-labelledby="history-tab">
+                    <div class="search-box mb-3">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label for="startDate" class="form-label">期間（開始）</label>
+                                        <input type="datetime-local" class="form-control form-control-sm" id="startDate" value="2025-05-01T00:00">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="endDate" class="form-label">期間（終了）</label>
+                                        <input type="datetime-local" class="form-control form-control-sm" id="endDate" value="2025-05-05T23:59">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label for="batchSelect" class="form-label">バッチ選択</label>
+                                        <select class="form-select form-select-sm" id="batchSelect">
+                                            <option value="" selected>すべて</option>
+                                            <option value="BATCH001">日次売上集計</option>
+                                            <option value="BATCH002">月次売上集計</option>
+                                            <option value="BATCH003">請求書生成</option>
+                                            <option value="BATCH004">勤怠未提出通知</option>
+                                            <option value="BATCH005">ログクリーンアップ</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">結果フィルタ</label>
+                                        <div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" id="resultSuccess" checked>
+                                                <label class="form-check-label" for="resultSuccess">成功</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" id="resultWarning" checked>
+                                                <label class="form-check-label" for="resultWarning">警告</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" id="resultError" checked>
+                                                <label class="form-check-label" for="resultError">失敗</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 text-end">
+                                <button class="btn btn-outline-primary btn-sm"><i class="bi bi-search"></i> 検索</button>
+                                <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise"></i> クリア</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>実行ID</th>
+                                    <th>バッチ名</th>
+                                    <th>開始日時</th>
+                                    <th>終了日時</th>
+                                    <th>処理時間</th>
+                                    <th>実行トリガー</th>
+                                    <th>実行ユーザー</th>
+                                    <th>結果</th>
+                                    <th>詳細</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>EXE2025050501</td>
+                                    <td>日次売上集計</td>
+                                    <td>2025/05/05 05:00:00</td>
+                                    <td>2025/05/05 05:03:45</td>
+                                    <td>3分45秒</td>
+                                    <td>スケジュール</td>
+                                    <td>system</td>
+                                    <td><span class="status-badge status-success">成功</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#batchDetailModal">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>EXE2025050502</td>
+                                    <td>ログクリーンアップ</td>
+                                    <td>2025/05/05 01:00:00</td>
+                                    <td>2025/05/05 01:15:22</td>
+                                    <td>15分22秒</td>
+                                    <td>スケジュール</td>
+                                    <td>system</td>
+                                    <td><span class="status-badge status-success">成功</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>EXE2025050503</td>
+                                    <td>勤怠未提出通知</td>
+                                    <td>2025/05/05 09:00:00</td>
+                                    <td>2025/05/05 09:01:45</td>
+                                    <td>1分45秒</td>
+                                    <td>スケジュール</td>
+                                    <td>system</td>
+                                    <td><span class="status-badge status-warning">警告</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>EXE2025050504</td>
+                                    <td>請求データエクスポート</td>
+                                    <td>2025/05/05 10:15:33</td>
+                                    <td>2025/05/05 10:16:45</td>
+                                    <td>1分12秒</td>
+                                    <td>手動</td>
+                                    <td>admin</td>
+                                    <td><span class="status-badge status-success">成功</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>EXE2025050401</td>
+                                    <td>日次売上集計</td>
+                                    <td>2025/05/04 05:00:00</td>
+                                    <td>2025/05/04 05:04:12</td>
+                                    <td>4分12秒</td>
+                                    <td>スケジュール</td>
+                                    <td>system</td>
+                                    <td><span class="status-badge status-success">成功</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>EXE2025050505</td>
+                                    <td>データベースバックアップ</td>
+                                    <td>2025/05/05 01:00:00</td>
+                                    <td>-</td>
+                                    <td>実行中</td>
+                                    <td>スケジュール</td>
+                                    <td>system</td>
+                                    <td><span class="status-badge status-running">実行中</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>EXE2025050301</td>
+                                    <td>会計システム連携</td>
+                                    <td>2025/05/03 03:00:00</td>
+                                    <td>2025/05/03 03:05:22</td>
+                                    <td>5分22秒</td>
+                                    <td>手動</td>
+                                    <td>admin</td>
+                                    <td><span class="status-badge status-failed">失敗</span></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-secondary">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <nav aria-label="ページネーション" class="mt-3">
+                        <ul class="pagination pagination-sm justify-content-center">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">前へ</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">次へ</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- バッチ実行モーダル -->
     <div class="modal fade" id="batchRunModal" tabindex="-1" aria-labelledby="batchRunModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -992,7 +1068,82 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- タブ切り替え用のJavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // タブの切り替え処理
+            const scheduledTab = document.getElementById('scheduled-tab');
+            const ondemandTab = document.getElementById('ondemand-tab');
+            const historyTab = document.getElementById('history-tab');
+            
+            if (ondemandTab) {
+                ondemandTab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    scheduledTab.classList.remove('active');
+                    ondemandTab.classList.add('active');
+                    historyTab.classList.remove('active');
+                    
+                    document.getElementById('scheduled-content').classList.remove('show', 'active');
+                    document.getElementById('ondemand-content').classList.add('show', 'active');
+                    document.getElementById('history-content').classList.remove('show', 'active');
+                });
+            }
+            
+            if (historyTab) {
+                historyTab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    scheduledTab.classList.remove('active');
+                    ondemandTab.classList.remove('active');
+                    historyTab.classList.add('active');
+                    
+                    document.getElementById('scheduled-content').classList.remove('show', 'active');
+                    document.getElementById('ondemand-content').classList.remove('show', 'active');
+                    document.getElementById('history-content').classList.add('show', 'active');
+                });
+            }
+            
+            if (scheduledTab) {
+                scheduledTab.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    scheduledTab.classList.add('active');
+                    ondemandTab.classList.remove('active');
+                    historyTab.classList.remove('active');
+                    
+                    document.getElementById('scheduled-content').classList.add('show', 'active');
+                    document.getElementById('ondemand-content').classList.remove('show', 'active');
+                    document.getElementById('history-content').classList.remove('show', 'active');
+                });
+            }
+            
+            // パラメータタブの切り替え処理
+            const scheduleTabEl = document.getElementById('schedule-tab');
+            const paramTabEl = document.getElementById('param-tab');
+            
+            if (paramTabEl) {
+                paramTabEl.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    scheduleTabEl.classList.remove('active');
+                    paramTabEl.classList.add('active');
+                    
+                    document.getElementById('schedule-content').classList.remove('show', 'active');
+                    document.getElementById('param-content').classList.add('show', 'active');
+                });
+            }
+            
+            if (scheduleTabEl) {
+                scheduleTabEl.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    scheduleTabEl.classList.add('active');
+                    paramTabEl.classList.remove('active');
+                    
+                    document.getElementById('schedule-content').classList.add('show', 'active');
+                    document.getElementById('param-content').classList.remove('show', 'active');
+                });
+            }
+        });
+    </script>
 </body>
 </html>
