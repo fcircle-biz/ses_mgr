@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提案管理API 仕様書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #3498db;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            overflow: auto;
+        }
+        code {
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            background-color: #f8f8f8;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .endpoint {
+            margin-bottom: 30px;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+            color: white;
+        }
+        .get {
+            background-color: #61affe;
+        }
+        .post {
+            background-color: #49cc90;
+        }
+        .put {
+            background-color: #fca130;
+        }
+        .delete {
+            background-color: #f93e3e;
+        }
+        .url {
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            font-weight: bold;
+        }
+        .nav-link {
+            display: block;
+            margin: 5px 0;
+            color: #3498db;
+            text-decoration: none;
+        }
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+        .back-link {
+            display: inline-block;
+            margin: 20px 0;
+            color: #3498db;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <a href="../マッチング機能API.html" class="back-link">← マッチング機能API トップに戻る</a>
+    <h1>提案管理API 仕様書</h1>
+
+    <h2>1. 概要</h2>
+    <p>
+        提案管理APIは、クライアントへの技術者提案を作成、管理するための機能を提供します。
+        マッチング結果をもとに提案を作成し、提案の進捗管理、更新、削除などの操作ができます。
+    </p>
+
+    <h2>2. 提案ステータスフロー</h2>
+    <p>提案は以下のステータス遷移を持ちます：</p>
+    <ol>
+        <li><strong>draft</strong>: 下書き（作成中）</li>
+        <li><strong>pending</strong>: 提案中（クライアントに提出済み）</li>
+        <li><strong>accepted</strong>: 承認済み（クライアントが承認）</li>
+        <li><strong>rejected</strong>: 却下（クライアントが却下）</li>
+        <li><strong>cancelled</strong>: キャンセル（提案側で取り下げ）</li>
+    </ol>
+
+    <h2>3. エンドポイント一覧</h2>
+
+    <div class="endpoint">
+        <h3>3.1 提案一覧取得</h3>
+        <span class="method get">GET</span><span class="url">/api/v1/matching/proposals</span>
+        <p>提案の一覧を取得します。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>案件IDでフィルタリング</td>
+                <td>いいえ</td>
+            </tr>
+            <tr>
+                <td>engineerId</td>
+                <td>string</td>
+                <td>技術者IDでフィルタリング</td>
+                <td>いいえ</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>ステータスでフィルタリング（"draft", "pending", "accepted", "rejected", "cancelled"）</td>
+                <td>いいえ</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string</td>
+                <td>提案日の開始日（YYYY-MM-DD形式）</td>
+                <td>いいえ</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string</td>
+                <td>提案日の終了日（YYYY-MM-DD形式）</td>
+                <td>いいえ</td>
+            </tr>
+            <tr>
+                <td>clientId</td>
+                <td>string</td>
+                <td>クライアントIDでフィルタリング</td>
+                <td>いいえ</td>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>number</td>
+                <td>ページ番号（1から開始）</td>
+                <td>いいえ（デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>pageSize</td>
+                <td>number</td>
+                <td>1ページあたりの結果数</td>
+                <td>いいえ（デフォルト: 20）</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>ソートフィールドと方向（例: "proposalDate:desc"）</td>
+                <td>いいえ（デフォルト: "created:desc"）</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "prop-123456",
+        "projectId": "proj-123456",
+        "projectName": "金融システム再構築プロジェクト",
+        "clientName": "〇〇銀行",
+        "engineerId": "eng-123456",
+        "engineerName": "山田 太郎",
+        "proposalDate": "2025-05-05",
+        "status": "pending",
+        "rate": 750000,
+        "workStartDate": "2025-07-01",
+        "workEndDate": "2026-03-31",
+        "matchingScore": 92.5,
+        "hasDocuments": true,
+        "documentsCount": 2,
+        "created": "2025-05-03T15:10:45Z",
+        "lastUpdated": "2025-05-03T15:10:45Z"
+      },
+      {
+        "id": "prop-123457",
+        "projectId": "proj-123458",
+        "projectName": "ECサイト開発プロジェクト",
+        "clientName": "△△商事",
+        "engineerId": "eng-123456",
+        "engineerName": "山田 太郎",
+        "proposalDate": "2025-05-04",
+        "status": "accepted",
+        "rate": 720000,
+        "workStartDate": "2025-06-15",
+        "workEndDate": "2025-12-31",
+        "matchingScore": 88.0,
+        "hasDocuments": true,
+        "documentsCount": 1,
+        "created": "2025-05-02T10:30:15Z",
+        "lastUpdated": "2025-05-04T14:20:30Z"
+      },
+      // 他の提案データ...
+    ],
+    "pagination": {
+      "totalItems": 32,
+      "totalPages": 2,
+      "currentPage": 1,
+      "pageSize": 20
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>営業担当者、マッチング担当者、管理者</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>3.2 新規提案作成</h3>
+        <span class="method post">POST</span><span class="url">/api/v1/matching/proposals</span>
+        <p>新しい提案を作成します。通常はマッチング結果をもとに作成します。</p>
+
+        <h4>リクエスト例</h4>
+        <pre><code>{
+  "matchingResultId": "match-123456",
+  "proposalDate": "2025-05-05",
+  "status": "draft",
+  "rate": 750000,
+  "workStartDate": "2025-07-01",
+  "workEndDate": "2026-03-31",
+  "notes": "金融系の経験豊富なJavaエンジニアです。コミュニケーション能力も高く、チームでの開発経験も豊富です。"
+}</code></pre>
+
+        <p>または、マッチング結果IDがない場合：</p>
+
+        <pre><code>{
+  "projectId": "proj-123456",
+  "engineerId": "eng-123456",
+  "proposalDate": "2025-05-05",
+  "status": "draft",
+  "rate": 750000,
+  "workStartDate": "2025-07-01",
+  "workEndDate": "2026-03-31",
+  "notes": "金融系の経験豊富なJavaエンジニアです。コミュニケーション能力も高く、チームでの開発経験も豊富です。"
+}</code></pre>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "id": "prop-123456",
+    "projectId": "proj-123456",
+    "engineerId": "eng-123456",
+    "matchingResultId": "match-123456",
+    "proposalDate": "2025-05-05",
+    "status": "draft",
+    "rate": 750000,
+    "workStartDate": "2025-07-01",
+    "workEndDate": "2026-03-31",
+    "notes": "金融系の経験豊富なJavaエンジニアです。コミュニケーション能力も高く、チームでの開発経験も豊富です。",
+    "documents": [],
+    "history": [
+      {
+        "status": "draft",
+        "date": "2025-05-03T15:10:45Z",
+        "userId": "user-123",
+        "userName": "佐藤 一郎",
+        "notes": "初回作成"
+      }
+    ],
+    "created": "2025-05-03T15:10:45Z",
+    "createdBy": {
+      "id": "user-123",
+      "name": "佐藤 一郎"
+    },
+    "lastUpdated": "2025-05-03T15:10:45Z",
+    "lastUpdatedBy": {
+      "id": "user-123",
+      "name": "佐藤 一郎"
+    }
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "success": false,
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定されたマッチング結果IDが見つかりません",
+    "details": {
+      "matchingResultId": "match-999999"
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>営業担当者、マッチング担当者、管理者</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>3.3 特定提案詳細取得</h3>
+        <span class="method get">GET</span><span class="url">/api/v1/matching/proposals/{id}</span>
+        <p>特定の提案の詳細情報を取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>提案ID</td>
+                <td>はい</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "id": "prop-123456",
+    "projectId": "proj-123456",
+    "projectName": "金融システム再構築プロジェクト",
+    "projectDetails": {
+      "clientId": "client-123",
+      "clientName": "〇〇銀行",
+      "startDate": "2025-07-01",
+      "endDate": "2026-03-31",
+      "location": "東京都千代田区",
+      "remoteWork": true,
+      "rateRange": {
+        "min": 650000,
+        "max": 800000
+      },
+      "workingDays": 20,
+      "description": "銀行の基幹システム再構築プロジェクト"
+    },
+    "engineerId": "eng-123456",
+    "engineerName": "山田 太郎",
+    "engineerDetails": {
+      "profile": {
+        "gender": "男性",
+        "age": 35,
+        "yearsOfExperience": 10,
+        "currentLocation": "東京都",
+        "canWorkRemotely": true
+      },
+      "skills": [
+        {
+          "skillId": "skill-java",
+          "skillName": "Java",
+          "level": 5
+        },
+        {
+          "skillId": "skill-spring",
+          "skillName": "Spring Framework",
+          "level": 4
+        }
+      ],
+      "qualifications": [
+        {
+          "id": "qual-oracle",
+          "name": "Oracle認定Javaプログラマー",
+          "acquiredDate": "2020-05-15"
+        }
+      ]
+    },
+    "matchingResultId": "match-123456",
+    "matchingSummary": {
+      "score": 92.5,
+      "skillsMatch": "95%",
+      "experienceMatch": "90%",
+      "locationMatch": "100%",
+      "rateMatch": "80%"
+    },
+    "proposalDate": "2025-05-05",
+    "status": "pending",
+    "rate": 750000,
+    "workStartDate": "2025-07-01",
+    "workEndDate": "2026-03-31",
+    "notes": "金融系の経験豊富なJavaエンジニアです。コミュニケーション能力も高く、チームでの開発経験も豊富です。",
+    "documents": [
+      {
+        "id": "doc-123456",
+        "name": "技術者プロフィール_山田太郎.pdf",
+        "type": "application/pdf",
+        "url": "/api/v1/matching/proposals/prop-123456/documents/doc-123456",
+        "created": "2025-05-03T15:20:30Z"
+      },
+      {
+        "id": "doc-123457",
+        "name": "提案書_山田太郎_金融システム再構築.pdf",
+        "type": "application/pdf",
+        "url": "/api/v1/matching/proposals/prop-123456/documents/doc-123457",
+        "created": "2025-05-03T15:25:15Z"
+      }
+    ],
+    "history": [
+      {
+        "status": "draft",
+        "date": "2025-05-03T15:10:45Z",
+        "userId": "user-123",
+        "userName": "佐藤 一郎",
+        "notes": "初回作成"
+      },
+      {
+        "status": "pending",
+        "date": "2025-05-03T15:30:00Z",
+        "userId": "user-123",
+        "userName": "佐藤 一郎",
+        "notes": "提案書作成完了、クライアントへ提出"
+      }
+    ],
+    "created": "2025-05-03T15:10:45Z",
+    "createdBy": {
+      "id": "user-123",
+      "name": "佐藤 一郎"
+    },
+    "lastUpdated": "2025-05-03T15:30:00Z",
+    "lastUpdatedBy": {
+      "id": "user-123",
+      "name": "佐藤 一郎"
+    }
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "success": false,
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定された提案IDが見つかりません",
+    "details": {
+      "id": "prop-999999"
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>営業担当者、マッチング担当者、管理者</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>3.4 提案更新</h3>
+        <span class="method put">PUT</span><span class="url">/api/v1/matching/proposals/{id}</span>
+        <p>特定の提案の情報を更新します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>提案ID</td>
+                <td>はい</td>
+            </tr>
+        </table>
+
+        <h4>リクエスト例</h4>
+        <pre><code>{
+  "proposalDate": "2025-05-06",
+  "rate": 780000,
+  "workStartDate": "2025-07-15",
+  "workEndDate": "2026-03-31",
+  "notes": "金融系の経験豊富なJavaエンジニアです。コミュニケーション能力も高く、チームでの開発経験も豊富です。前回より単価を30,000円上げ、開始日を7/15に変更しています。"
+}</code></pre>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "id": "prop-123456",
+    "proposalDate": "2025-05-06",
+    "rate": 780000,
+    "workStartDate": "2025-07-15",
+    "workEndDate": "2026-03-31",
+    "notes": "金融系の経験豊富なJavaエンジニアです。コミュニケーション能力も高く、チームでの開発経験も豊富です。前回より単価を30,000円上げ、開始日を7/15に変更しています。",
+    "history": [
+      {
+        "status": "draft",
+        "date": "2025-05-03T15:10:45Z",
+        "userId": "user-123",
+        "userName": "佐藤 一郎",
+        "notes": "初回作成"
+      },
+      {
+        "status": "pending",
+        "date": "2025-05-03T15:30:00Z",
+        "userId": "user-123",
+        "userName": "佐藤 一郎",
+        "notes": "提案書作成完了、クライアントへ提出"
+      },
+      {
+        "status": "pending",
+        "date": "2025-05-04T09:45:20Z",
+        "userId": "user-123",
+        "userName": "佐藤 一郎",
+        "notes": "単価と開始日を更新"
+      }
+    ],
+    "lastUpdated": "2025-05-04T09:45:20Z",
+    "lastUpdatedBy": {
+      "id": "user-123",
+      "name": "佐藤 一郎"
+    }
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "success": false,
+  "error": {
+    "code": "OPERATION_DENIED",
+    "message": "承認済みの提案は更新できません",
+    "details": {
+      "id": "prop-123457",
+      "status": "accepted"
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>営業担当者、マッチング担当者、管理者</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>3.5 提案削除</h3>
+        <span class="method delete">DELETE</span><span class="url">/api/v1/matching/proposals/{id}</span>
+        <p>特定の提案を削除します。ドラフト状態の提案のみ削除可能です。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>提案ID</td>
+                <td>はい</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "message": "提案が正常に削除されました"
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "success": false,
+  "error": {
+    "code": "OPERATION_DENIED",
+    "message": "提案中または承認済みの提案は削除できません",
+    "details": {
+      "id": "prop-123456",
+      "status": "pending"
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>営業担当者、マッチング担当者、管理者</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>3.6 提案ステータス更新</h3>
+        <span class="method put">PUT</span><span class="url">/api/v1/matching/proposals/{id}/status</span>
+        <p>特定の提案のステータスを更新します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>提案ID</td>
+                <td>はい</td>
+            </tr>
+        </table>
+
+        <h4>リクエスト例</h4>
+        <pre><code>{
+  "status": "accepted",
+  "notes": "クライアントから承認の連絡がありました。契約手続きを開始します。"
+}</code></pre>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "id": "prop-123456",
+    "status": "accepted",
+    "history": [
+      {
+        "status": "draft",
+        "date": "2025-05-03T15:10:45Z",
+        "userId": "user-123",
+        "userName": "佐藤 一郎",
+        "notes": "初回作成"
+      },
+      {
+        "status": "pending",
+        "date": "2025-05-03T15:30:00Z",
+        "userId": "user-123",
+        "userName": "佐藤 一郎",
+        "notes": "提案書作成完了、クライアントへ提出"
+      },
+      {
+        "status": "accepted",
+        "date": "2025-05-05T10:15:30Z",
+        "userId": "user-123",
+        "userName": "佐藤 一郎",
+        "notes": "クライアントから承認の連絡がありました。契約手続きを開始します。"
+      }
+    ],
+    "lastUpdated": "2025-05-05T10:15:30Z",
+    "lastUpdatedBy": {
+      "id": "user-123",
+      "name": "佐藤 一郎"
+    }
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "success": false,
+  "error": {
+    "code": "INVALID_STATUS_TRANSITION",
+    "message": "無効なステータス遷移です",
+    "details": {
+      "id": "prop-123456",
+      "currentStatus": "accepted",
+      "requestedStatus": "pending"
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>営業担当者、マッチング担当者、管理者</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>3.7 案件別提案一覧取得</h3>
+        <span class="method get">GET</span><span class="url">/api/v1/matching/proposals/projects/{projectId}</span>
+        <p>特定の案件に関連するすべての提案を取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>案件ID</td>
+                <td>はい</td>
+            </tr>
+        </table>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>ステータスでフィルタリング（"draft", "pending", "accepted", "rejected", "cancelled"）</td>
+                <td>いいえ</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string</td>
+                <td>提案日の開始日（YYYY-MM-DD形式）</td>
+                <td>いいえ</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string</td>
+                <td>提案日の終了日（YYYY-MM-DD形式）</td>
+                <td>いいえ</td>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>number</td>
+                <td>ページ番号（1から開始）</td>
+                <td>いいえ（デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>pageSize</td>
+                <td>number</td>
+                <td>1ページあたりの結果数</td>
+                <td>いいえ（デフォルト: 20）</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>ソートフィールドと方向（例: "proposalDate:desc"）</td>
+                <td>いいえ（デフォルト: "proposalDate:desc"）</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "project": {
+      "id": "proj-123456",
+      "name": "金融システム再構築プロジェクト",
+      "clientName": "〇〇銀行",
+      "status": "open",
+      "startDate": "2025-07-01",
+      "endDate": "2026-03-31",
+      "positions": 3,
+      "filledPositions": 1
+    },
+    "items": [
+      {
+        "id": "prop-123456",
+        "engineerId": "eng-123456",
+        "engineerName": "山田 太郎",
+        "proposalDate": "2025-05-05",
+        "status": "accepted",
+        "rate": 750000,
+        "workStartDate": "2025-07-01",
+        "workEndDate": "2026-03-31",
+        "created": "2025-05-03T15:10:45Z",
+        "lastUpdated": "2025-05-05T10:15:30Z"
+      },
+      {
+        "id": "prop-123458",
+        "engineerId": "eng-123457",
+        "engineerName": "鈴木 次郎",
+        "proposalDate": "2025-05-06",
+        "status": "pending",
+        "rate": 720000,
+        "workStartDate": "2025-07-01",
+        "workEndDate": "2026-03-31",
+        "created": "2025-05-04T09:30:15Z",
+        "lastUpdated": "2025-05-04T09:30:15Z"
+      },
+      // 他の提案データ...
+    ],
+    "pagination": {
+      "totalItems": 5,
+      "totalPages": 1,
+      "currentPage": 1,
+      "pageSize": 20
+    }
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "success": false,
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定された案件IDが見つかりません",
+    "details": {
+      "projectId": "proj-999999"
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>営業担当者、マッチング担当者、管理者</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>3.8 技術者別提案一覧取得</h3>
+        <span class="method get">GET</span><span class="url">/api/v1/matching/proposals/engineers/{engineerId}</span>
+        <p>特定の技術者に関連するすべての提案を取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>engineerId</td>
+                <td>string</td>
+                <td>技術者ID</td>
+                <td>はい</td>
+            </tr>
+        </table>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>ステータスでフィルタリング（"draft", "pending", "accepted", "rejected", "cancelled"）</td>
+                <td>いいえ</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string</td>
+                <td>提案日の開始日（YYYY-MM-DD形式）</td>
+                <td>いいえ</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string</td>
+                <td>提案日の終了日（YYYY-MM-DD形式）</td>
+                <td>いいえ</td>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>number</td>
+                <td>ページ番号（1から開始）</td>
+                <td>いいえ（デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>pageSize</td>
+                <td>number</td>
+                <td>1ページあたりの結果数</td>
+                <td>いいえ（デフォルト: 20）</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>ソートフィールドと方向（例: "proposalDate:desc"）</td>
+                <td>いいえ（デフォルト: "proposalDate:desc"）</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "engineer": {
+      "id": "eng-123456",
+      "firstName": "太郎",
+      "lastName": "山田",
+      "status": "assigned",
+      "currentProject": {
+        "id": "proj-123456",
+        "name": "金融システム再構築プロジェクト",
+        "startDate": "2025-07-01",
+        "endDate": "2026-03-31"
+      }
+    },
+    "items": [
+      {
+        "id": "prop-123456",
+        "projectId": "proj-123456",
+        "projectName": "金融システム再構築プロジェクト",
+        "clientName": "〇〇銀行",
+        "proposalDate": "2025-05-05",
+        "status": "accepted",
+        "rate": 750000,
+        "workStartDate": "2025-07-01",
+        "workEndDate": "2026-03-31",
+        "created": "2025-05-03T15:10:45Z",
+        "lastUpdated": "2025-05-05T10:15:30Z"
+      },
+      {
+        "id": "prop-123459",
+        "projectId": "proj-123459",
+        "projectName": "クラウド移行プロジェクト",
+        "clientName": "△△システム",
+        "proposalDate": "2025-05-02",
+        "status": "rejected",
+        "rate": 730000,
+        "workStartDate": "2025-06-01",
+        "workEndDate": "2025-12-31",
+        "created": "2025-05-01T11:20:30Z",
+        "lastUpdated": "2025-05-03T14:45:10Z"
+      },
+      // 他の提案データ...
+    ],
+    "pagination": {
+      "totalItems": 3,
+      "totalPages": 1,
+      "currentPage": 1,
+      "pageSize": 20
+    }
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "success": false,
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定された技術者IDが見つかりません",
+    "details": {
+      "engineerId": "eng-999999"
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>営業担当者、マッチング担当者、管理者</p>
+    </div>
+
+    <a href="../マッチング機能API.html" class="back-link">← マッチング機能API トップに戻る</a>
+
+    <footer>
+        <p>© 2025 SES業務システム</p>
+    </footer>
+</body>
+</html>

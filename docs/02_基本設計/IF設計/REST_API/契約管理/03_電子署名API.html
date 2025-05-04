@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>電子署名API 設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 5px;
+        }
+        code {
+            background-color: #f8f8f8;
+            border-radius: 3px;
+            padding: 2px 5px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .endpoint {
+            margin-bottom: 30px;
+        }
+        .http-method {
+            display: inline-block;
+            padding: 3px 6px;
+            border-radius: 3px;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .http-method.get {
+            background-color: #61affe;
+        }
+        .http-method.post {
+            background-color: #49cc90;
+        }
+        .http-method.put {
+            background-color: #fca130;
+        }
+        .http-method.delete {
+            background-color: #f93e3e;
+        }
+        .path {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        .toc {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .toc ul {
+            padding-left: 20px;
+        }
+        .back-link {
+            margin-top: 30px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <h1>電子署名API 設計書</h1>
+    
+    <div class="toc">
+        <h2>目次</h2>
+        <ul>
+            <li><a href="#overview">1. 概要</a></li>
+            <li><a href="#endpoints">2. エンドポイント一覧</a></li>
+            <li><a href="#get-signatures">3. 電子署名情報の取得</a></li>
+            <li><a href="#post-signatures-request">4. 電子署名依頼の送信</a></li>
+            <li><a href="#get-signatures-status">5. 署名状況の確認</a></li>
+            <li><a href="#post-signatures-complete">6. 署名の完了処理</a></li>
+        </ul>
+    </div>
+
+    <h2 id="overview">1. 概要</h2>
+    <p>
+        電子署名APIは、契約書に対する電子署名プロセスを管理するためのインターフェースを提供します。
+        署名の依頼から完了までのワークフローを制御し、署名の状態を追跡します。
+        本APIは、外部の電子署名サービス（例：DocuSign、Adobe Sign）と連携するための抽象化レイヤーとしても機能します。
+    </p>
+
+    <h2 id="endpoints">2. エンドポイント一覧</h2>
+    <table>
+        <tr>
+            <th>メソッド</th>
+            <th>パス</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>GET</td>
+            <td>/api/v1/contracts/{id}/signatures</td>
+            <td>電子署名情報の取得</td>
+        </tr>
+        <tr>
+            <td>POST</td>
+            <td>/api/v1/contracts/{id}/signatures/request</td>
+            <td>電子署名依頼の送信</td>
+        </tr>
+        <tr>
+            <td>GET</td>
+            <td>/api/v1/contracts/{id}/signatures/status</td>
+            <td>署名状況の確認</td>
+        </tr>
+        <tr>
+            <td>POST</td>
+            <td>/api/v1/contracts/{id}/signatures/complete</td>
+            <td>署名の完了処理</td>
+        </tr>
+    </table>
+
+    <div class="endpoint">
+        <h2 id="get-signatures">3. 電子署名情報の取得</h2>
+        <p>
+            <span class="http-method get">GET</span>
+            <span class="path">/api/v1/contracts/{id}/signatures</span>
+        </p>
+        <p>
+            指定された契約の電子署名に関する情報を取得します。署名者、署名状況、署名日時などの詳細が含まれます。
+        </p>
+
+        <h3>パスパラメータ</h3>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>契約のID</td>
+            </tr>
+        </table>
+
+        <h3>レスポンス</h3>
+        <p>成功時のステータスコード: <code>200 OK</code></p>
+        <pre><code>{
+  "contractId": "c001",
+  "contractNumber": "SES2023-12345",
+  "documentId": "d001",
+  "status": "in_progress",  // none, requested, in_progress, completed, declined, expired
+  "signatureRequests": [
+    {
+      "partyId": "cl100",
+      "partyType": "client",
+      "partyName": "株式会社ABCテクノロジー",
+      "signerId": "user_cl100",
+      "signerName": "佐藤部長",
+      "signerEmail": "sato@example.com",
+      "signerTitle": "営業部長",
+      "status": "completed",  // pending, in_progress, completed, declined
+      "requestedAt": "2023-03-21T14:25:00Z",
+      "completedAt": "2023-03-25T15:30:00Z",
+      "signatureId": "sig001",
+      "signatureMethod": "electronic",
+      "signaturePosition": {
+        "page": 5,
+        "x": 100,
+        "y": 500
+      }
+    },
+    {
+      "partyId": "v200",
+      "partyType": "vendor",
+      "partyName": "株式会社XYZソリューション",
+      "signerId": "user_v200",
+      "signerName": "田中マネージャー",
+      "signerEmail": "tanaka@example.com",
+      "signerTitle": "営業マネージャー",
+      "status": "completed",
+      "requestedAt": "2023-03-21T14:25:00Z",
+      "completedAt": "2023-03-28T09:15:00Z",
+      "signatureId": "sig002",
+      "signatureMethod": "electronic",
+      "signaturePosition": {
+        "page": 5,
+        "x": 400,
+        "y": 500
+      }
+    }
+  ],
+  "signatureProvider": "internal",  // internal, docusign, adobe_sign, etc.
+  "externalReferenceId": null,      // 外部署名サービスの参照ID（該当する場合）
+  "requestedAt": "2023-03-21T14:25:00Z",
+  "completedAt": "2023-03-28T09:15:30Z",
+  "metadata": {
+    "sequentialSigning": false,     // 署名順序を強制するかどうか
+    "remindersSent": 1,             // 送信された催促の回数
+    "lastReminderAt": "2023-03-26T10:00:00Z"
+  },
+  "_links": {
+    "self": { "href": "/api/v1/contracts/c001/signatures" },
+    "document": { "href": "/api/v1/contracts/c001/document" },
+    "contract": { "href": "/api/v1/contracts/c001" }
+  }
+}</code></pre>
+
+        <h3>エラーレスポンス</h3>
+        <p>エラー時のステータスコード: <code>401 Unauthorized</code>, <code>403 Forbidden</code>, <code>404 Not Found</code></p>
+        <pre><code>{
+  "error": {
+    "code": "CONTRACT_NOT_FOUND",
+    "message": "指定されたIDの契約が見つかりません",
+    "timestamp": "2023-05-16T16:30:45Z",
+    "path": "/api/v1/contracts/invalid_id/signatures"
+  }
+}</code></pre>
+
+        <h3>アクセス権限</h3>
+        <p>
+            このエンドポイントにアクセスするには、以下のいずれかの権限が必要です：
+        </p>
+        <ul>
+            <li><code>contract:read</code></li>
+            <li><code>admin</code></li>
+        </ul>
+    </div>
+
+    <div class="endpoint">
+        <h2 id="post-signatures-request">4. 電子署名依頼の送信</h2>
+        <p>
+            <span class="http-method post">POST</span>
+            <span class="path">/api/v1/contracts/{id}/signatures/request</span>
+        </p>
+        <p>
+            指定された契約に対する電子署名の依頼を開始します。各署名者に電子メールが送信され、署名プロセスが開始されます。
+            契約ステータスは「pending_signature」に更新されます。
+        </p>
+
+        <h3>パスパラメータ</h3>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>契約のID</td>
+            </tr>
+        </table>
+
+        <h3>リクエストボディ</h3>
+        <pre><code>{
+  "signers": [
+    {
+      "partyId": "cl100",
+      "partyType": "client",
+      "signerName": "佐藤部長",
+      "signerEmail": "sato@example.com",
+      "signerTitle": "営業部長",
+      "notificationMessage": "契約書の署名をお願いいたします。"
+    },
+    {
+      "partyId": "v200",
+      "partyType": "vendor",
+      "signerName": "田中マネージャー",
+      "signerEmail": "tanaka@example.com",
+      "signerTitle": "営業マネージャー",
+      "notificationMessage": "契約書の署名をお願いいたします。"
+    }
+  ],
+  "signatureSettings": {
+    "provider": "internal",           // 署名プロバイダ（internal, docusign, adobe_sign など）
+    "expirationDays": 14,             // 署名依頼の有効期限（日数）
+    "reminderSettings": {
+      "enabled": true,
+      "frequency": "3d",              // 3日ごとに催促メールを送信
+      "maxReminders": 3               // 最大催促回数
+    },
+    "sequentialSigning": false,       // 署名順序を強制するかどうか
+    "completionRedirectUrl": "https://example.com/thankyou"  // 署名完了後のリダイレクトURL
+  },
+  "emailSettings": {
+    "subject": "【SES業務システム】契約書の署名依頼",
+    "message": "添付の契約書をご確認の上、電子署名をお願いいたします。"
+  }
+}</code></pre>
+
+        <h3>レスポンス</h3>
+        <p>成功時のステータスコード: <code>202 Accepted</code></p>
+        <pre><code>{
+  "contractId": "c001",
+  "contractNumber": "SES2023-12345",
+  "documentId": "d001",
+  "status": "requested",
+  "signatureRequests": [
+    {
+      "partyId": "cl100",
+      "partyType": "client",
+      "partyName": "株式会社ABCテクノロジー",
+      "signerId": "user_cl100",
+      "signerName": "佐藤部長",
+      "signerEmail": "sato@example.com",
+      "signerTitle": "営業部長",
+      "status": "pending",
+      "requestedAt": "2023-05-16T17:00:00Z",
+      "signatureUrl": "https://example.com/sign/abc123"  // 署名用URL
+    },
+    {
+      "partyId": "v200",
+      "partyType": "vendor",
+      "partyName": "株式会社XYZソリューション",
+      "signerId": "user_v200",
+      "signerName": "田中マネージャー",
+      "signerEmail": "tanaka@example.com",
+      "signerTitle": "営業マネージャー",
+      "status": "pending",
+      "requestedAt": "2023-05-16T17:00:00Z",
+      "signatureUrl": "https://example.com/sign/def456"  // 署名用URL
+    }
+  ],
+  "signatureProvider": "internal",
+  "externalReferenceId": null,
+  "requestedAt": "2023-05-16T17:00:00Z",
+  "expiresAt": "2023-05-30T17:00:00Z",
+  "metadata": {
+    "sequentialSigning": false
+  },
+  "_links": {
+    "self": { "href": "/api/v1/contracts/c001/signatures" },
+    "status": { "href": "/api/v1/contracts/c001/signatures/status" },
+    "document": { "href": "/api/v1/contracts/c001/document" }
+  }
+}</code></pre>
+
+        <h3>エラーレスポンス</h3>
+        <p>エラー時のステータスコード: <code>400 Bad Request</code>, <code>401 Unauthorized</code>, <code>403 Forbidden</code>, <code>404 Not Found</code>, <code>409 Conflict</code>, <code>422 Unprocessable Entity</code></p>
+        <pre><code>{
+  "error": {
+    "code": "DOCUMENT_NOT_FOUND",
+    "message": "署名を依頼するための契約書が存在しません。先に契約書を生成してください",
+    "timestamp": "2023-05-16T16:59:30Z",
+    "path": "/api/v1/contracts/c001/signatures/request"
+  }
+}</code></pre>
+
+        <h3>アクセス権限</h3>
+        <p>
+            このエンドポイントにアクセスするには、以下のいずれかの権限が必要です：
+        </p>
+        <ul>
+            <li><code>contract:write</code></li>
+            <li><code>admin</code></li>
+        </ul>
+    </div>
+
+    <div class="endpoint">
+        <h2 id="get-signatures-status">5. 署名状況の確認</h2>
+        <p>
+            <span class="http-method get">GET</span>
+            <span class="path">/api/v1/contracts/{id}/signatures/status</span>
+        </p>
+        <p>
+            指定された契約の署名状況を確認します。リアルタイムでの署名プロセスの進捗状況が提供されます。
+        </p>
+
+        <h3>パスパラメータ</h3>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>契約のID</td>
+            </tr>
+        </table>
+
+        <h3>レスポンス</h3>
+        <p>成功時のステータスコード: <code>200 OK</code></p>
+        <pre><code>{
+  "contractId": "c001",
+  "contractNumber": "SES2023-12345",
+  "overallStatus": "in_progress",  // none, requested, in_progress, completed, declined, expired
+  "progress": {
+    "totalSigners": 2,
+    "completedSigners": 1,
+    "pendingSigners": 1,
+    "declinedSigners": 0,
+    "percentComplete": 50
+  },
+  "signers": [
+    {
+      "partyId": "cl100",
+      "signerName": "佐藤部長",
+      "status": "completed",
+      "requestedAt": "2023-05-16T17:00:00Z",
+      "completedAt": "2023-05-18T10:15:30Z",
+      "viewedAt": "2023-05-17T14:20:15Z",
+      "remindersSent": 0
+    },
+    {
+      "partyId": "v200",
+      "signerName": "田中マネージャー",
+      "status": "pending",
+      "requestedAt": "2023-05-16T17:00:00Z",
+      "viewedAt": null,
+      "remindersSent": 1,
+      "lastReminderAt": "2023-05-19T10:00:00Z"
+    }
+  ],
+  "events": [
+    {
+      "type": "signature_requested",
+      "timestamp": "2023-05-16T17:00:00Z",
+      "details": {
+        "initiator": "user123",
+        "initiatorName": "鈴木一郎"
+      }
+    },
+    {
+      "type": "document_viewed",
+      "timestamp": "2023-05-17T14:20:15Z",
+      "details": {
+        "partyId": "cl100",
+        "signerName": "佐藤部長"
+      }
+    },
+    {
+      "type": "signature_completed",
+      "timestamp": "2023-05-18T10:15:30Z",
+      "details": {
+        "partyId": "cl100",
+        "signerName": "佐藤部長",
+        "signatureMethod": "electronic"
+      }
+    },
+    {
+      "type": "reminder_sent",
+      "timestamp": "2023-05-19T10:00:00Z",
+      "details": {
+        "partyId": "v200",
+        "signerName": "田中マネージャー"
+      }
+    }
+  ],
+  "expiresAt": "2023-05-30T17:00:00Z",
+  "daysRemaining": 11,
+  "_links": {
+    "self": { "href": "/api/v1/contracts/c001/signatures/status" },
+    "signatures": { "href": "/api/v1/contracts/c001/signatures" },
+    "document": { "href": "/api/v1/contracts/c001/document" }
+  }
+}</code></pre>
+
+        <h3>エラーレスポンス</h3>
+        <p>エラー時のステータスコード: <code>401 Unauthorized</code>, <code>403 Forbidden</code>, <code>404 Not Found</code></p>
+        <pre><code>{
+  "error": {
+    "code": "CONTRACT_NOT_FOUND",
+    "message": "指定されたIDの契約が見つかりません",
+    "timestamp": "2023-05-16T17:45:10Z",
+    "path": "/api/v1/contracts/invalid_id/signatures/status"
+  }
+}</code></pre>
+
+        <h3>アクセス権限</h3>
+        <p>
+            このエンドポイントにアクセスするには、以下のいずれかの権限が必要です：
+        </p>
+        <ul>
+            <li><code>contract:read</code></li>
+            <li><code>admin</code></li>
+        </ul>
+    </div>
+
+    <div class="endpoint">
+        <h2 id="post-signatures-complete">6. 署名の完了処理</h2>
+        <p>
+            <span class="http-method post">POST</span>
+            <span class="path">/api/v1/contracts/{id}/signatures/complete</span>
+        </p>
+        <p>
+            すべての署名が完了した後、契約の署名プロセスを完了としてマークします。
+            契約ステータスが「active」に更新され、関連する処理（例：請求開始）がトリガーされます。
+            このエンドポイントは通常、すべての署名が完了した後に自動的に呼び出されますが、手動で呼び出すこともできます。
+        </p>
+
+        <h3>パスパラメータ</h3>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>契約のID</td>
+            </tr>
+        </table>
+
+        <h3>リクエストボディ</h3>
+        <pre><code>{
+  "notifyParties": true,            // 署名完了を当事者に通知するかどうか
+  "overrideIncompleteSignatures": false,  // 未完了の署名があっても強制的に完了とするかどうか
+  "notificationMessage": "契約の署名が完了しました。ご協力ありがとうございました。"
+}</code></pre>
+
+        <h3>レスポンス</h3>
+        <p>成功時のステータスコード: <code>200 OK</code></p>
+        <pre><code>{
+  "contractId": "c001",
+  "contractNumber": "SES2023-12345",
+  "status": "completed",
+  "signatureRequests": [
+    {
+      "partyId": "cl100",
+      "signerName": "佐藤部長",
+      "status": "completed",
+      "completedAt": "2023-05-18T10:15:30Z"
+    },
+    {
+      "partyId": "v200",
+      "signerName": "田中マネージャー",
+      "status": "completed",
+      "completedAt": "2023-05-20T11:45:20Z"
+    }
+  ],
+  "completedAt": "2023-05-20T11:45:30Z",
+  "completedBy": "system",
+  "contractStatus": "active",
+  "metadata": {
+    "notificationsSent": true,
+    "certificateGenerated": true,
+    "certificateId": "cert001"
+  },
+  "_links": {
+    "self": { "href": "/api/v1/contracts/c001/signatures" },
+    "document": { "href": "/api/v1/contracts/c001/document" },
+    "certificate": { "href": "/api/v1/contracts/c001/signatures/certificate" }
+  }
+}</code></pre>
+
+        <h3>エラーレスポンス</h3>
+        <p>エラー時のステータスコード: <code>400 Bad Request</code>, <code>401 Unauthorized</code>, <code>403 Forbidden</code>, <code>404 Not Found</code>, <code>409 Conflict</code></p>
+        <pre><code>{
+  "error": {
+    "code": "INCOMPLETE_SIGNATURES",
+    "message": "すべての署名が完了していないため、契約を完了としてマークできません",
+    "details": [
+      {
+        "partyId": "v200",
+        "signerName": "田中マネージャー",
+        "status": "pending"
+      }
+    ],
+    "timestamp": "2023-05-20T11:40:15Z",
+    "path": "/api/v1/contracts/c001/signatures/complete"
+  }
+}</code></pre>
+
+        <h3>アクセス権限</h3>
+        <p>
+            このエンドポイントにアクセスするには、以下のいずれかの権限が必要です：
+        </p>
+        <ul>
+            <li><code>contract:write</code></li>
+            <li><code>admin</code></li>
+        </ul>
+    </div>
+
+    <div class="back-link">
+        <a href="../契約管理API.html">← 契約管理API 設計書に戻る</a>
+    </div>
+</body>
+</html>

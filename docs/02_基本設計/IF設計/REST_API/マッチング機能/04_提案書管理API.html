@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提案書管理API 仕様書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #3498db;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            overflow: auto;
+        }
+        code {
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            background-color: #f8f8f8;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .endpoint {
+            margin-bottom: 30px;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+            color: white;
+        }
+        .get {
+            background-color: #61affe;
+        }
+        .post {
+            background-color: #49cc90;
+        }
+        .put {
+            background-color: #fca130;
+        }
+        .delete {
+            background-color: #f93e3e;
+        }
+        .url {
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            font-weight: bold;
+        }
+        .nav-link {
+            display: block;
+            margin: 5px 0;
+            color: #3498db;
+            text-decoration: none;
+        }
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+        .back-link {
+            display: inline-block;
+            margin: 20px 0;
+            color: #3498db;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <a href="../マッチング機能API.html" class="back-link">← マッチング機能API トップに戻る</a>
+    <h1>提案書管理API 仕様書</h1>
+
+    <h2>1. 概要</h2>
+    <p>
+        提案書管理APIは、提案に関連する書類（提案書、技術者プロフィール、スキルシートなど）の生成、取得、管理を行うための機能を提供します。
+        提案の作成から顧客への提案書提出までの業務フローをサポートします。
+    </p>
+
+    <h2>2. 提案書テンプレート</h2>
+    <p>
+        システムは複数の提案書テンプレートを持ち、案件タイプや顧客要件に合わせた最適な提案書を生成できます。
+        テンプレートはHTMLやLaTeXベースで、案件や技術者の情報を自動的に組み込んで生成されます。
+    </p>
+
+    <h2>3. エンドポイント一覧</h2>
+
+    <div class="endpoint">
+        <h3>3.1 提案書生成</h3>
+        <span class="method post">POST</span><span class="url">/api/v1/matching/proposals/{id}/documents</span>
+        <p>指定された提案に関連する提案書を生成します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>提案ID</td>
+                <td>はい</td>
+            </tr>
+        </table>
+
+        <h4>リクエスト例</h4>
+        <pre><code>{
+  "templateId": "template-123",
+  "type": "proposal",
+  "format": "pdf",
+  "options": {
+    "includeSkills": true,
+    "includeExperience": true,
+    "includeQualifications": true,
+    "customTitle": "金融系エンジニア提案",
+    "customMessage": "豊富な金融系の開発経験を持つエンジニアを提案いたします。",
+    "highlightPoints": [
+      "金融系の業務知識",
+      "Javaでの大規模開発経験",
+      "コミュニケーション能力",
+      "チームリーダー経験"
+    ]
+  }
+}</code></pre>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "id": "doc-123456",
+    "name": "提案書_山田太郎_金融システム再構築.pdf",
+    "type": "application/pdf",
+    "url": "/api/v1/matching/proposals/prop-123456/documents/doc-123456",
+    "size": 1250000,
+    "templateId": "template-123",
+    "documentType": "proposal",
+    "created": "2025-05-03T15:20:30Z",
+    "createdBy": {
+      "id": "user-123",
+      "name": "佐藤 一郎"
+    }
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "success": false,
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定されたテンプレートIDが見つかりません",
+    "details": {
+      "templateId": "template-999"
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>営業担当者、マッチング担当者、管理者</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>3.2 提案書取得</h3>
+        <span class="method get">GET</span><span class="url">/api/v1/matching/proposals/{id}/documents/{documentId}</span>
+        <p>特定の提案に関連する特定の提案書を取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>提案ID</td>
+                <td>はい</td>
+            </tr>
+            <tr>
+                <td>documentId</td>
+                <td>string</td>
+                <td>ドキュメントID</td>
+                <td>はい</td>
+            </tr>
+        </table>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>レスポンス形式（"binary", "base64", "metadata"）</td>
+                <td>いいえ（デフォルト: "binary"）</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス</h4>
+        <p>format=binaryの場合（デフォルト）、ファイルのバイナリデータがContent-Type: application/pdfなどの適切なMIMEタイプで返されます。</p>
+
+        <p>format=base64の場合：</p>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "id": "doc-123456",
+    "name": "提案書_山田太郎_金融システム再構築.pdf",
+    "type": "application/pdf",
+    "base64": "JVBERi0xLjcKJeLjz9MKNSAwIG9iago8PC9GaWx0ZXIvRmxhdGVEZ...",
+    "size": 1250000,
+    "created": "2025-05-03T15:20:30Z"
+  }
+}</code></pre>
+
+        <p>format=metadataの場合：</p>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "id": "doc-123456",
+    "name": "提案書_山田太郎_金融システム再構築.pdf",
+    "type": "application/pdf",
+    "url": "/api/v1/matching/proposals/prop-123456/documents/doc-123456",
+    "size": 1250000,
+    "templateId": "template-123",
+    "documentType": "proposal",
+    "created": "2025-05-03T15:20:30Z",
+    "createdBy": {
+      "id": "user-123",
+      "name": "佐藤 一郎"
+    }
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "success": false,
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定されたドキュメントIDが見つかりません",
+    "details": {
+      "documentId": "doc-999999"
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>営業担当者、マッチング担当者、管理者</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>3.3 提案書一覧取得</h3>
+        <span class="method get">GET</span><span class="url">/api/v1/matching/proposals/{id}/documents</span>
+        <p>特定の提案に関連するすべての提案書を取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>提案ID</td>
+                <td>はい</td>
+            </tr>
+        </table>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>type</td>
+                <td>string</td>
+                <td>ドキュメントタイプでフィルタリング（"proposal", "profile", "skillsheet", "all"）</td>
+                <td>いいえ（デフォルト: "all"）</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "doc-123456",
+        "name": "提案書_山田太郎_金融システム再構築.pdf",
+        "type": "application/pdf",
+        "url": "/api/v1/matching/proposals/prop-123456/documents/doc-123456",
+        "size": 1250000,
+        "templateId": "template-123",
+        "documentType": "proposal",
+        "created": "2025-05-03T15:20:30Z",
+        "createdBy": {
+          "id": "user-123",
+          "name": "佐藤 一郎"
+        }
+      },
+      {
+        "id": "doc-123457",
+        "name": "技術者プロフィール_山田太郎.pdf",
+        "type": "application/pdf",
+        "url": "/api/v1/matching/proposals/prop-123456/documents/doc-123457",
+        "size": 980000,
+        "templateId": "template-456",
+        "documentType": "profile",
+        "created": "2025-05-03T15:25:15Z",
+        "createdBy": {
+          "id": "user-123",
+          "name": "佐藤 一郎"
+        }
+      },
+      {
+        "id": "doc-123458",
+        "name": "スキルシート_山田太郎.xlsx",
+        "type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "url": "/api/v1/matching/proposals/prop-123456/documents/doc-123458",
+        "size": 520000,
+        "templateId": "template-789",
+        "documentType": "skillsheet",
+        "created": "2025-05-03T15:30:45Z",
+        "createdBy": {
+          "id": "user-123",
+          "name": "佐藤 一郎"
+        }
+      }
+    ]
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "success": false,
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定された提案IDが見つかりません",
+    "details": {
+      "id": "prop-999999"
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>営業担当者、マッチング担当者、管理者</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>3.4 提案書削除</h3>
+        <span class="method delete">DELETE</span><span class="url">/api/v1/matching/proposals/{id}/documents/{documentId}</span>
+        <p>特定の提案に関連する特定の提案書を削除します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>提案ID</td>
+                <td>はい</td>
+            </tr>
+            <tr>
+                <td>documentId</td>
+                <td>string</td>
+                <td>ドキュメントID</td>
+                <td>はい</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "message": "ドキュメントが正常に削除されました"
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "success": false,
+  "error": {
+    "code": "OPERATION_DENIED",
+    "message": "承認済みの提案のドキュメントは削除できません",
+    "details": {
+      "id": "prop-123456",
+      "status": "accepted"
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>営業担当者、マッチング担当者、管理者</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>3.5 提案書テンプレート一覧取得</h3>
+        <span class="method get">GET</span><span class="url">/api/v1/matching/document-templates</span>
+        <p>利用可能な提案書テンプレートの一覧を取得します。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>type</td>
+                <td>string</td>
+                <td>テンプレートタイプでフィルタリング（"proposal", "profile", "skillsheet", "all"）</td>
+                <td>いいえ（デフォルト: "all"）</td>
+            </tr>
+            <tr>
+                <td>industry</td>
+                <td>string</td>
+                <td>業界でフィルタリング（例: "finance", "manufacturing"）</td>
+                <td>いいえ</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>フォーマットでフィルタリング（例: "pdf", "docx", "xlsx"）</td>
+                <td>いいえ</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "template-123",
+        "name": "標準提案書テンプレート",
+        "description": "一般的な案件向けの標準提案書テンプレート",
+        "type": "proposal",
+        "format": "pdf",
+        "industry": "general",
+        "thumbnail": "/assets/templates/thumbnails/template-123.png",
+        "created": "2025-01-15T10:00:00Z",
+        "lastUpdated": "2025-03-20T14:30:15Z"
+      },
+      {
+        "id": "template-124",
+        "name": "金融業界向け提案書テンプレート",
+        "description": "金融業界の案件向けにカスタマイズされた提案書テンプレート",
+        "type": "proposal",
+        "format": "pdf",
+        "industry": "finance",
+        "thumbnail": "/assets/templates/thumbnails/template-124.png",
+        "created": "2025-01-15T10:30:00Z",
+        "lastUpdated": "2025-03-20T14:45:30Z"
+      },
+      {
+        "id": "template-456",
+        "name": "技術者プロフィールテンプレート",
+        "description": "技術者の経歴やスキルを簡潔にまとめたプロフィールテンプレート",
+        "type": "profile",
+        "format": "pdf",
+        "industry": "general",
+        "thumbnail": "/assets/templates/thumbnails/template-456.png",
+        "created": "2025-01-20T11:15:00Z",
+        "lastUpdated": "2025-03-22T09:20:45Z"
+      },
+      {
+        "id": "template-789",
+        "name": "スキルシートテンプレート",
+        "description": "技術者のスキルを詳細に記録するExcelベースのテンプレート",
+        "type": "skillsheet",
+        "format": "xlsx",
+        "industry": "general",
+        "thumbnail": "/assets/templates/thumbnails/template-789.png",
+        "created": "2025-01-25T13:45:00Z",
+        "lastUpdated": "2025-03-25T16:10:30Z"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>営業担当者、マッチング担当者、管理者</p>
+    </div>
+
+    <div class="endpoint">
+        <h3>3.6 提案書テンプレート取得</h3>
+        <span class="method get">GET</span><span class="url">/api/v1/matching/document-templates/{id}</span>
+        <p>特定の提案書テンプレートの詳細情報を取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>テンプレートID</td>
+                <td>はい</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "success": true,
+  "data": {
+    "id": "template-123",
+    "name": "標準提案書テンプレート",
+    "description": "一般的な案件向けの標準提案書テンプレート",
+    "type": "proposal",
+    "format": "pdf",
+    "industry": "general",
+    "thumbnail": "/assets/templates/thumbnails/template-123.png",
+    "preview": "/assets/templates/previews/template-123.pdf",
+    "sections": [
+      {
+        "id": "cover",
+        "name": "表紙",
+        "required": true,
+        "order": 1
+      },
+      {
+        "id": "profile",
+        "name": "プロフィール",
+        "required": true,
+        "order": 2
+      },
+      {
+        "id": "skills",
+        "name": "スキル一覧",
+        "required": true,
+        "order": 3
+      },
+      {
+        "id": "experience",
+        "name": "業務経験",
+        "required": true,
+        "order": 4
+      },
+      {
+        "id": "qualifications",
+        "name": "資格",
+        "required": false,
+        "order": 5
+      },
+      {
+        "id": "conditions",
+        "name": "契約条件",
+        "required": true,
+        "order": 6
+      }
+    ],
+    "options": [
+      {
+        "id": "includeSkills",
+        "name": "スキル詳細を含める",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "id": "includeExperience",
+        "name": "業務経験を含める",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "id": "includeQualifications",
+        "name": "資格を含める",
+        "type": "boolean",
+        "default": true
+      },
+      {
+        "id": "customTitle",
+        "name": "カスタムタイトル",
+        "type": "string",
+        "default": ""
+      },
+      {
+        "id": "customMessage",
+        "name": "カスタムメッセージ",
+        "type": "text",
+        "default": ""
+      },
+      {
+        "id": "highlightPoints",
+        "name": "強調ポイント",
+        "type": "array",
+        "default": []
+      }
+    ],
+    "created": "2025-01-15T10:00:00Z",
+    "createdBy": {
+      "id": "user-456",
+      "name": "田中 三郎"
+    },
+    "lastUpdated": "2025-03-20T14:30:15Z",
+    "lastUpdatedBy": {
+      "id": "user-456",
+      "name": "田中 三郎"
+    }
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "success": false,
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定されたテンプレートIDが見つかりません",
+    "details": {
+      "id": "template-999"
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>営業担当者、マッチング担当者、管理者</p>
+    </div>
+
+    <a href="../マッチング機能API.html" class="back-link">← マッチング機能API トップに戻る</a>
+
+    <footer>
+        <p>© 2025 SES業務システム</p>
+    </footer>
+</body>
+</html>

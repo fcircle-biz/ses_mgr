@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ファイル管理API設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 5px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .api-path {
+            font-weight: bold;
+            color: #2980b9;
+        }
+        .http-method {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .get {
+            background-color: #61affe;
+            color: white;
+        }
+        .post {
+            background-color: #49cc90;
+            color: white;
+        }
+        .put {
+            background-color: #fca130;
+            color: white;
+        }
+        .delete {
+            background-color: #f93e3e;
+            color: white;
+        }
+        .endpoint {
+            margin: 40px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .endpoint-title {
+            margin-top: 0;
+            font-size: 1.4em;
+        }
+        .required {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .optional {
+            color: #7f8c8d;
+        }
+        .note {
+            background-color: #e7f4ff;
+            padding: 15px;
+            border-left: 5px solid #3498db;
+            margin: 20px 0;
+        }
+        .warning {
+            background-color: #fff5e6;
+            padding: 15px;
+            border-left: 5px solid #e67e22;
+            margin: 20px 0;
+        }
+        .breadcrumb {
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="breadcrumb">
+        <a href="../共通API.html">共通API</a> &gt; ファイル管理API
+    </div>
+
+    <h1>ファイル管理API設計書</h1>
+    
+    <h2>1. 概要</h2>
+    <p>ファイル管理APIは、システム全体で使用するファイルのアップロード、ダウンロード、削除などの機能を提供します。スキルシート、契約書、請求書など、様々な種類のファイルを一元管理します。</p>
+    
+    <h3>1.1 ファイル管理の基本方針</h3>
+    <ul>
+        <li>ファイルは一意のIDで管理され、メタデータとともに保存されます</li>
+        <li>ファイルは暗号化して保存し、セキュリティを確保します</li>
+        <li>ファイルへのアクセス権限は、関連リソース（契約書、請求書など）のアクセス権限に基づいて制御します</li>
+        <li>ファイルは論理削除を基本とし、一定期間経過後に物理削除します</li>
+    </ul>
+    
+    <h3>1.2 対応ファイル形式</h3>
+    <p>サポートするファイル形式は以下の通りです：</p>
+    <ul>
+        <li>ドキュメント：PDF, Word (.docx), Excel (.xlsx), PowerPoint (.pptx), Text (.txt)</li>
+        <li>画像：JPEG (.jpg, .jpeg), PNG (.png), GIF (.gif), SVG (.svg)</li>
+        <li>圧縮ファイル：ZIP (.zip)</li>
+        <li>その他：CSV (.csv), JSON (.json)</li>
+    </ul>
+    
+    <div class="note">
+        <strong>Note:</strong> セキュリティ上の理由から、実行可能ファイル（.exe, .bat, .sh など）はアップロードできません。
+    </div>
+    
+    <h2>2. API一覧</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>エンドポイント</th>
+                <th>メソッド</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>/api/v1/common/files/upload</td>
+                <td>POST</td>
+                <td>ファイルアップロード</td>
+            </tr>
+            <tr>
+                <td>/api/v1/common/files/{id}</td>
+                <td>GET</td>
+                <td>ファイル取得（ダウンロード）</td>
+            </tr>
+            <tr>
+                <td>/api/v1/common/files/{id}</td>
+                <td>DELETE</td>
+                <td>ファイル削除</td>
+            </tr>
+            <tr>
+                <td>/api/v1/common/files/metadata/{id}</td>
+                <td>GET</td>
+                <td>ファイルメタデータ取得</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h2>3. API詳細</h2>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method post">POST</span> <span class="api-path">/api/v1/common/files/upload</span></h3>
+        <p>ファイルをアップロードし、システムに保存します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}
+Content-Type: multipart/form-data</code></pre>
+        
+        <p>リクエストボディ（multipart/form-data）：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>file</td>
+                    <td>file</td>
+                    <td class="required">必須</td>
+                    <td>アップロードするファイル</td>
+                </tr>
+                <tr>
+                    <td>file_type</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>ファイルの種類（例：contract, invoice, skill_sheet, project_document）</td>
+                </tr>
+                <tr>
+                    <td>resource_id</td>
+                    <td>string</td>
+                    <td class="optional">任意</td>
+                    <td>ファイルに関連するリソースのID（例：契約ID、請求書IDなど）</td>
+                </tr>
+                <tr>
+                    <td>description</td>
+                    <td>string</td>
+                    <td class="optional">任意</td>
+                    <td>ファイルの説明</td>
+                </tr>
+                <tr>
+                    <td>tags</td>
+                    <td>string</td>
+                    <td class="optional">任意</td>
+                    <td>ファイルに付けるタグ（カンマ区切りの文字列）</td>
+                </tr>
+                <tr>
+                    <td>is_public</td>
+                    <td>boolean</td>
+                    <td class="optional">任意</td>
+                    <td>ファイルを公開するかどうか（デフォルト: false）</td>
+                </tr>
+                <tr>
+                    <td>expiry_date</td>
+                    <td>string (ISO8601)</td>
+                    <td class="optional">任意</td>
+                    <td>ファイルの有効期限（指定した日時を過ぎると自動的に削除される）</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（201 Created）：</p>
+        <pre><code>{
+  "data": {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "file_name": "契約書_2023_05.pdf",
+    "file_type": "contract",
+    "mime_type": "application/pdf",
+    "size": 1248576,
+    "description": "2023年5月締結の業務委託契約書",
+    "tags": ["契約書", "業務委託", "2023年度"],
+    "resource_id": "contract-123456",
+    "is_public": false,
+    "download_url": "/api/v1/common/files/f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "expiry_date": "2024-05-01T00:00:00.000Z",
+    "created_at": "2023-05-01T10:30:00.000Z",
+    "created_by": "550e8400-e29b-41d4-a716-446655440000"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>ファイルサイズ超過時（413 Payload Too Large）：</p>
+        <pre><code>{
+  "error": {
+    "code": "FILE_TOO_LARGE",
+    "message": "ファイルサイズが上限（10MB）を超えています。"
+  }
+}</code></pre>
+        
+        <p>不正なファイル形式（415 Unsupported Media Type）：</p>
+        <pre><code>{
+  "error": {
+    "code": "UNSUPPORTED_FILE_TYPE",
+    "message": "このファイル形式はサポートされていません。"
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>認証済みユーザー</p>
+        
+        <div class="warning">
+            <strong>制限事項:</strong>
+            <ul>
+                <li>最大ファイルサイズ: 10MB</li>
+                <li>1ユーザーあたりの1日のアップロード上限: 100ファイル</li>
+                <li>1ユーザーあたりの合計保存容量: 1GB</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method get">GET</span> <span class="api-path">/api/v1/common/files/{id}</span></h3>
+        <p>指定されたIDのファイルをダウンロードします。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}</code></pre>
+        
+        <p>パスパラメータ：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>ダウンロードするファイルのID</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p>クエリパラメータ：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>download</td>
+                    <td>boolean</td>
+                    <td class="optional">任意</td>
+                    <td>true の場合、Content-Disposition ヘッダーを付けてダウンロードを促す（デフォルト: false）</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <p>ファイルの内容がレスポンスボディとして返され、以下のヘッダーが設定されます：</p>
+        <pre><code>Content-Type: {ファイルのMIMEタイプ}
+Content-Length: {ファイルサイズ}
+Content-Disposition: attachment; filename="{ファイル名}" (downloadパラメータが true の場合)</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>ファイルが存在しない場合（404 Not Found）：</p>
+        <pre><code>{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定されたファイルが存在しません。"
+  }
+}</code></pre>
+        
+        <p>アクセス権限がない場合（403 Forbidden）：</p>
+        <pre><code>{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "このファイルにアクセスする権限がありません。"
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>以下のいずれかを満たすユーザー：</p>
+        <ul>
+            <li>ファイルのアップロード者</li>
+            <li>関連リソース（契約書、請求書など）へのアクセス権限を持つユーザー</li>
+            <li>ファイルが公開状態（is_public=true）の場合は全ての認証済みユーザー</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method delete">DELETE</span> <span class="api-path">/api/v1/common/files/{id}</span></h3>
+        <p>指定されたIDのファイルを削除します（論理削除）。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}</code></pre>
+        
+        <p>パスパラメータ：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>削除するファイルのID</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p>クエリパラメータ：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>permanent</td>
+                    <td>boolean</td>
+                    <td class="optional">任意</td>
+                    <td>true の場合、物理削除を行う（デフォルト: false）。管理者権限が必要。</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（204 No Content）：</p>
+        <p>レスポンスボディなし</p>
+        
+        <h4>エラーレスポンス</h4>
+        <p>ファイルが存在しない場合（404 Not Found）：</p>
+        <pre><code>{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定されたファイルが存在しません。"
+  }
+}</code></pre>
+        
+        <p>権限エラー時（403 Forbidden）：</p>
+        <pre><code>{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "このファイルを削除する権限がありません。"
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>以下のいずれかを満たすユーザー：</p>
+        <ul>
+            <li>ファイルのアップロード者</li>
+            <li>関連リソースの管理権限を持つユーザー</li>
+            <li>システム管理者（permanent=true の場合は管理者のみ）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method get">GET</span> <span class="api-path">/api/v1/common/files/metadata/{id}</span></h3>
+        <p>指定されたIDのファイルのメタデータを取得します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}</code></pre>
+        
+        <p>パスパラメータ：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>メタデータを取得するファイルのID</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <pre><code>{
+  "data": {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "file_name": "契約書_2023_05.pdf",
+    "file_type": "contract",
+    "mime_type": "application/pdf",
+    "size": 1248576,
+    "description": "2023年5月締結の業務委託契約書",
+    "tags": ["契約書", "業務委託", "2023年度"],
+    "resource_id": "contract-123456",
+    "resource_type": "contract",
+    "is_public": false,
+    "download_url": "/api/v1/common/files/f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "download_count": 5,
+    "expiry_date": "2024-05-01T00:00:00.000Z",
+    "created_at": "2023-05-01T10:30:00.000Z",
+    "updated_at": "2023-05-02T15:45:00.000Z",
+    "created_by": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "山田 太郎"
+    },
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>ファイルが存在しない場合（404 Not Found）：</p>
+        <pre><code>{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定されたファイルが存在しません。"
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>以下のいずれかを満たすユーザー：</p>
+        <ul>
+            <li>ファイルのアップロード者</li>
+            <li>関連リソースへのアクセス権限を持つユーザー</li>
+            <li>ファイルが公開状態（is_public=true）の場合は全ての認証済みユーザー</li>
+        </ul>
+    </div>
+    
+    <h2>4. ファイルのアクセス制御</h2>
+    <p>ファイルへのアクセス制御は、以下の方針に基づいて実施されます：</p>
+    
+    <h3>4.1 基本アクセス制御ルール</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>ファイルの種類（file_type）</th>
+                <th>アクセス権限を持つユーザー</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>contract（契約書）</td>
+                <td>
+                    <ul>
+                        <li>契約の作成者</li>
+                        <li>契約に関連する取引先担当者</li>
+                        <li>契約管理権限を持つユーザー</li>
+                        <li>システム管理者</li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td>invoice（請求書）</td>
+                <td>
+                    <ul>
+                        <li>請求書の作成者</li>
+                        <li>請求書に関連する取引先担当者</li>
+                        <li>経理担当者</li>
+                        <li>システム管理者</li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td>skill_sheet（スキルシート）</td>
+                <td>
+                    <ul>
+                        <li>スキルシートの所有者（技術者）</li>
+                        <li>技術者の直属マネージャー</li>
+                        <li>マッチング担当者</li>
+                        <li>システム管理者</li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td>project_document（案件資料）</td>
+                <td>
+                    <ul>
+                        <li>案件の作成者</li>
+                        <li>案件に関連するプロジェクトメンバー</li>
+                        <li>マッチング担当者</li>
+                        <li>システム管理者</li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td>common（共通資料）</td>
+                <td>
+                    <ul>
+                        <li>全ての認証済みユーザー</li>
+                    </ul>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h3>4.2 ファイルの公開設定</h3>
+    <p><code>is_public</code>パラメータを <code>true</code> に設定すると、上記のアクセス制御に関わらず、全ての認証済みユーザーがファイルにアクセスできるようになります。ただし、機密性の高いファイルタイプ（contract, invoiceなど）ではこの設定は推奨されません。</p>
+    
+    <h2>5. ファイルの保存ポリシー</h2>
+    
+    <h3>5.1 保存期間</h3>
+    <p>ファイルタイプごとのデフォルト保存期間は以下の通りです：</p>
+    <table>
+        <thead>
+            <tr>
+                <th>ファイルの種類</th>
+                <th>保存期間</th>
+                <th>削除後の猶予期間（物理削除までの期間）</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>contract（契約書）</td>
+                <td>契約終了後7年間</td>
+                <td>30日間</td>
+            </tr>
+            <tr>
+                <td>invoice（請求書）</td>
+                <td>作成後7年間</td>
+                <td>30日間</td>
+            </tr>
+            <tr>
+                <td>skill_sheet（スキルシート）</td>
+                <td>更新後または技術者退職後2年間</td>
+                <td>30日間</td>
+            </tr>
+            <tr>
+                <td>project_document（案件資料）</td>
+                <td>案件終了後2年間</td>
+                <td>30日間</td>
+            </tr>
+            <tr>
+                <td>common（共通資料）</td>
+                <td>無期限（手動削除まで）</td>
+                <td>30日間</td>
+            </tr>
+            <tr>
+                <td>その他</td>
+                <td>作成後1年間</td>
+                <td>30日間</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="note">
+        <strong>Note:</strong> <code>expiry_date</code> パラメータでファイル個別の有効期限を設定することも可能です。
+    </div>
+    
+    <h3>5.2 論理削除と物理削除</h3>
+    <p>ファイルの削除は以下の2段階で行われます：</p>
+    <ol>
+        <li><strong>論理削除</strong>：ユーザーによる削除操作または有効期限の到来により、ファイルは論理的に削除された状態になります。この状態ではファイルは通常のAPIでは取得できなくなりますが、システム内部には保持されています。</li>
+        <li><strong>物理削除</strong>：論理削除されたファイルは、猶予期間（通常30日間）経過後に自動的に物理削除されます。物理削除されたファイルは完全に消去され、復元することはできません。</li>
+    </ol>
+    
+    <h2>6. セキュリティ対策</h2>
+    
+    <h3>6.1 ファイルの暗号化</h3>
+    <p>アップロードされたファイルは、保存時に以下の暗号化処理が施されます：</p>
+    <ul>
+        <li>保存時のAES-256暗号化</li>
+        <li>転送時のTLS 1.2以上による暗号化</li>
+        <li>暗号化キーの安全な管理（キーローテーション、アクセス制御）</li>
+    </ul>
+    
+    <h3>6.2 ウイルスチェック</h3>
+    <p>アップロードされた全てのファイルに対して、以下のセキュリティチェックが実施されます：</p>
+    <ul>
+        <li>マルウェアスキャン</li>
+        <li>実行可能コードの検出</li>
+        <li>ファイル拡張子とMIMEタイプの整合性確認</li>
+    </ul>
+    
+    <h3>6.3 ファイル整合性検証</h3>
+    <p>ファイルのダウンロード時には、以下の整合性検証が行われます：</p>
+    <ul>
+        <li>SHA-256ハッシュによるファイル内容の検証</li>
+        <li>改ざん検知と通知</li>
+    </ul>
+</body>
+</html>

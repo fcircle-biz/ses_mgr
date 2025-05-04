@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スキルシート管理API - 技術者管理API仕様書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #0066cc;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, monospace;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, monospace;
+        }
+        .endpoint {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-left: 4px solid #0066cc;
+            margin-bottom: 30px;
+            border-radius: 0 5px 5px 0;
+        }
+        .method {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-right: 10px;
+            color: white;
+        }
+        .get {
+            background-color: #61affe;
+        }
+        .post {
+            background-color: #49cc90;
+        }
+        .put {
+            background-color: #fca130;
+        }
+        .delete {
+            background-color: #f93e3e;
+        }
+        .path {
+            font-family: Consolas, monospace;
+            font-weight: bold;
+        }
+        .nav-container {
+            background-color: #f5f5f5;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+        .nav-container h3 {
+            margin-top: 0;
+        }
+        .param-name {
+            font-weight: bold;
+        }
+        .required {
+            color: #f93e3e;
+        }
+        .param-type {
+            color: #666;
+            font-style: italic;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #0066cc;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <a href="../技術者管理API.html" class="back-link">← 技術者管理API 仕様書に戻る</a>
+    
+    <h1>スキルシート管理API</h1>
+    
+    <div class="nav-container">
+        <h3>目次</h3>
+        <ul>
+            <li><a href="#overview">概要</a></li>
+            <li><a href="#get-skillsheet">技術者のスキルシート取得</a></li>
+            <li><a href="#generate-skillsheet">スキルシート生成</a></li>
+            <li><a href="#get-templates">スキルシートテンプレート一覧取得</a></li>
+            <li><a href="#export-skillsheet">スキルシートのエクスポート</a></li>
+        </ul>
+    </div>
+
+    <h2 id="overview">概要</h2>
+    <p>
+        スキルシート管理APIは、技術者のスキルシートを管理するためのエンドポイントを提供します。
+        スキルシートの取得、生成、テンプレート管理、エクスポートなどの機能が利用可能です。
+        これにより、技術者のスキル情報を顧客向けのスキルシートとして効率的に管理・提供することができます。
+    </p>
+
+    <!-- GET /api/v1/engineers/{id}/skillsheet -->
+    <div class="endpoint" id="get-skillsheet">
+        <h3>
+            <span class="method get">GET</span>
+            <span class="path">/api/v1/engineers/{id}/skillsheet</span>
+        </h3>
+        <p>特定の技術者のスキルシート情報を取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>技術者ID</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+        </table>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>デフォルト</th>
+            </tr>
+            <tr>
+                <td>version</td>
+                <td>スキルシートのバージョン</td>
+                <td>string</td>
+                <td>latest</td>
+            </tr>
+        </table>
+        
+        <h4>リクエスト例</h4>
+        <pre><code>GET /api/v1/engineers/E12345/skillsheet</code></pre>
+        
+        <h4>レスポンス例（成功: 200 OK）</h4>
+        <pre><code>{
+  "data": {
+    "engineerId": "E12345",
+    "skillsheetId": "SS45678",
+    "version": "1.2",
+    "createdAt": "2023-08-15T09:30:00Z",
+    "updatedAt": "2023-09-01T14:45:00Z",
+    "status": "published",
+    "templateId": "T001",
+    "templateName": "標準スキルシート",
+    "basicInfo": {
+      "name": "山田 太郎",
+      "position": "シニアエンジニア",
+      "yearsOfExperience": 8,
+      "summary": "Java/Spring Bootによるバックエンド開発を得意とするシニアエンジニア。クラウドインフラ構築にも精通しており、AWSベースのシステム設計・構築経験が豊富。チームリーダーとしてのプロジェクト管理経験もあり。"
+    },
+    "technicalSkills": [
+      {
+        "category": "プログラミング言語",
+        "skills": [
+          {
+            "name": "Java",
+            "level": 5,
+            "yearsOfExperience": 5,
+            "description": "Java 8以降の機能を活用した開発が可能"
+          },
+          {
+            "name": "JavaScript",
+            "level": 4,
+            "yearsOfExperience": 4,
+            "description": "モダンJavaScriptを用いたフロントエンド開発経験あり"
+          },
+          {
+            "name": "Python",
+            "level": 3,
+            "yearsOfExperience": 2,
+            "description": "データ処理・分析用スクリプト開発経験あり"
+          }
+        ]
+      },
+      {
+        "category": "フレームワーク",
+        "skills": [
+          {
+            "name": "Spring Boot",
+            "level": 5,
+            "yearsOfExperience": 4,
+            "description": "SpringBootを用いたマイクロサービス開発経験あり"
+          },
+          {
+            "name": "React",
+            "level": 3,
+            "yearsOfExperience": 3,
+            "description": "SPAの開発経験あり"
+          }
+        ]
+      },
+      {
+        "category": "クラウド",
+        "skills": [
+          {
+            "name": "AWS",
+            "level": 4,
+            "yearsOfExperience": 3,
+            "description": "EC2, S3, RDS, Lambda等を用いたシステム構築経験あり"
+          }
+        ]
+      }
+    ],
+    "projectHistory": [
+      {
+        "projectName": "オンライン決済システム開発",
+        "period": "2022年4月～2023年3月",
+        "role": "バックエンドリードエンジニア",
+        "description": "大手EC事業者向けオンライン決済システムの開発。Java/Spring Bootを用いたマイクロサービスアーキテクチャの設計・実装を担当。",
+        "tasks": [
+          "システム設計・アーキテクチャ策定",
+          "開発チームのマネジメント（5名）",
+          "AWS上でのインフラ構築",
+          "CI/CDパイプラインの構築"
+        ],
+        "technologies": [
+          "Java", "Spring Boot", "MySQL", "AWS", "Docker", "Kubernetes", "Jenkins"
+        ]
+      },
+      {
+        "projectName": "顧客管理システム再構築",
+        "period": "2021年7月～2022年3月",
+        "role": "フルスタックエンジニア",
+        "description": "レガシーシステムから最新技術スタックへの移行プロジェクト。バックエンドAPIとフロントエンド開発を担当。",
+        "tasks": [
+          "RESTful APIの設計・実装",
+          "Reactを用いたフロントエンド開発",
+          "データ移行ツールの開発"
+        ],
+        "technologies": [
+          "Java", "Spring Boot", "React", "PostgreSQL", "Docker", "GitLab CI"
+        ]
+      }
+    ],
+    "certifications": [
+      {
+        "name": "Oracle Certified Professional, Java SE 11 Developer",
+        "acquiredDate": "2020-05-15",
+        "validUntil": null
+      },
+      {
+        "name": "AWS Certified Solutions Architect - Associate",
+        "acquiredDate": "2022-03-10",
+        "validUntil": "2025-03-10"
+      }
+    ],
+    "educationBackground": [
+      {
+        "school": "○○大学",
+        "department": "工学部 情報工学科",
+        "period": "2011年4月～2015年3月",
+        "degree": "学士（工学）"
+      }
+    ],
+    "customSections": [
+      {
+        "title": "業務外活動",
+        "content": "技術ブログの執筆、社内勉強会の主催、技術コミュニティへの参加など"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "code": "RESOURCE_NOT_FOUND",
+  "message": "指定されたIDの技術者またはスキルシートが見つかりませんでした"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>技術者管理者ロール、人事ロール、営業ロール、管理者ロールがアクセス可能です。</p>
+    </div>
+
+    <!-- POST /api/v1/engineers/{id}/skillsheet/generate -->
+    <div class="endpoint" id="generate-skillsheet">
+        <h3>
+            <span class="method post">POST</span>
+            <span class="path">/api/v1/engineers/{id}/skillsheet/generate</span>
+        </h3>
+        <p>特定の技術者のスキルシートを新規生成または更新します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>技術者ID</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+        </table>
+        
+        <h4>リクエストボディ</h4>
+        <table>
+            <tr>
+                <th>フィールド</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>templateId</td>
+                <td>使用するテンプレートID</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+            <tr>
+                <td>options</td>
+                <td>生成オプション</td>
+                <td>object</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>includeProjects</td>
+                <td>案件履歴を含めるか</td>
+                <td>boolean</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>includeEducation</td>
+                <td>学歴情報を含めるか</td>
+                <td>boolean</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>includeCertifications</td>
+                <td>資格情報を含めるか</td>
+                <td>boolean</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>customSections</td>
+                <td>カスタムセクション</td>
+                <td>array</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>projectsLimit</td>
+                <td>案件履歴の表示上限数</td>
+                <td>number</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>生成後のステータス（draft, published）</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+        </table>
+        
+        <h4>リクエスト例</h4>
+        <pre><code>{
+  "templateId": "T001",
+  "options": {
+    "includeProjects": true,
+    "includeEducation": true,
+    "includeCertifications": true,
+    "projectsLimit": 5
+  },
+  "customSections": [
+    {
+      "title": "業務外活動",
+      "content": "技術ブログの執筆、社内勉強会の主催、技術コミュニティへの参加など"
+    }
+  ],
+  "status": "published"
+}</code></pre>
+        
+        <h4>レスポンス例（成功: 200 OK）</h4>
+        <pre><code>{
+  "skillsheetId": "SS45678",
+  "engineerId": "E12345",
+  "version": "1.3",
+  "status": "published",
+  "createdAt": "2023-09-10T10:15:00Z",
+  "message": "スキルシートが正常に生成されました",
+  "url": "/api/v1/engineers/E12345/skillsheet?version=1.3"
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "code": "RESOURCE_NOT_FOUND",
+  "message": "指定されたIDの技術者が見つかりませんでした"
+}</code></pre>
+
+        <pre><code>{
+  "status": 400,
+  "code": "VALIDATION_ERROR",
+  "message": "入力データの検証に失敗しました",
+  "details": [
+    {
+      "field": "templateId",
+      "message": "存在しないテンプレートIDが指定されました"
+    }
+  ]
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>技術者管理者ロール、人事ロール、営業ロール、管理者ロールがアクセス可能です。</p>
+    </div>
+
+    <!-- GET /api/v1/engineers/{id}/skillsheet/templates -->
+    <div class="endpoint" id="get-templates">
+        <h3>
+            <span class="method get">GET</span>
+            <span class="path">/api/v1/engineers/{id}/skillsheet/templates</span>
+        </h3>
+        <p>スキルシート生成に利用可能なテンプレート一覧を取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>技術者ID</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+        </table>
+        
+        <h4>リクエスト例</h4>
+        <pre><code>GET /api/v1/engineers/E12345/skillsheet/templates</code></pre>
+        
+        <h4>レスポンス例（成功: 200 OK）</h4>
+        <pre><code>{
+  "data": [
+    {
+      "templateId": "T001",
+      "name": "標準スキルシート",
+      "description": "一般的な用途に適した標準的なスキルシートフォーマット",
+      "sections": [
+        "基本情報",
+        "技術スキル",
+        "プロジェクト履歴",
+        "保有資格",
+        "学歴",
+        "自由記述"
+      ],
+      "isDefault": true
+    },
+    {
+      "templateId": "T002",
+      "name": "シンプルスキルシート",
+      "description": "基本情報とスキルのみに絞ったシンプルなフォーマット",
+      "sections": [
+        "基本情報",
+        "技術スキル",
+        "自由記述"
+      ],
+      "isDefault": false
+    },
+    {
+      "templateId": "T003",
+      "name": "詳細スキルシート",
+      "description": "詳細な情報を含んだ総合的なスキルシート",
+      "sections": [
+        "基本情報",
+        "技術スキル",
+        "自己PR",
+        "プロジェクト履歴",
+        "保有資格",
+        "学歴",
+        "業務外活動",
+        "所属コミュニティ",
+        "参加イベント",
+        "自由記述"
+      ],
+      "isDefault": false
+    }
+  ]
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "code": "RESOURCE_NOT_FOUND",
+  "message": "指定されたIDの技術者が見つかりませんでした"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>技術者管理者ロール、人事ロール、営業ロール、管理者ロールがアクセス可能です。</p>
+    </div>
+
+    <!-- POST /api/v1/engineers/{id}/skillsheet/export -->
+    <div class="endpoint" id="export-skillsheet">
+        <h3>
+            <span class="method post">POST</span>
+            <span class="path">/api/v1/engineers/{id}/skillsheet/export</span>
+        </h3>
+        <p>特定の技術者のスキルシートを指定された形式でエクスポートします。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>技術者ID</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+        </table>
+        
+        <h4>リクエストボディ</h4>
+        <table>
+            <tr>
+                <th>フィールド</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>出力形式（pdf, docx, xlsx）</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+            <tr>
+                <td>version</td>
+                <td>スキルシートのバージョン</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>anonymize</td>
+                <td>氏名などの個人情報を匿名化するか</td>
+                <td>boolean</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>customFileName</td>
+                <td>カスタムファイル名</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>watermark</td>
+                <td>透かし文字を入れるか</td>
+                <td>boolean</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>watermarkText</td>
+                <td>透かし文字の内容</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+        </table>
+        
+        <h4>リクエスト例</h4>
+        <pre><code>{
+  "format": "pdf",
+  "version": "latest",
+  "anonymize": true,
+  "watermark": true,
+  "watermarkText": "社外秘"
+}</code></pre>
+        
+        <h4>レスポンス例（成功: 200 OK）</h4>
+        <pre><code>{
+  "fileUrl": "/api/v1/downloads/skillsheets/e12345_skillsheet_20230910.pdf",
+  "fileName": "e12345_skillsheet_20230910.pdf",
+  "expiresAt": "2023-09-17T10:15:00Z",
+  "format": "pdf",
+  "message": "スキルシートが正常にエクスポートされました"
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "code": "RESOURCE_NOT_FOUND",
+  "message": "指定されたIDの技術者またはスキルシートが見つかりませんでした"
+}</code></pre>
+
+        <pre><code>{
+  "status": 400,
+  "code": "VALIDATION_ERROR",
+  "message": "入力データの検証に失敗しました",
+  "details": [
+    {
+      "field": "format",
+      "message": "サポートされていない出力形式が指定されました。pdf, docx, xlsxのいずれかを指定してください"
+    }
+  ]
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>技術者管理者ロール、人事ロール、営業ロール、管理者ロールがアクセス可能です。</p>
+    </div>
+
+    <footer>
+        <p>最終更新日: 2023-09-01</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>請求書管理API 設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .note {
+            background-color: #fef9e7;
+            border-left: 4px solid #f1c40f;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .endpoint {
+            margin: 20px 0;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .http-method {
+            font-weight: bold;
+            color: #fff;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .path {
+            font-family: monospace;
+            font-weight: bold;
+        }
+        .nav-container {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .nav-container ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        .nav-container li {
+            margin-bottom: 5px;
+        }
+        .breadcrumb {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="breadcrumb">
+        <a href="../請求支払管理API.html">請求・支払管理API</a> &gt; 請求書管理API
+    </div>
+
+    <h1>請求書管理API 設計書</h1>
+
+    <h2>1. 概要</h2>
+    <p>
+        請求書管理APIは、請求書ドキュメント（PDF）の生成、取得、プレビュー、送信などの機能を提供します。
+        請求書の各種テンプレート管理も含まれます。
+    </p>
+
+    <h2>2. ベースパス</h2>
+    <p><code>/api/v1/billing</code></p>
+
+    <h2>3. エンドポイント一覧</h2>
+    <div class="nav-container">
+        <ul>
+            <li><a href="#get-invoice-document">GET /api/v1/billing/invoices/{id}/document</a> - 請求書の取得</li>
+            <li><a href="#post-generate-document">POST /api/v1/billing/invoices/{id}/document/generate</a> - 請求書の生成</li>
+            <li><a href="#get-document-preview">GET /api/v1/billing/invoices/{id}/document/preview</a> - 請求書のプレビュー</li>
+            <li><a href="#post-send-document">POST /api/v1/billing/invoices/{id}/document/send</a> - 請求書の送信</li>
+            <li><a href="#get-invoice-templates">GET /api/v1/billing/invoice-templates</a> - 請求書テンプレート一覧取得</li>
+            <li><a href="#get-invoice-template">GET /api/v1/billing/invoice-templates/{id}</a> - 請求書テンプレート取得</li>
+        </ul>
+    </div>
+
+    <h2>4. エンドポイント詳細</h2>
+
+    <div id="get-invoice-document" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/invoices/{id}/document</span></h3>
+        <p>既に生成された請求書のPDFを取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>請求ID</td>
+            </tr>
+        </table>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>download</td>
+                <td>boolean</td>
+                <td>いいえ</td>
+                <td>ダウンロード用レスポンスヘッダを追加するかどうか (デフォルト: false)</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス</h4>
+        <p>Content-Type: application/pdf</p>
+        <p>請求書のPDFデータがバイナリで返却されます。</p>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "error": "Not Found",
+  "message": "請求ID 'INV2023050001' の請求書ドキュメントが見つかりません",
+  "timestamp": "2023-05-10T14:25:30Z",
+  "path": "/api/v1/billing/invoices/INV2023050001/document"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF, REPORT_VIEWER</p>
+    </div>
+
+    <div id="post-generate-document" class="endpoint">
+        <h3><span class="http-method post">POST</span><span class="path">/api/v1/billing/invoices/{id}/document/generate</span></h3>
+        <p>請求データを元に請求書PDFを生成します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>請求ID</td>
+            </tr>
+        </table>
+
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "templateId": "TEMPLATE001",
+  "options": {
+    "includeLogo": true,
+    "includePaymentInstructions": true,
+    "includeTaxDetails": true
+  },
+  "additionalInfo": {
+    "bankAccount": {
+      "bankName": "サンプル銀行",
+      "branchName": "本店",
+      "accountType": "普通",
+      "accountNumber": "1234567",
+      "accountName": "カ）サンプルシステムズ"
+    },
+    "contactInfo": {
+      "name": "営業部 請求担当",
+      "email": "billing@example.com",
+      "phone": "03-1234-5678"
+    }
+  }
+}</code></pre>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "id": "DOC2023050001",
+  "invoiceId": "INV2023050001",
+  "fileName": "invoice_INV2023050001.pdf",
+  "fileSize": 124568,
+  "mimeType": "application/pdf",
+  "templateId": "TEMPLATE001",
+  "generatedAt": "2023-05-10T15:30:00Z",
+  "downloadUrl": "/api/v1/billing/invoices/INV2023050001/document?download=true",
+  "status": "GENERATED"
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "error": "Not Found",
+  "message": "請求ID 'INV2023050999' が見つかりません",
+  "timestamp": "2023-05-10T15:30:00Z",
+  "path": "/api/v1/billing/invoices/INV2023050999/document/generate"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF</p>
+    </div>
+
+    <div id="get-document-preview" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/invoices/{id}/document/preview</span></h3>
+        <p>請求書のプレビューを生成して取得します。請求書を正式に生成する前に内容を確認するためのエンドポイントです。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>請求ID</td>
+            </tr>
+        </table>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>templateId</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>使用するテンプレートID (デフォルト: システムデフォルトのテンプレート)</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス</h4>
+        <p>Content-Type: application/pdf</p>
+        <p>プレビュー用の請求書PDFがバイナリで返却されます。プレビュー版であることを示す透かしが入ります。</p>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "error": "Not Found",
+  "message": "請求ID 'INV2023050999' が見つかりません",
+  "timestamp": "2023-05-10T16:20:00Z",
+  "path": "/api/v1/billing/invoices/INV2023050999/document/preview"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF</p>
+    </div>
+
+    <div id="post-send-document" class="endpoint">
+        <h3><span class="http-method post">POST</span><span class="path">/api/v1/billing/invoices/{id}/document/send</span></h3>
+        <p>生成済みの請求書PDFを指定の宛先にメールで送信します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>請求ID</td>
+            </tr>
+        </table>
+
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "to": ["client@example.com"],
+  "cc": ["accounting@example.com"],
+  "bcc": ["records@example.com"],
+  "subject": "【請求書】2023年4月分サービス利用料のご請求",
+  "body": "株式会社テクノA 御中\n\n平素は格別のお引き立てを賜り、誠にありがとうございます。\n2023年4月分のサービス利用料金の請求書を添付いたします。\n\nご確認の上、期日までにお振込みいただきますよう、お願い申し上げます。\n\n株式会社サンプルシステムズ\n営業部 請求担当\nTEL: 03-1234-5678",
+  "includePaymentInstructions": true,
+  "generateIfNotExists": true
+}</code></pre>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "messageId": "MAIL2023051001",
+  "invoiceId": "INV2023050001",
+  "sentAt": "2023-05-10T17:15:00Z",
+  "recipients": {
+    "to": ["client@example.com"],
+    "cc": ["accounting@example.com"],
+    "bcc": ["records@example.com"]
+  },
+  "subject": "【請求書】2023年4月分サービス利用料のご請求",
+  "status": "SENT"
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "請求ID 'INV2023050001' の請求書ドキュメントが生成されていません",
+  "timestamp": "2023-05-10T17:15:00Z",
+  "path": "/api/v1/billing/invoices/INV2023050001/document/send"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF</p>
+    </div>
+
+    <div id="get-invoice-templates" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/invoice-templates</span></h3>
+        <p>請求書テンプレートの一覧を取得します。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>active</td>
+                <td>boolean</td>
+                <td>いいえ</td>
+                <td>有効なテンプレートのみ取得するかどうか (デフォルト: true)</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "templates": [
+    {
+      "id": "TEMPLATE001",
+      "name": "標準テンプレート",
+      "description": "SES業務用の標準請求書テンプレート",
+      "previewUrl": "/api/v1/billing/invoice-templates/TEMPLATE001/preview",
+      "isDefault": true,
+      "createdAt": "2023-01-01T00:00:00Z",
+      "updatedAt": "2023-01-01T00:00:00Z",
+      "active": true
+    },
+    {
+      "id": "TEMPLATE002",
+      "name": "シンプルテンプレート",
+      "description": "項目を最小限に抑えたシンプルな請求書テンプレート",
+      "previewUrl": "/api/v1/billing/invoice-templates/TEMPLATE002/preview",
+      "isDefault": false,
+      "createdAt": "2023-01-01T00:00:00Z",
+      "updatedAt": "2023-01-01T00:00:00Z",
+      "active": true
+    },
+    {
+      "id": "TEMPLATE003",
+      "name": "詳細テンプレート",
+      "description": "詳細な項目表示に対応した請求書テンプレート",
+      "previewUrl": "/api/v1/billing/invoice-templates/TEMPLATE003/preview",
+      "isDefault": false,
+      "createdAt": "2023-01-01T00:00:00Z",
+      "updatedAt": "2023-01-01T00:00:00Z",
+      "active": true
+    }
+  ]
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF</p>
+    </div>
+
+    <div id="get-invoice-template" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/invoice-templates/{id}</span></h3>
+        <p>特定の請求書テンプレートの詳細を取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>請求書テンプレートID</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "id": "TEMPLATE001",
+  "name": "標準テンプレート",
+  "description": "SES業務用の標準請求書テンプレート",
+  "previewUrl": "/api/v1/billing/invoice-templates/TEMPLATE001/preview",
+  "isDefault": true,
+  "createdAt": "2023-01-01T00:00:00Z",
+  "updatedAt": "2023-01-01T00:00:00Z",
+  "active": true,
+  "layout": {
+    "pageSize": "A4",
+    "orientation": "portrait",
+    "margins": {
+      "top": 20,
+      "right": 20,
+      "bottom": 20,
+      "left": 20
+    },
+    "headerHeight": 60,
+    "footerHeight": 40
+  },
+  "sections": {
+    "header": {
+      "includeCompanyLogo": true,
+      "includeCompanyInfo": true,
+      "includeInvoiceTitle": true
+    },
+    "customerInfo": {
+      "includeCustomerName": true,
+      "includeCustomerAddress": true,
+      "includeCustomerContact": true
+    },
+    "invoiceDetails": {
+      "includeInvoiceNumber": true,
+      "includeIssueDate": true,
+      "includeDueDate": true,
+      "includeBillingPeriod": true
+    },
+    "itemsTable": {
+      "columns": [
+        "項目",
+        "数量",
+        "単価",
+        "金額"
+      ],
+      "includeTaxRate": true,
+      "includeItemSubtotals": true
+    },
+    "summary": {
+      "includeSubtotal": true,
+      "includeTaxAmount": true,
+      "includeTotalAmount": true
+    },
+    "paymentInstructions": {
+      "includeBankAccount": true,
+      "includePaymentTerms": true
+    },
+    "footer": {
+      "includeCompanyContact": true,
+      "includePageNumbers": true
+    }
+  },
+  "styling": {
+    "primaryColor": "#3498db",
+    "secondaryColor": "#2c3e50",
+    "fontFamily": "Helvetica, Arial, sans-serif",
+    "fontSize": 10
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "error": "Not Found",
+  "message": "テンプレートID 'TEMPLATE999' が見つかりません",
+  "timestamp": "2023-05-10T18:05:00Z",
+  "path": "/api/v1/billing/invoice-templates/TEMPLATE999"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF</p>
+    </div>
+
+    <footer>
+        <p>最終更新日: 2025年5月4日</p>
+    </footer>
+</body>
+</html>

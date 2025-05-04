@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>共通API設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 5px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .api-path {
+            font-weight: bold;
+            color: #2980b9;
+        }
+        .http-method {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .get {
+            background-color: #61affe;
+            color: white;
+        }
+        .post {
+            background-color: #49cc90;
+            color: white;
+        }
+        .put {
+            background-color: #fca130;
+            color: white;
+        }
+        .delete {
+            background-color: #f93e3e;
+            color: white;
+        }
+        .nav-section {
+            margin: 30px 0;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        .nav-section ul {
+            list-style-type: none;
+            padding-left: 15px;
+        }
+        .nav-section li {
+            margin-bottom: 10px;
+        }
+        .note {
+            background-color: #e7f4ff;
+            padding: 15px;
+            border-left: 5px solid #3498db;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>共通API設計書</h1>
+    
+    <h2>1. 概要</h2>
+    <p>本ドキュメントでは、SES業務システムにおける共通APIの設計について定義します。共通APIは、システム全体で共通して利用される基本的な機能を提供するAPIです。</p>
+    
+    <h3>1.1 ベースパス</h3>
+    <p>共通APIのベースパスは以下の通りです。</p>
+    <pre><code>/api/v1/common</code></pre>
+    <p>認証関連のAPIのベースパスは以下の通りです。</p>
+    <pre><code>/api/v1/auth</code></pre>
+    
+    <h3>1.2 API一覧</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>分類</th>
+                <th>機能概要</th>
+                <th>ドキュメント</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>認証API</td>
+                <td>ログイン、ログアウト、トークン更新など、ユーザー認証に関する機能を提供</td>
+                <td><a href="./共通/01_認証API.html">詳細を見る</a></td>
+            </tr>
+            <tr>
+                <td>コード値API</td>
+                <td>システム全体で使用するコード値の取得機能を提供</td>
+                <td><a href="./共通/02_コード値API.html">詳細を見る</a></td>
+            </tr>
+            <tr>
+                <td>通知API</td>
+                <td>ユーザーへの通知管理機能を提供</td>
+                <td><a href="./共通/03_通知API.html">詳細を見る</a></td>
+            </tr>
+            <tr>
+                <td>ファイル管理API</td>
+                <td>ファイルのアップロード、ダウンロード、削除機能を提供</td>
+                <td><a href="./共通/04_ファイル管理API.html">詳細を見る</a></td>
+            </tr>
+            <tr>
+                <td>検索API</td>
+                <td>システム全体での横断検索機能を提供</td>
+                <td><a href="./共通/05_検索API.html">詳細を見る</a></td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h2>2. 基本設計方針</h2>
+    
+    <h3>2.1 RESTful API設計原則</h3>
+    <ul>
+        <li>リソース指向の設計を採用し、URLはリソースを表現</li>
+        <li>HTTPメソッドを適切に使用（GET: 取得、POST: 作成、PUT: 更新、DELETE: 削除）</li>
+        <li>レスポンスには適切なHTTPステータスコードを使用</li>
+        <li>JSON形式でデータをやり取り</li>
+        <li>エラーレスポンスは統一された形式で返却</li>
+    </ul>
+    
+    <h3>2.2 認証・認可方式</h3>
+    <p>JWT（JSON Web Token）を使用したトークンベースの認証方式を採用します。</p>
+    <ul>
+        <li>アクセストークン：有効期限が短い（30分〜1時間程度）</li>
+        <li>リフレッシュトークン：有効期限が長い（1日〜2週間程度）</li>
+        <li>権限管理はロールベースのアクセス制御（RBAC）を実装</li>
+    </ul>
+    
+    <h3>2.3 エラーハンドリング</h3>
+    <p>エラーレスポンスは以下の統一された形式で返却します。</p>
+    <pre><code>{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "エラーメッセージ",
+    "details": [
+      {
+        "field": "対象フィールド名",
+        "message": "詳細エラーメッセージ"
+      }
+    ]
+  }
+}</code></pre>
+    
+    <h3>2.4 ページング処理</h3>
+    <p>一覧取得APIでは、以下のクエリパラメータを使用したページング処理をサポートします。</p>
+    <ul>
+        <li><code>page</code>: ページ番号（1から開始）</li>
+        <li><code>page_size</code>: 1ページあたりの件数（デフォルト: 20、最大: 100）</li>
+    </ul>
+    <p>レスポンスには以下のページング情報を含めます。</p>
+    <pre><code>{
+  "data": [...],
+  "pagination": {
+    "current_page": 1,
+    "page_size": 20,
+    "total_pages": 5,
+    "total_items": 98
+  }
+}</code></pre>
+    
+    <h3>2.5 バージョニング</h3>
+    <p>APIのバージョニングはURLパスに含める形式（<code>/api/v1/...</code>）を採用します。</p>
+    
+    <h2>3. 共通データ構造</h2>
+    
+    <h3>3.1 基本レスポンス形式</h3>
+    <p>成功時のレスポンス形式は以下の通りです。</p>
+    <pre><code>// 単一リソース取得の場合
+{
+  "data": {
+    // リソースデータ
+  }
+}
+
+// リソース一覧取得の場合
+{
+  "data": [
+    // リソースデータの配列
+  ],
+  "pagination": {
+    // ページング情報（該当する場合）
+  }
+}</code></pre>
+    
+    <h3>3.2 共通フィールド</h3>
+    <p>多くのリソースに含まれる共通フィールドは以下の通りです。</p>
+    <table>
+        <thead>
+            <tr>
+                <th>フィールド名</th>
+                <th>データ型</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>リソースの一意識別子（UUID形式）</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>string (ISO8601)</td>
+                <td>作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>string (ISO8601)</td>
+                <td>最終更新日時</td>
+            </tr>
+            <tr>
+                <td>created_by</td>
+                <td>string</td>
+                <td>作成ユーザーID</td>
+            </tr>
+            <tr>
+                <td>updated_by</td>
+                <td>string</td>
+                <td>最終更新ユーザーID</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h3>3.3 日付・時刻形式</h3>
+    <p>日付・時刻はISO8601形式（YYYY-MM-DDTHH:mm:ss.sssZ）で表現します。</p>
+    <pre><code>"created_at": "2023-05-01T09:00:00.000Z"</code></pre>
+    
+    <h2>4. API詳細設計</h2>
+    <p>各APIの詳細設計については、以下のドキュメントを参照してください。</p>
+    
+    <div class="nav-section">
+        <h3>認証API</h3>
+        <p>ユーザー認証に関するAPI群です。</p>
+        <ul>
+            <li><a href="./共通/01_認証API.html">認証API詳細設計</a></li>
+        </ul>
+    </div>
+    
+    <div class="nav-section">
+        <h3>コード値API</h3>
+        <p>システム全体で使用するコード値を取得するためのAPI群です。</p>
+        <ul>
+            <li><a href="./共通/02_コード値API.html">コード値API詳細設計</a></li>
+        </ul>
+    </div>
+    
+    <div class="nav-section">
+        <h3>通知API</h3>
+        <p>ユーザーへの通知を管理するためのAPI群です。</p>
+        <ul>
+            <li><a href="./共通/03_通知API.html">通知API詳細設計</a></li>
+        </ul>
+    </div>
+    
+    <div class="nav-section">
+        <h3>ファイル管理API</h3>
+        <p>ファイルのアップロード、ダウンロード、削除を行うためのAPI群です。</p>
+        <ul>
+            <li><a href="./共通/04_ファイル管理API.html">ファイル管理API詳細設計</a></li>
+        </ul>
+    </div>
+    
+    <div class="nav-section">
+        <h3>検索API</h3>
+        <p>システム全体での横断検索を行うためのAPI群です。</p>
+        <ul>
+            <li><a href="./共通/05_検索API.html">検索API詳細設計</a></li>
+        </ul>
+    </div>
+    
+    <h2>5. セキュリティ対策</h2>
+    
+    <h3>5.1 API アクセス制御</h3>
+    <p>アクセストークンによる認証に加え、以下のセキュリティ対策を実施します。</p>
+    <ul>
+        <li>HTTPS通信の強制</li>
+        <li>CORS設定による許可オリジン制限</li>
+        <li>レート制限の実装（短時間に多数のリクエストを防止）</li>
+        <li>適切なHTTPヘッダー設定（X-Content-Type-Options, X-Frame-Options, Content-Security-Policy）</li>
+    </ul>
+    
+    <h3>5.2 入力データバリデーション</h3>
+    <p>全てのAPIリクエストに対して、以下の入力データバリデーションを実施します。</p>
+    <ul>
+        <li>データ型の検証</li>
+        <li>必須項目のチェック</li>
+        <li>値の範囲・形式チェック</li>
+        <li>サニタイズ処理（XSS対策）</li>
+    </ul>
+</body>
+</html>

@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>契約テンプレートAPI 設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 5px;
+        }
+        code {
+            background-color: #f8f8f8;
+            border-radius: 3px;
+            padding: 2px 5px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .endpoint {
+            margin-bottom: 30px;
+        }
+        .http-method {
+            display: inline-block;
+            padding: 3px 6px;
+            border-radius: 3px;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .http-method.get {
+            background-color: #61affe;
+        }
+        .http-method.post {
+            background-color: #49cc90;
+        }
+        .http-method.put {
+            background-color: #fca130;
+        }
+        .http-method.delete {
+            background-color: #f93e3e;
+        }
+        .path {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        .toc {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .toc ul {
+            padding-left: 20px;
+        }
+        .back-link {
+            margin-top: 30px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <h1>契約テンプレートAPI 設計書</h1>
+    
+    <div class="toc">
+        <h2>目次</h2>
+        <ul>
+            <li><a href="#overview">1. 概要</a></li>
+            <li><a href="#endpoints">2. エンドポイント一覧</a></li>
+            <li><a href="#get-templates">3. 契約テンプレート一覧の取得</a></li>
+            <li><a href="#get-template">4. 特定契約テンプレートの取得</a></li>
+            <li><a href="#post-template">5. 新規契約テンプレートの作成</a></li>
+            <li><a href="#put-template">6. 契約テンプレートの更新</a></li>
+            <li><a href="#delete-template">7. 契約テンプレートの削除</a></li>
+        </ul>
+    </div>
+
+    <h2 id="overview">1. 概要</h2>
+    <p>
+        契約テンプレートAPIは、契約書の生成に使用するテンプレートを管理するためのインターフェースを提供します。
+        テンプレートの作成、更新、削除、検索などの機能を通じて、さまざまな契約タイプに合わせた
+        契約書フォーマットの管理が可能になります。
+    </p>
+
+    <h2 id="endpoints">2. エンドポイント一覧</h2>
+    <table>
+        <tr>
+            <th>メソッド</th>
+            <th>パス</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>GET</td>
+            <td>/api/v1/contracts/templates</td>
+            <td>契約テンプレート一覧の取得</td>
+        </tr>
+        <tr>
+            <td>GET</td>
+            <td>/api/v1/contracts/templates/{id}</td>
+            <td>特定契約テンプレートの取得</td>
+        </tr>
+        <tr>
+            <td>POST</td>
+            <td>/api/v1/contracts/templates</td>
+            <td>新規契約テンプレートの作成</td>
+        </tr>
+        <tr>
+            <td>PUT</td>
+            <td>/api/v1/contracts/templates/{id}</td>
+            <td>契約テンプレートの更新</td>
+        </tr>
+        <tr>
+            <td>DELETE</td>
+            <td>/api/v1/contracts/templates/{id}</td>
+            <td>契約テンプレートの削除</td>
+        </tr>
+    </table>
+
+    <div class="endpoint">
+        <h2 id="get-templates">3. 契約テンプレート一覧の取得</h2>
+        <p>
+            <span class="http-method get">GET</span>
+            <span class="path">/api/v1/contracts/templates</span>
+        </p>
+        <p>
+            利用可能な契約テンプレートの一覧を取得します。検索条件やフィルターを指定して結果を絞り込むことができます。
+        </p>
+
+        <h3>クエリパラメータ</h3>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>integer</td>
+                <td>いいえ</td>
+                <td>ページ番号（1から開始、デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>size</td>
+                <td>integer</td>
+                <td>いいえ</td>
+                <td>1ページあたりの件数（デフォルト: 20、最大: 100）</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>ソート条件（例: "name,asc"）</td>
+            </tr>
+            <tr>
+                <td>contractType</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>契約タイプでフィルター（例: "業務委託,派遣"）</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>テンプレートステータスでフィルター（例: "active,draft"）</td>
+            </tr>
+            <tr>
+                <td>q</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>検索キーワード</td>
+            </tr>
+        </table>
+
+        <h3>レスポンス</h3>
+        <p>成功時のステータスコード: <code>200 OK</code></p>
+        <pre><code>{
+  "data": [
+    {
+      "id": "t001",
+      "name": "標準業務委託契約書",
+      "description": "SES業務の標準的な業務委託契約のテンプレート",
+      "contractType": "業務委託",
+      "status": "active",
+      "version": "2.1",
+      "format": "docx",
+      "variables": [
+        "clientName",
+        "vendorName",
+        "engineerName",
+        "startDate",
+        "endDate",
+        "amount",
+        "workingHours",
+        "location"
+      ],
+      "metadata": {
+        "createdBy": "user123",
+        "createdAt": "2023-01-15T09:30:00Z",
+        "updatedBy": "user456",
+        "updatedAt": "2023-04-10T14:45:00Z"
+      },
+      "_links": {
+        "self": { "href": "/api/v1/contracts/templates/t001" },
+        "preview": { "href": "/api/v1/contracts/templates/t001/preview" }
+      }
+    },
+    {
+      "id": "t002",
+      "name": "派遣契約書",
+      "description": "人材派遣契約のテンプレート",
+      "contractType": "派遣",
+      "status": "active",
+      "version": "1.5",
+      "format": "docx",
+      "variables": [
+        "clientName",
+        "vendorName",
+        "engineerName",
+        "startDate",
+        "endDate",
+        "amount",
+        "workingHours",
+        "location",
+        "overtimeRate"
+      ],
+      "metadata": {
+        "createdBy": "user123",
+        "createdAt": "2023-02-20T11:15:00Z",
+        "updatedBy": "user123",
+        "updatedAt": "2023-03-05T13:20:00Z"
+      },
+      "_links": {
+        "self": { "href": "/api/v1/contracts/templates/t002" },
+        "preview": { "href": "/api/v1/contracts/templates/t002/preview" }
+      }
+    }
+    // ... 追加のテンプレート
+  ],
+  "pagination": {
+    "page": 1,
+    "size": 20,
+    "totalElements": 12,
+    "totalPages": 1
+  },
+  "_links": {
+    "self": { "href": "/api/v1/contracts/templates?page=1&size=20" }
+  }
+}</code></pre>
+
+        <h3>エラーレスポンス</h3>
+        <p>エラー時のステータスコード: <code>400 Bad Request</code>, <code>401 Unauthorized</code>, <code>403 Forbidden</code></p>
+        <pre><code>{
+  "error": {
+    "code": "INVALID_PARAMETER",
+    "message": "無効なパラメータです",
+    "details": [
+      {
+        "field": "page",
+        "message": "pageは1以上の値を指定してください"
+      }
+    ],
+    "timestamp": "2023-05-17T09:15:30Z",
+    "path": "/api/v1/contracts/templates"
+  }
+}</code></pre>
+
+        <h3>アクセス権限</h3>
+        <p>
+            このエンドポイントにアクセスするには、以下のいずれかの権限が必要です：
+        </p>
+        <ul>
+            <li><code>template:read</code></li>
+            <li><code>admin</code></li>
+        </ul>
+    </div>
+
+    <div class="endpoint">
+        <h2 id="get-template">4. 特定契約テンプレートの取得</h2>
+        <p>
+            <span class="http-method get">GET</span>
+            <span class="path">/api/v1/contracts/templates/{id}</span>
+        </p>
+        <p>
+            指定されたIDの契約テンプレートの詳細情報を取得します。
+        </p>
+
+        <h3>パスパラメータ</h3>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>テンプレートのID</td>
+            </tr>
+        </table>
+
+        <h3>レスポンス</h3>
+        <p>成功時のステータスコード: <code>200 OK</code></p>
+        <pre><code>{
+  "id": "t001",
+  "name": "標準業務委託契約書",
+  "description": "SES業務の標準的な業務委託契約のテンプレート",
+  "contractType": "業務委託",
+  "status": "active",
+  "version": "2.1",
+  "format": "docx",
+  "content": {
+    "storageType": "file",
+    "contentUrl": "/api/v1/contracts/templates/t001/content",
+    "fileName": "standard_outsourcing_contract_v2.1.docx",
+    "fileSize": 234567
+  },
+  "variables": [
+    {
+      "name": "clientName",
+      "displayName": "クライアント名",
+      "type": "string",
+      "required": true,
+      "description": "契約甲の会社名"
+    },
+    {
+      "name": "vendorName",
+      "displayName": "ベンダー名",
+      "type": "string",
+      "required": true,
+      "description": "契約乙の会社名"
+    },
+    {
+      "name": "engineerName",
+      "displayName": "エンジニア名",
+      "type": "string",
+      "required": true,
+      "description": "業務に従事するエンジニアの氏名"
+    },
+    {
+      "name": "startDate",
+      "displayName": "開始日",
+      "type": "date",
+      "required": true,
+      "description": "契約開始日"
+    },
+    {
+      "name": "endDate",
+      "displayName": "終了日",
+      "type": "date",
+      "required": true,
+      "description": "契約終了日"
+    },
+    {
+      "name": "amount",
+      "displayName": "金額",
+      "type": "number",
+      "required": true,
+      "description": "月額報酬"
+    },
+    {
+      "name": "workingHours",
+      "displayName": "勤務時間",
+      "type": "string",
+      "required": true,
+      "description": "勤務時間（例：9:00〜18:00）"
+    },
+    {
+      "name": "location",
+      "displayName": "勤務地",
+      "type": "string",
+      "required": true,
+      "description": "勤務地住所"
+    }
+  ],
+  "signatureFields": [
+    {
+      "name": "clientSignature",
+      "displayName": "クライアント署名欄",
+      "page": 5,
+      "position": {
+        "x": 100,
+        "y": 500
+      }
+    },
+    {
+      "name": "vendorSignature",
+      "displayName": "ベンダー署名欄",
+      "page": 5,
+      "position": {
+        "x": 400,
+        "y": 500
+      }
+    }
+  ],
+  "metadata": {
+    "createdBy": "user123",
+    "createdAt": "2023-01-15T09:30:00Z",
+    "updatedBy": "user456",
+    "updatedAt": "2023-04-10T14:45:00Z",
+    "usageCount": 127
+  },
+  "_links": {
+    "self": { "href": "/api/v1/contracts/templates/t001" },
+    "content": { "href": "/api/v1/contracts/templates/t001/content" },
+    "preview": { "href": "/api/v1/contracts/templates/t001/preview" }
+  }
+}</code></pre>
+
+        <h3>エラーレスポンス</h3>
+        <p>エラー時のステータスコード: <code>401 Unauthorized</code>, <code>403 Forbidden</code>, <code>404 Not Found</code></p>
+        <pre><code>{
+  "error": {
+    "code": "TEMPLATE_NOT_FOUND",
+    "message": "指定されたIDのテンプレートが見つかりません",
+    "timestamp": "2023-05-17T09:45:20Z",
+    "path": "/api/v1/contracts/templates/invalid_id"
+  }
+}</code></pre>
+
+        <h3>アクセス権限</h3>
+        <p>
+            このエンドポイントにアクセスするには、以下のいずれかの権限が必要です：
+        </p>
+        <ul>
+            <li><code>template:read</code></li>
+            <li><code>admin</code></li>
+        </ul>
+    </div>
+
+    <div class="endpoint">
+        <h2 id="post-template">5. 新規契約テンプレートの作成</h2>
+        <p>
+            <span class="http-method post">POST</span>
+            <span class="path">/api/v1/contracts/templates</span>
+        </p>
+        <p>
+            新しい契約テンプレートを作成します。テンプレートの内容は、ファイルアップロードまたはHTMLコンテンツとして提供することができます。
+        </p>
+
+        <h3>リクエストボディ</h3>
+        <p>
+            リクエストは<code>multipart/form-data</code>形式で送信されます。
+        </p>
+        <table>
+            <tr>
+                <th>フィールド名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>metadata</td>
+                <td>JSON string</td>
+                <td>はい</td>
+                <td>テンプレートのメタデータ（以下参照）</td>
+            </tr>
+            <tr>
+                <td>file</td>
+                <td>file</td>
+                <td>条件付き</td>
+                <td>テンプレートファイル（content_typeが"file"の場合に必須）</td>
+            </tr>
+            <tr>
+                <td>content</td>
+                <td>string</td>
+                <td>条件付き</td>
+                <td>HTMLまたはテキスト形式のテンプレート内容（content_typeが"html"または"text"の場合に必須）</td>
+            </tr>
+        </table>
+
+        <p>metadata JSONの例：</p>
+        <pre><code>{
+  "name": "紹介予定派遣契約書",
+  "description": "紹介予定派遣契約のテンプレート",
+  "contractType": "紹介予定派遣",
+  "status": "draft",
+  "version": "1.0",
+  "format": "docx",
+  "content_type": "file",
+  "variables": [
+    {
+      "name": "clientName",
+      "displayName": "クライアント名",
+      "type": "string",
+      "required": true,
+      "description": "契約甲の会社名"
+    },
+    {
+      "name": "vendorName",
+      "displayName": "ベンダー名",
+      "type": "string",
+      "required": true,
+      "description": "契約乙の会社名"
+    },
+    // ... その他の変数
+  ],
+  "signatureFields": [
+    {
+      "name": "clientSignature",
+      "displayName": "クライアント署名欄",
+      "page": 6,
+      "position": {
+        "x": 100,
+        "y": 500
+      }
+    },
+    {
+      "name": "vendorSignature",
+      "displayName": "ベンダー署名欄",
+      "page": 6,
+      "position": {
+        "x": 400,
+        "y": 500
+      }
+    }
+  ]
+}</code></pre>
+
+        <h3>レスポンス</h3>
+        <p>成功時のステータスコード: <code>201 Created</code></p>
+        <pre><code>{
+  "id": "t003",
+  "name": "紹介予定派遣契約書",
+  "description": "紹介予定派遣契約のテンプレート",
+  "contractType": "紹介予定派遣",
+  "status": "draft",
+  "version": "1.0",
+  "format": "docx",
+  "variables": [
+    {
+      "name": "clientName",
+      "displayName": "クライアント名",
+      "type": "string",
+      "required": true,
+      "description": "契約甲の会社名"
+    },
+    {
+      "name": "vendorName",
+      "displayName": "ベンダー名",
+      "type": "string",
+      "required": true,
+      "description": "契約乙の会社名"
+    }
+    // ... その他の変数
+  ],
+  "signatureFields": [
+    {
+      "name": "clientSignature",
+      "displayName": "クライアント署名欄",
+      "page": 6,
+      "position": {
+        "x": 100,
+        "y": 500
+      }
+    },
+    {
+      "name": "vendorSignature",
+      "displayName": "ベンダー署名欄",
+      "page": 6,
+      "position": {
+        "x": 400,
+        "y": 500
+      }
+    }
+  ],
+  "metadata": {
+    "createdBy": "user123",
+    "createdAt": "2023-05-17T10:30:00Z",
+    "updatedBy": "user123",
+    "updatedAt": "2023-05-17T10:30:00Z",
+    "usageCount": 0
+  },
+  "_links": {
+    "self": { "href": "/api/v1/contracts/templates/t003" },
+    "content": { "href": "/api/v1/contracts/templates/t003/content" },
+    "preview": { "href": "/api/v1/contracts/templates/t003/preview" }
+  }
+}</code></pre>
+
+        <h3>エラーレスポンス</h3>
+        <p>エラー時のステータスコード: <code>400 Bad Request</code>, <code>401 Unauthorized</code>, <code>403 Forbidden</code>, <code>413 Payload Too Large</code>, <code>415 Unsupported Media Type</code>, <code>422 Unprocessable Entity</code></p>
+        <pre><code>{
+  "error": {
+    "code": "INVALID_REQUEST",
+    "message": "テンプレート作成リクエストが不正です",
+    "details": [
+      {
+        "field": "file",
+        "message": "content_typeがfileの場合、ファイルは必須です"
+      },
+      {
+        "field": "metadata.name",
+        "message": "テンプレート名は必須です"
+      }
+    ],
+    "timestamp": "2023-05-17T10:29:30Z",
+    "path": "/api/v1/contracts/templates"
+  }
+}</code></pre>
+
+        <h3>アクセス権限</h3>
+        <p>
+            このエンドポイントにアクセスするには、以下のいずれかの権限が必要です：
+        </p>
+        <ul>
+            <li><code>template:write</code></li>
+            <li><code>admin</code></li>
+        </ul>
+    </div>
+
+    <div class="endpoint">
+        <h2 id="put-template">6. 契約テンプレートの更新</h2>
+        <p>
+            <span class="http-method put">PUT</span>
+            <span class="path">/api/v1/contracts/templates/{id}</span>
+        </p>
+        <p>
+            指定されたIDの契約テンプレートを更新します。既存のテンプレートを完全に置き換えます。
+        </p>
+
+        <h3>パスパラメータ</h3>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>更新するテンプレートのID</td>
+            </tr>
+        </table>
+
+        <h3>リクエストボディ</h3>
+        <p>
+            リクエストは<code>multipart/form-data</code>形式で送信されます。
+        </p>
+        <table>
+            <tr>
+                <th>フィールド名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>metadata</td>
+                <td>JSON string</td>
+                <td>はい</td>
+                <td>テンプレートのメタデータ（以下参照）</td>
+            </tr>
+            <tr>
+                <td>file</td>
+                <td>file</td>
+                <td>条件付き</td>
+                <td>テンプレートファイル（更新する場合、または新しくcontent_typeが"file"の場合に必須）</td>
+            </tr>
+            <tr>
+                <td>content</td>
+                <td>string</td>
+                <td>条件付き</td>
+                <td>HTMLまたはテキスト形式のテンプレート内容（更新する場合、または新しくcontent_typeが"html"または"text"の場合に必須）</td>
+            </tr>
+        </table>
+
+        <p>metadata JSONの例：</p>
+        <pre><code>{
+  "name": "標準業務委託契約書",
+  "description": "SES業務の標準的な業務委託契約のテンプレート（更新版）",
+  "contractType": "業務委託",
+  "status": "active",
+  "version": "2.2",
+  "format": "docx",
+  "content_type": "file",
+  "variables": [
+    {
+      "name": "clientName",
+      "displayName": "クライアント名",
+      "type": "string",
+      "required": true,
+      "description": "契約甲の会社名"
+    },
+    // ... 更新後の変数リスト
+  ],
+  "signatureFields": [
+    // ... 更新後の署名フィールドリスト
+  ]
+}</code></pre>
+
+        <h3>レスポンス</h3>
+        <p>成功時のステータスコード: <code>200 OK</code></p>
+        <pre><code>{
+  "id": "t001",
+  "name": "標準業務委託契約書",
+  "description": "SES業務の標準的な業務委託契約のテンプレート（更新版）",
+  "contractType": "業務委託",
+  "status": "active",
+  "version": "2.2",
+  "format": "docx",
+  "variables": [
+    {
+      "name": "clientName",
+      "displayName": "クライアント名",
+      "type": "string",
+      "required": true,
+      "description": "契約甲の会社名"
+    },
+    // ... 更新後の変数リスト
+  ],
+  "signatureFields": [
+    // ... 更新後の署名フィールドリスト
+  ],
+  "metadata": {
+    "createdBy": "user123",
+    "createdAt": "2023-01-15T09:30:00Z",
+    "updatedBy": "user789",
+    "updatedAt": "2023-05-17T11:45:00Z",
+    "usageCount": 127
+  },
+  "_links": {
+    "self": { "href": "/api/v1/contracts/templates/t001" },
+    "content": { "href": "/api/v1/contracts/templates/t001/content" },
+    "preview": { "href": "/api/v1/contracts/templates/t001/preview" }
+  }
+}</code></pre>
+
+        <h3>エラーレスポンス</h3>
+        <p>エラー時のステータスコード: <code>400 Bad Request</code>, <code>401 Unauthorized</code>, <code>403 Forbidden</code>, <code>404 Not Found</code>, <code>409 Conflict</code>, <code>413 Payload Too Large</code>, <code>415 Unsupported Media Type</code>, <code>422 Unprocessable Entity</code></p>
+        <pre><code>{
+  "error": {
+    "code": "TEMPLATE_IN_USE",
+    "message": "テンプレートが現在使用中のため更新できません",
+    "timestamp": "2023-05-17T11:44:30Z",
+    "path": "/api/v1/contracts/templates/t001"
+  }
+}</code></pre>
+
+        <h3>アクセス権限</h3>
+        <p>
+            このエンドポイントにアクセスするには、以下のいずれかの権限が必要です：
+        </p>
+        <ul>
+            <li><code>template:write</code></li>
+            <li><code>admin</code></li>
+        </ul>
+    </div>
+
+    <div class="endpoint">
+        <h2 id="delete-template">7. 契約テンプレートの削除</h2>
+        <p>
+            <span class="http-method delete">DELETE</span>
+            <span class="path">/api/v1/contracts/templates/{id}</span>
+        </p>
+        <p>
+            指定されたIDの契約テンプレートを削除します。既に使用されているテンプレートは削除できない場合があります。
+        </p>
+
+        <h3>パスパラメータ</h3>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>削除するテンプレートのID</td>
+            </tr>
+        </table>
+
+        <h3>クエリパラメータ</h3>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>force</td>
+                <td>boolean</td>
+                <td>いいえ</td>
+                <td>trueの場合、使用中のテンプレートでも削除を強制する（要高権限）</td>
+            </tr>
+        </table>
+
+        <h3>レスポンス</h3>
+        <p>成功時のステータスコード: <code>204 No Content</code></p>
+        <p>成功時にはレスポンスボディはありません。</p>
+
+        <h3>エラーレスポンス</h3>
+        <p>エラー時のステータスコード: <code>401 Unauthorized</code>, <code>403 Forbidden</code>, <code>404 Not Found</code>, <code>409 Conflict</code></p>
+        <pre><code>{
+  "error": {
+    "code": "TEMPLATE_IN_USE",
+    "message": "テンプレートが現在使用中のため削除できません",
+    "details": {
+      "usageCount": 127,
+      "recentContracts": ["c001", "c005", "c010"]
+    },
+    "timestamp": "2023-05-17T13:20:15Z",
+    "path": "/api/v1/contracts/templates/t001"
+  }
+}</code></pre>
+
+        <h3>アクセス権限</h3>
+        <p>
+            このエンドポイントにアクセスするには、以下のいずれかの権限が必要です：
+        </p>
+        <ul>
+            <li><code>template:write</code></li>
+            <li><code>admin</code>（force=trueを使用するには必須）</li>
+        </ul>
+    </div>
+
+    <div class="back-link">
+        <a href="../契約管理API.html">← 契約管理API 設計書に戻る</a>
+    </div>
+</body>
+</html>

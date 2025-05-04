@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>案件検索API設計 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+        h1 {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            margin-bottom: 30px;
+        }
+        .section {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            font-size: 0.9em;
+            border-left: 3px solid #3498db;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .api-method {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+            min-width: 60px;
+            text-align: center;
+        }
+        .get {
+            background-color: #61affe;
+        }
+        .post {
+            background-color: #49cc90;
+        }
+        .put {
+            background-color: #fca130;
+        }
+        .patch {
+            background-color: #50e3c2;
+        }
+        .delete {
+            background-color: #f93e3e;
+        }
+        .endpoint {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .response-example, .request-example {
+            margin: 15px 0;
+        }
+        .note {
+            background-color: #fffde7;
+            padding: 15px;
+            border-left: 4px solid #ffd600;
+            margin: 20px 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        .navigation {
+            margin: 20px 0;
+        }
+        .navigation a {
+            display: inline-block;
+            margin-right: 15px;
+            color: #3498db;
+            text-decoration: none;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>案件検索API設計</h1>
+    
+    <div class="navigation">
+        <a href="../案件管理API.html">← 案件管理API概要へ戻る</a>
+        <a href="01_案件基本API.html">← 前へ：案件基本API</a>
+        <a href="03_案件ステータス管理API.html">次へ：案件ステータス管理API →</a>
+    </div>
+
+    <div class="section">
+        <h2>1. 概要</h2>
+        <p>案件検索APIは、SES業務システムにおける案件情報の詳細な検索機能を提供します。基本的な検索から高度な条件指定まで、さまざまな検索ニーズに対応するエンドポイントを定義しています。</p>
+        <p>本APIを使用することで、以下のような検索が可能です：</p>
+        <ul>
+            <li>フリーテキストによる全文検索</li>
+            <li>案件ステータスによる検索</li>
+            <li>技術スキルに基づく案件検索</li>
+            <li>複合条件による詳細検索</li>
+            <li>地域・単価・期間などの条件による絞り込み</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>2. エンドポイント一覧</h2>
+        <table>
+            <tr>
+                <th>HTTPメソッド</th>
+                <th>エンドポイント</th>
+                <th>説明</th>
+                <th>必要権限</th>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td>/api/v1/projects/search</td>
+                <td>案件の詳細検索</td>
+                <td>projects:read</td>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td>/api/v1/projects/search/skill</td>
+                <td>スキルによる案件検索</td>
+                <td>projects:read</td>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td>/api/v1/projects/search/status</td>
+                <td>ステータスによる案件検索</td>
+                <td>projects:read</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2>3. 各エンドポイントの詳細</h2>
+        
+        <div class="endpoint">
+            <h3>3.1 案件の詳細検索</h3>
+            <p><span class="api-method get">GET</span> <code>/api/v1/projects/search</code></p>
+            <p>案件の高度な検索を行います。複合条件での検索が可能です。</p>
+            
+            <h4>クエリパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                    <th>デフォルト値</th>
+                </tr>
+                <tr>
+                    <td>q</td>
+                    <td>string</td>
+                    <td>全文検索キーワード</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>filter</td>
+                    <td>string (JSON)</td>
+                    <td>詳細な検索条件をJSONで指定</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>page</td>
+                    <td>number</td>
+                    <td>ページ番号</td>
+                    <td>No</td>
+                    <td>1</td>
+                </tr>
+                <tr>
+                    <td>per_page</td>
+                    <td>number</td>
+                    <td>1ページあたりの件数</td>
+                    <td>No</td>
+                    <td>20</td>
+                </tr>
+                <tr>
+                    <td>sort</td>
+                    <td>string</td>
+                    <td>ソート条件（例: created_at:desc,name:asc）</td>
+                    <td>No</td>
+                    <td>created_at:desc</td>
+                </tr>
+            </table>
+            
+            <h4>filterパラメータの例</h4>
+            <pre><code>{
+  "status": ["open", "in_progress"],
+  "location": {
+    "prefecture": "東京都",
+    "city": ["渋谷区", "港区", "千代田区"]
+  },
+  "price_range": {
+    "min": 700000,
+    "max": 1000000
+  },
+  "skill_requirements": [
+    {
+      "skill_id": "skill-201",
+      "min_level": "intermediate"
+    },
+    {
+      "skill_id": "skill-203",
+      "min_level": "beginner"
+    }
+  ],
+  "date_range": {
+    "start_after": "2025-06-01",
+    "end_before": "2026-12-31"
+  },
+  "client_ids": ["client-123", "client-456"],
+  "work_style": ["hybrid", "remote"]
+}</code></pre>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (200 OK)</h5>
+                <pre><code>{
+  "data": [
+    {
+      "id": "proj-001",
+      "name": "次世代ECサイト開発プロジェクト",
+      "client": {
+        "id": "client-123",
+        "name": "株式会社テックリテール"
+      },
+      "status": "open",
+      "description": "ECサイトのフルリニューアルプロジェクト。既存システムからの移行を含む。",
+      "start_date": "2025-07-01",
+      "end_date": "2026-03-31",
+      "location": "東京都渋谷区",
+      "work_style": "hybrid",
+      "price_range": {
+        "min": 750000,
+        "max": 850000,
+        "currency": "JPY"
+      },
+      "required_person_count": 3,
+      "created_at": "2025-05-01T10:30:00+09:00",
+      "updated_at": "2025-05-01T10:30:00+09:00",
+      "relevance_score": 0.89  // 検索関連性スコア（キーワード検索時のみ）
+    },
+    // 他の案件データ...
+  ],
+  "meta": {
+    "pagination": {
+      "total_count": 15,
+      "total_pages": 1,
+      "current_page": 1,
+      "per_page": 20
+    },
+    "search_criteria": {
+      "keywords": "EC開発 React",
+      "filter": {
+        "status": ["open", "in_progress"],
+        "price_range": {
+          "min": 700000,
+          "max": 1000000
+        },
+        // 他の適用されたフィルター条件
+      }
+    }
+  }
+}</code></pre>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>検索条件エラー (400 Bad Request)</h5>
+                <pre><code>{
+  "error": {
+    "code": "INVALID_SEARCH_CRITERIA",
+    "message": "検索条件が不正です。",
+    "details": [
+      {
+        "field": "filter.price_range.min",
+        "message": "価格範囲の最小値は0以上である必要があります。"
+      }
+    ]
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:read 権限が必要</li>
+                <li>所属部署や担当顧客によるアクセス制限がある場合あり</li>
+            </ul>
+        </div>
+        
+        <div class="endpoint">
+            <h3>3.2 スキルによる案件検索</h3>
+            <p><span class="api-method get">GET</span> <code>/api/v1/projects/search/skill</code></p>
+            <p>必要なスキルに基づいて案件を検索します。スキルIDやスキルカテゴリによる検索が可能です。</p>
+            
+            <h4>クエリパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                    <th>デフォルト値</th>
+                </tr>
+                <tr>
+                    <td>skill_ids</td>
+                    <td>string (comma separated)</td>
+                    <td>スキルID（複数指定可）</td>
+                    <td>No*</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>skill_categories</td>
+                    <td>string (comma separated)</td>
+                    <td>スキルカテゴリID（複数指定可）</td>
+                    <td>No*</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>skill_level</td>
+                    <td>string</td>
+                    <td>最低スキルレベル（beginner, intermediate, advanced, expert）</td>
+                    <td>No</td>
+                    <td>beginner</td>
+                </tr>
+                <tr>
+                    <td>required_only</td>
+                    <td>boolean</td>
+                    <td>必須スキルのみで検索するか</td>
+                    <td>No</td>
+                    <td>false</td>
+                </tr>
+                <tr>
+                    <td>page</td>
+                    <td>number</td>
+                    <td>ページ番号</td>
+                    <td>No</td>
+                    <td>1</td>
+                </tr>
+                <tr>
+                    <td>per_page</td>
+                    <td>number</td>
+                    <td>1ページあたりの件数</td>
+                    <td>No</td>
+                    <td>20</td>
+                </tr>
+                <tr>
+                    <td>status</td>
+                    <td>string (comma separated)</td>
+                    <td>案件ステータス（複数指定可）</td>
+                    <td>No</td>
+                    <td>open,in_progress</td>
+                </tr>
+            </table>
+            <p>* skill_ids または skill_categories のいずれかは必須</p>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (200 OK)</h5>
+                <pre><code>{
+  "data": [
+    {
+      "id": "proj-001",
+      "name": "次世代ECサイト開発プロジェクト",
+      "client": {
+        "id": "client-123",
+        "name": "株式会社テックリテール"
+      },
+      "status": "open",
+      "description": "ECサイトのフルリニューアルプロジェクト。既存システムからの移行を含む。",
+      "start_date": "2025-07-01",
+      "end_date": "2026-03-31",
+      "location": "東京都渋谷区",
+      "work_style": "hybrid",
+      "price_range": {
+        "min": 750000,
+        "max": 850000,
+        "currency": "JPY"
+      },
+      "required_person_count": 3,
+      "required_skills": [
+        {
+          "skill": {
+            "id": "skill-201",
+            "name": "React",
+            "category": {
+              "id": "cat-101",
+              "name": "フロントエンド"
+            }
+          },
+          "level": "expert",
+          "is_required": true
+        },
+        {
+          "skill": {
+            "id": "skill-202",
+            "name": "Node.js",
+            "category": {
+              "id": "cat-102",
+              "name": "バックエンド"
+            }
+          },
+          "level": "intermediate",
+          "is_required": true
+        }
+      ],
+      "skill_match_score": 0.95,  // スキルマッチングスコア
+      "created_at": "2025-05-01T10:30:00+09:00",
+      "updated_at": "2025-05-01T10:30:00+09:00"
+    },
+    // 他の案件データ...
+  ],
+  "meta": {
+    "pagination": {
+      "total_count": 8,
+      "total_pages": 1,
+      "current_page": 1,
+      "per_page": 20
+    },
+    "search_criteria": {
+      "skills": [
+        {
+          "id": "skill-201",
+          "name": "React"
+        }
+      ],
+      "skill_categories": [],
+      "skill_level": "intermediate",
+      "required_only": false
+    }
+  }
+}</code></pre>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>検索条件エラー (400 Bad Request)</h5>
+                <pre><code>{
+  "error": {
+    "code": "INVALID_SEARCH_CRITERIA",
+    "message": "検索条件が不正です。",
+    "details": [
+      {
+        "field": "skill_ids",
+        "message": "skill_ids または skill_categories のいずれかを指定してください。"
+      }
+    ]
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:read 権限が必要</li>
+                <li>所属部署や担当顧客によるアクセス制限がある場合あり</li>
+            </ul>
+        </div>
+        
+        <div class="endpoint">
+            <h3>3.3 ステータスによる案件検索</h3>
+            <p><span class="api-method get">GET</span> <code>/api/v1/projects/search/status</code></p>
+            <p>案件のステータスに基づいて案件を検索します。特定のステータスにある案件の一覧を簡便に取得できます。</p>
+            
+            <h4>クエリパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                    <th>デフォルト値</th>
+                </tr>
+                <tr>
+                    <td>status</td>
+                    <td>string (comma separated)</td>
+                    <td>案件ステータス（複数指定可）</td>
+                    <td>Yes</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>from_date</td>
+                    <td>string (ISO8601)</td>
+                    <td>ステータス変更日の下限</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>to_date</td>
+                    <td>string (ISO8601)</td>
+                    <td>ステータス変更日の上限</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>page</td>
+                    <td>number</td>
+                    <td>ページ番号</td>
+                    <td>No</td>
+                    <td>1</td>
+                </tr>
+                <tr>
+                    <td>per_page</td>
+                    <td>number</td>
+                    <td>1ページあたりの件数</td>
+                    <td>No</td>
+                    <td>20</td>
+                </tr>
+                <tr>
+                    <td>sort</td>
+                    <td>string</td>
+                    <td>ソート条件</td>
+                    <td>No</td>
+                    <td>status_changed_at:desc</td>
+                </tr>
+            </table>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (200 OK)</h5>
+                <pre><code>{
+  "data": [
+    {
+      "id": "proj-005",
+      "name": "クラウド基盤移行プロジェクト",
+      "client": {
+        "id": "client-789",
+        "name": "テクノロジーパートナーズ株式会社"
+      },
+      "status": "in_progress",
+      "description": "オンプレミス環境からAWSへのシステム移行プロジェクト",
+      "start_date": "2025-06-01",
+      "end_date": "2025-12-31",
+      "location": "東京都港区",
+      "work_style": "hybrid",
+      "price_range": {
+        "min": 850000,
+        "max": 950000,
+        "currency": "JPY"
+      },
+      "required_person_count": 4,
+      "filled_count": 3,
+      "status_history": {
+        "current": "in_progress",
+        "previous": "open",
+        "changed_at": "2025-05-20T10:15:00+09:00",
+        "changed_by": {
+          "id": "user-301",
+          "name": "鈴木一郎"
+        }
+      },
+      "created_at": "2025-04-15T14:30:00+09:00",
+      "updated_at": "2025-05-20T10:15:00+09:00"
+    },
+    // 他の案件データ...
+  ],
+  "meta": {
+    "pagination": {
+      "total_count": 12,
+      "total_pages": 1,
+      "current_page": 1,
+      "per_page": 20
+    },
+    "search_criteria": {
+      "status": ["in_progress"],
+      "from_date": "2025-05-01",
+      "to_date": "2025-05-31"
+    },
+    "status_summary": {
+      "draft": 5,
+      "open": 18,
+      "in_progress": 12,
+      "on_hold": 3,
+      "completed": 9,
+      "cancelled": 2
+    }
+  }
+}</code></pre>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>パラメータエラー (400 Bad Request)</h5>
+                <pre><code>{
+  "error": {
+    "code": "INVALID_PARAMETER",
+    "message": "パラメータが不正です。",
+    "details": [
+      {
+        "field": "status",
+        "message": "status パラメータは必須です。"
+      }
+    ]
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:read 権限が必要</li>
+                <li>所属部署や担当顧客によるアクセス制限がある場合あり</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>4. 検索オプションの詳細</h2>
+        
+        <h3>4.1 全文検索オプション</h3>
+        <p>全文検索（qパラメータ）では、以下のフィールドが検索対象となります：</p>
+        <ul>
+            <li>案件名</li>
+            <li>案件説明</li>
+            <li>案件要件</li>
+            <li>顧客名</li>
+            <li>スキル名</li>
+            <li>場所情報</li>
+        </ul>
+        
+        <h3>4.2 フィルタリングオプション</h3>
+        <p>filter パラメータで指定可能な主なフィルタリングオプションは以下の通りです：</p>
+        
+        <table>
+            <tr>
+                <th>フィールド</th>
+                <th>型</th>
+                <th>説明</th>
+                <th>例</th>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string[]</td>
+                <td>案件ステータス</td>
+                <td>["open", "in_progress"]</td>
+            </tr>
+            <tr>
+                <td>client_ids</td>
+                <td>string[]</td>
+                <td>顧客ID</td>
+                <td>["client-123", "client-456"]</td>
+            </tr>
+            <tr>
+                <td>location</td>
+                <td>object</td>
+                <td>勤務地情報</td>
+                <td>{"prefecture": "東京都", "city": ["渋谷区", "港区"]}</td>
+            </tr>
+            <tr>
+                <td>price_range</td>
+                <td>object</td>
+                <td>単価範囲</td>
+                <td>{"min": 700000, "max": 1000000}</td>
+            </tr>
+            <tr>
+                <td>date_range</td>
+                <td>object</td>
+                <td>期間範囲</td>
+                <td>{"start_after": "2025-06-01", "end_before": "2026-12-31"}</td>
+            </tr>
+            <tr>
+                <td>skill_requirements</td>
+                <td>object[]</td>
+                <td>スキル要件</td>
+                <td>[{"skill_id": "skill-201", "min_level": "intermediate"}]</td>
+            </tr>
+            <tr>
+                <td>work_style</td>
+                <td>string[]</td>
+                <td>勤務形態</td>
+                <td>["remote", "hybrid"]</td>
+            </tr>
+            <tr>
+                <td>required_person_count</td>
+                <td>object</td>
+                <td>必要人数範囲</td>
+                <td>{"min": 1, "max": 5}</td>
+            </tr>
+            <tr>
+                <td>department_ids</td>
+                <td>string[]</td>
+                <td>担当部署ID</td>
+                <td>["dept-101", "dept-102"]</td>
+            </tr>
+            <tr>
+                <td>created_at_range</td>
+                <td>object</td>
+                <td>作成日時範囲</td>
+                <td>{"from": "2025-01-01", "to": "2025-05-31"}</td>
+            </tr>
+        </table>
+        
+        <h3>4.3 ソートオプション</h3>
+        <p>sort パラメータで指定可能な主なソートフィールドは以下の通りです：</p>
+        <ul>
+            <li>created_at - 作成日時</li>
+            <li>updated_at - 更新日時</li>
+            <li>name - 案件名</li>
+            <li>start_date - 開始予定日</li>
+            <li>end_date - 終了予定日</li>
+            <li>price_range.min - 最低単価</li>
+            <li>price_range.max - 最高単価</li>
+            <li>required_person_count - 必要人数</li>
+            <li>status_changed_at - ステータス変更日時</li>
+            <li>relevance_score - 関連性スコア（検索時のみ）</li>
+            <li>skill_match_score - スキルマッチングスコア（スキル検索時のみ）</li>
+        </ul>
+        <p>ソート方向は各フィールド名の後に ":asc" または ":desc" を付けて指定します。複数のソート条件はカンマで区切ります。</p>
+        <pre><code>sort=price_range.max:desc,start_date:asc</code></pre>
+    </div>
+    
+    <div class="note">
+        <p><strong>注意：</strong> 検索性能を確保するため、大量のデータを扱う場合はページネーションを適切に利用してください。また、複雑な検索条件を指定する場合はパフォーマンスに影響する可能性があります。</p>
+    </div>
+    
+    <div class="navigation">
+        <a href="../案件管理API.html">← 案件管理API概要へ戻る</a>
+        <a href="01_案件基本API.html">← 前へ：案件基本API</a>
+        <a href="03_案件ステータス管理API.html">次へ：案件ステータス管理API →</a>
+    </div>
+    
+    <footer>
+        <p>SES業務システム 案件検索API設計 | 作成日: 2025年5月4日</p>
+    </footer>
+</body>
+</html>

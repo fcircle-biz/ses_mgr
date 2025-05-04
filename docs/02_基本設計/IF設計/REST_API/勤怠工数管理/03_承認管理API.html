@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>承認管理API 設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #0066cc;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #333;
+            margin-top: 25px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .endpoint {
+            font-family: monospace;
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .api-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #0066cc;
+        }
+        .method {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            color: white;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #0066cc;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+    </style>
+</head>
+<body>
+    <a href="../勤怠工数管理API.html" class="back-link">← 勤怠・工数管理API一覧へ戻る</a>
+    <h1>承認管理API 設計書</h1>
+
+    <div class="api-section">
+        <h2>1. 概要</h2>
+        <p>
+            承認管理APIは、勤怠情報や工数情報の承認フローを管理するためのAPIです。
+            上長や管理者による勤怠・工数情報の承認処理、承認状況の確認、未承認項目の一覧取得などの機能を提供します。
+        </p>
+    </div>
+
+    <div class="api-section">
+        <h2>2. API エンドポイント一覧</h2>
+        <table>
+            <tr>
+                <th>メソッド</th>
+                <th>パス</th>
+                <th>説明</th>
+                <th>アクセス権限</th>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/approval</td>
+                <td>承認対象一覧の取得</td>
+                <td>システム管理者、承認権限者</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/approval/{id}</td>
+                <td>特定承認対象の詳細取得</td>
+                <td>本人、上長、システム管理者、承認権限者</td>
+            </tr>
+            <tr>
+                <td><span class="method post">POST</span></td>
+                <td>/api/v1/timesheet/approval/{id}/approve</td>
+                <td>承認処理</td>
+                <td>承認権限者、システム管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method post">POST</span></td>
+                <td>/api/v1/timesheet/approval/{id}/reject</td>
+                <td>差し戻し処理</td>
+                <td>承認権限者、システム管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/approval/users/{userId}</td>
+                <td>特定ユーザーの承認状況取得</td>
+                <td>本人、上長、システム管理者、承認権限者</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/approval/pending</td>
+                <td>未承認項目一覧取得</td>
+                <td>承認権限者、システム管理者</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- GET /api/v1/timesheet/approval -->
+    <div class="api-section">
+        <h2>3. API詳細</h2>
+        <h3 id="get-approval-list">3.1 承認対象一覧の取得</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/approval</span></p>
+        
+        <h4>説明</h4>
+        <p>承認が必要な勤怠情報や工数情報の一覧を取得します。承認権限を持つユーザーが、承認対象を確認するために使用します。</p>
+        
+        <h4>リクエストパラメータ（クエリパラメータ）</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>targetType</td>
+                <td>string</td>
+                <td>No</td>
+                <td>承認対象タイプ（attendance: 勤怠、workload: 工数、all: すべて[デフォルト]）</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>No</td>
+                <td>承認ステータス（pending: 提出済・未承認[デフォルト]、approved: 承認済、rejected: 差戻し、all: すべて）</td>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定ユーザーの承認対象のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の開始日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の終了日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定プロジェクトの工数の承認対象のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>ページ番号（デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>1ページあたりの件数（デフォルト: 20, 最大: 100）</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート項目（submitDate, userId, targetType）</td>
+            </tr>
+            <tr>
+                <td>order</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート順序（asc, desc）</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "items": [
+      {
+        "id": "apv123456",
+        "targetType": "attendance",
+        "targetId": "at123457",
+        "userId": "user456",
+        "userName": "鈴木花子",
+        "departmentId": "dept001",
+        "departmentName": "開発部",
+        "date": "2025-05-01",
+        "submitDate": "2025-05-01T17:35:10Z",
+        "status": "pending",
+        "summary": {
+          "startTime": "08:30",
+          "endTime": "17:30",
+          "totalWorkingHours": 8.0
+        }
+      },
+      {
+        "id": "apv123457",
+        "targetType": "workload",
+        "targetId": "wl789012",
+        "userId": "user123",
+        "userName": "山田太郎",
+        "departmentId": "dept001",
+        "departmentName": "開発部",
+        "date": "2025-05-02",
+        "submitDate": "2025-05-02T18:40:12Z",
+        "status": "pending",
+        "summary": {
+          "projectId": "proj001",
+          "projectName": "A社システム開発",
+          "hours": 4.5
+        }
+      }
+      // ... 他の承認対象 ...
+    ],
+    "pagination": {
+      "totalItems": 45,
+      "totalPages": 3,
+      "currentPage": 1,
+      "limit": 20
+    }
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "不正なtargetTypeが指定されました。attendance、workload、allのいずれかを指定してください。"
+}</code></pre>
+        
+        <p>ステータスコード: 403 Forbidden</p>
+        <pre><code>{
+  "status": "error",
+  "code": "FORBIDDEN",
+  "message": "承認権限がありません。"
+}</code></pre>
+    </div>
+
+    <!-- GET /api/v1/timesheet/approval/{id} -->
+    <div class="api-section">
+        <h3 id="get-approval-detail">3.2 特定承認対象の詳細取得</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/approval/{id}</span></p>
+        
+        <h4>説明</h4>
+        <p>特定の承認対象（勤怠情報または工数情報）の詳細を取得します。承認IDを指定して、該当する承認対象の詳細情報を取得するために使用します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>取得する承認対象のID</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <p>勤怠情報の場合:</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "id": "apv123456",
+    "targetType": "attendance",
+    "targetId": "at123457",
+    "userId": "user456",
+    "userName": "鈴木花子",
+    "departmentId": "dept001",
+    "departmentName": "開発部",
+    "managerId": "manager001",
+    "managerName": "佐藤部長",
+    "date": "2025-05-01",
+    "submitDate": "2025-05-01T17:35:10Z",
+    "status": "pending",
+    "details": {
+      "startTime": "08:30",
+      "endTime": "17:30",
+      "breakTime": 60,
+      "totalWorkingHours": 8.0,
+      "remarks": ""
+    },
+    "history": [
+      {
+        "status": "submitted",
+        "timestamp": "2025-05-01T17:35:10Z",
+        "userId": "user456",
+        "userName": "鈴木花子",
+        "comment": ""
+      }
+    ]
+  }
+}</code></pre>
+        
+        <p>工数情報の場合:</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "id": "apv123457",
+    "targetType": "workload",
+    "targetId": "wl789012",
+    "userId": "user123",
+    "userName": "山田太郎",
+    "departmentId": "dept001",
+    "departmentName": "開発部",
+    "managerId": "manager001",
+    "managerName": "佐藤部長",
+    "date": "2025-05-02",
+    "submitDate": "2025-05-02T18:40:12Z",
+    "status": "pending",
+    "details": {
+      "projectId": "proj001",
+      "projectName": "A社システム開発",
+      "taskCategoryId": "task001",
+      "taskCategoryName": "プログラミング",
+      "hours": 4.5,
+      "description": "APIの設計・実装"
+    },
+    "history": [
+      {
+        "status": "submitted",
+        "timestamp": "2025-05-02T18:40:12Z",
+        "userId": "user123",
+        "userName": "山田太郎",
+        "comment": ""
+      }
+    ]
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 404 Not Found</p>
+        <pre><code>{
+  "status": "error",
+  "code": "NOT_FOUND",
+  "message": "指定されたIDの承認対象は存在しません。"
+}</code></pre>
+    </div>
+
+    <!-- POST /api/v1/timesheet/approval/{id}/approve -->
+    <div class="api-section">
+        <h3 id="post-approve">3.3 承認処理</h3>
+        <p><span class="method post">POST</span> <span class="endpoint">/api/v1/timesheet/approval/{id}/approve</span></p>
+        
+        <h4>説明</h4>
+        <p>特定の承認対象（勤怠情報または工数情報）を承認します。承認権限を持つユーザーが、提出された勤怠・工数情報を承認するために使用します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>承認する対象のID</td>
+            </tr>
+        </table>
+        
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "comment": "問題ありません。承認します。"  // 承認コメント（任意）
+}</code></pre>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "id": "apv123456",
+    "targetType": "attendance",
+    "targetId": "at123457",
+    "userId": "user456",
+    "userName": "鈴木花子",
+    "date": "2025-05-01",
+    "status": "approved",
+    "updatedAt": "2025-05-02T10:15:30Z",
+    "approvedBy": {
+      "userId": "manager001",
+      "userName": "佐藤部長"
+    },
+    "comment": "問題ありません。承認します。"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 403 Forbidden</p>
+        <pre><code>{
+  "status": "error",
+  "code": "FORBIDDEN",
+  "message": "この承認対象を承認する権限がありません。"
+}</code></pre>
+        
+        <p>ステータスコード: 409 Conflict</p>
+        <pre><code>{
+  "status": "error",
+  "code": "CONFLICT",
+  "message": "この承認対象は既に承認済みか差し戻し済みです。"
+}</code></pre>
+    </div>
+
+    <!-- POST /api/v1/timesheet/approval/{id}/reject -->
+    <div class="api-section">
+        <h3 id="post-reject">3.4 差し戻し処理</h3>
+        <p><span class="method post">POST</span> <span class="endpoint">/api/v1/timesheet/approval/{id}/reject</span></p>
+        
+        <h4>説明</h4>
+        <p>特定の承認対象（勤怠情報または工数情報）を差し戻します。承認権限を持つユーザーが、提出された勤怠・工数情報を差し戻すために使用します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>差し戻す対象のID</td>
+            </tr>
+        </table>
+        
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "comment": "内容に誤りがあります。プロジェクトコードを確認して再提出してください。"  // 差し戻しコメント（必須）
+}</code></pre>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "id": "apv123457",
+    "targetType": "workload",
+    "targetId": "wl789012",
+    "userId": "user123",
+    "userName": "山田太郎",
+    "date": "2025-05-02",
+    "status": "rejected",
+    "updatedAt": "2025-05-03T09:30:15Z",
+    "rejectedBy": {
+      "userId": "manager001",
+      "userName": "佐藤部長"
+    },
+    "comment": "内容に誤りがあります。プロジェクトコードを確認して再提出してください。"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "差し戻し理由を入力してください。",
+  "details": [
+    {
+      "field": "comment",
+      "message": "差し戻し理由は必須項目です"
+    }
+  ]
+}</code></pre>
+        
+        <p>ステータスコード: 403 Forbidden</p>
+        <pre><code>{
+  "status": "error",
+  "code": "FORBIDDEN",
+  "message": "この承認対象を差し戻す権限がありません。"
+}</code></pre>
+    </div>
+
+    <!-- GET /api/v1/timesheet/approval/users/{userId} -->
+    <div class="api-section">
+        <h3 id="get-user-approval-status">3.5 特定ユーザーの承認状況取得</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/approval/users/{userId}</span></p>
+        
+        <h4>説明</h4>
+        <p>特定ユーザーの勤怠・工数情報の承認状況を取得します。期間を指定して、該当期間のすべての承認対象の承認状況を確認するために使用します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>対象ユーザーのID</td>
+            </tr>
+        </table>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>targetType</td>
+                <td>string</td>
+                <td>No</td>
+                <td>承認対象タイプ（attendance: 勤怠、workload: 工数、all: すべて[デフォルト]）</td>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>対象年（例: 2025）</td>
+            </tr>
+            <tr>
+                <td>month</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>対象月（1-12）</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の開始日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の終了日（YYYY-MM-DD形式）</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "userId": "user123",
+    "userName": "山田太郎",
+    "departmentId": "dept001",
+    "departmentName": "開発部",
+    "period": {
+      "year": 2025,
+      "month": 5
+    },
+    "summary": {
+      "attendance": {
+        "total": 20,
+        "approved": 15,
+        "pending": 5,
+        "rejected": 0,
+        "notSubmitted": 0
+      },
+      "workload": {
+        "total": 25,
+        "approved": 18,
+        "pending": 6,
+        "rejected": 1,
+        "notSubmitted": 0
+      }
+    },
+    "items": [
+      {
+        "date": "2025-05-01",
+        "dayOfWeek": "木",
+        "isHoliday": false,
+        "attendance": {
+          "id": "apv123456",
+          "status": "approved",
+          "approvedAt": "2025-05-02T10:15:41Z",
+          "approvedBy": "manager001",
+          "approverName": "佐藤部長"
+        },
+        "workload": [
+          {
+            "id": "apv123457",
+            "projectId": "proj001",
+            "projectName": "A社システム開発",
+            "status": "approved",
+            "approvedAt": "2025-05-02T10:20:41Z",
+            "approvedBy": "manager001",
+            "approverName": "佐藤部長"
+          },
+          {
+            "id": "apv123458",
+            "projectId": "proj002",
+            "projectName": "B社保守運用",
+            "status": "approved",
+            "approvedAt": "2025-05-02T10:20:41Z",
+            "approvedBy": "manager001",
+            "approverName": "佐藤部長"
+          }
+        ]
+      },
+      {
+        "date": "2025-05-02",
+        "dayOfWeek": "金",
+        "isHoliday": false,
+        "attendance": {
+          "id": "apv123459",
+          "status": "pending",
+          "submittedAt": "2025-05-02T18:35:12Z"
+        },
+        "workload": [
+          {
+            "id": "apv123460",
+            "projectId": "proj001",
+            "projectName": "A社システム開発",
+            "status": "pending",
+            "submittedAt": "2025-05-02T18:40:12Z"
+          }
+        ]
+      },
+      // ... 他の日の承認状況 ...
+    ]
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 404 Not Found</p>
+        <pre><code>{
+  "status": "error",
+  "code": "NOT_FOUND",
+  "message": "指定されたユーザーは存在しません。"
+}</code></pre>
+    </div>
+
+    <!-- GET /api/v1/timesheet/approval/pending -->
+    <div class="api-section">
+        <h3 id="get-pending-approval">3.6 未承認項目一覧取得</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/approval/pending</span></p>
+        
+        <h4>説明</h4>
+        <p>承認権限を持つユーザーに対して、承認待ち（未承認）の勤怠・工数情報の一覧を取得します。承認処理が必要な項目を効率的に確認するために使用します。</p>
+        
+        <h4>リクエストパラメータ（クエリパラメータ）</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>targetType</td>
+                <td>string</td>
+                <td>No</td>
+                <td>承認対象タイプ（attendance: 勤怠、workload: 工数、all: すべて[デフォルト]）</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定部門のメンバーの未承認項目のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定プロジェクトの工数の未承認項目のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の開始日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の終了日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>ページ番号（デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>1ページあたりの件数（デフォルト: 20, 最大: 100）</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート項目（submitDate, userId, targetType）</td>
+            </tr>
+            <tr>
+                <td>order</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート順序（asc, desc）</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "summary": {
+      "totalPending": 48,
+      "attendancePending": 18,
+      "workloadPending": 30,
+      "byDepartment": [
+        {
+          "departmentId": "dept001",
+          "departmentName": "開発部",
+          "pending": 32
+        },
+        {
+          "departmentId": "dept002",
+          "departmentName": "営業部",
+          "pending": 16
+        }
+      ]
+    },
+    "items": [
+      {
+        "id": "apv123459",
+        "targetType": "attendance",
+        "targetId": "at123457",
+        "userId": "user123",
+        "userName": "山田太郎",
+        "departmentId": "dept001",
+        "departmentName": "開発部",
+        "date": "2025-05-02",
+        "submitDate": "2025-05-02T18:35:12Z",
+        "waitingDays": 2,
+        "summary": {
+          "startTime": "09:15",
+          "endTime": "18:30",
+          "totalWorkingHours": 8.25
+        }
+      },
+      {
+        "id": "apv123460",
+        "targetType": "workload",
+        "targetId": "wl789012",
+        "userId": "user123",
+        "userName": "山田太郎",
+        "departmentId": "dept001",
+        "departmentName": "開発部",
+        "date": "2025-05-02",
+        "submitDate": "2025-05-02T18:40:12Z",
+        "waitingDays": 2,
+        "summary": {
+          "projectId": "proj001",
+          "projectName": "A社システム開発",
+          "hours": 4.5
+        }
+      }
+      // ... 他の未承認項目 ...
+    ],
+    "pagination": {
+      "totalItems": 48,
+      "totalPages": 3,
+      "currentPage": 1,
+      "limit": 20
+    }
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 403 Forbidden</p>
+        <pre><code>{
+  "status": "error",
+  "code": "FORBIDDEN",
+  "message": "未承認項目の一覧を取得する権限がありません。"
+}</code></pre>
+    </div>
+
+    <div class="api-section">
+        <h2>4. データ型定義</h2>
+        <h3>4.1 承認データ構造</h3>
+        <table>
+            <tr>
+                <th>フィールド名</th>
+                <th>型</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>承認データの一意識別子</td>
+            </tr>
+            <tr>
+                <td>targetType</td>
+                <td>string</td>
+                <td>承認対象タイプ（attendance: 勤怠、workload: 工数）</td>
+            </tr>
+            <tr>
+                <td>targetId</td>
+                <td>string</td>
+                <td>承認対象ID（勤怠IDまたは工数ID）</td>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>承認対象ユーザーID</td>
+            </tr>
+            <tr>
+                <td>userName</td>
+                <td>string</td>
+                <td>承認対象ユーザー名</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>承認対象ユーザーの部門ID</td>
+            </tr>
+            <tr>
+                <td>departmentName</td>
+                <td>string</td>
+                <td>承認対象ユーザーの部門名</td>
+            </tr>
+            <tr>
+                <td>date</td>
+                <td>string</td>
+                <td>対象日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>submitDate</td>
+                <td>string</td>
+                <td>提出日時（ISO8601形式）</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>承認ステータス（pending: 提出済・未承認、approved: 承認済、rejected: 差戻し）</td>
+            </tr>
+            <tr>
+                <td>approverId</td>
+                <td>string</td>
+                <td>承認者ID</td>
+            </tr>
+            <tr>
+                <td>approverName</td>
+                <td>string</td>
+                <td>承認者名</td>
+            </tr>
+            <tr>
+                <td>approvedAt</td>
+                <td>string</td>
+                <td>承認日時（ISO8601形式）</td>
+            </tr>
+            <tr>
+                <td>comment</td>
+                <td>string</td>
+                <td>承認・差し戻しコメント</td>
+            </tr>
+            <tr>
+                <td>waitingDays</td>
+                <td>integer</td>
+                <td>承認待ち経過日数</td>
+            </tr>
+        </table>
+    </div>
+
+    <footer>
+        <p>© 2025 SES業務システム</p>
+    </footer>
+</body>
+</html>

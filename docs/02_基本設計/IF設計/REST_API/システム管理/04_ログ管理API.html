@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ログ管理API 基本設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #0066cc;
+            margin-top: 24px;
+        }
+        h1 {
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #0066cc;
+            padding-bottom: 5px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .note {
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 6px solid #ffc107;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .endpoint {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border-left: 6px solid #6c757d;
+        }
+        .method {
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 3px;
+            color: white;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .get {
+            background-color: #61affe;
+        }
+        .post {
+            background-color: #49cc90;
+        }
+        .put {
+            background-color: #fca130;
+        }
+        .delete {
+            background-color: #f93e3e;
+        }
+        .path {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>ログ管理API 基本設計</h1>
+
+    <h2>1. 概要</h2>
+    <p>
+        ログ管理APIは、SES業務システムの各種ログ（システムログ、監査ログ、エラーログ、アクセスログなど）を取得、検索、分析するためのAPIです。
+        ログの取得、検索、統計情報取得、エクスポートなどの機能を提供します。
+    </p>
+
+    <h2>2. API一覧</h2>
+    <table>
+        <tr>
+            <th>メソッド</th>
+            <th>パス</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>GET</td>
+            <td>/api/v1/admin/logs/system</td>
+            <td>システムログの取得</td>
+        </tr>
+        <tr>
+            <td>GET</td>
+            <td>/api/v1/admin/logs/audit</td>
+            <td>監査ログの取得</td>
+        </tr>
+        <tr>
+            <td>GET</td>
+            <td>/api/v1/admin/logs/error</td>
+            <td>エラーログの取得</td>
+        </tr>
+        <tr>
+            <td>GET</td>
+            <td>/api/v1/admin/logs/access</td>
+            <td>アクセスログの取得</td>
+        </tr>
+        <tr>
+            <td>GET</td>
+            <td>/api/v1/admin/logs/search</td>
+            <td>ログの検索</td>
+        </tr>
+        <tr>
+            <td>GET</td>
+            <td>/api/v1/admin/logs/statistics</td>
+            <td>ログ統計情報取得</td>
+        </tr>
+        <tr>
+            <td>POST</td>
+            <td>/api/v1/admin/logs/export</td>
+            <td>ログのエクスポート</td>
+        </tr>
+    </table>
+
+    <h2>3. API詳細</h2>
+
+    <div class="endpoint">
+        <h3><span class="method get">GET</span><span class="path">/api/v1/admin/logs/system</span></h3>
+        <p><strong>説明：</strong> システムログを取得します。システムの動作状況、処理実行結果などのログが含まれます。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>number</td>
+                <td>×</td>
+                <td>ページ番号（デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>number</td>
+                <td>×</td>
+                <td>1ページあたりの件数（デフォルト: 50, 最大: 200）</td>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>×</td>
+                <td>取得開始日時（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>×</td>
+                <td>取得終了日時（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>level</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ログレベル（info, warning, error, critical）</td>
+            </tr>
+            <tr>
+                <td>module</td>
+                <td>string</td>
+                <td>×</td>
+                <td>モジュール名</td>
+            </tr>
+            <tr>
+                <td>search</td>
+                <td>string</td>
+                <td>×</td>
+                <td>メッセージ内の検索キーワード</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ソート条件（例: timestamp:desc）</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "status": "success",
+  "data": [
+    {
+      "id": "log123456",
+      "type": "system",
+      "level": "info",
+      "message": "バッチ処理「日次データ集計」が正常に完了しました",
+      "details": {
+        "module": "BatchProcessor",
+        "function": "executeDaily",
+        "processingTime": 45.2,
+        "recordsProcessed": 1250
+      },
+      "timestamp": "2024-05-04T01:00:00Z"
+    },
+    {
+      "id": "log123457",
+      "type": "system",
+      "level": "warning",
+      "message": "メール送信の遅延が発生しています",
+      "details": {
+        "module": "MailSender",
+        "function": "sendNotifications",
+        "queueSize": 120,
+        "delay": "3min"
+      },
+      "timestamp": "2024-05-04T08:15:30Z"
+    },
+    {
+      "id": "log123458",
+      "type": "system",
+      "level": "error",
+      "message": "データベース接続エラーが発生しました",
+      "details": {
+        "module": "DatabaseManager",
+        "function": "connect",
+        "errorCode": "DB_CONN_TIMEOUT",
+        "retryCount": 3
+      },
+      "timestamp": "2024-05-04T09:30:15Z"
+    }
+    // ... その他のログ
+  ],
+  "pagination": {
+    "total": 1536,
+    "page": 1,
+    "limit": 50,
+    "pages": 31
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "INVALID_DATE_RANGE",
+    "message": "無効な日付範囲が指定されました",
+    "details": [
+      {
+        "param": "from",
+        "message": "fromはtoより前の日時を指定してください"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.logs.read または system.logs.admin または system.admin 権限が必要です。</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method get">GET</span><span class="path">/api/v1/admin/logs/audit</span></h3>
+        <p><strong>説明：</strong> 監査ログを取得します。ユーザーによる操作（データの作成、更新、削除など）の記録が含まれます。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>number</td>
+                <td>×</td>
+                <td>ページ番号（デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>number</td>
+                <td>×</td>
+                <td>1ページあたりの件数（デフォルト: 50, 最大: 200）</td>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>×</td>
+                <td>取得開始日時（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>×</td>
+                <td>取得終了日時（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ユーザーID</td>
+            </tr>
+            <tr>
+                <td>action</td>
+                <td>string</td>
+                <td>×</td>
+                <td>アクション（create, read, update, delete）</td>
+            </tr>
+            <tr>
+                <td>resourceType</td>
+                <td>string</td>
+                <td>×</td>
+                <td>リソース種別（user, role, project, engineer など）</td>
+            </tr>
+            <tr>
+                <td>resourceId</td>
+                <td>string</td>
+                <td>×</td>
+                <td>リソースID</td>
+            </tr>
+            <tr>
+                <td>search</td>
+                <td>string</td>
+                <td>×</td>
+                <td>メッセージ内の検索キーワード</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ソート条件（例: timestamp:desc）</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "status": "success",
+  "data": [
+    {
+      "id": "log234567",
+      "type": "audit",
+      "level": "info",
+      "message": "ユーザー「山田太郎」が顧客情報を更新しました",
+      "details": {
+        "userId": "u123456",
+        "username": "yamada.taro",
+        "ipAddress": "192.168.1.100",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Safari/537.36",
+        "resourceType": "customer",
+        "resourceId": "cust123",
+        "action": "update",
+        "changes": {
+          "name": {
+            "from": "株式会社ABC",
+            "to": "株式会社ABCホールディングス"
+          },
+          "address": {
+            "from": "東京都千代田区丸の内1-1-1",
+            "to": "東京都千代田区丸の内2-2-2"
+          }
+        }
+      },
+      "timestamp": "2024-05-04T10:15:30Z"
+    },
+    {
+      "id": "log234568",
+      "type": "audit",
+      "level": "info",
+      "message": "ユーザー「鈴木花子」が新規案件を登録しました",
+      "details": {
+        "userId": "u123457",
+        "username": "suzuki.hanako",
+        "ipAddress": "192.168.1.101",
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.83 Safari/537.36",
+        "resourceType": "project",
+        "resourceId": "proj456",
+        "action": "create",
+        "data": {
+          "name": "ECサイトリニューアル案件",
+          "clientId": "cust123",
+          "startDate": "2024-06-01",
+          "endDate": "2024-09-30"
+        }
+      },
+      "timestamp": "2024-05-04T11:30:45Z"
+    }
+    // ... その他のログ
+  ],
+  "pagination": {
+    "total": 8543,
+    "page": 1,
+    "limit": 50,
+    "pages": 171
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "INVALID_PARAMETER",
+    "message": "無効なパラメータが指定されました",
+    "details": [
+      {
+        "param": "action",
+        "message": "actionは create, read, update, delete のいずれかを指定してください"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.logs.read または system.logs.admin または system.admin 権限が必要です。</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method get">GET</span><span class="path">/api/v1/admin/logs/error</span></h3>
+        <p><strong>説明：</strong> エラーログを取得します。システムで発生したエラーや例外の記録が含まれます。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>number</td>
+                <td>×</td>
+                <td>ページ番号（デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>number</td>
+                <td>×</td>
+                <td>1ページあたりの件数（デフォルト: 50, 最大: 200）</td>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>×</td>
+                <td>取得開始日時（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>×</td>
+                <td>取得終了日時（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>level</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ログレベル（error, critical）</td>
+            </tr>
+            <tr>
+                <td>module</td>
+                <td>string</td>
+                <td>×</td>
+                <td>モジュール名</td>
+            </tr>
+            <tr>
+                <td>errorCode</td>
+                <td>string</td>
+                <td>×</td>
+                <td>エラーコード</td>
+            </tr>
+            <tr>
+                <td>search</td>
+                <td>string</td>
+                <td>×</td>
+                <td>メッセージ内の検索キーワード</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ソート条件（例: timestamp:desc）</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "status": "success",
+  "data": [
+    {
+      "id": "log345678",
+      "type": "error",
+      "level": "error",
+      "message": "データベースクエリ実行エラー",
+      "details": {
+        "module": "DatabaseService",
+        "function": "executeQuery",
+        "errorCode": "DB_QUERY_ERROR",
+        "errorMessage": "Table 'ses_mgr.projects_temp' doesn't exist",
+        "sql": "SELECT * FROM projects_temp WHERE status = 'active'",
+        "stackTrace": "..."
+      },
+      "timestamp": "2024-05-04T14:25:10Z"
+    },
+    {
+      "id": "log345679",
+      "type": "error",
+      "level": "critical",
+      "message": "メールサーバー接続エラー",
+      "details": {
+        "module": "NotificationService",
+        "function": "sendMail",
+        "errorCode": "MAIL_SERVER_UNREACHABLE",
+        "errorMessage": "Connection timeout: Unable to connect to mail.example.com:587",
+        "attempts": 3,
+        "stackTrace": "..."
+      },
+      "timestamp": "2024-05-04T15:10:35Z"
+    }
+    // ... その他のログ
+  ],
+  "pagination": {
+    "total": 456,
+    "page": 1,
+    "limit": 50,
+    "pages": 10
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "この操作を行う権限がありません",
+    "details": []
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.logs.read または system.logs.admin または system.admin 権限が必要です。</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method get">GET</span><span class="path">/api/v1/admin/logs/access</span></h3>
+        <p><strong>説明：</strong> アクセスログを取得します。ユーザーのログイン・ログアウトや、システムへのアクセス記録が含まれます。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>number</td>
+                <td>×</td>
+                <td>ページ番号（デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>number</td>
+                <td>×</td>
+                <td>1ページあたりの件数（デフォルト: 50, 最大: 200）</td>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>×</td>
+                <td>取得開始日時（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>×</td>
+                <td>取得終了日時（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ユーザーID</td>
+            </tr>
+            <tr>
+                <td>action</td>
+                <td>string</td>
+                <td>×</td>
+                <td>アクション（login, logout, view, api_access）</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ステータス（success, failure）</td>
+            </tr>
+            <tr>
+                <td>ipAddress</td>
+                <td>string</td>
+                <td>×</td>
+                <td>IPアドレス</td>
+            </tr>
+            <tr>
+                <td>search</td>
+                <td>string</td>
+                <td>×</td>
+                <td>メッセージ内の検索キーワード</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ソート条件（例: timestamp:desc）</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "status": "success",
+  "data": [
+    {
+      "id": "log456789",
+      "type": "access",
+      "level": "info",
+      "message": "ユーザー「yamada.taro」がログインしました",
+      "details": {
+        "userId": "u123456",
+        "username": "yamada.taro",
+        "action": "login",
+        "status": "success",
+        "ipAddress": "192.168.1.100",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Safari/537.36",
+        "location": "東京",
+        "device": "desktop"
+      },
+      "timestamp": "2024-05-04T09:00:00Z"
+    },
+    {
+      "id": "log456790",
+      "type": "access",
+      "level": "warning",
+      "message": "ユーザー「tanaka.jiro」のログイン失敗（パスワード不一致）",
+      "details": {
+        "username": "tanaka.jiro",
+        "action": "login",
+        "status": "failure",
+        "reason": "password_mismatch",
+        "ipAddress": "203.0.113.45",
+        "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1",
+        "location": "大阪",
+        "device": "mobile",
+        "attemptCount": 2
+      },
+      "timestamp": "2024-05-04T10:15:20Z"
+    },
+    {
+      "id": "log456791",
+      "type": "access",
+      "level": "info",
+      "message": "ユーザー「yamada.taro」がログアウトしました",
+      "details": {
+        "userId": "u123456",
+        "username": "yamada.taro",
+        "action": "logout",
+        "status": "success",
+        "ipAddress": "192.168.1.100",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Safari/537.36",
+        "sessionDuration": 28800  // セッション時間（秒）
+      },
+      "timestamp": "2024-05-04T17:00:00Z"
+    }
+    // ... その他のログ
+  ],
+  "pagination": {
+    "total": 12543,
+    "page": 1,
+    "limit": 50,
+    "pages": 251
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "INVALID_PARAMETER",
+    "message": "無効なパラメータが指定されました",
+    "details": [
+      {
+        "param": "action",
+        "message": "actionは login, logout, view, api_access のいずれかを指定してください"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.logs.read または system.logs.admin または system.admin 権限が必要です。</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method get">GET</span><span class="path">/api/v1/admin/logs/search</span></h3>
+        <p><strong>説明：</strong> 複数の種類のログを横断的に検索します。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>number</td>
+                <td>×</td>
+                <td>ページ番号（デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>number</td>
+                <td>×</td>
+                <td>1ページあたりの件数（デフォルト: 50, 最大: 200）</td>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>×</td>
+                <td>取得開始日時（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>×</td>
+                <td>取得終了日時（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>types</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ログ種別（カンマ区切りで複数指定可能: system,audit,error,access）</td>
+            </tr>
+            <tr>
+                <td>levels</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ログレベル（カンマ区切りで複数指定可能: info,warning,error,critical）</td>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ユーザーID</td>
+            </tr>
+            <tr>
+                <td>search</td>
+                <td>string</td>
+                <td>○</td>
+                <td>検索キーワード（メッセージやdetails内のデータで検索）</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ソート条件（例: timestamp:desc）</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "status": "success",
+  "data": [
+    {
+      "id": "log123458",
+      "type": "system",
+      "level": "error",
+      "message": "データベース接続エラーが発生しました",
+      "details": {
+        "module": "DatabaseManager",
+        "function": "connect",
+        "errorCode": "DB_CONN_TIMEOUT",
+        "retryCount": 3
+      },
+      "timestamp": "2024-05-04T09:30:15Z"
+    },
+    {
+      "id": "log345678",
+      "type": "error",
+      "level": "error",
+      "message": "データベースクエリ実行エラー",
+      "details": {
+        "module": "DatabaseService",
+        "function": "executeQuery",
+        "errorCode": "DB_QUERY_ERROR",
+        "errorMessage": "Table 'ses_mgr.projects_temp' doesn't exist",
+        "sql": "SELECT * FROM projects_temp WHERE status = 'active'",
+        "stackTrace": "..."
+      },
+      "timestamp": "2024-05-04T14:25:10Z"
+    }
+    // ... その他の検索結果
+  ],
+  "pagination": {
+    "total": 58,
+    "page": 1,
+    "limit": 50,
+    "pages": 2
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "REQUIRED_PARAMETER",
+    "message": "検索キーワードは必須です",
+    "details": [
+      {
+        "param": "search",
+        "message": "searchパラメータを指定してください"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.logs.read または system.logs.admin または system.admin 権限が必要です。</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method get">GET</span><span class="path">/api/v1/admin/logs/statistics</span></h3>
+        <p><strong>説明：</strong> ログの統計情報を取得します。種別、レベル、時間帯などでの集計結果を返します。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>○</td>
+                <td>取得開始日時（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>○</td>
+                <td>取得終了日時（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>types</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ログ種別（カンマ区切りで複数指定可能: system,audit,error,access）</td>
+            </tr>
+            <tr>
+                <td>interval</td>
+                <td>string</td>
+                <td>×</td>
+                <td>集計間隔（hour, day, week, month のいずれか）<br>デフォルト: day</td>
+            </tr>
+            <tr>
+                <td>groupBy</td>
+                <td>string</td>
+                <td>×</td>
+                <td>グループ化項目（type, level, userId, action のカンマ区切り）<br>デフォルト: type,level</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "summary": {
+      "totalCount": 25843,
+      "byType": {
+        "system": 1536,
+        "audit": 8543,
+        "error": 456,
+        "access": 15308
+      },
+      "byLevel": {
+        "info": 20125,
+        "warning": 2560,
+        "error": 2950,
+        "critical": 208
+      }
+    },
+    "timeline": [
+      {
+        "interval": "2024-05-01",
+        "counts": {
+          "total": 5236,
+          "byType": {
+            "system": 321,
+            "audit": 1780,
+            "error": 87,
+            "access": 3048
+          },
+          "byLevel": {
+            "info": 4120,
+            "warning": 560,
+            "error": 525,
+            "critical": 31
+          }
+        }
+      },
+      {
+        "interval": "2024-05-02",
+        "counts": {
+          "total": 4950,
+          "byType": {
+            "system": 295,
+            "audit": 1645,
+            "error": 95,
+            "access": 2915
+          },
+          "byLevel": {
+            "info": 3825,
+            "warning": 485,
+            "error": 590,
+            "critical": 50
+          }
+        }
+      },
+      // ... その他の日付のデータ
+    ],
+    "topUsers": [
+      {
+        "userId": "u123456",
+        "username": "yamada.taro",
+        "count": 1250
+      },
+      {
+        "userId": "u123457",
+        "username": "suzuki.hanako",
+        "count": 980
+      },
+      // ... その他のユーザー
+    ],
+    "topErrors": [
+      {
+        "errorCode": "DB_QUERY_ERROR",
+        "count": 156,
+        "lastOccurred": "2024-05-04T14:25:10Z"
+      },
+      {
+        "errorCode": "API_TIMEOUT",
+        "count": 89,
+        "lastOccurred": "2024-05-04T16:10:22Z"
+      },
+      // ... その他のエラー
+    ]
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "INVALID_PARAMETER",
+    "message": "無効なパラメータが指定されました",
+    "details": [
+      {
+        "param": "interval",
+        "message": "intervalは hour, day, week, month のいずれかを指定してください"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.logs.read または system.logs.admin または system.admin 権限が必要です。</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method post">POST</span><span class="path">/api/v1/admin/logs/export</span></h3>
+        <p><strong>説明：</strong> 条件に合致するログをCSVまたはExcel形式でエクスポートします。</p>
+
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "from": "2024-05-01T00:00:00Z",
+  "to": "2024-05-04T23:59:59Z",
+  "types": ["system", "audit", "error", "access"],
+  "levels": ["warning", "error", "critical"],
+  "search": "データベース",
+  "format": "csv",
+  "includeDetails": true,
+  "fields": ["id", "type", "level", "message", "timestamp", "userId", "ipAddress"]
+}</code></pre>
+
+        <h4>レスポンスヘッダー例</h4>
+        <pre><code>Content-Type: text/csv; charset=utf-8
+Content-Disposition: attachment; filename="logs_export_20240501-20240504.csv"</code></pre>
+
+        <h4>レスポンス本文例（CSV形式）</h4>
+        <pre><code>id,type,level,message,timestamp,userId,ipAddress
+log123458,system,error,データベース接続エラーが発生しました,2024-05-04T09:30:15Z,,
+log345678,error,error,データベースクエリ実行エラー,2024-05-04T14:25:10Z,,
+log234567,audit,info,ユーザー「山田太郎」が顧客情報を更新しました,2024-05-04T10:15:30Z,u123456,192.168.1.100</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "EXPORT_LIMIT_EXCEEDED",
+    "message": "エクスポート可能な最大件数を超えています",
+    "details": [
+      {
+        "limit": 100000,
+        "actual": 150435,
+        "message": "期間を絞り込んでください"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.logs.export または system.logs.admin または system.admin 権限が必要です。</p>
+        <div class="warning">
+            <p><strong>注意：</strong> 大量のログをエクスポートする場合、システムパフォーマンスに影響を与える可能性があります。期間やフィルター条件を適切に設定してください。</p>
+        </div>
+    </div>
+
+    <h2>4. ログの種類と詳細</h2>
+    <p>システムでは以下の4種類のログを管理しています：</p>
+
+    <h3>4.1 システムログ（system）</h3>
+    <p>システムの動作状況や処理実行結果を記録します。主に以下の内容が含まれます：</p>
+    <ul>
+        <li>サーバー起動・停止</li>
+        <li>バッチ処理の実行結果</li>
+        <li>定期処理の実行状況</li>
+        <li>システム設定の変更</li>
+        <li>キャッシュの更新</li>
+        <li>システムリソースの状態</li>
+    </ul>
+
+    <h3>4.2 監査ログ（audit）</h3>
+    <p>業務データの変更履歴を記録します。主に以下の内容が含まれます：</p>
+    <ul>
+        <li>ユーザーによるデータの作成</li>
+        <li>ユーザーによるデータの更新</li>
+        <li>ユーザーによるデータの削除</li>
+        <li>重要データの参照</li>
+        <li>権限変更</li>
+        <li>管理者による操作</li>
+    </ul>
+
+    <h3>4.3 エラーログ（error）</h3>
+    <p>システムで発生したエラーや例外を記録します。主に以下の内容が含まれます：</p>
+    <ul>
+        <li>データベースエラー</li>
+        <li>API呼び出しエラー</li>
+        <li>未処理例外</li>
+        <li>システムクラッシュ</li>
+        <li>外部サービス連携エラー</li>
+        <li>重大なパフォーマンス問題</li>
+    </ul>
+
+    <h3>4.4 アクセスログ（access）</h3>
+    <p>システムへのアクセス記録を保持します。主に以下の内容が含まれます：</p>
+    <ul>
+        <li>ユーザーのログイン・ログアウト</li>
+        <li>ログイン失敗</li>
+        <li>セッションタイムアウト</li>
+        <li>アカウントロック</li>
+        <li>APIアクセス</li>
+        <li>重要機能へのアクセス</li>
+    </ul>
+
+    <h2>5. ログレベル</h2>
+    <p>システムでは以下のログレベルを使用しています：</p>
+    <table>
+        <tr>
+            <th>レベル</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>info</td>
+            <td>通常の操作や処理に関する情報。問題のない正常な状態を示します。</td>
+        </tr>
+        <tr>
+            <td>warning</td>
+            <td>潜在的な問題や注意が必要な状況。現時点では正常に動作していますが、将来的に問題が発生する可能性があります。</td>
+        </tr>
+        <tr>
+            <td>error</td>
+            <td>エラーや例外が発生し、処理が失敗した状況。システムの一部機能に影響がありますが、システム全体は動作しています。</td>
+        </tr>
+        <tr>
+            <td>critical</td>
+            <td>システム全体に影響する重大なエラー。緊急対応が必要な状況です。</td>
+        </tr>
+    </table>
+
+    <h2>6. ログ保持ポリシー</h2>
+    <p>各ログ種別の保持期間は以下の通りです：</p>
+    <table>
+        <tr>
+            <th>ログ種別</th>
+            <th>保持期間</th>
+        </tr>
+        <tr>
+            <td>システムログ（system）</td>
+            <td>3ヶ月</td>
+        </tr>
+        <tr>
+            <td>監査ログ（audit）</td>
+            <td>5年</td>
+        </tr>
+        <tr>
+            <td>エラーログ（error）</td>
+            <td>1年</td>
+        </tr>
+        <tr>
+            <td>アクセスログ（access）</td>
+            <td>1年</td>
+        </tr>
+    </table>
+    <p>保持期間を超えたログは自動的にアーカイブされ、必要に応じてアーカイブから復元できます。</p>
+
+    <h2>7. セキュリティ考慮事項</h2>
+    <p>ログ管理に関するセキュリティ考慮事項：</p>
+    <ul>
+        <li>ログアクセスは適切な権限を持つユーザーのみに制限されています。</li>
+        <li>ログにはセンシティブな情報（パスワードなど）は記録されません。</li>
+        <li>ログ改ざん防止のための仕組みが実装されています。</li>
+        <li>ログの大量取得はシステムパフォーマンスに影響を与える可能性があるため、適切な制限を設けています。</li>
+        <li>エクスポートされたログファイルにはアクセス制御を実施してください。</li>
+    </ul>
+
+    <h2>8. 改訂履歴</h2>
+    <table>
+        <tr>
+            <th>日付</th>
+            <th>バージョン</th>
+            <th>内容</th>
+            <th>担当者</th>
+        </tr>
+        <tr>
+            <td>2025/05/04</td>
+            <td>1.0</td>
+            <td>初版作成</td>
+            <td>S.Ichimaru</td>
+        </tr>
+    </table>
+
+</body>
+</html>

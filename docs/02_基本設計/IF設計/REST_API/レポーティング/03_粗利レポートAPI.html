@@ -1,0 +1,1603 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>粗利レポートAPI</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 4px;
+            overflow: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .endpoint {
+            margin-bottom: 30px;
+        }
+        .endpoint h3 {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-left: 4px solid #2c3e50;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .patch { background-color: #50e3c2; }
+    </style>
+</head>
+<body>
+    <h1>粗利レポートAPI</h1>
+    
+    <p>
+        粗利レポートAPIは、SES業務システムにおける粗利データを様々な軸で集計・分析するためのインターフェースを提供します。
+        月次、四半期、年間の期間別レポートや、顧客別、プロジェクト別、技術者別など様々な切り口での粗利分析が可能です。
+    </p>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/profit/monthly</h3>
+        <p><strong>説明：</strong> 月次粗利レポートを取得します。特定の月や期間を指定して、月別の粗利集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>年（例: 2023）。指定しない場合は当年</td>
+            </tr>
+            <tr>
+                <td>month</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>月（1-12）。指定しない場合は当月</td>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>開始月（ISO 8601形式: YYYY-MM-01）。year/monthと排他</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>終了月（ISO 8601形式: YYYY-MM-01）。fromと共に使用</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>部門IDでフィルター</td>
+            </tr>
+            <tr>
+                <td>compareWithPrevious</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>前年同月/前月との比較データを含める。デフォルトはfalse</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": "monthly",
+    "from": "2023-01-01",
+    "to": "2023-04-01",
+    "filters": {
+      "departmentId": null
+    }
+  },
+  "data": [
+    {
+      "year": 2023,
+      "month": 1,
+      "period": "2023-01",
+      "totalSales": 12500000,
+      "totalCost": 9000000,
+      "grossProfit": 3500000,
+      "grossProfitMargin": 0.28,
+      "targetProfit": 3750000,
+      "achievementRate": 0.93,
+      "previousYearProfit": 3200000,
+      "yearOnYearChange": 0.09,
+      "breakdown": {
+        "laborCost": 8500000,
+        "otherCosts": 500000
+      }
+    },
+    {
+      "year": 2023,
+      "month": 2,
+      "period": "2023-02",
+      "totalSales": 12800000,
+      "totalCost": 9100000,
+      "grossProfit": 3700000,
+      "grossProfitMargin": 0.29,
+      "targetProfit": 3850000,
+      "achievementRate": 0.96,
+      "previousYearProfit": 3300000,
+      "yearOnYearChange": 0.12,
+      "breakdown": {
+        "laborCost": 8600000,
+        "otherCosts": 500000
+      }
+    },
+    {
+      "year": 2023,
+      "month": 3,
+      "period": "2023-03",
+      "totalSales": 13200000,
+      "totalCost": 9400000,
+      "grossProfit": 3800000,
+      "grossProfitMargin": 0.29,
+      "targetProfit": 3950000,
+      "achievementRate": 0.96,
+      "previousYearProfit": 3400000,
+      "yearOnYearChange": 0.12,
+      "breakdown": {
+        "laborCost": 8800000,
+        "otherCosts": 600000
+      }
+    },
+    {
+      "year": 2023,
+      "month": 4,
+      "period": "2023-04",
+      "totalSales": 13500000,
+      "totalCost": 9500000,
+      "grossProfit": 4000000,
+      "grossProfitMargin": 0.3,
+      "targetProfit": 4000000,
+      "achievementRate": 1.0,
+      "previousYearProfit": 3500000,
+      "yearOnYearChange": 0.14,
+      "breakdown": {
+        "laborCost": 8900000,
+        "otherCosts": 600000
+      }
+    }
+  ],
+  "summary": {
+    "totalSales": 52000000,
+    "totalCost": 37000000,
+    "totalGrossProfit": 15000000,
+    "averageGrossProfitMargin": 0.29,
+    "targetAchievementRate": 0.96,
+    "yearOnYearChange": 0.12,
+    "highestProfitMonth": "2023-04",
+    "highestProfitAmount": 4000000,
+    "lowestProfitMonth": "2023-01",
+    "lowestProfitAmount": 3500000,
+    "highestMarginMonth": "2023-04",
+    "highestMarginRate": 0.3
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_DATE_RANGE",
+    "message": "無効な日付範囲が指定されました。",
+    "details": {
+      "from": "2023-04-01",
+      "to": "2023-01-01",
+      "reason": "終了日は開始日より後である必要があります。"
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のデータのみ）</li>
+            <li><code>ROLE_FINANCE</code>（すべてのデータへのアクセス）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/profit/quarterly</h3>
+        <p><strong>説明：</strong> 四半期粗利レポートを取得します。年度内の四半期や複数四半期にわたる粗利集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>年度（例: 2023）。指定しない場合は当年度</td>
+            </tr>
+            <tr>
+                <td>quarter</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>四半期（1-4）。指定しない場合は当四半期</td>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>開始四半期（YYYY-Q形式: 例 2023-1）。year/quarterと排他</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>終了四半期（YYYY-Q形式: 例 2023-4）。fromと共に使用</td>
+            </tr>
+            <tr>
+                <td>fiscalYear</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>会計年度を基準とするか。デフォルトはtrue</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>部門IDでフィルター</td>
+            </tr>
+            <tr>
+                <td>compareWithPrevious</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>前年同四半期との比較データを含める。デフォルトはfalse</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": "quarterly",
+    "from": "2022-3",
+    "to": "2023-2",
+    "fiscalYear": true,
+    "filters": {
+      "departmentId": null
+    }
+  },
+  "data": [
+    {
+      "year": 2022,
+      "quarter": 3,
+      "period": "2022-Q3",
+      "months": ["2022-07", "2022-08", "2022-09"],
+      "totalSales": 36000000,
+      "totalCost": 26500000,
+      "grossProfit": 9500000,
+      "grossProfitMargin": 0.26,
+      "targetProfit": 10000000,
+      "achievementRate": 0.95,
+      "previousYearProfit": 8800000,
+      "yearOnYearChange": 0.08,
+      "monthlySales": {
+        "2022-07": 12000000,
+        "2022-08": 12000000,
+        "2022-09": 12000000
+      },
+      "monthlyCosts": {
+        "2022-07": 8800000,
+        "2022-08": 8800000,
+        "2022-09": 8900000
+      },
+      "monthlyProfits": {
+        "2022-07": 3200000,
+        "2022-08": 3200000,
+        "2022-09": 3100000
+      },
+      "costBreakdown": {
+        "laborCost": 25000000,
+        "otherCosts": 1500000
+      }
+    },
+    {
+      "year": 2022,
+      "quarter": 4,
+      "period": "2022-Q4",
+      "months": ["2022-10", "2022-11", "2022-12"],
+      "totalSales": 37500000,
+      "totalCost": 27400000,
+      "grossProfit": 10100000,
+      "grossProfitMargin": 0.27,
+      "targetProfit": 10500000,
+      "achievementRate": 0.96,
+      "previousYearProfit": 9300000,
+      "yearOnYearChange": 0.09,
+      "monthlySales": {
+        "2022-10": 12300000,
+        "2022-11": 12500000,
+        "2022-12": 12700000
+      },
+      "monthlyCosts": {
+        "2022-10": 9000000,
+        "2022-11": 9100000,
+        "2022-12": 9300000
+      },
+      "monthlyProfits": {
+        "2022-10": 3300000,
+        "2022-11": 3400000,
+        "2022-12": 3400000
+      },
+      "costBreakdown": {
+        "laborCost": 25800000,
+        "otherCosts": 1600000
+      }
+    },
+    {
+      "year": 2023,
+      "quarter": 1,
+      "period": "2023-Q1",
+      "months": ["2023-01", "2023-02", "2023-03"],
+      "totalSales": 38500000,
+      "totalCost": 27500000,
+      "grossProfit": 11000000,
+      "grossProfitMargin": 0.29,
+      "targetProfit": 11000000,
+      "achievementRate": 1.0,
+      "previousYearProfit": 9800000,
+      "yearOnYearChange": 0.12,
+      "monthlySales": {
+        "2023-01": 12500000,
+        "2023-02": 12800000,
+        "2023-03": 13200000
+      },
+      "monthlyCosts": {
+        "2023-01": 9000000,
+        "2023-02": 9100000,
+        "2023-03": 9400000
+      },
+      "monthlyProfits": {
+        "2023-01": 3500000,
+        "2023-02": 3700000,
+        "2023-03": 3800000
+      },
+      "costBreakdown": {
+        "laborCost": 25900000,
+        "otherCosts": 1600000
+      }
+    },
+    {
+      "year": 2023,
+      "quarter": 2,
+      "period": "2023-Q2",
+      "months": ["2023-04", "2023-05", "2023-06"],
+      "totalSales": 40500000,
+      "totalCost": 28200000,
+      "grossProfit": 12300000,
+      "grossProfitMargin": 0.3,
+      "targetProfit": 12000000,
+      "achievementRate": 1.025,
+      "previousYearProfit": 10600000,
+      "yearOnYearChange": 0.16,
+      "monthlySales": {
+        "2023-04": 13500000,
+        "2023-05": 13500000,
+        "2023-06": 13500000
+      },
+      "monthlyCosts": {
+        "2023-04": 9500000,
+        "2023-05": 9400000,
+        "2023-06": 9300000
+      },
+      "monthlyProfits": {
+        "2023-04": 4000000,
+        "2023-05": 4100000,
+        "2023-06": 4200000
+      },
+      "costBreakdown": {
+        "laborCost": 26500000,
+        "otherCosts": 1700000
+      }
+    }
+  ],
+  "summary": {
+    "totalSales": 152500000,
+    "totalCost": 109600000,
+    "totalGrossProfit": 42900000,
+    "averageGrossProfitMargin": 0.28,
+    "targetAchievementRate": 0.99,
+    "yearOnYearChange": 0.11,
+    "highestProfitQuarter": "2023-Q2",
+    "highestProfitAmount": 12300000,
+    "lowestProfitQuarter": "2022-Q3",
+    "lowestProfitAmount": 9500000,
+    "profitTrend": "upward"
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_QUARTER",
+    "message": "無効な四半期が指定されました。",
+    "details": {
+      "quarter": "5",
+      "allowed": [1, 2, 3, 4]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のデータのみ）</li>
+            <li><code>ROLE_FINANCE</code>（すべてのデータへのアクセス）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/profit/annual</h3>
+        <p><strong>説明：</strong> 年間粗利レポートを取得します。特定の年や複数年にわたる年次粗利集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>年度（例: 2023）。指定しない場合は当年度</td>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>開始年度。yearと排他</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>終了年度。fromと共に使用</td>
+            </tr>
+            <tr>
+                <td>fiscalYear</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>会計年度を基準とするか。デフォルトはtrue</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>部門IDでフィルター</td>
+            </tr>
+            <tr>
+                <td>compareWithPrevious</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>前年との比較データを含める。デフォルトはtrue</td>
+            </tr>
+            <tr>
+                <td>granularity</td>
+                <td>string</td>
+                <td>No</td>
+                <td>内訳の集計単位（monthly, quarterly）。デフォルトはquarterly</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": "annual",
+    "from": 2021,
+    "to": 2023,
+    "fiscalYear": true,
+    "granularity": "quarterly",
+    "filters": {
+      "departmentId": null
+    }
+  },
+  "data": [
+    {
+      "year": 2021,
+      "fiscalYear": "FY2021",
+      "totalSales": 140000000,
+      "totalCost": 104000000,
+      "grossProfit": 36000000,
+      "grossProfitMargin": 0.257,
+      "targetProfit": 37000000,
+      "achievementRate": 0.97,
+      "previousYearProfit": 33000000,
+      "yearOnYearChange": 0.09,
+      "quarterlyBreakdown": {
+        "Q1": {
+          "sales": 33000000,
+          "cost": 24700000,
+          "profit": 8300000,
+          "margin": 0.25
+        },
+        "Q2": {
+          "sales": 34000000,
+          "cost": 25300000,
+          "profit": 8700000,
+          "margin": 0.256
+        },
+        "Q3": {
+          "sales": 36000000,
+          "cost": 26700000,
+          "profit": 9300000,
+          "margin": 0.258
+        },
+        "Q4": {
+          "sales": 37000000,
+          "cost": 27300000,
+          "profit": 9700000,
+          "margin": 0.262
+        }
+      },
+      "costBreakdown": {
+        "laborCost": 98000000,
+        "otherCosts": 6000000
+      }
+    },
+    {
+      "year": 2022,
+      "fiscalYear": "FY2022",
+      "totalSales": 151000000,
+      "totalCost": 111000000,
+      "grossProfit": 40000000,
+      "grossProfitMargin": 0.265,
+      "targetProfit": 41000000,
+      "achievementRate": 0.976,
+      "previousYearProfit": 36000000,
+      "yearOnYearChange": 0.11,
+      "quarterlyBreakdown": {
+        "Q1": {
+          "sales": 36500000,
+          "cost": 27000000,
+          "profit": 9500000,
+          "margin": 0.26
+        },
+        "Q2": {
+          "sales": 37500000,
+          "cost": 27700000,
+          "profit": 9800000,
+          "margin": 0.261
+        },
+        "Q3": {
+          "sales": 38000000,
+          "cost": 27900000,
+          "profit": 10100000,
+          "margin": 0.266
+        },
+        "Q4": {
+          "sales": 39000000,
+          "cost": 28400000,
+          "profit": 10600000,
+          "margin": 0.272
+        }
+      },
+      "costBreakdown": {
+        "laborCost": 104000000,
+        "otherCosts": 7000000
+      }
+    },
+    {
+      "year": 2023,
+      "fiscalYear": "FY2023",
+      "totalSales": 165000000,
+      "totalCost": 118000000,
+      "grossProfit": 47000000,
+      "grossProfitMargin": 0.285,
+      "targetProfit": 45000000,
+      "achievementRate": 1.044,
+      "previousYearProfit": 40000000,
+      "yearOnYearChange": 0.175,
+      "quarterlyBreakdown": {
+        "Q1": {
+          "sales": 39000000,
+          "cost": 28000000,
+          "profit": 11000000,
+          "margin": 0.282
+        },
+        "Q2": {
+          "sales": 41000000,
+          "cost": 29000000,
+          "profit": 12000000,
+          "margin": 0.293
+        },
+        "Q3": {
+          "sales": 42000000,
+          "cost": 30000000,
+          "profit": 12000000,
+          "margin": 0.286
+        },
+        "Q4": {
+          "sales": 43000000,
+          "cost": 31000000,
+          "profit": 12000000,
+          "margin": 0.279
+        }
+      },
+      "costBreakdown": {
+        "laborCost": 110000000,
+        "otherCosts": 8000000
+      }
+    }
+  ],
+  "summary": {
+    "totalSales": 456000000,
+    "totalCost": 333000000,
+    "totalGrossProfit": 123000000,
+    "averageGrossProfitMargin": 0.27,
+    "targetAchievementRate": 1.0,
+    "yearOnYearGrowth": {
+      "2021to2022": 0.11,
+      "2022to2023": 0.175
+    },
+    "profitTrend": "upward",
+    "marginTrend": "improving",
+    "cagr": {
+      "sales": 0.084,
+      "profit": 0.143
+    }
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_YEAR_RANGE",
+    "message": "無効な年度範囲が指定されました。",
+    "details": {
+      "from": 2023,
+      "to": 2020,
+      "reason": "終了年度は開始年度より後である必要があります。"
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のデータのみ）</li>
+            <li><code>ROLE_FINANCE</code>（すべてのデータへのアクセス）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/profit/by-customer</h3>
+        <p><strong>説明：</strong> 顧客別の粗利レポートを取得します。特定期間における顧客ごとの粗利集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>開始日（ISO 8601形式）。デフォルトは当年初め</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>終了日（ISO 8601形式）。デフォルトは当日</td>
+            </tr>
+            <tr>
+                <td>period</td>
+                <td>string</td>
+                <td>No</td>
+                <td>集計期間（monthly, quarterly, annual）。デフォルトはmonthly</td>
+            </tr>
+            <tr>
+                <td>customerId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定顧客のみ表示する場合の顧客ID</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート順（grossProfit, profitMargin, totalSales, customerName）。デフォルトはgrossProfit</td>
+            </tr>
+            <tr>
+                <td>order</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート方向（asc, desc）。デフォルトはdesc</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得する顧客数。デフォルトは20</td>
+            </tr>
+            <tr>
+                <td>offset</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得開始位置（ページネーション用）。デフォルトは0</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": {
+      "type": "custom",
+      "from": "2023-01-01",
+      "to": "2023-04-30"
+    },
+    "filters": {
+      "customerId": null
+    },
+    "pagination": {
+      "limit": 20,
+      "offset": 0,
+      "total": 28,
+      "next": "/api/v1/reports/profit/by-customer?limit=20&offset=20",
+      "previous": null
+    }
+  },
+  "data": [
+    {
+      "customerId": "customer_123",
+      "customerName": "株式会社ABC",
+      "customerCode": "C00123",
+      "industryType": "製造業",
+      "totalSales": 12000000,
+      "totalCost": 8400000,
+      "grossProfit": 3600000,
+      "grossProfitMargin": 0.3,
+      "salesRatio": 0.12,
+      "profitRatio": 0.14,
+      "projectCount": 5,
+      "engineerCount": 8,
+      "averageMonthlyRate": 850000,
+      "averageEngineerCost": 600000,
+      "periodProfits": {
+        "2023-01": 840000,
+        "2023-02": 870000,
+        "2023-03": 930000,
+        "2023-04": 960000
+      },
+      "projectProfits": [
+        {
+          "projectId": "project_456",
+          "projectName": "基幹システム再構築",
+          "totalSales": 8000000,
+          "totalCost": 5600000,
+          "grossProfit": 2400000,
+          "grossProfitMargin": 0.3
+        },
+        {
+          "projectId": "project_457",
+          "projectName": "モバイルアプリ開発",
+          "totalSales": 4000000,
+          "totalCost": 2800000,
+          "grossProfit": 1200000,
+          "grossProfitMargin": 0.3
+        }
+      ],
+      "yearOnYearChange": {
+        "sales": 0.1,
+        "profit": 0.15,
+        "margin": 0.05
+      }
+    },
+    {
+      "customerId": "customer_124",
+      "customerName": "株式会社XYZ",
+      "customerCode": "C00124",
+      "industryType": "IT・通信",
+      "totalSales": 10500000,
+      "totalCost": 7100000,
+      "grossProfit": 3400000,
+      "grossProfitMargin": 0.32,
+      "salesRatio": 0.105,
+      "profitRatio": 0.13,
+      "projectCount": 3,
+      "engineerCount": 7,
+      "averageMonthlyRate": 750000,
+      "averageEngineerCost": 510000,
+      "periodProfits": {
+        "2023-01": 800000,
+        "2023-02": 820000,
+        "2023-03": 880000,
+        "2023-04": 900000
+      },
+      "projectProfits": [
+        {
+          "projectId": "project_458",
+          "projectName": "クラウド移行支援",
+          "totalSales": 7000000,
+          "totalCost": 4700000,
+          "grossProfit": 2300000,
+          "grossProfitMargin": 0.33
+        },
+        {
+          "projectId": "project_459",
+          "projectName": "セキュリティ診断",
+          "totalSales": 3500000,
+          "totalCost": 2400000,
+          "grossProfit": 1100000,
+          "grossProfitMargin": 0.31
+        }
+      ],
+      "yearOnYearChange": {
+        "sales": 0.08,
+        "profit": 0.12,
+        "margin": 0.04
+      }
+    }
+    // 他の顧客...
+  ],
+  "summary": {
+    "totalCustomers": 28,
+    "totalSales": 100000000,
+    "totalCost": 71000000,
+    "totalGrossProfit": 29000000,
+    "overallGrossProfitMargin": 0.29,
+    "averageProfitPerCustomer": 1035714.3,
+    "highProfitMarginCustomers": 12,
+    "highProfitMarginThreshold": 0.3,
+    "lowProfitMarginCustomers": 5,
+    "lowProfitMarginThreshold": 0.2,
+    "topIndustries": [
+      {
+        "industryType": "IT・通信",
+        "customerCount": 10,
+        "totalSales": 45000000,
+        "totalProfit": 14000000,
+        "averageMargin": 0.31
+      },
+      {
+        "industryType": "製造業",
+        "customerCount": 8,
+        "totalSales": 30000000,
+        "totalProfit": 8700000,
+        "averageMargin": 0.29
+      }
+    ],
+    "customerConcentration": {
+      "top3ProfitRatio": 0.38,
+      "top5ProfitRatio": 0.52,
+      "top10ProfitRatio": 0.78
+    }
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_SORT_PARAMETER",
+    "message": "無効なソートパラメータが指定されました。",
+    "details": {
+      "sort": "invalidField",
+      "allowed": ["grossProfit", "profitMargin", "totalSales", "customerName", "projectCount", "engineerCount"]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全顧客データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門の顧客データのみ）</li>
+            <li><code>ROLE_FINANCE</code>（全顧客データへのアクセス）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/profit/by-project</h3>
+        <p><strong>説明：</strong> プロジェクト別の粗利レポートを取得します。特定期間におけるプロジェクトごとの粗利集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>開始日（ISO 8601形式）。デフォルトは当年初め</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>終了日（ISO 8601形式）。デフォルトは当日</td>
+            </tr>
+            <tr>
+                <td>period</td>
+                <td>string</td>
+                <td>No</td>
+                <td>集計期間（monthly, quarterly, annual）。デフォルトはmonthly</td>
+            </tr>
+            <tr>
+                <td>customerId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定顧客のプロジェクトのみ表示する場合の顧客ID</td>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定プロジェクトのみ表示する場合のプロジェクトID</td>
+            </tr>
+            <tr>
+                <td>projectStatus</td>
+                <td>string</td>
+                <td>No</td>
+                <td>プロジェクト状態でフィルター（active, completed, all）。デフォルトはactive</td>
+            </tr>
+            <tr>
+                <td>profitMarginThreshold</td>
+                <td>number</td>
+                <td>No</td>
+                <td>粗利率のしきい値。これ以上/以下の粗利率のプロジェクトのみを表示</td>
+            </tr>
+            <tr>
+                <td>profitMarginOperator</td>
+                <td>string</td>
+                <td>No</td>
+                <td>粗利率の比較演算子（gt, lt, gte, lte, eq）。デフォルトはgte</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート順（grossProfit, profitMargin, totalSales, projectName, startDate）。デフォルトはgrossProfit</td>
+            </tr>
+            <tr>
+                <td>order</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート方向（asc, desc）。デフォルトはdesc</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得するプロジェクト数。デフォルトは20</td>
+            </tr>
+            <tr>
+                <td>offset</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得開始位置（ページネーション用）。デフォルトは0</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": {
+      "type": "custom",
+      "from": "2023-01-01",
+      "to": "2023-04-30"
+    },
+    "filters": {
+      "customerId": null,
+      "projectId": null,
+      "projectStatus": "active",
+      "profitMarginThreshold": 0.25,
+      "profitMarginOperator": "gte"
+    },
+    "pagination": {
+      "limit": 20,
+      "offset": 0,
+      "total": 35,
+      "next": "/api/v1/reports/profit/by-project?limit=20&offset=20",
+      "previous": null
+    }
+  },
+  "data": [
+    {
+      "projectId": "project_456",
+      "projectName": "基幹システム再構築",
+      "projectCode": "P00456",
+      "customerId": "customer_123",
+      "customerName": "株式会社ABC",
+      "startDate": "2022-10-01",
+      "endDate": "2023-09-30",
+      "status": "active",
+      "projectManager": "PM太郎",
+      "totalSales": 8000000,
+      "totalCost": 5600000,
+      "grossProfit": 2400000,
+      "grossProfitMargin": 0.3,
+      "targetProfit": 2300000,
+      "achievementRate": 1.04,
+      "salesRatio": 0.08,
+      "profitRatio": 0.09,
+      "engineerCount": 5,
+      "billableHours": 880,
+      "periodProfits": {
+        "2023-01": 580000,
+        "2023-02": 590000,
+        "2023-03": 610000,
+        "2023-04": 620000
+      },
+      "engineerProfits": [
+        {
+          "engineerId": "engineer_123",
+          "engineerName": "開発太郎",
+          "role": "PG",
+          "totalSales": 3000000,
+          "totalCost": 2100000,
+          "grossProfit": 900000,
+          "grossProfitMargin": 0.3
+        },
+        {
+          "engineerId": "engineer_124",
+          "engineerName": "開発次郎",
+          "role": "SE",
+          "totalSales": 3000000,
+          "totalCost": 2100000,
+          "grossProfit": 900000,
+          "grossProfitMargin": 0.3
+        },
+        {
+          "engineerId": "engineer_125",
+          "engineerName": "開発花子",
+          "role": "PL",
+          "totalSales": 2000000,
+          "totalCost": 1400000,
+          "grossProfit": 600000,
+          "grossProfitMargin": 0.3
+        }
+      ]
+    },
+    {
+      "projectId": "project_458",
+      "projectName": "クラウド移行支援",
+      "projectCode": "P00458",
+      "customerId": "customer_124",
+      "customerName": "株式会社XYZ",
+      "startDate": "2022-12-01",
+      "endDate": "2023-08-31",
+      "status": "active",
+      "projectManager": "PM次郎",
+      "totalSales": 7000000,
+      "totalCost": 4700000,
+      "grossProfit": 2300000,
+      "grossProfitMargin": 0.33,
+      "targetProfit": 2100000,
+      "achievementRate": 1.09,
+      "salesRatio": 0.07,
+      "profitRatio": 0.08,
+      "engineerCount": 4,
+      "billableHours": 760,
+      "periodProfits": {
+        "2023-01": 550000,
+        "2023-02": 560000,
+        "2023-03": 580000,
+        "2023-04": 610000
+      },
+      "engineerProfits": [
+        {
+          "engineerId": "engineer_126",
+          "engineerName": "クラウド太郎",
+          "role": "インフラSE",
+          "totalSales": 2000000,
+          "totalCost": 1320000,
+          "grossProfit": 680000,
+          "grossProfitMargin": 0.34
+        },
+        {
+          "engineerId": "engineer_127",
+          "engineerName": "クラウド次郎",
+          "role": "インフラSE",
+          "totalSales": 2000000,
+          "totalCost": 1380000,
+          "grossProfit": 620000,
+          "grossProfitMargin": 0.31
+        },
+        {
+          "engineerId": "engineer_128",
+          "engineerName": "インフラ花子",
+          "role": "アーキテクト",
+          "totalSales": 3000000,
+          "totalCost": 2000000,
+          "grossProfit": 1000000,
+          "grossProfitMargin": 0.33
+        }
+      ]
+    }
+    // 他のプロジェクト...
+  ],
+  "summary": {
+    "totalProjects": 35,
+    "activeProjects": 30,
+    "completedProjects": 5,
+    "totalSales": 90000000,
+    "totalCost": 63000000,
+    "totalGrossProfit": 27000000,
+    "overallGrossProfitMargin": 0.3,
+    "averageProfitPerProject": 771428.6,
+    "highProfitMarginProjects": 20,
+    "highProfitMarginThreshold": 0.3,
+    "lowProfitMarginProjects": 3,
+    "lowProfitMarginThreshold": 0.2,
+    "profitDistribution": {
+      "ranges": [
+        {
+          "range": "40%+",
+          "count": 2,
+          "totalProfit": 2000000,
+          "ratio": 0.07
+        },
+        {
+          "range": "30-40%",
+          "count": 18,
+          "totalProfit": 15000000,
+          "ratio": 0.56
+        },
+        {
+          "range": "20-30%",
+          "count": 12,
+          "totalProfit": 8000000,
+          "ratio": 0.3
+        },
+        {
+          "range": "10-20%",
+          "count": 2,
+          "totalProfit": 1500000,
+          "ratio": 0.05
+        },
+        {
+          "range": "0-10%",
+          "count": 1,
+          "totalProfit": 500000,
+          "ratio": 0.02
+        }
+      ]
+    }
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_PROFIT_MARGIN_OPERATOR",
+    "message": "無効な粗利率比較演算子が指定されました。",
+    "details": {
+      "profitMarginOperator": "invalid",
+      "allowed": ["gt", "lt", "gte", "lte", "eq"]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全プロジェクトデータへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のプロジェクトデータのみ）</li>
+            <li><code>ROLE_FINANCE</code>（全プロジェクトデータへのアクセス）</li>
+            <li><code>ROLE_SALES</code>（担当プロジェクトのデータのみ、一部の詳細情報制限あり）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/profit/by-engineer</h3>
+        <p><strong>説明：</strong> 技術者別の粗利レポートを取得します。特定期間における技術者ごとの粗利集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>開始日（ISO 8601形式）。デフォルトは当年初め</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>終了日（ISO 8601形式）。デフォルトは当日</td>
+            </tr>
+            <tr>
+                <td>period</td>
+                <td>string</td>
+                <td>No</td>
+                <td>集計期間（monthly, quarterly, annual）。デフォルトはmonthly</td>
+            </tr>
+            <tr>
+                <td>engineerId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定技術者のみ表示する場合の技術者ID</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定部門の技術者のみ表示する場合の部門ID</td>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定プロジェクトの技術者のみ表示する場合のプロジェクトID</td>
+            </tr>
+            <tr>
+                <td>employmentType</td>
+                <td>string</td>
+                <td>No</td>
+                <td>雇用形態でフィルター（正社員, 契約社員, パートナー等）</td>
+            </tr>
+            <tr>
+                <td>skillLevel</td>
+                <td>string</td>
+                <td>No</td>
+                <td>スキルレベルでフィルター（初級, 中級, 上級等）</td>
+            </tr>
+            <tr>
+                <td>profitMarginThreshold</td>
+                <td>number</td>
+                <td>No</td>
+                <td>粗利率のしきい値。これ以上/以下の粗利率の技術者のみを表示</td>
+            </tr>
+            <tr>
+                <td>profitMarginOperator</td>
+                <td>string</td>
+                <td>No</td>
+                <td>粗利率の比較演算子（gt, lt, gte, lte, eq）。デフォルトはgte</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート順（grossProfit, profitMargin, totalSales, engineerName）。デフォルトはgrossProfit</td>
+            </tr>
+            <tr>
+                <td>order</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート方向（asc, desc）。デフォルトはdesc</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得する技術者数。デフォルトは20</td>
+            </tr>
+            <tr>
+                <td>offset</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得開始位置（ページネーション用）。デフォルトは0</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": {
+      "type": "custom",
+      "from": "2023-01-01",
+      "to": "2023-04-30"
+    },
+    "filters": {
+      "engineerId": null,
+      "departmentId": null,
+      "projectId": null,
+      "employmentType": null,
+      "skillLevel": null,
+      "profitMarginThreshold": null,
+      "profitMarginOperator": null
+    },
+    "pagination": {
+      "limit": 20,
+      "offset": 0,
+      "total": 85,
+      "next": "/api/v1/reports/profit/by-engineer?limit=20&offset=20",
+      "previous": null
+    }
+  },
+  "data": [
+    {
+      "engineerId": "engineer_128",
+      "engineerName": "インフラ花子",
+      "employeeCode": "E00128",
+      "departmentId": "dept_1232",
+      "departmentName": "インフラ構築部",
+      "employmentType": "正社員",
+      "position": "チーフエンジニア",
+      "skillLevel": "上級",
+      "joinDate": "2018-04-01",
+      "totalSales": 3000000,
+      "totalCost": 2000000,
+      "grossProfit": 1000000,
+      "grossProfitMargin": 0.33,
+      "targetProfit": 950000,
+      "achievementRate": 1.05,
+      "billableRate": 0.95,
+      "monthlyBillableAmount": 750000,
+      "monthlyCost": 500000,
+      "periodProfits": {
+        "2023-01": 240000,
+        "2023-02": 250000,
+        "2023-03": 250000,
+        "2023-04": 260000
+      },
+      "projectAssignments": [
+        {
+          "projectId": "project_458",
+          "projectName": "クラウド移行支援",
+          "customerId": "customer_124",
+          "customerName": "株式会社XYZ",
+          "role": "アーキテクト",
+          "startDate": "2022-12-01",
+          "endDate": "2023-08-31",
+          "billableRate": 750000,
+          "totalSales": 3000000,
+          "totalCost": 2000000,
+          "grossProfit": 1000000,
+          "grossProfitMargin": 0.33
+        }
+      ],
+      "skillSet": ["AWS", "Azure", "Kubernetes", "Terraform", "Docker"]
+    },
+    {
+      "engineerId": "engineer_129",
+      "engineerName": "開発一郎",
+      "employeeCode": "E00129",
+      "departmentId": "dept_1231",
+      "departmentName": "システム開発部",
+      "employmentType": "正社員",
+      "position": "シニアエンジニア",
+      "skillLevel": "上級",
+      "joinDate": "2017-04-01",
+      "totalSales": 3200000,
+      "totalCost": 2200000,
+      "grossProfit": 1000000,
+      "grossProfitMargin": 0.31,
+      "targetProfit": 960000,
+      "achievementRate": 1.04,
+      "billableRate": 0.98,
+      "monthlyBillableAmount": 800000,
+      "monthlyCost": 550000,
+      "periodProfits": {
+        "2023-01": 240000,
+        "2023-02": 250000,
+        "2023-03": 250000,
+        "2023-04": 260000
+      },
+      "projectAssignments": [
+        {
+          "projectId": "project_460",
+          "projectName": "ECサイト構築",
+          "customerId": "customer_125",
+          "customerName": "株式会社DEF",
+          "role": "テックリード",
+          "startDate": "2022-11-01",
+          "endDate": "2023-06-30",
+          "billableRate": 800000,
+          "totalSales": 3200000,
+          "totalCost": 2200000,
+          "grossProfit": 1000000,
+          "grossProfitMargin": 0.31
+        }
+      ],
+      "skillSet": ["Java", "Spring Boot", "React", "MySQL", "AWS"]
+    }
+    // 他の技術者...
+  ],
+  "summary": {
+    "totalEngineers": 85,
+    "activeEngineers": 80,
+    "benchEngineers": 5,
+    "totalSales": 80000000,
+    "totalCost": 56000000,
+    "totalGrossProfit": 24000000,
+    "overallGrossProfitMargin": 0.3,
+    "averageProfitPerEngineer": 282352.9,
+    "highProfitMarginEngineers": 35,
+    "highProfitMarginThreshold": 0.35,
+    "lowProfitMarginEngineers": 8,
+    "lowProfitMarginThreshold": 0.2,
+    "employmentTypeBreakdown": {
+      "正社員": {
+        "count": 65,
+        "totalSales": 65000000,
+        "totalProfit": 20000000,
+        "averageMargin": 0.31
+      },
+      "契約社員": {
+        "count": 15,
+        "totalSales": 12000000,
+        "totalProfit": 3600000,
+        "averageMargin": 0.3
+      },
+      "パートナー": {
+        "count": 5,
+        "totalSales": 3000000,
+        "totalProfit": 400000,
+        "averageMargin": 0.13
+      }
+    },
+    "skillLevelBreakdown": {
+      "上級": {
+        "count": 20,
+        "totalSales": 24000000,
+        "totalProfit": 8400000,
+        "averageMargin": 0.35
+      },
+      "中級": {
+        "count": 45,
+        "totalSales": 45000000,
+        "totalProfit": 13500000,
+        "averageMargin": 0.3
+      },
+      "初級": {
+        "count": 20,
+        "totalSales": 11000000,
+        "totalProfit": 2100000,
+        "averageMargin": 0.19
+      }
+    }
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_EMPLOYMENT_TYPE",
+    "message": "無効な雇用形態が指定されました。",
+    "details": {
+      "employmentType": "invalid",
+      "allowed": ["正社員", "契約社員", "パートナー", "アルバイト"]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全技術者データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門の技術者データのみ）</li>
+            <li><code>ROLE_FINANCE</code>（全技術者データへのアクセス）</li>
+            <li><code>ROLE_HR</code>（一部の技術者データへのアクセス、コスト情報制限あり）</li>
+        </ul>
+    </div>
+</body>
+</html>

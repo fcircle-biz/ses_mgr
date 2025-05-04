@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>案件基本API設計 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+        h1 {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            margin-bottom: 30px;
+        }
+        .section {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            font-size: 0.9em;
+            border-left: 3px solid #3498db;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .api-method {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+            min-width: 60px;
+            text-align: center;
+        }
+        .get {
+            background-color: #61affe;
+        }
+        .post {
+            background-color: #49cc90;
+        }
+        .put {
+            background-color: #fca130;
+        }
+        .patch {
+            background-color: #50e3c2;
+        }
+        .delete {
+            background-color: #f93e3e;
+        }
+        .endpoint {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .response-example, .request-example {
+            margin: 15px 0;
+        }
+        .note {
+            background-color: #fffde7;
+            padding: 15px;
+            border-left: 4px solid #ffd600;
+            margin: 20px 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        .navigation {
+            margin: 20px 0;
+        }
+        .navigation a {
+            display: inline-block;
+            margin-right: 15px;
+            color: #3498db;
+            text-decoration: none;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>案件基本API設計</h1>
+    
+    <div class="navigation">
+        <a href="../案件管理API.html">← 案件管理API概要へ戻る</a>
+        <a href="02_案件検索API.html">次へ：案件検索API →</a>
+    </div>
+
+    <div class="section">
+        <h2>1. 概要</h2>
+        <p>案件基本APIは、SES業務システムにおける案件情報の基本的なCRUD操作（作成、読み取り、更新、削除）を提供します。案件の登録から管理までの基本的な機能を実装するためのエンドポイントを定義しています。</p>
+    </div>
+    
+    <div class="section">
+        <h2>2. エンドポイント一覧</h2>
+        <table>
+            <tr>
+                <th>HTTPメソッド</th>
+                <th>エンドポイント</th>
+                <th>説明</th>
+                <th>必要権限</th>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td>/api/v1/projects</td>
+                <td>案件一覧の取得</td>
+                <td>projects:read</td>
+            </tr>
+            <tr>
+                <td>POST</td>
+                <td>/api/v1/projects</td>
+                <td>新規案件の登録</td>
+                <td>projects:create</td>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td>/api/v1/projects/{id}</td>
+                <td>案件詳細の取得</td>
+                <td>projects:read</td>
+            </tr>
+            <tr>
+                <td>PUT</td>
+                <td>/api/v1/projects/{id}</td>
+                <td>案件情報の全体更新</td>
+                <td>projects:update</td>
+            </tr>
+            <tr>
+                <td>PATCH</td>
+                <td>/api/v1/projects/{id}</td>
+                <td>案件情報の部分更新</td>
+                <td>projects:update</td>
+            </tr>
+            <tr>
+                <td>DELETE</td>
+                <td>/api/v1/projects/{id}</td>
+                <td>案件の削除</td>
+                <td>projects:delete</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2>3. 各エンドポイントの詳細</h2>
+        
+        <div class="endpoint">
+            <h3>3.1 案件一覧の取得</h3>
+            <p><span class="api-method get">GET</span> <code>/api/v1/projects</code></p>
+            <p>登録されている案件の一覧を取得します。ページネーション、ソート、フィルタリングに対応しています。</p>
+            
+            <h4>クエリパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                    <th>デフォルト値</th>
+                </tr>
+                <tr>
+                    <td>page</td>
+                    <td>number</td>
+                    <td>ページ番号</td>
+                    <td>No</td>
+                    <td>1</td>
+                </tr>
+                <tr>
+                    <td>per_page</td>
+                    <td>number</td>
+                    <td>1ページあたりの件数</td>
+                    <td>No</td>
+                    <td>20</td>
+                </tr>
+                <tr>
+                    <td>sort</td>
+                    <td>string</td>
+                    <td>ソート条件（例: created_at:desc,name:asc）</td>
+                    <td>No</td>
+                    <td>created_at:desc</td>
+                </tr>
+                <tr>
+                    <td>status</td>
+                    <td>string</td>
+                    <td>案件ステータス（複数指定可: status=open,in_progress）</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>client_id</td>
+                    <td>string</td>
+                    <td>顧客ID</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>min_price</td>
+                    <td>number</td>
+                    <td>最低単価</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>max_price</td>
+                    <td>number</td>
+                    <td>最高単価</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>start_date_from</td>
+                    <td>string (ISO8601)</td>
+                    <td>開始日の下限</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>start_date_to</td>
+                    <td>string (ISO8601)</td>
+                    <td>開始日の上限</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>skill_ids</td>
+                    <td>string (comma separated)</td>
+                    <td>必要スキルID（複数可）</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+            </table>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (200 OK)</h5>
+                <pre><code>{
+  "data": [
+    {
+      "id": "proj-001",
+      "name": "次世代ECサイト開発プロジェクト",
+      "client": {
+        "id": "client-123",
+        "name": "株式会社テックリテール"
+      },
+      "status": "open",
+      "description": "ECサイトのフルリニューアルプロジェクト。既存システムからの移行を含む。",
+      "start_date": "2025-07-01",
+      "end_date": "2026-03-31",
+      "location": "東京都渋谷区",
+      "work_style": "hybrid",
+      "price_range": {
+        "min": 750000,
+        "max": 850000,
+        "currency": "JPY"
+      },
+      "required_person_count": 3,
+      "created_at": "2025-05-01T10:30:00+09:00",
+      "updated_at": "2025-05-01T10:30:00+09:00"
+    },
+    {
+      "id": "proj-002",
+      "name": "社内基幹システム刷新プロジェクト",
+      "client": {
+        "id": "client-456",
+        "name": "グローバル商事株式会社"
+      },
+      "status": "open",
+      "description": "老朽化した基幹システムの刷新プロジェクト。会計・人事・営業支援システムを統合。",
+      "start_date": "2025-08-01",
+      "end_date": "2026-07-31",
+      "location": "東京都千代田区",
+      "work_style": "onsite",
+      "price_range": {
+        "min": 800000,
+        "max": 950000,
+        "currency": "JPY"
+      },
+      "required_person_count": 5,
+      "created_at": "2025-05-02T14:45:00+09:00",
+      "updated_at": "2025-05-02T14:45:00+09:00"
+    }
+    // 他の案件情報...
+  ],
+  "meta": {
+    "pagination": {
+      "total_count": 47,
+      "total_pages": 3,
+      "current_page": 1,
+      "per_page": 20
+    }
+  }
+}</code></pre>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>権限エラー (403 Forbidden)</h5>
+                <pre><code>{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "案件一覧の閲覧権限がありません。",
+    "details": []
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:read 権限が必要</li>
+                <li>所属部署などによるデータアクセス制限がある場合あり</li>
+            </ul>
+        </div>
+        
+        <div class="endpoint">
+            <h3>3.2 新規案件の登録</h3>
+            <p><span class="api-method post">POST</span> <code>/api/v1/projects</code></p>
+            <p>新しい案件情報を登録します。</p>
+            
+            <h4>リクエストボディ</h4>
+            <div class="request-example">
+                <pre><code>{
+  "name": "金融機関向けセキュリティ強化プロジェクト",
+  "client_id": "client-789",
+  "description": "インターネットバンキングシステムのセキュリティ強化プロジェクト。脆弱性診断と対策実装を行う。",
+  "start_date": "2025-09-01",
+  "end_date": "2026-02-28",
+  "location": "東京都港区",
+  "work_style": "remote",
+  "price_range": {
+    "min": 800000,
+    "max": 900000,
+    "currency": "JPY"
+  },
+  "required_person_count": 2,
+  "requirements": [
+    {
+      "title": "セキュリティ診断",
+      "description": "既存システムの脆弱性診断を実施し、レポートを作成する",
+      "priority": "high"
+    },
+    {
+      "title": "セキュリティ対策実装",
+      "description": "診断結果に基づいたセキュリティ対策の実装",
+      "priority": "high"
+    }
+  ],
+  "required_skills": [
+    {
+      "skill_id": "skill-123",
+      "level": "expert",
+      "is_required": true
+    },
+    {
+      "skill_id": "skill-456",
+      "level": "intermediate",
+      "is_required": false
+    }
+  ],
+  "manager_id": "user-123",
+  "department_id": "dept-456"
+}</code></pre>
+            </div>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (201 Created)</h5>
+                <pre><code>{
+  "data": {
+    "id": "proj-003",
+    "name": "金融機関向けセキュリティ強化プロジェクト",
+    "client": {
+      "id": "client-789",
+      "name": "ABCバンク株式会社"
+    },
+    "status": "draft",
+    "description": "インターネットバンキングシステムのセキュリティ強化プロジェクト。脆弱性診断と対策実装を行う。",
+    "start_date": "2025-09-01",
+    "end_date": "2026-02-28",
+    "location": "東京都港区",
+    "work_style": "remote",
+    "price_range": {
+      "min": 800000,
+      "max": 900000,
+      "currency": "JPY"
+    },
+    "required_person_count": 2,
+    "requirements": [
+      {
+        "id": "req-001",
+        "title": "セキュリティ診断",
+        "description": "既存システムの脆弱性診断を実施し、レポートを作成する",
+        "priority": "high"
+      },
+      {
+        "id": "req-002",
+        "title": "セキュリティ対策実装",
+        "description": "診断結果に基づいたセキュリティ対策の実装",
+        "priority": "high"
+      }
+    ],
+    "required_skills": [
+      {
+        "skill": {
+          "id": "skill-123",
+          "name": "ネットワークセキュリティ"
+        },
+        "level": "expert",
+        "is_required": true
+      },
+      {
+        "skill": {
+          "id": "skill-456",
+          "name": "Webアプリケーションセキュリティ"
+        },
+        "level": "intermediate",
+        "is_required": false
+      }
+    ],
+    "manager": {
+      "id": "user-123",
+      "name": "山田太郎"
+    },
+    "department": {
+      "id": "dept-456",
+      "name": "金融ソリューション部"
+    },
+    "created_at": "2025-05-04T15:20:00+09:00",
+    "updated_at": "2025-05-04T15:20:00+09:00"
+  }
+}</code></pre>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>バリデーションエラー (400 Bad Request)</h5>
+                <pre><code>{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "入力内容に誤りがあります。",
+    "details": [
+      {
+        "field": "name",
+        "message": "案件名は必須です。"
+      },
+      {
+        "field": "client_id",
+        "message": "存在しない顧客IDが指定されています。"
+      },
+      {
+        "field": "start_date",
+        "message": "開始日は終了日より前の日付を指定してください。"
+      }
+    ]
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:create 権限が必要</li>
+                <li>部署や担当顧客によるアクセス制限がある場合あり</li>
+            </ul>
+        </div>
+        
+        <div class="endpoint">
+            <h3>3.3 案件詳細の取得</h3>
+            <p><span class="api-method get">GET</span> <code>/api/v1/projects/{id}</code></p>
+            <p>指定されたIDの案件の詳細情報を取得します。</p>
+            
+            <h4>パスパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                </tr>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td>案件ID</td>
+                    <td>Yes</td>
+                </tr>
+            </table>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (200 OK)</h5>
+                <pre><code>{
+  "data": {
+    "id": "proj-001",
+    "name": "次世代ECサイト開発プロジェクト",
+    "client": {
+      "id": "client-123",
+      "name": "株式会社テックリテール"
+    },
+    "status": "open",
+    "description": "ECサイトのフルリニューアルプロジェクト。既存システムからの移行を含む。",
+    "start_date": "2025-07-01",
+    "end_date": "2026-03-31",
+    "location": "東京都渋谷区",
+    "work_style": "hybrid",
+    "price_range": {
+      "min": 750000,
+      "max": 850000,
+      "currency": "JPY"
+    },
+    "required_person_count": 3,
+    "filled_count": 1,
+    "requirements": [
+      {
+        "id": "req-101",
+        "title": "フロントエンド開発",
+        "description": "ReactベースのSPAフロントエンド開発",
+        "priority": "high"
+      },
+      {
+        "id": "req-102",
+        "title": "APIバックエンド開発",
+        "description": "REST APIの設計・開発",
+        "priority": "high"
+      },
+      {
+        "id": "req-103",
+        "title": "データ移行",
+        "description": "既存システムからのデータ移行作業",
+        "priority": "medium"
+      }
+    ],
+    "required_skills": [
+      {
+        "skill": {
+          "id": "skill-201",
+          "name": "React"
+        },
+        "level": "expert",
+        "is_required": true
+      },
+      {
+        "skill": {
+          "id": "skill-202",
+          "name": "Node.js"
+        },
+        "level": "intermediate",
+        "is_required": true
+      },
+      {
+        "skill": {
+          "id": "skill-203",
+          "name": "AWS"
+        },
+        "level": "intermediate",
+        "is_required": false
+      }
+    ],
+    "manager": {
+      "id": "user-301",
+      "name": "鈴木一郎"
+    },
+    "department": {
+      "id": "dept-101",
+      "name": "デジタルソリューション部"
+    },
+    "created_at": "2025-05-01T10:30:00+09:00",
+    "updated_at": "2025-05-03T15:45:00+09:00",
+    "attachments": [
+      {
+        "id": "attach-101",
+        "name": "案件概要書.pdf",
+        "size": 2459648,
+        "content_type": "application/pdf",
+        "url": "/api/v1/projects/proj-001/attachments/attach-101",
+        "uploaded_at": "2025-05-01T10:35:00+09:00"
+      }
+    ],
+    "activity_history": [
+      {
+        "action": "status_changed",
+        "from": "draft",
+        "to": "open",
+        "actor": {
+          "id": "user-301",
+          "name": "鈴木一郎"
+        },
+        "timestamp": "2025-05-03T15:45:00+09:00",
+        "comment": "要件確定のため公開ステータスに変更"
+      }
+    ]
+  }
+}</code></pre>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>リソースが見つからない (404 Not Found)</h5>
+                <pre><code>{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定された案件が見つかりません。",
+    "details": []
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:read 権限が必要</li>
+                <li>所属部署や担当顧客によるアクセス制限がある場合あり</li>
+            </ul>
+        </div>
+        
+        <div class="endpoint">
+            <h3>3.4 案件情報の全体更新</h3>
+            <p><span class="api-method put">PUT</span> <code>/api/v1/projects/{id}</code></p>
+            <p>指定されたIDの案件情報を全体的に更新します。更新時には全ての必須フィールドを含める必要があります。</p>
+            
+            <h4>パスパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                </tr>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td>案件ID</td>
+                    <td>Yes</td>
+                </tr>
+            </table>
+            
+            <h4>リクエストボディ</h4>
+            <div class="request-example">
+                <pre><code>{
+  "name": "次世代ECサイト開発プロジェクト（フェーズ2）",
+  "client_id": "client-123",
+  "description": "ECサイトのフルリニューアルプロジェクト。既存システムからの移行を含む。モバイルアプリ対応を追加。",
+  "start_date": "2025-07-01",
+  "end_date": "2026-06-30",
+  "location": "東京都渋谷区",
+  "work_style": "hybrid",
+  "price_range": {
+    "min": 800000,
+    "max": 900000,
+    "currency": "JPY"
+  },
+  "required_person_count": 4,
+  "manager_id": "user-301",
+  "department_id": "dept-101"
+}</code></pre>
+            </div>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (200 OK)</h5>
+                <pre><code>{
+  "data": {
+    "id": "proj-001",
+    "name": "次世代ECサイト開発プロジェクト（フェーズ2）",
+    "client": {
+      "id": "client-123",
+      "name": "株式会社テックリテール"
+    },
+    "status": "open",
+    "description": "ECサイトのフルリニューアルプロジェクト。既存システムからの移行を含む。モバイルアプリ対応を追加。",
+    "start_date": "2025-07-01",
+    "end_date": "2026-06-30",
+    "location": "東京都渋谷区",
+    "work_style": "hybrid",
+    "price_range": {
+      "min": 800000,
+      "max": 900000,
+      "currency": "JPY"
+    },
+    "required_person_count": 4,
+    "filled_count": 1,
+    "manager": {
+      "id": "user-301",
+      "name": "鈴木一郎"
+    },
+    "department": {
+      "id": "dept-101",
+      "name": "デジタルソリューション部"
+    },
+    "created_at": "2025-05-01T10:30:00+09:00",
+    "updated_at": "2025-05-04T16:30:00+09:00"
+  }
+}</code></pre>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>バリデーションエラー (400 Bad Request)</h5>
+                <pre><code>{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "入力内容に誤りがあります。",
+    "details": [
+      {
+        "field": "end_date",
+        "message": "終了日は開始日より後の日付を指定してください。"
+      }
+    ]
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:update 権限が必要</li>
+                <li>案件作成者・案件担当者または管理者権限を持つユーザーのみ更新可能</li>
+            </ul>
+        </div>
+        
+        <div class="endpoint">
+            <h3>3.5 案件情報の部分更新</h3>
+            <p><span class="api-method patch">PATCH</span> <code>/api/v1/projects/{id}</code></p>
+            <p>指定されたIDの案件情報を部分的に更新します。更新したいフィールドのみを含めることができます。</p>
+            
+            <h4>パスパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                </tr>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td>案件ID</td>
+                    <td>Yes</td>
+                </tr>
+            </table>
+            
+            <h4>リクエストボディ</h4>
+            <div class="request-example">
+                <pre><code>{
+  "description": "ECサイトのフルリニューアルプロジェクト。既存システムからの移行を含む。モバイルアプリ対応とAI推奨機能を追加。",
+  "end_date": "2026-06-30",
+  "required_person_count": 4
+}</code></pre>
+            </div>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (200 OK)</h5>
+                <pre><code>{
+  "data": {
+    "id": "proj-001",
+    "name": "次世代ECサイト開発プロジェクト",
+    "client": {
+      "id": "client-123",
+      "name": "株式会社テックリテール"
+    },
+    "status": "open",
+    "description": "ECサイトのフルリニューアルプロジェクト。既存システムからの移行を含む。モバイルアプリ対応とAI推奨機能を追加。",
+    "start_date": "2025-07-01",
+    "end_date": "2026-06-30",
+    "location": "東京都渋谷区",
+    "work_style": "hybrid",
+    "price_range": {
+      "min": 750000,
+      "max": 850000,
+      "currency": "JPY"
+    },
+    "required_person_count": 4,
+    "filled_count": 1,
+    "created_at": "2025-05-01T10:30:00+09:00",
+    "updated_at": "2025-05-04T16:40:00+09:00"
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:update 権限が必要</li>
+                <li>案件作成者・案件担当者または管理者権限を持つユーザーのみ更新可能</li>
+            </ul>
+        </div>
+        
+        <div class="endpoint">
+            <h3>3.6 案件の削除</h3>
+            <p><span class="api-method delete">DELETE</span> <code>/api/v1/projects/{id}</code></p>
+            <p>指定されたIDの案件を削除します。論理削除（ステータスを「削除済み」に変更）または物理削除を行います。</p>
+            
+            <h4>パスパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                </tr>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td>案件ID</td>
+                    <td>Yes</td>
+                </tr>
+            </table>
+            
+            <h4>クエリパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                    <th>デフォルト値</th>
+                </tr>
+                <tr>
+                    <td>permanent</td>
+                    <td>boolean</td>
+                    <td>物理削除を行うかどうか</td>
+                    <td>No</td>
+                    <td>false</td>
+                </tr>
+            </table>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (204 No Content)</h5>
+                <p>レスポンスボディなし</p>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>ビジネスロジックエラー (422 Unprocessable Entity)</h5>
+                <pre><code>{
+  "error": {
+    "code": "BUSINESS_RULE_VIOLATION",
+    "message": "進行中の案件は削除できません。",
+    "details": []
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:delete 権限が必要</li>
+                <li>物理削除は管理者権限を持つユーザーのみ実行可能</li>
+                <li>進行中の案件や契約済みの案件は削除不可（論理削除も含む）</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>4. リクエスト・レスポンス共通項目</h2>
+        
+        <h3>4.1 案件オブジェクト共通構造</h3>
+        <p>案件データの基本構造は以下の通りです。各エンドポイントにより、返される項目の範囲が異なる場合があります。</p>
+        
+        <pre><code>{
+  "id": "string",             // 案件ID（システム生成）
+  "name": "string",           // 案件名（必須）
+  "client": {                 // 顧客情報
+    "id": "string",           // 顧客ID（必須）
+    "name": "string"          // 顧客名
+  },
+  "status": "string",         // 案件ステータス（draft/open/in_progress/on_hold/completed/cancelled）
+  "description": "string",    // 案件詳細説明
+  "start_date": "string",     // 開始予定日（ISO8601形式、必須）
+  "end_date": "string",       // 終了予定日（ISO8601形式、必須）
+  "location": "string",       // 就業場所
+  "work_style": "string",     // 勤務形態（onsite/remote/hybrid）
+  "price_range": {            // 単価範囲
+    "min": number,            // 最低単価
+    "max": number,            // 最高単価
+    "currency": "string"      // 通貨コード（デフォルト: JPY）
+  },
+  "required_person_count": number,  // 必要人数
+  "filled_count": number,           // 配置済み人数
+  "manager": {                // 案件担当者
+    "id": "string",           // 担当者ID
+    "name": "string"          // 担当者名
+  },
+  "department": {             // 担当部署
+    "id": "string",           // 部署ID
+    "name": "string"          // 部署名
+  },
+  "created_at": "string",     // 作成日時（ISO8601形式）
+  "updated_at": "string"      // 更新日時（ISO8601形式）
+}</code></pre>
+        
+        <h3>4.2 エラーレスポンス共通構造</h3>
+        <p>エラー発生時のレスポンス構造は以下の通りです。</p>
+        
+        <pre><code>{
+  "error": {
+    "code": "string",         // エラーコード
+    "message": "string",      // エラーメッセージ
+    "details": [              // 詳細エラー情報（オプション）
+      {
+        "field": "string",    // エラー発生フィールド
+        "message": "string"   // 詳細メッセージ
+      }
+    ]
+  }
+}</code></pre>
+        
+        <h3>4.3 主要なエラーコード</h3>
+        <table>
+            <tr>
+                <th>エラーコード</th>
+                <th>HTTPステータス</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>VALIDATION_ERROR</td>
+                <td>400 Bad Request</td>
+                <td>入力値のバリデーションエラー</td>
+            </tr>
+            <tr>
+                <td>UNAUTHORIZED</td>
+                <td>401 Unauthorized</td>
+                <td>認証エラー</td>
+            </tr>
+            <tr>
+                <td>FORBIDDEN</td>
+                <td>403 Forbidden</td>
+                <td>権限不足</td>
+            </tr>
+            <tr>
+                <td>RESOURCE_NOT_FOUND</td>
+                <td>404 Not Found</td>
+                <td>リソースが見つからない</td>
+            </tr>
+            <tr>
+                <td>BUSINESS_RULE_VIOLATION</td>
+                <td>422 Unprocessable Entity</td>
+                <td>ビジネスルール違反</td>
+            </tr>
+            <tr>
+                <td>INTERNAL_SERVER_ERROR</td>
+                <td>500 Internal Server Error</td>
+                <td>サーバー内部エラー</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="note">
+        <p><strong>注意：</strong> 本API設計は基本設計段階のものであり、詳細設計フェーズにおいて変更される可能性があります。また、実装時のパフォーマンスやセキュリティ要件によって仕様が調整されることがあります。</p>
+    </div>
+    
+    <div class="navigation">
+        <a href="../案件管理API.html">← 案件管理API概要へ戻る</a>
+        <a href="02_案件検索API.html">次へ：案件検索API →</a>
+    </div>
+    
+    <footer>
+        <p>SES業務システム 案件基本API設計 | 作成日: 2025年5月4日</p>
+    </footer>
+</body>
+</html>

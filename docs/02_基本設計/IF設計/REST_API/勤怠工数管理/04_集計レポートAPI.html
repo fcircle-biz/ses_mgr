@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>集計レポートAPI 設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #0066cc;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #333;
+            margin-top: 25px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .endpoint {
+            font-family: monospace;
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .api-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #0066cc;
+        }
+        .method {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            color: white;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #0066cc;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+    </style>
+</head>
+<body>
+    <a href="../勤怠工数管理API.html" class="back-link">← 勤怠・工数管理API一覧へ戻る</a>
+    <h1>集計レポートAPI 設計書</h1>
+
+    <div class="api-section">
+        <h2>1. 概要</h2>
+        <p>
+            集計レポートAPIは、勤怠情報や工数情報を集計・分析してレポートを提供するためのAPIです。
+            管理者やプロジェクトマネージャーが、期間や部門、プロジェクトなどの単位で勤怠・工数の集計データを取得し、
+            人員リソースの状況把握や工数実績の分析などを行うための機能を提供します。
+        </p>
+    </div>
+
+    <div class="api-section">
+        <h2>2. API エンドポイント一覧</h2>
+        <table>
+            <tr>
+                <th>メソッド</th>
+                <th>パス</th>
+                <th>説明</th>
+                <th>アクセス権限</th>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/report/attendance</td>
+                <td>勤怠集計レポート取得</td>
+                <td>システム管理者、勤怠管理者、部門管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/report/workload</td>
+                <td>工数集計レポート取得</td>
+                <td>システム管理者、工数管理者、部門管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/report/workload/projects</td>
+                <td>プロジェクト別工数集計</td>
+                <td>システム管理者、工数管理者、案件担当者、PM/PL</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/report/workload/departments</td>
+                <td>部門別工数集計</td>
+                <td>システム管理者、工数管理者、部門管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/report/attendance/anomaly</td>
+                <td>勤怠異常レポート</td>
+                <td>システム管理者、勤怠管理者、部門管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method post">POST</span></td>
+                <td>/api/v1/timesheet/report/export</td>
+                <td>レポートエクスポート</td>
+                <td>システム管理者、勤怠管理者、工数管理者、部門管理者</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- GET /api/v1/timesheet/report/attendance -->
+    <div class="api-section">
+        <h2>3. API詳細</h2>
+        <h3 id="get-attendance-report">3.1 勤怠集計レポート取得</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/report/attendance</span></p>
+        
+        <h4>説明</h4>
+        <p>特定期間の勤怠情報を集計したレポートを取得します。部門単位や個人単位で勤務時間や残業時間、休暇取得状況などを分析するために使用します。</p>
+        
+        <h4>リクエストパラメータ（クエリパラメータ）</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>対象年（例: 2025）</td>
+            </tr>
+            <tr>
+                <td>month</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>対象月（1-12）</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の開始日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の終了日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定部門の勤怠情報のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定ユーザーの勤怠情報のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>groupBy</td>
+                <td>string</td>
+                <td>No</td>
+                <td>集計単位（department: 部門別、user: ユーザー別[デフォルト]）</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "period": {
+      "year": 2025,
+      "month": 5,
+      "startDate": "2025-05-01",
+      "endDate": "2025-05-31",
+      "totalDays": 31,
+      "weekdays": 21,
+      "holidays": 10
+    },
+    "summary": {
+      "totalUsers": 45,
+      "totalWorkingHours": 7425.5,
+      "avgWorkingHours": 165.0,
+      "totalOvertimeHours": 315.5,
+      "avgOvertimeHours": 7.0,
+      "totalLateArrivals": 12,
+      "totalEarlyDepartures": 8,
+      "totalAbsences": 3,
+      "totalPaidLeave": 25,
+      "totalSickLeave": 5
+    },
+    "items": [
+      {
+        "departmentId": "dept001",
+        "departmentName": "開発部",
+        "userCount": 25,
+        "totalWorkingHours": 4125.0,
+        "avgWorkingHours": 165.0,
+        "totalOvertimeHours": 212.5,
+        "avgOvertimeHours": 8.5,
+        "totalLateArrivals": 5,
+        "totalEarlyDepartures": 3,
+        "totalAbsences": 1,
+        "totalPaidLeave": 15,
+        "totalSickLeave": 2,
+        "users": [
+          {
+            "userId": "user123",
+            "userName": "山田太郎",
+            "totalWorkingHours": 172.5,
+            "overtimeHours": 12.5,
+            "lateArrivals": 0,
+            "earlyDepartures": 0,
+            "absences": 0,
+            "paidLeave": 1,
+            "sickLeave": 0
+          },
+          {
+            "userId": "user456",
+            "userName": "鈴木花子",
+            "totalWorkingHours": 165.0,
+            "overtimeHours": 5.0,
+            "lateArrivals": 1,
+            "earlyDepartures": 0,
+            "absences": 0,
+            "paidLeave": 0,
+            "sickLeave": 1
+          }
+          // ... 他のユーザー ...
+        ]
+      },
+      {
+        "departmentId": "dept002",
+        "departmentName": "営業部",
+        "userCount": 15,
+        "totalWorkingHours": 2475.0,
+        "avgWorkingHours": 165.0,
+        "totalOvertimeHours": 82.5,
+        "avgOvertimeHours": 5.5,
+        "totalLateArrivals": 4,
+        "totalEarlyDepartures": 3,
+        "totalAbsences": 0,
+        "totalPaidLeave": 8,
+        "totalSickLeave": 2,
+        "users": [
+          // ... ユーザー情報 ...
+        ]
+      },
+      // ... 他の部門 ...
+    ]
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "期間の指定が不正です。年月または開始日・終了日を適切に指定してください。"
+}</code></pre>
+        
+        <p>ステータスコード: 403 Forbidden</p>
+        <pre><code>{
+  "status": "error",
+  "code": "FORBIDDEN",
+  "message": "このレポートを参照する権限がありません。"
+}</code></pre>
+    </div>
+
+    <!-- GET /api/v1/timesheet/report/workload -->
+    <div class="api-section">
+        <h3 id="get-workload-report">3.2 工数集計レポート取得</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/report/workload</span></p>
+        
+        <h4>説明</h4>
+        <p>特定期間の工数情報を集計したレポートを取得します。ユーザー単位や作業分類単位で工数実績を集計し、リソース配分や稼働状況を分析するために使用します。</p>
+        
+        <h4>リクエストパラメータ（クエリパラメータ）</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>対象年（例: 2025）</td>
+            </tr>
+            <tr>
+                <td>month</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>対象月（1-12）</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の開始日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の終了日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定ユーザーの工数情報のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定部門の工数情報のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定プロジェクトの工数情報のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>groupBy</td>
+                <td>string</td>
+                <td>No</td>
+                <td>集計単位（user: ユーザー別[デフォルト]、project: プロジェクト別、department: 部門別、task: 作業分類別）</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "period": {
+      "year": 2025,
+      "month": 5,
+      "startDate": "2025-05-01",
+      "endDate": "2025-05-31"
+    },
+    "summary": {
+      "totalUsers": 45,
+      "totalHours": 7425.5,
+      "avgHoursPerUser": 165.0,
+      "projectCount": 12,
+      "taskCategoryCount": 8
+    },
+    "items": [
+      {
+        "userId": "user123",
+        "userName": "山田太郎",
+        "departmentId": "dept001",
+        "departmentName": "開発部",
+        "totalHours": 172.5,
+        "utilization": 95.8,  // 稼働率（%）
+        "projects": [
+          {
+            "projectId": "proj001",
+            "projectName": "A社システム開発",
+            "hours": 120.5,
+            "percentage": 69.9,
+            "taskCategories": [
+              {
+                "taskCategoryId": "task001",
+                "taskCategoryName": "プログラミング",
+                "hours": 85.5,
+                "percentage": 49.6
+              },
+              {
+                "taskCategoryId": "task002",
+                "taskCategoryName": "テスト",
+                "hours": 25.0,
+                "percentage": 14.5
+              },
+              {
+                "taskCategoryId": "task003",
+                "taskCategoryName": "会議",
+                "hours": 10.0,
+                "percentage": 5.8
+              }
+            ]
+          },
+          {
+            "projectId": "proj002",
+            "projectName": "B社保守運用",
+            "hours": 52.0,
+            "percentage": 30.1,
+            "taskCategories": [
+              {
+                "taskCategoryId": "task001",
+                "taskCategoryName": "プログラミング",
+                "hours": 30.0,
+                "percentage": 17.4
+              },
+              {
+                "taskCategoryId": "task003",
+                "taskCategoryName": "会議",
+                "hours": 22.0,
+                "percentage": 12.7
+              }
+            ]
+          }
+        ]
+      },
+      // ... 他のユーザー ...
+    ]
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "期間の指定が不正です。年月または開始日・終了日を適切に指定してください。"
+}</code></pre>
+    </div>
+
+    <!-- GET /api/v1/timesheet/report/workload/projects -->
+    <div class="api-section">
+        <h3 id="get-project-workload-report">3.3 プロジェクト別工数集計</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/report/workload/projects</span></p>
+        
+        <h4>説明</h4>
+        <p>プロジェクト別の工数実績を集計したレポートを取得します。各プロジェクトのリソース利用状況や進捗状況を把握するために使用します。</p>
+        
+        <h4>リクエストパラメータ（クエリパラメータ）</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>対象年（例: 2025）</td>
+            </tr>
+            <tr>
+                <td>month</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>対象月（1-12）</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の開始日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の終了日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定プロジェクトの工数情報のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>projectStatus</td>
+                <td>string</td>
+                <td>No</td>
+                <td>プロジェクトステータス（active: 進行中[デフォルト]、all: すべて、completed: 完了済、planning: 計画中）</td>
+            </tr>
+            <tr>
+                <td>includeDetails</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>詳細情報を含めるかどうか（true/false、デフォルト: false）</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "period": {
+      "year": 2025,
+      "month": 5,
+      "startDate": "2025-05-01",
+      "endDate": "2025-05-31"
+    },
+    "summary": {
+      "totalProjects": 12,
+      "totalHours": 7425.5,
+      "activeProjects": 10,
+      "completedProjects": 0,
+      "planningProjects": 2
+    },
+    "items": [
+      {
+        "projectId": "proj001",
+        "projectName": "A社システム開発",
+        "projectCode": "PROJ2025-001",
+        "clientName": "A株式会社",
+        "status": "active",
+        "startDate": "2025-04-01",
+        "endDate": "2025-09-30",
+        "totalHours": 1250.5,
+        "plannedHours": 1200.0,
+        "progressRate": 104.2,  // 計画比率（%）
+        "memberCount": 8,
+        "taskCategorySummary": [
+          {
+            "taskCategoryId": "task001",
+            "taskCategoryName": "プログラミング",
+            "hours": 750.0,
+            "percentage": 60.0
+          },
+          {
+            "taskCategoryId": "task002",
+            "taskCategoryName": "テスト",
+            "hours": 250.5,
+            "percentage": 20.0
+          },
+          {
+            "taskCategoryId": "task003",
+            "taskCategoryName": "会議",
+            "hours": 150.0,
+            "percentage": 12.0
+          },
+          {
+            "taskCategoryId": "task004",
+            "taskCategoryName": "ドキュメント作成",
+            "hours": 100.0,
+            "percentage": 8.0
+          }
+        ],
+        "members": [
+          {
+            "userId": "user123",
+            "userName": "山田太郎",
+            "roleId": "role001",
+            "roleName": "プロジェクトリーダー",
+            "hours": 120.5,
+            "percentage": 9.6
+          },
+          {
+            "userId": "user456",
+            "userName": "鈴木花子",
+            "roleId": "role002",
+            "roleName": "エンジニア",
+            "hours": 115.0,
+            "percentage": 9.2
+          }
+          // ... 他のメンバー ...
+        ],
+        "weeklyTrend": [
+          {
+            "weekStartDate": "2025-05-01",
+            "weekEndDate": "2025-05-07",
+            "hours": 320.0
+          },
+          {
+            "weekStartDate": "2025-05-08",
+            "weekEndDate": "2025-05-14",
+            "hours": 305.5
+          },
+          {
+            "weekStartDate": "2025-05-15",
+            "weekEndDate": "2025-05-21",
+            "hours": 315.0
+          },
+          {
+            "weekStartDate": "2025-05-22",
+            "weekEndDate": "2025-05-28",
+            "hours": 310.0
+          }
+        ]
+      },
+      // ... 他のプロジェクト ...
+    ]
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 403 Forbidden</p>
+        <pre><code>{
+  "status": "error",
+  "code": "FORBIDDEN",
+  "message": "このレポートを参照する権限がありません。"
+}</code></pre>
+    </div>
+
+    <!-- GET /api/v1/timesheet/report/workload/departments -->
+    <div class="api-section">
+        <h3 id="get-department-workload-report">3.4 部門別工数集計</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/report/workload/departments</span></p>
+        
+        <h4>説明</h4>
+        <p>部門別の工数実績を集計したレポートを取得します。部門単位のリソース配分状況やプロジェクト間の負荷バランスを分析するために使用します。</p>
+        
+        <h4>リクエストパラメータ（クエリパラメータ）</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>対象年（例: 2025）</td>
+            </tr>
+            <tr>
+                <td>month</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>対象月（1-12）</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の開始日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の終了日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定部門の工数情報のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>includeSubDepartments</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>配下の部門を含めるかどうか（true/false、デフォルト: true）</td>
+            </tr>
+            <tr>
+                <td>includeDetails</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>詳細情報を含めるかどうか（true/false、デフォルト: false）</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "period": {
+      "year": 2025,
+      "month": 5,
+      "startDate": "2025-05-01",
+      "endDate": "2025-05-31"
+    },
+    "summary": {
+      "totalDepartments": 5,
+      "totalUsers": 45,
+      "totalHours": 7425.5,
+      "avgUtilization": 92.8  // 全体平均稼働率（%）
+    },
+    "items": [
+      {
+        "departmentId": "dept001",
+        "departmentName": "開発部",
+        "parentDepartmentId": null,
+        "userCount": 25,
+        "totalHours": 4125.0,
+        "avgHoursPerUser": 165.0,
+        "utilization": 95.8,  // 部門平均稼働率（%）
+        "projectDistribution": [
+          {
+            "projectId": "proj001",
+            "projectName": "A社システム開発",
+            "hours": 1850.0,
+            "percentage": 44.8
+          },
+          {
+            "projectId": "proj002",
+            "projectName": "B社保守運用",
+            "hours": 925.0,
+            "percentage": 22.4
+          },
+          {
+            "projectId": "proj003",
+            "projectName": "C社システム改修",
+            "hours": 750.0,
+            "percentage": 18.2
+          },
+          {
+            "projectId": "other",
+            "projectName": "その他",
+            "hours": 600.0,
+            "percentage": 14.6
+          }
+        ],
+        "taskCategoryDistribution": [
+          {
+            "taskCategoryId": "task001",
+            "taskCategoryName": "プログラミング",
+            "hours": 2475.0,
+            "percentage": 60.0
+          },
+          {
+            "taskCategoryId": "task002",
+            "taskCategoryName": "テスト",
+            "hours": 825.0,
+            "percentage": 20.0
+          },
+          {
+            "taskCategoryId": "task003",
+            "taskCategoryName": "会議",
+            "hours": 412.5,
+            "percentage": 10.0
+          },
+          {
+            "taskCategoryId": "task004",
+            "taskCategoryName": "ドキュメント作成",
+            "hours": 412.5,
+            "percentage": 10.0
+          }
+        ],
+        "subDepartments": [
+          {
+            "departmentId": "dept001-1",
+            "departmentName": "開発1課",
+            "userCount": 12,
+            "totalHours": 1980.0,
+            "utilization": 96.5
+          },
+          {
+            "departmentId": "dept001-2",
+            "departmentName": "開発2課",
+            "userCount": 13,
+            "totalHours": 2145.0,
+            "utilization": 95.1
+          }
+        ],
+        "topUsers": [
+          {
+            "userId": "user123",
+            "userName": "山田太郎",
+            "hours": 172.5,
+            "utilization": 97.5
+          },
+          {
+            "userId": "user456",
+            "userName": "鈴木花子",
+            "hours": 170.0,
+            "utilization": 96.0
+          },
+          // ... 他のトップユーザー ...
+        ]
+      },
+      // ... 他の部門 ...
+    ]
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 404 Not Found</p>
+        <pre><code>{
+  "status": "error",
+  "code": "NOT_FOUND",
+  "message": "指定された部門は存在しません。"
+}</code></pre>
+    </div>
+
+    <!-- GET /api/v1/timesheet/report/attendance/anomaly -->
+    <div class="api-section">
+        <h3 id="get-attendance-anomaly">3.5 勤怠異常レポート</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/report/attendance/anomaly</span></p>
+        
+        <h4>説明</h4>
+        <p>勤怠情報の異常値（長時間労働、休暇未取得、勤怠未提出など）を検出し、レポートとして提供します。労務管理や健康管理のための注意喚起に使用します。</p>
+        
+        <h4>リクエストパラメータ（クエリパラメータ）</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>対象年（例: 2025）</td>
+            </tr>
+            <tr>
+                <td>month</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>対象月（1-12）</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の開始日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の終了日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定部門の勤怠情報のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定ユーザーの勤怠情報のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>anomalyType</td>
+                <td>string</td>
+                <td>No</td>
+                <td>異常タイプ（overwork: 長時間労働、underwork: 勤務時間不足、not_submitted: 勤怠未提出、consecutive_work: 連続勤務、all: すべて[デフォルト]）</td>
+            </tr>
+            <tr>
+                <td>threshold</td>
+                <td>object</td>
+                <td>No</td>
+                <td>検出閾値（例: {"daily_overtime": 3, "monthly_overtime": 45, "consecutive_work_days": 7}）</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "period": {
+      "year": 2025,
+      "month": 5,
+      "startDate": "2025-05-01",
+      "endDate": "2025-05-31"
+    },
+    "thresholds": {
+      "daily_overtime": 3,          // 日次残業時間閾値（時間）
+      "monthly_overtime": 45,        // 月次残業時間閾値（時間）
+      "consecutive_work_days": 7,    // 連続勤務日数閾値（日）
+      "monthly_underwork": 140,      // 月次勤務時間下限閾値（時間）
+      "late_submission": 3           // 勤怠提出遅延閾値（日）
+    },
+    "summary": {
+      "totalUsers": 45,
+      "anomalyUsers": 8,
+      "overworkUsers": 3,
+      "underworkUsers": 1,
+      "consecutiveWorkUsers": 2,
+      "notSubmittedUsers": 4,
+      "highPriorityAnomalies": 2,    // 優先度高の異常数
+      "mediumPriorityAnomalies": 6   // 優先度中の異常数
+    },
+    "items": [
+      {
+        "userId": "user789",
+        "userName": "田中次郎",
+        "departmentId": "dept001",
+        "departmentName": "開発部",
+        "managerName": "佐藤部長",
+        "anomalies": [
+          {
+            "type": "overwork",
+            "priority": "high",
+            "description": "月間残業時間が閾値を超過しています",
+            "details": {
+              "monthlyOvertimeHours": 52.5,
+              "threshold": 45,
+              "excess": 7.5
+            }
+          },
+          {
+            "type": "consecutive_work",
+            "priority": "medium",
+            "description": "連続勤務日数が閾値を超過しています",
+            "details": {
+              "consecutiveWorkDays": 10,
+              "threshold": 7,
+              "startDate": "2025-05-13",
+              "endDate": "2025-05-22"
+            }
+          }
+        ]
+      },
+      {
+        "userId": "user456",
+        "userName": "鈴木花子",
+        "departmentId": "dept001",
+        "departmentName": "開発部",
+        "managerName": "佐藤部長",
+        "anomalies": [
+          {
+            "type": "not_submitted",
+            "priority": "medium",
+            "description": "勤怠情報が未提出の日があります",
+            "details": {
+              "dates": ["2025-05-29", "2025-05-30", "2025-05-31"],
+              "count": 3
+            }
+          }
+        ]
+      },
+      // ... 他のユーザー ...
+    ]
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "不正なanomalyTypeが指定されました。overwork、underwork、not_submitted、consecutive_work、allのいずれかを指定してください。"
+}</code></pre>
+    </div>
+
+    <!-- POST /api/v1/timesheet/report/export -->
+    <div class="api-section">
+        <h3 id="post-report-export">3.6 レポートエクスポート</h3>
+        <p><span class="method post">POST</span> <span class="endpoint">/api/v1/timesheet/report/export</span></p>
+        
+        <h4>説明</h4>
+        <p>勤怠・工数レポートを Excel や CSV 形式でエクスポートします。データをダウンロードして、外部ツールでの分析や保存に使用します。</p>
+        
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "reportType": "attendance",           // レポートタイプ（attendance: 勤怠、workload: 工数、attendance_anomaly: 勤怠異常、project_workload: プロジェクト別工数、department_workload: 部門別工数）
+  "format": "excel",                    // 出力形式（excel, csv）
+  "period": {
+    "year": 2025,
+    "month": 5
+  },
+  "filters": {                          // 各種フィルター（レポートタイプに応じて異なる）
+    "departmentId": "dept001",
+    "userId": null,
+    "projectId": null,
+    "groupBy": "user"
+  },
+  "columns": [                          // 出力する列（null の場合はデフォルト設定）
+    "userName",
+    "departmentName",
+    "totalWorkingHours",
+    "overtimeHours",
+    "lateArrivals",
+    "earlyDepartures",
+    "absences",
+    "paidLeave"
+  ],
+  "options": {                          // エクスポートオプション
+    "includeHeader": true,
+    "includeSummary": true,
+    "dateFormat": "YYYY/MM/DD"
+  }
+}</code></pre>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "fileUrl": "https://example.com/downloads/reports/attendance_202505_dept001_20250604123045.xlsx",
+    "fileName": "attendance_202505_dept001_20250604123045.xlsx",
+    "fileSize": 125436,
+    "expiresAt": "2025-06-11T12:30:45Z",  // ダウンロードURLの有効期限
+    "reportType": "attendance",
+    "period": {
+      "year": 2025,
+      "month": 5
+    },
+    "format": "excel"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "不正なreportTypeが指定されました。",
+  "details": [
+    {
+      "field": "reportType",
+      "message": "attendance、workload、attendance_anomaly、project_workload、department_workloadのいずれかを指定してください"
+    }
+  ]
+}</code></pre>
+        
+        <p>ステータスコード: 403 Forbidden</p>
+        <pre><code>{
+  "status": "error",
+  "code": "FORBIDDEN",
+  "message": "このレポートをエクスポートする権限がありません。"
+}</code></pre>
+    </div>
+
+    <div class="api-section">
+        <h2>4. レポートタイプと使用目的</h2>
+        <table>
+            <tr>
+                <th>レポートタイプ</th>
+                <th>エンドポイント</th>
+                <th>使用目的</th>
+                <th>主なユーザー</th>
+            </tr>
+            <tr>
+                <td>勤怠集計レポート</td>
+                <td>/api/v1/timesheet/report/attendance</td>
+                <td>部門別・ユーザー別の勤怠状況の把握、残業時間や休暇取得状況の分析</td>
+                <td>部門管理者、勤怠管理者、人事部門</td>
+            </tr>
+            <tr>
+                <td>工数集計レポート</td>
+                <td>/api/v1/timesheet/report/workload</td>
+                <td>ユーザー別の工数実績、プロジェクト・作業分類ごとの稼働状況の分析</td>
+                <td>部門管理者、工数管理者、PMO</td>
+            </tr>
+            <tr>
+                <td>プロジェクト別工数集計</td>
+                <td>/api/v1/timesheet/report/workload/projects</td>
+                <td>プロジェクトごとのリソース利用状況、進捗率、メンバー別貢献度の把握</td>
+                <td>PL/PM、工数管理者、案件担当者</td>
+            </tr>
+            <tr>
+                <td>部門別工数集計</td>
+                <td>/api/v1/timesheet/report/workload/departments</td>
+                <td>部門単位のリソース配分状況、プロジェクト間の負荷バランスの分析</td>
+                <td>部門管理者、工数管理者、経営層</td>
+            </tr>
+            <tr>
+                <td>勤怠異常レポート</td>
+                <td>/api/v1/timesheet/report/attendance/anomaly</td>
+                <td>長時間労働や連続勤務など労務リスクの検出、健康管理</td>
+                <td>部門管理者、勤怠管理者、人事部門</td>
+            </tr>
+            <tr>
+                <td>レポートエクスポート</td>
+                <td>/api/v1/timesheet/report/export</td>
+                <td>各種レポートのダウンロード、外部分析ツールでの利用、保存</td>
+                <td>全管理者</td>
+            </tr>
+        </table>
+    </div>
+
+    <footer>
+        <p>© 2025 SES業務システム</p>
+    </footer>
+</body>
+</html>

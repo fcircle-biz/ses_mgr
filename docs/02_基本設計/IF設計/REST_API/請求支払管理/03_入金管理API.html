@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>入金管理API 設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .note {
+            background-color: #fef9e7;
+            border-left: 4px solid #f1c40f;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .endpoint {
+            margin: 20px 0;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .http-method {
+            font-weight: bold;
+            color: #fff;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .path {
+            font-family: monospace;
+            font-weight: bold;
+        }
+        .nav-container {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .nav-container ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        .nav-container li {
+            margin-bottom: 5px;
+        }
+        .breadcrumb {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="breadcrumb">
+        <a href="../請求支払管理API.html">請求・支払管理API</a> &gt; 入金管理API
+    </div>
+
+    <h1>入金管理API 設計書</h1>
+
+    <h2>1. 概要</h2>
+    <p>
+        入金管理APIは、顧客からの入金情報の登録、管理、照会を行うためのエンドポイントを提供します。
+        請求に対する入金状況の確認や未入金案件の管理も含まれます。
+    </p>
+
+    <h2>2. ベースパス</h2>
+    <p><code>/api/v1/billing</code></p>
+
+    <h2>3. エンドポイント一覧</h2>
+    <div class="nav-container">
+        <ul>
+            <li><a href="#get-payments-received">GET /api/v1/billing/payments/received</a> - 入金一覧の取得</li>
+            <li><a href="#post-payments-received">POST /api/v1/billing/payments/received</a> - 入金情報の登録</li>
+            <li><a href="#get-payment-received">GET /api/v1/billing/payments/received/{id}</a> - 特定入金の詳細取得</li>
+            <li><a href="#put-payment-received">PUT /api/v1/billing/payments/received/{id}</a> - 入金情報の更新</li>
+            <li><a href="#delete-payment-received">DELETE /api/v1/billing/payments/received/{id}</a> - 入金情報の削除</li>
+            <li><a href="#get-invoice-payment-status">GET /api/v1/billing/invoices/{id}/payment-status</a> - 請求の入金状況取得</li>
+            <li><a href="#get-payments-outstanding">GET /api/v1/billing/payments/received/outstanding</a> - 未入金一覧取得</li>
+        </ul>
+    </div>
+
+    <h2>4. エンドポイント詳細</h2>
+
+    <div id="get-payments-received" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/payments/received</span></h3>
+        <p>入金一覧を取得します。ページネーションと各種検索条件による絞り込みが可能です。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>integer</td>
+                <td>いいえ</td>
+                <td>ページ番号 (デフォルト: 0)</td>
+            </tr>
+            <tr>
+                <td>size</td>
+                <td>integer</td>
+                <td>いいえ</td>
+                <td>1ページあたりの件数 (デフォルト: 20, 最大: 100)</td>
+            </tr>
+            <tr>
+                <td>customerId</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>顧客ID</td>
+            </tr>
+            <tr>
+                <td>invoiceId</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>請求ID</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>入金ステータス (PENDING, COMPLETED, FAILED)</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string (ISO日付)</td>
+                <td>いいえ</td>
+                <td>入金日の開始日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string (ISO日付)</td>
+                <td>いいえ</td>
+                <td>入金日の終了日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>ソート条件 (例: paymentDate,desc)</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "content": [
+    {
+      "id": "PAY2023060001",
+      "invoiceId": "INV2023050001",
+      "customerId": "CUST001",
+      "customerName": "株式会社テクノA",
+      "amount": 550000,
+      "paymentDate": "2023-05-25",
+      "paymentMethod": "BANK_TRANSFER",
+      "referenceNumber": "12345678",
+      "status": "COMPLETED",
+      "createdAt": "2023-05-25T14:30:00Z",
+      "updatedAt": "2023-05-25T14:30:00Z"
+    },
+    {
+      "id": "PAY2023060002",
+      "invoiceId": "INV2023050002",
+      "customerId": "CUST002",
+      "customerName": "B技研",
+      "amount": 480000,
+      "paymentDate": "2023-05-20",
+      "paymentMethod": "BANK_TRANSFER",
+      "referenceNumber": "87654321",
+      "status": "COMPLETED",
+      "createdAt": "2023-05-20T10:15:00Z",
+      "updatedAt": "2023-05-20T10:15:00Z"
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 20,
+    "sort": {
+      "sorted": true,
+      "unsorted": false
+    }
+  },
+  "totalElements": 35,
+  "totalPages": 2,
+  "last": false,
+  "first": true,
+  "size": 20,
+  "number": 0,
+  "sort": {
+    "sorted": true,
+    "unsorted": false
+  },
+  "numberOfElements": 20
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "無効なステータス値です: INVALID_STATUS",
+  "timestamp": "2023-05-25T14:30:00Z",
+  "path": "/api/v1/billing/payments/received"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF, REPORT_VIEWER</p>
+    </div>
+
+    <div id="post-payments-received" class="endpoint">
+        <h3><span class="http-method post">POST</span><span class="path">/api/v1/billing/payments/received</span></h3>
+        <p>新規入金情報を登録します。</p>
+
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "invoiceId": "INV2023050001",
+  "customerId": "CUST001",
+  "amount": 550000,
+  "paymentDate": "2023-05-25",
+  "paymentMethod": "BANK_TRANSFER",
+  "referenceNumber": "12345678",
+  "notes": "5月25日入金確認",
+  "status": "COMPLETED"
+}</code></pre>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "id": "PAY2023060001",
+  "invoiceId": "INV2023050001",
+  "customerId": "CUST001",
+  "customerName": "株式会社テクノA",
+  "amount": 550000,
+  "paymentDate": "2023-05-25",
+  "paymentMethod": "BANK_TRANSFER",
+  "referenceNumber": "12345678",
+  "notes": "5月25日入金確認",
+  "status": "COMPLETED",
+  "createdAt": "2023-05-25T14:30:00Z",
+  "updatedAt": "2023-05-25T14:30:00Z",
+  "invoiceDetail": {
+    "invoiceNumber": "INV2023050001",
+    "issueDate": "2023-05-05",
+    "dueDate": "2023-05-31",
+    "totalAmount": 550000,
+    "billingPeriod": {
+      "startDate": "2023-04-01",
+      "endDate": "2023-04-30"
+    }
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "請求ID 'INV2023050001' はすでに全額入金済みです",
+  "timestamp": "2023-05-25T14:30:00Z",
+  "path": "/api/v1/billing/payments/received"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF</p>
+    </div>
+
+    <div id="get-payment-received" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/payments/received/{id}</span></h3>
+        <p>特定の入金情報の詳細を取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>入金ID</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "id": "PAY2023060001",
+  "invoiceId": "INV2023050001",
+  "customerId": "CUST001",
+  "customerName": "株式会社テクノA",
+  "amount": 550000,
+  "paymentDate": "2023-05-25",
+  "paymentMethod": "BANK_TRANSFER",
+  "referenceNumber": "12345678",
+  "notes": "5月25日入金確認",
+  "status": "COMPLETED",
+  "createdAt": "2023-05-25T14:30:00Z",
+  "updatedAt": "2023-05-25T14:30:00Z",
+  "invoiceDetail": {
+    "invoiceNumber": "INV2023050001",
+    "issueDate": "2023-05-05",
+    "dueDate": "2023-05-31",
+    "totalAmount": 550000,
+    "billingPeriod": {
+      "startDate": "2023-04-01",
+      "endDate": "2023-04-30"
+    },
+    "projectId": "PROJ001",
+    "projectName": "基幹システム開発"
+  },
+  "customerDetail": {
+    "name": "株式会社テクノA",
+    "contactPerson": "山田太郎",
+    "email": "yamada@techno-a.co.jp",
+    "phone": "03-1234-5678"
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "error": "Not Found",
+  "message": "入金ID 'PAY2023060999' が見つかりません",
+  "timestamp": "2023-05-25T15:40:00Z",
+  "path": "/api/v1/billing/payments/received/PAY2023060999"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF, REPORT_VIEWER</p>
+    </div>
+
+    <div id="put-payment-received" class="endpoint">
+        <h3><span class="http-method put">PUT</span><span class="path">/api/v1/billing/payments/received/{id}</span></h3>
+        <p>既存の入金情報を更新します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>入金ID</td>
+            </tr>
+        </table>
+
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "amount": 550000,
+  "paymentDate": "2023-05-26",
+  "paymentMethod": "BANK_TRANSFER",
+  "referenceNumber": "12345678-A",
+  "notes": "5月26日に入金確認（日付修正）",
+  "status": "COMPLETED"
+}</code></pre>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "id": "PAY2023060001",
+  "invoiceId": "INV2023050001",
+  "customerId": "CUST001",
+  "customerName": "株式会社テクノA",
+  "amount": 550000,
+  "paymentDate": "2023-05-26",
+  "paymentMethod": "BANK_TRANSFER",
+  "referenceNumber": "12345678-A",
+  "notes": "5月26日に入金確認（日付修正）",
+  "status": "COMPLETED",
+  "createdAt": "2023-05-25T14:30:00Z",
+  "updatedAt": "2023-05-26T09:45:00Z"
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "入金額は0より大きい値である必要があります",
+  "timestamp": "2023-05-26T09:45:00Z",
+  "path": "/api/v1/billing/payments/received/PAY2023060001"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF</p>
+    </div>
+
+    <div id="delete-payment-received" class="endpoint">
+        <h3><span class="http-method delete">DELETE</span><span class="path">/api/v1/billing/payments/received/{id}</span></h3>
+        <p>入金情報を削除します。削除後、関連する請求の支払状況も更新されます。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>入金ID</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "message": "入金 PAY2023060001 が正常に削除されました",
+  "timestamp": "2023-05-26T10:30:00Z",
+  "invoiceStatus": {
+    "invoiceId": "INV2023050001",
+    "previousStatus": "PAID",
+    "currentStatus": "ISSUED"
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "error": "Not Found",
+  "message": "入金ID 'PAY2023060999' が見つかりません",
+  "timestamp": "2023-05-26T10:30:00Z",
+  "path": "/api/v1/billing/payments/received/PAY2023060999"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER</p>
+    </div>
+
+    <div id="get-invoice-payment-status" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/invoices/{id}/payment-status</span></h3>
+        <p>特定の請求に対する入金状況を取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>請求ID</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "invoiceId": "INV2023050001",
+  "invoiceAmount": 550000,
+  "paidAmount": 550000,
+  "remainingAmount": 0,
+  "paymentStatus": "PAID",
+  "dueDate": "2023-05-31",
+  "daysOverdue": 0,
+  "lastPaymentDate": "2023-05-25",
+  "payments": [
+    {
+      "id": "PAY2023060001",
+      "amount": 550000,
+      "paymentDate": "2023-05-25",
+      "paymentMethod": "BANK_TRANSFER",
+      "status": "COMPLETED"
+    }
+  ]
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "error": "Not Found",
+  "message": "請求ID 'INV2023050999' が見つかりません",
+  "timestamp": "2023-05-26T11:15:00Z",
+  "path": "/api/v1/billing/invoices/INV2023050999/payment-status"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF, REPORT_VIEWER</p>
+    </div>
+
+    <div id="get-payments-outstanding" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/payments/received/outstanding</span></h3>
+        <p>未入金または一部入金の請求一覧を取得します。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>integer</td>
+                <td>いいえ</td>
+                <td>ページ番号 (デフォルト: 0)</td>
+            </tr>
+            <tr>
+                <td>size</td>
+                <td>integer</td>
+                <td>いいえ</td>
+                <td>1ページあたりの件数 (デフォルト: 20, 最大: 100)</td>
+            </tr>
+            <tr>
+                <td>customerId</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>顧客ID</td>
+            </tr>
+            <tr>
+                <td>overdueOnly</td>
+                <td>boolean</td>
+                <td>いいえ</td>
+                <td>支払期日を過ぎた請求のみ (デフォルト: false)</td>
+            </tr>
+            <tr>
+                <td>minDaysOverdue</td>
+                <td>integer</td>
+                <td>いいえ</td>
+                <td>支払期日から経過した最小日数</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>ソート条件 (例: dueDate,asc)</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "content": [
+    {
+      "invoiceId": "INV2023050003",
+      "invoiceNumber": "INV2023050003",
+      "customerId": "CUST003",
+      "customerName": "株式会社C情報システム",
+      "issueDate": "2023-05-10",
+      "dueDate": "2023-06-09",
+      "totalAmount": 330000,
+      "paidAmount": 0,
+      "remainingAmount": 330000,
+      "paymentStatus": "UNPAID",
+      "daysOverdue": 0,
+      "projectId": "PROJ003",
+      "projectName": "ウェブシステム保守"
+    },
+    {
+      "invoiceId": "INV2023050004",
+      "invoiceNumber": "INV2023050004",
+      "customerId": "CUST004",
+      "customerName": "D商事",
+      "issueDate": "2023-05-08",
+      "dueDate": "2023-06-07",
+      "totalAmount": 275000,
+      "paidAmount": 100000,
+      "remainingAmount": 175000,
+      "paymentStatus": "PARTIALLY_PAID",
+      "daysOverdue": 0,
+      "projectId": "PROJ004",
+      "projectName": "モバイルアプリ改修"
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 20,
+    "sort": {
+      "sorted": true,
+      "unsorted": false
+    }
+  },
+  "totalElements": 8,
+  "totalPages": 1,
+  "last": true,
+  "first": true,
+  "size": 20,
+  "number": 0,
+  "sort": {
+    "sorted": true,
+    "unsorted": false
+  },
+  "numberOfElements": 8
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF, REPORT_VIEWER</p>
+    </div>
+
+    <footer>
+        <p>最終更新日: 2025年5月4日</p>
+    </footer>
+</body>
+</html>

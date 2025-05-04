@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>稼働率レポートAPI</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 4px;
+            overflow: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .endpoint {
+            margin-bottom: 30px;
+        }
+        .endpoint h3 {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-left: 4px solid #2c3e50;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .patch { background-color: #50e3c2; }
+    </style>
+</head>
+<body>
+    <h1>稼働率レポートAPI</h1>
+    
+    <p>
+        稼働率レポートAPIは、SES業務システムにおける技術者の稼働状況を様々な軸で集計・分析するためのインターフェースを提供します。
+        月次、四半期などの期間別レポートや、部門別、スキル別など様々な切り口での稼働率分析が可能です。また、ベンチ状態（待機中）の技術者リストなども取得できます。
+    </p>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/utilization/monthly</h3>
+        <p><strong>説明：</strong> 月次稼働率レポートを取得します。特定の月や期間を指定して、月別の稼働率集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>年（例: 2023）。指定しない場合は当年</td>
+            </tr>
+            <tr>
+                <td>month</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>月（1-12）。指定しない場合は当月</td>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>開始月（ISO 8601形式: YYYY-MM-01）。year/monthと排他</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>終了月（ISO 8601形式: YYYY-MM-01）。fromと共に使用</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>部門IDでフィルター</td>
+            </tr>
+            <tr>
+                <td>compareWithPrevious</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>前年同月/前月との比較データを含める。デフォルトはfalse</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": "monthly",
+    "from": "2023-01-01",
+    "to": "2023-04-01",
+    "filters": {
+      "departmentId": null
+    }
+  },
+  "data": [
+    {
+      "year": 2023,
+      "month": 1,
+      "period": "2023-01",
+      "totalEngineers": 95,
+      "billableEngineers": 85,
+      "benchEngineers": 7,
+      "trainingEngineers": 3,
+      "utilizationRate": 0.89,
+      "targetUtilizationRate": 0.92,
+      "achievementRate": 0.97,
+      "previousYearRate": 0.87,
+      "yearOnYearChange": 0.02,
+      "workingDays": 20,
+      "totalWorkingHours": 15200,
+      "billableHours": 13600,
+      "nonBillableHours": 1600,
+      "breakdown": {
+        "regular": {
+          "count": 75,
+          "billable": 70,
+          "utilizationRate": 0.93
+        },
+        "contract": {
+          "count": 15,
+          "billable": 13,
+          "utilizationRate": 0.87
+        },
+        "partner": {
+          "count": 5,
+          "billable": 2,
+          "utilizationRate": 0.4
+        }
+      }
+    },
+    {
+      "year": 2023,
+      "month": 2,
+      "period": "2023-02",
+      "totalEngineers": 95,
+      "billableEngineers": 87,
+      "benchEngineers": 6,
+      "trainingEngineers": 2,
+      "utilizationRate": 0.92,
+      "targetUtilizationRate": 0.92,
+      "achievementRate": 1.0,
+      "previousYearRate": 0.88,
+      "yearOnYearChange": 0.04,
+      "workingDays": 19,
+      "totalWorkingHours": 14440,
+      "billableHours": 13300,
+      "nonBillableHours": 1140,
+      "breakdown": {
+        "regular": {
+          "count": 75,
+          "billable": 72,
+          "utilizationRate": 0.96
+        },
+        "contract": {
+          "count": 15,
+          "billable": 13,
+          "utilizationRate": 0.87
+        },
+        "partner": {
+          "count": 5,
+          "billable": 2,
+          "utilizationRate": 0.4
+        }
+      }
+    },
+    {
+      "year": 2023,
+      "month": 3,
+      "period": "2023-03",
+      "totalEngineers": 95,
+      "billableEngineers": 89,
+      "benchEngineers": 4,
+      "trainingEngineers": 2,
+      "utilizationRate": 0.94,
+      "targetUtilizationRate": 0.93,
+      "achievementRate": 1.01,
+      "previousYearRate": 0.9,
+      "yearOnYearChange": 0.04,
+      "workingDays": 22,
+      "totalWorkingHours": 16720,
+      "billableHours": 15700,
+      "nonBillableHours": 1020,
+      "breakdown": {
+        "regular": {
+          "count": 75,
+          "billable": 73,
+          "utilizationRate": 0.97
+        },
+        "contract": {
+          "count": 15,
+          "billable": 14,
+          "utilizationRate": 0.93
+        },
+        "partner": {
+          "count": 5,
+          "billable": 2,
+          "utilizationRate": 0.4
+        }
+      }
+    },
+    {
+      "year": 2023,
+      "month": 4,
+      "period": "2023-04",
+      "totalEngineers": 95,
+      "billableEngineers": 90,
+      "benchEngineers": 3,
+      "trainingEngineers": 2,
+      "utilizationRate": 0.95,
+      "targetUtilizationRate": 0.93,
+      "achievementRate": 1.02,
+      "previousYearRate": 0.89,
+      "yearOnYearChange": 0.06,
+      "workingDays": 20,
+      "totalWorkingHours": 15200,
+      "billableHours": 14400,
+      "nonBillableHours": 800,
+      "breakdown": {
+        "regular": {
+          "count": 75,
+          "billable": 74,
+          "utilizationRate": 0.99
+        },
+        "contract": {
+          "count": 15,
+          "billable": 14,
+          "utilizationRate": 0.93
+        },
+        "partner": {
+          "count": 5,
+          "billable": 2,
+          "utilizationRate": 0.4
+        }
+      }
+    }
+  ],
+  "summary": {
+    "averageUtilizationRate": 0.925,
+    "targetAchievementRate": 1.0,
+    "yearOnYearChange": 0.04,
+    "highestUtilizationMonth": "2023-04",
+    "highestUtilizationRate": 0.95,
+    "lowestUtilizationMonth": "2023-01",
+    "lowestUtilizationRate": 0.89,
+    "totalWorkingHours": 61560,
+    "totalBillableHours": 57000,
+    "utilizationTrend": "upward",
+    "averageBenchEngineers": 5,
+    "benchTrend": "decreasing"
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_DATE_RANGE",
+    "message": "無効な日付範囲が指定されました。",
+    "details": {
+      "from": "2023-04-01",
+      "to": "2023-01-01",
+      "reason": "終了日は開始日より後である必要があります。"
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のデータのみ）</li>
+            <li><code>ROLE_HR</code>（全データへのアクセス）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/utilization/quarterly</h3>
+        <p><strong>説明：</strong> 四半期稼働率レポートを取得します。年度内の四半期や複数四半期にわたる稼働率集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>年度（例: 2023）。指定しない場合は当年度</td>
+            </tr>
+            <tr>
+                <td>quarter</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>四半期（1-4）。指定しない場合は当四半期</td>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>開始四半期（YYYY-Q形式: 例 2023-1）。year/quarterと排他</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>終了四半期（YYYY-Q形式: 例 2023-4）。fromと共に使用</td>
+            </tr>
+            <tr>
+                <td>fiscalYear</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>会計年度を基準とするか。デフォルトはtrue</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>部門IDでフィルター</td>
+            </tr>
+            <tr>
+                <td>compareWithPrevious</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>前年同四半期との比較データを含める。デフォルトはfalse</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": "quarterly",
+    "from": "2022-4",
+    "to": "2023-1",
+    "fiscalYear": true,
+    "filters": {
+      "departmentId": null
+    }
+  },
+  "data": [
+    {
+      "year": 2022,
+      "quarter": 4,
+      "period": "2022-Q4",
+      "months": ["2022-10", "2022-11", "2022-12"],
+      "averageTotalEngineers": 92,
+      "averageBillableEngineers": 83,
+      "averageBenchEngineers": 6,
+      "averageTrainingEngineers": 3,
+      "utilizationRate": 0.90,
+      "targetUtilizationRate": 0.92,
+      "achievementRate": 0.98,
+      "previousYearRate": 0.87,
+      "yearOnYearChange": 0.03,
+      "workingDays": 61,
+      "totalWorkingHours": 44896,
+      "billableHours": 40410,
+      "nonBillableHours": 4486,
+      "monthlyRates": {
+        "2022-10": 0.89,
+        "2022-11": 0.90,
+        "2022-12": 0.91
+      },
+      "breakdown": {
+        "regular": {
+          "count": 72,
+          "billable": 68,
+          "utilizationRate": 0.94
+        },
+        "contract": {
+          "count": 15,
+          "billable": 13,
+          "utilizationRate": 0.87
+        },
+        "partner": {
+          "count": 5,
+          "billable": 2,
+          "utilizationRate": 0.4
+        }
+      }
+    },
+    {
+      "year": 2023,
+      "quarter": 1,
+      "period": "2023-Q1",
+      "months": ["2023-01", "2023-02", "2023-03"],
+      "averageTotalEngineers": 95,
+      "averageBillableEngineers": 87,
+      "averageBenchEngineers": 6,
+      "averageTrainingEngineers": 2,
+      "utilizationRate": 0.92,
+      "targetUtilizationRate": 0.92,
+      "achievementRate": 1.0,
+      "previousYearRate": 0.88,
+      "yearOnYearChange": 0.04,
+      "workingDays": 61,
+      "totalWorkingHours": 46360,
+      "billableHours": 42600,
+      "nonBillableHours": 3760,
+      "monthlyRates": {
+        "2023-01": 0.89,
+        "2023-02": 0.92,
+        "2023-03": 0.94
+      },
+      "breakdown": {
+        "regular": {
+          "count": 75,
+          "billable": 72,
+          "utilizationRate": 0.96
+        },
+        "contract": {
+          "count": 15,
+          "billable": 13,
+          "utilizationRate": 0.87
+        },
+        "partner": {
+          "count": 5,
+          "billable": 2,
+          "utilizationRate": 0.4
+        }
+      }
+    }
+  ],
+  "summary": {
+    "averageUtilizationRate": 0.91,
+    "targetAchievementRate": 0.99,
+    "yearOnYearChange": 0.035,
+    "highestUtilizationQuarter": "2023-Q1",
+    "highestUtilizationRate": 0.92,
+    "lowestUtilizationQuarter": "2022-Q4",
+    "lowestUtilizationRate": 0.90,
+    "totalWorkingHours": 91256,
+    "totalBillableHours": 83010,
+    "utilizationTrend": "upward",
+    "averageBenchEngineers": 6,
+    "benchTrend": "stable"
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_QUARTER",
+    "message": "無効な四半期が指定されました。",
+    "details": {
+      "quarter": "5",
+      "allowed": [1, 2, 3, 4]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のデータのみ）</li>
+            <li><code>ROLE_HR</code>（全データへのアクセス）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/utilization/by-department</h3>
+        <p><strong>説明：</strong> 部門別の稼働率レポートを取得します。特定期間における部門ごとの稼働率集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>開始日（ISO 8601形式）。デフォルトは当月初め</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>終了日（ISO 8601形式）。デフォルトは当日</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定部門のみ表示する場合の部門ID</td>
+            </tr>
+            <tr>
+                <td>includeSubDepartments</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>子部門を含めるかどうか。デフォルトはtrue</td>
+            </tr>
+            <tr>
+                <td>compareWithPrevious</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>前期間との比較データを含める。デフォルトはfalse</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート順（utilizationRate, totalEngineers, departmentName）。デフォルトはutilizationRate</td>
+            </tr>
+            <tr>
+                <td>order</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート方向（asc, desc）。デフォルトはdesc</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": {
+      "from": "2023-04-01",
+      "to": "2023-04-30"
+    },
+    "filters": {
+      "departmentId": null,
+      "includeSubDepartments": true
+    }
+  },
+  "data": [
+    {
+      "departmentId": "dept_1231",
+      "departmentName": "システム開発部",
+      "departmentCode": "D1231",
+      "parentDepartmentId": "dept_123",
+      "parentDepartmentName": "ソリューション事業部",
+      "level": 2,
+      "totalEngineers": 45,
+      "billableEngineers": 44,
+      "benchEngineers": 1,
+      "trainingEngineers": 0,
+      "utilizationRate": 0.98,
+      "targetUtilizationRate": 0.95,
+      "achievementRate": 1.03,
+      "previousPeriodRate": 0.96,
+      "periodChange": 0.02,
+      "breakdownByEmploymentType": {
+        "正社員": {
+          "count": 35,
+          "billable": 34,
+          "utilizationRate": 0.97
+        },
+        "契約社員": {
+          "count": 10,
+          "billable": 10,
+          "utilizationRate": 1.0
+        }
+      },
+      "breakdownBySkillLevel": {
+        "上級": {
+          "count": 10,
+          "billable": 10,
+          "utilizationRate": 1.0
+        },
+        "中級": {
+          "count": 25,
+          "billable": 25,
+          "utilizationRate": 1.0
+        },
+        "初級": {
+          "count": 10,
+          "billable": 9,
+          "utilizationRate": 0.9
+        }
+      },
+      "subDepartments": []
+    },
+    {
+      "departmentId": "dept_1232",
+      "departmentName": "インフラ構築部",
+      "departmentCode": "D1232",
+      "parentDepartmentId": "dept_123",
+      "parentDepartmentName": "ソリューション事業部",
+      "level": 2,
+      "totalEngineers": 35,
+      "billableEngineers": 33,
+      "benchEngineers": 1,
+      "trainingEngineers": 1,
+      "utilizationRate": 0.94,
+      "targetUtilizationRate": 0.93,
+      "achievementRate": 1.01,
+      "previousPeriodRate": 0.92,
+      "periodChange": 0.02,
+      "breakdownByEmploymentType": {
+        "正社員": {
+          "count": 25,
+          "billable": 24,
+          "utilizationRate": 0.96
+        },
+        "契約社員": {
+          "count": 5,
+          "billable": 5,
+          "utilizationRate": 1.0
+        },
+        "パートナー": {
+          "count": 5,
+          "billable": 4,
+          "utilizationRate": 0.8
+        }
+      },
+      "breakdownBySkillLevel": {
+        "上級": {
+          "count": 8,
+          "billable": 8,
+          "utilizationRate": 1.0
+        },
+        "中級": {
+          "count": 22,
+          "billable": 21,
+          "utilizationRate": 0.95
+        },
+        "初級": {
+          "count": 5,
+          "billable": 4,
+          "utilizationRate": 0.8
+        }
+      },
+      "subDepartments": []
+    },
+    {
+      "departmentId": "dept_1241",
+      "departmentName": "AI開発部",
+      "departmentCode": "D1241",
+      "parentDepartmentId": "dept_124",
+      "parentDepartmentName": "AIビジネス事業部",
+      "level": 2,
+      "totalEngineers": 15,
+      "billableEngineers": 13,
+      "benchEngineers": 1,
+      "trainingEngineers": 1,
+      "utilizationRate": 0.87,
+      "targetUtilizationRate": 0.9,
+      "achievementRate": 0.96,
+      "previousPeriodRate": 0.85,
+      "periodChange": 0.02,
+      "breakdownByEmploymentType": {
+        "正社員": {
+          "count": 12,
+          "billable": 10,
+          "utilizationRate": 0.83
+        },
+        "契約社員": {
+          "count": 3,
+          "billable": 3,
+          "utilizationRate": 1.0
+        }
+      },
+      "breakdownBySkillLevel": {
+        "上級": {
+          "count": 5,
+          "billable": 5,
+          "utilizationRate": 1.0
+        },
+        "中級": {
+          "count": 6,
+          "billable": 5,
+          "utilizationRate": 0.83
+        },
+        "初級": {
+          "count": 4,
+          "billable": 3,
+          "utilizationRate": 0.75
+        }
+      },
+      "subDepartments": []
+    }
+  ],
+  "summary": {
+    "totalDepartments": 8,
+    "totalEngineers": 95,
+    "billableEngineers": 90,
+    "benchEngineers": 3,
+    "trainingEngineers": 2,
+    "overallUtilizationRate": 0.95,
+    "targetAchievementRate": 1.02,
+    "highUtilizationDepartments": 5,
+    "lowUtilizationDepartments": 1,
+    "highUtilizationThreshold": 0.95,
+    "lowUtilizationThreshold": 0.85,
+    "topDepartmentsByUtilization": [
+      {
+        "departmentId": "dept_1231",
+        "departmentName": "システム開発部",
+        "utilizationRate": 0.98
+      },
+      {
+        "departmentId": "dept_1232",
+        "departmentName": "インフラ構築部",
+        "utilizationRate": 0.94
+      },
+      {
+        "departmentId": "dept_1241",
+        "departmentName": "AI開発部",
+        "utilizationRate": 0.87
+      }
+    ]
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "DEPARTMENT_NOT_FOUND",
+    "message": "指定された部門が見つかりません。",
+    "details": {
+      "departmentId": "non_existent_dept"
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全部門データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のデータのみ）</li>
+            <li><code>ROLE_HR</code>（全部門データへのアクセス）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/utilization/by-skill</h3>
+        <p><strong>説明：</strong> スキル別の稼働率レポートを取得します。特定期間におけるスキルごとの稼働率集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>開始日（ISO 8601形式）。デフォルトは当月初め</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>終了日（ISO 8601形式）。デフォルトは当日</td>
+            </tr>
+            <tr>
+                <td>skillCategory</td>
+                <td>string</td>
+                <td>No</td>
+                <td>スキルカテゴリでフィルター（言語, フレームワーク, DB, クラウド等）</td>
+            </tr>
+            <tr>
+                <td>skillId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定スキルのみ表示する場合のスキルID</td>
+            </tr>
+            <tr>
+                <td>skillLevel</td>
+                <td>string</td>
+                <td>No</td>
+                <td>スキルレベルでフィルター（初級, 中級, 上級等）</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定部門のデータに絞り込む場合の部門ID</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート順（utilizationRate, engineerCount, skillName, demand）。デフォルトはutilizationRate</td>
+            </tr>
+            <tr>
+                <td>order</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート方向（asc, desc）。デフォルトはdesc</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得するスキル数。デフォルトは20</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": {
+      "from": "2023-04-01",
+      "to": "2023-04-30"
+    },
+    "filters": {
+      "skillCategory": null,
+      "skillId": null,
+      "skillLevel": null,
+      "departmentId": null
+    },
+    "pagination": {
+      "limit": 20,
+      "offset": 0,
+      "total": 50,
+      "next": "/api/v1/reports/utilization/by-skill?limit=20&offset=20",
+      "previous": null
+    }
+  },
+  "data": [
+    {
+      "skillId": "skill_001",
+      "skillName": "Java",
+      "skillCategory": "言語",
+      "totalEngineers": 35,
+      "billableEngineers": 34,
+      "benchEngineers": 1,
+      "utilizationRate": 0.97,
+      "demandLevel": "high",
+      "marketTrend": "stable",
+      "averageBillRate": 750000,
+      "breakdownByLevel": {
+        "上級": {
+          "count": 10,
+          "billable": 10,
+          "utilizationRate": 1.0,
+          "averageBillRate": 850000
+        },
+        "中級": {
+          "count": 15,
+          "billable": 15,
+          "utilizationRate": 1.0,
+          "averageBillRate": 750000
+        },
+        "初級": {
+          "count": 10,
+          "billable": 9,
+          "utilizationRate": 0.9,
+          "averageBillRate": 650000
+        }
+      },
+      "relatedSkills": [
+        "Spring Boot",
+        "Hibernate",
+        "JUnit"
+      ],
+      "topProjects": [
+        {
+          "projectId": "project_456",
+          "projectName": "基幹システム再構築",
+          "engineerCount": 5
+        },
+        {
+          "projectId": "project_460",
+          "projectName": "ECサイト構築",
+          "engineerCount": 4
+        }
+      ]
+    },
+    {
+      "skillId": "skill_010",
+      "skillName": "AWS",
+      "skillCategory": "クラウド",
+      "totalEngineers": 30,
+      "billableEngineers": 29,
+      "benchEngineers": 1,
+      "utilizationRate": 0.97,
+      "demandLevel": "very_high",
+      "marketTrend": "increasing",
+      "averageBillRate": 800000,
+      "breakdownByLevel": {
+        "上級": {
+          "count": 8,
+          "billable": 8,
+          "utilizationRate": 1.0,
+          "averageBillRate": 950000
+        },
+        "中級": {
+          "count": 17,
+          "billable": 17,
+          "utilizationRate": 1.0,
+          "averageBillRate": 800000
+        },
+        "初級": {
+          "count": 5,
+          "billable": 4,
+          "utilizationRate": 0.8,
+          "averageBillRate": 650000
+        }
+      },
+      "relatedSkills": [
+        "EC2",
+        "S3",
+        "Lambda",
+        "CloudFormation"
+      ],
+      "topProjects": [
+        {
+          "projectId": "project_458",
+          "projectName": "クラウド移行支援",
+          "engineerCount": 6
+        },
+        {
+          "projectId": "project_460",
+          "projectName": "ECサイト構築",
+          "engineerCount": 4
+        }
+      ]
+    },
+    {
+      "skillId": "skill_015",
+      "skillName": "Python",
+      "skillCategory": "言語",
+      "totalEngineers": 25,
+      "billableEngineers": 22,
+      "benchEngineers": 3,
+      "utilizationRate": 0.88,
+      "demandLevel": "high",
+      "marketTrend": "increasing",
+      "averageBillRate": 780000,
+      "breakdownByLevel": {
+        "上級": {
+          "count": 5,
+          "billable": 5,
+          "utilizationRate": 1.0,
+          "averageBillRate": 900000
+        },
+        "中級": {
+          "count": 12,
+          "billable": 11,
+          "utilizationRate": 0.92,
+          "averageBillRate": 780000
+        },
+        "初級": {
+          "count": 8,
+          "billable": 6,
+          "utilizationRate": 0.75,
+          "averageBillRate": 680000
+        }
+      },
+      "relatedSkills": [
+        "Django",
+        "Flask",
+        "Pandas",
+        "TensorFlow"
+      ],
+      "topProjects": [
+        {
+          "projectId": "project_465",
+          "projectName": "データ分析基盤構築",
+          "engineerCount": 5
+        },
+        {
+          "projectId": "project_470",
+          "projectName": "AIモデル開発",
+          "engineerCount": 4
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "totalSkills": 50,
+    "topUtilizationSkills": [
+      "Java",
+      "AWS",
+      "Spring Boot",
+      "React",
+      "Docker"
+    ],
+    "lowUtilizationSkills": [
+      "COBOL",
+      "Perl",
+      "Flash"
+    ],
+    "highDemandSkills": [
+      "AWS",
+      "Azure",
+      "Kubernetes",
+      "React",
+      "Python"
+    ],
+    "skillCategoryBreakdown": {
+      "言語": {
+        "count": 12,
+        "avgUtilizationRate": 0.92
+      },
+      "フレームワーク": {
+        "count": 15,
+        "avgUtilizationRate": 0.93
+      },
+      "クラウド": {
+        "count": 5,
+        "avgUtilizationRate": 0.96
+      },
+      "DB": {
+        "count": 8,
+        "avgUtilizationRate": 0.90
+      },
+      "インフラ": {
+        "count": 10,
+        "avgUtilizationRate": 0.91
+      }
+    }
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_SKILL_CATEGORY",
+    "message": "無効なスキルカテゴリが指定されました。",
+    "details": {
+      "skillCategory": "invalid_category",
+      "allowed": ["言語", "フレームワーク", "DB", "クラウド", "インフラ", "ツール", "その他"]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のデータのみ）</li>
+            <li><code>ROLE_HR</code>（全データへのアクセス）</li>
+            <li><code>ROLE_SALES</code>（概要データへのアクセス、詳細情報制限あり）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/utilization/engineer-status</h3>
+        <p><strong>説明：</strong> 技術者ステータス別の集計レポートを取得します。技術者のアサイン状況やベンチ状態など、ステータス別の技術者数を取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>date</td>
+                <td>string</td>
+                <td>No</td>
+                <td>基準日（ISO 8601形式）。デフォルトは当日</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定部門のデータに絞り込む場合の部門ID</td>
+            </tr>
+            <tr>
+                <td>includeSubDepartments</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>子部門を含めるかどうか。デフォルトはtrue</td>
+            </tr>
+            <tr>
+                <td>groupBy</td>
+                <td>string</td>
+                <td>No</td>
+                <td>集計軸（department, employmentType, skillLevel, none）。デフォルトはnone</td>
+            </tr>
+            <tr>
+                <td>showTrend</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>過去の推移データを含めるかどうか。デフォルトはfalse</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "date": "2023-05-01",
+    "filters": {
+      "departmentId": null,
+      "includeSubDepartments": true,
+      "groupBy": "department"
+    }
+  },
+  "data": [
+    {
+      "groupKey": "dept_1231",
+      "groupName": "システム開発部",
+      "totalEngineers": 45,
+      "statusCounts": {
+        "assigned": 42,
+        "bench": 1,
+        "training": 1,
+        "leave": 1,
+        "partiallyAssigned": 0
+      },
+      "utilizationRate": 0.93,
+      "assignedBreakdown": {
+        "fullTimeAssigned": 42,
+        "internalProjects": 0,
+        "partiallyAssigned": 0
+      },
+      "benchBreakdown": {
+        "availableImmediately": 1,
+        "availableSoon": 0,
+        "longBench": 0
+      },
+      "benchPeriods": {
+        "lessThan1Week": 1,
+        "1To2Weeks": 0,
+        "2To4Weeks": 0,
+        "moreThan4Weeks": 0
+      }
+    },
+    {
+      "groupKey": "dept_1232",
+      "groupName": "インフラ構築部",
+      "totalEngineers": 35,
+      "statusCounts": {
+        "assigned": 32,
+        "bench": 2,
+        "training": 1,
+        "leave": 0,
+        "partiallyAssigned": 0
+      },
+      "utilizationRate": 0.91,
+      "assignedBreakdown": {
+        "fullTimeAssigned": 32,
+        "internalProjects": 0,
+        "partiallyAssigned": 0
+      },
+      "benchBreakdown": {
+        "availableImmediately": 1,
+        "availableSoon": 1,
+        "longBench": 0
+      },
+      "benchPeriods": {
+        "lessThan1Week": 1,
+        "1To2Weeks": 1,
+        "2To4Weeks": 0,
+        "moreThan4Weeks": 0
+      }
+    },
+    {
+      "groupKey": "dept_1241",
+      "groupName": "AI開発部",
+      "totalEngineers": 15,
+      "statusCounts": {
+        "assigned": 13,
+        "bench": 1,
+        "training": 1,
+        "leave": 0,
+        "partiallyAssigned": 0
+      },
+      "utilizationRate": 0.87,
+      "assignedBreakdown": {
+        "fullTimeAssigned": 13,
+        "internalProjects": 0,
+        "partiallyAssigned": 0
+      },
+      "benchBreakdown": {
+        "availableImmediately": 0,
+        "availableSoon": 1,
+        "longBench": 0
+      },
+      "benchPeriods": {
+        "lessThan1Week": 0,
+        "1To2Weeks": 0,
+        "2To4Weeks": 1,
+        "moreThan4Weeks": 0
+      }
+    }
+  ],
+  "summary": {
+    "totalEngineers": 95,
+    "statusCounts": {
+      "assigned": 87,
+      "bench": 4,
+      "training": 3,
+      "leave": 1,
+      "partiallyAssigned": 0
+    },
+    "overallUtilizationRate": 0.92,
+    "assignedBreakdown": {
+      "fullTimeAssigned": 87,
+      "internalProjects": 0,
+      "partiallyAssigned": 0
+    },
+    "benchBreakdown": {
+      "availableImmediately": 2,
+      "availableSoon": 2,
+      "longBench": 0
+    },
+    "benchPeriods": {
+      "lessThan1Week": 2,
+      "1To2Weeks": 1,
+      "2To4Weeks": 1,
+      "moreThan4Weeks": 0
+    },
+    "trend": {
+      "periods": ["2023-03-01", "2023-04-01", "2023-05-01"],
+      "totalEngineers": [92, 94, 95],
+      "assignedCounts": [82, 85, 87],
+      "benchCounts": [7, 5, 4],
+      "utilizationRates": [0.89, 0.90, 0.92]
+    }
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_GROUP_BY",
+    "message": "無効なグループ化パラメータが指定されました。",
+    "details": {
+      "groupBy": "invalid",
+      "allowed": ["department", "employmentType", "skillLevel", "none"]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のデータのみ）</li>
+            <li><code>ROLE_HR</code>（全データへのアクセス）</li>
+            <li><code>ROLE_SALES</code>（概要データへのアクセス、詳細情報制限あり）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/utilization/bench-report</h3>
+        <p><strong>説明：</strong> ベンチ状態（待機中）の技術者レポートを取得します。現在アサインされていない技術者のリストや詳細情報を取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>date</td>
+                <td>string</td>
+                <td>No</td>
+                <td>基準日（ISO 8601形式）。デフォルトは当日</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定部門のデータに絞り込む場合の部門ID</td>
+            </tr>
+            <tr>
+                <td>employmentType</td>
+                <td>string</td>
+                <td>No</td>
+                <td>雇用形態でフィルター（正社員, 契約社員, パートナー等）</td>
+            </tr>
+            <tr>
+                <td>skillId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定スキルを持つ技術者のみ表示する場合のスキルID</td>
+            </tr>
+            <tr>
+                <td>skillLevelMinimum</td>
+                <td>string</td>
+                <td>No</td>
+                <td>最低スキルレベルでフィルター（初級, 中級, 上級）</td>
+            </tr>
+            <tr>
+                <td>benchPeriod</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ベンチ期間でフィルター（lessThan1Week, 1To2Weeks, 2To4Weeks, moreThan4Weeks）</td>
+            </tr>
+            <tr>
+                <td>availabilityStatus</td>
+                <td>string</td>
+                <td>No</td>
+                <td>稼働可能状態でフィルター（availableImmediately, availableSoon, unavailable）</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート順（benchStartDate, engineerName, skillLevel）。デフォルトはbenchStartDate</td>
+            </tr>
+            <tr>
+                <td>order</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート方向（asc, desc）。デフォルトはasc</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得する技術者数。デフォルトは100</td>
+            </tr>
+            <tr>
+                <td>offset</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得開始位置（ページネーション用）。デフォルトは0</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "date": "2023-05-01",
+    "filters": {
+      "departmentId": null,
+      "employmentType": null,
+      "skillId": null,
+      "skillLevelMinimum": null,
+      "benchPeriod": null,
+      "availabilityStatus": null
+    },
+    "pagination": {
+      "limit": 100,
+      "offset": 0,
+      "total": 4,
+      "next": null,
+      "previous": null
+    }
+  },
+  "data": [
+    {
+      "engineerId": "engineer_145",
+      "engineerName": "開発五郎",
+      "employeeCode": "E00145",
+      "departmentId": "dept_1231",
+      "departmentName": "システム開発部",
+      "employmentType": "正社員",
+      "position": "シニアエンジニア",
+      "skillLevel": "上級",
+      "benchStartDate": "2023-04-28",
+      "benchDuration": 3,
+      "benchDurationUnit": "days",
+      "availabilityStatus": "availableImmediately",
+      "expectedEndDate": null,
+      "previousAssignment": {
+        "projectId": "project_480",
+        "projectName": "金融システム改修",
+        "customerId": "customer_130",
+        "customerName": "株式会社GHI",
+        "role": "リードエンジニア",
+        "endDate": "2023-04-27"
+      },
+      "skillSet": [
+        "Java", "Spring Boot", "Oracle", "AWS", "Docker"
+      ],
+      "skillHighlights": {
+        "programmingLanguages": ["Java", "JavaScript", "Python"],
+        "frameworks": ["Spring Boot", "React"],
+        "databases": ["Oracle", "MySQL"],
+        "cloud": ["AWS"],
+        "other": ["Docker", "Kubernetes", "Jenkins"]
+      },
+      "matchingProjects": [
+        {
+          "projectId": "project_485",
+          "projectName": "マイクロサービス移行",
+          "customerName": "株式会社JKL",
+          "matchScore": 0.85,
+          "startDate": "2023-05-15"
+        }
+      ],
+      "comments": "AWS認定ソリューションアーキテクト。Kubernetesの経験があり、コンテナ環境の構築も可能。"
+    },
+    {
+      "engineerId": "engineer_162",
+      "engineerName": "クラウド六郎",
+      "employeeCode": "E00162",
+      "departmentId": "dept_1232",
+      "departmentName": "インフラ構築部",
+      "employmentType": "正社員",
+      "position": "ミドルエンジニア",
+      "skillLevel": "中級",
+      "benchStartDate": "2023-04-21",
+      "benchDuration": 10,
+      "benchDurationUnit": "days",
+      "availabilityStatus": "availableImmediately",
+      "expectedEndDate": null,
+      "previousAssignment": {
+        "projectId": "project_475",
+        "projectName": "インフラ環境刷新",
+        "customerId": "customer_125",
+        "customerName": "株式会社DEF",
+        "role": "インフラエンジニア",
+        "endDate": "2023-04-20"
+      },
+      "skillSet": [
+        "AWS", "Azure", "Linux", "Ansible", "Terraform"
+      ],
+      "skillHighlights": {
+        "programmingLanguages": ["Bash", "Python"],
+        "frameworks": [],
+        "databases": [],
+        "cloud": ["AWS", "Azure"],
+        "other": ["Linux", "Ansible", "Terraform", "Docker"]
+      },
+      "matchingProjects": [
+        {
+          "projectId": "project_488",
+          "projectName": "クラウド基盤構築",
+          "customerName": "株式会社MNO",
+          "matchScore": 0.9,
+          "startDate": "2023-05-10"
+        }
+      ],
+      "comments": "AWS、Azureの両方の経験あり。Terraformを使用したIaCの経験も豊富。"
+    },
+    {
+      "engineerId": "engineer_183",
+      "engineerName": "AI七郎",
+      "employeeCode": "E00183",
+      "departmentId": "dept_1241",
+      "departmentName": "AI開発部",
+      "employmentType": "正社員",
+      "position": "データサイエンティスト",
+      "skillLevel": "中級",
+      "benchStartDate": "2023-04-10",
+      "benchDuration": 21,
+      "benchDurationUnit": "days",
+      "availabilityStatus": "availableSoon",
+      "expectedEndDate": "2023-05-15",
+      "previousAssignment": {
+        "projectId": "project_470",
+        "projectName": "AIモデル開発",
+        "customerId": "customer_128",
+        "customerName": "株式会社DEF",
+        "role": "データサイエンティスト",
+        "endDate": "2023-04-09"
+      },
+      "skillSet": [
+        "Python", "TensorFlow", "PyTorch", "データ分析", "機械学習"
+      ],
+      "skillHighlights": {
+        "programmingLanguages": ["Python", "R"],
+        "frameworks": ["TensorFlow", "PyTorch", "Keras"],
+        "databases": ["MongoDB", "PostgreSQL"],
+        "cloud": ["AWS"],
+        "other": ["Jupyter", "Pandas", "NumPy", "Scikit-learn"]
+      },
+      "matchingProjects": [
+        {
+          "projectId": "project_490",
+          "projectName": "予測モデル構築",
+          "customerName": "株式会社PQR",
+          "matchScore": 0.8,
+          "startDate": "2023-05-20"
+        }
+      ],
+      "comments": "現在、内部の研修プロジェクトでDeep Learningのスキルアップ中。5月15日から外部案件に参画可能。"
+    }
+  ],
+  "summary": {
+    "totalBenchEngineers": 4,
+    "averageBenchDuration": 11.75,
+    "benchDurationDistribution": {
+      "lessThan1Week": 2,
+      "1To2Weeks": 1,
+      "2To4Weeks": 1,
+      "moreThan4Weeks": 0
+    },
+    "availabilityDistribution": {
+      "availableImmediately": 2,
+      "availableSoon": 2,
+      "unavailable": 0
+    },
+    "departmentDistribution": {
+      "dept_1231": 1,
+      "dept_1232": 2,
+      "dept_1241": 1
+    },
+    "skillLevelDistribution": {
+      "上級": 1,
+      "中級": 2,
+      "初級": 1
+    },
+    "topSkillsInBench": [
+      "AWS",
+      "Python",
+      "Java",
+      "Docker",
+      "Linux"
+    ],
+    "potentialRevenueLoss": {
+      "daily": 150000,
+      "monthly": 3000000
+    }
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_AVAILABILITY_STATUS",
+    "message": "無効な稼働可能状態が指定されました。",
+    "details": {
+      "availabilityStatus": "invalid",
+      "allowed": ["availableImmediately", "availableSoon", "unavailable"]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のデータのみ）</li>
+            <li><code>ROLE_HR</code>（全データへのアクセス）</li>
+            <li><code>ROLE_SALES</code>（マッチング用情報へのアクセス、一部の詳細情報制限あり）</li>
+        </ul>
+    </div>
+</body>
+</html>

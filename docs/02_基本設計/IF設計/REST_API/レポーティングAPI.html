@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>レポーティングAPI設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 4px;
+            overflow: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .endpoint {
+            margin-bottom: 30px;
+        }
+        .endpoint h3 {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-left: 4px solid #2c3e50;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .patch { background-color: #50e3c2; }
+    </style>
+</head>
+<body>
+    <h1>レポーティングAPI設計</h1>
+    
+    <h2>概要</h2>
+    <p>
+        レポーティングAPIは、SES業務システム全体のデータを集計・分析し、ダッシュボードやレポートとして提供するためのAPIです。
+        売上、粗利、稼働率、予測分析など、経営判断や業務改善に必要な情報をさまざまな切り口で取得できます。
+    </p>
+    
+    <h2>ベースパス</h2>
+    <p><code>/api/v1/reports</code></p>
+    
+    <h2>基本設計方針</h2>
+    <ul>
+        <li>RESTful原則に基づく設計</li>
+        <li>JSON形式でのデータ交換</li>
+        <li>適切な認証・認可の実装（JWTトークンを使用）</li>
+        <li>クエリパラメータを用いた柔軟なデータフィルタリング</li>
+        <li>ページネーションによる大量データの効率的な取得</li>
+        <li>適切なHTTPステータスコードによるエラーハンドリング</li>
+        <li>HATEOAS原則によるAPIナビゲーション</li>
+    </ul>
+    
+    <h2>レポートデータの基本構造</h2>
+    <p>レポートデータは以下の基本構造に従います：</p>
+    <pre>
+{
+  "meta": {
+    "timestamp": "2023-01-01T00:00:00Z",
+    "period": "monthly",
+    "from": "2023-01-01",
+    "to": "2023-01-31",
+    "filters": { ... }
+  },
+  "data": {
+    // レポート固有のデータ構造
+  },
+  "summary": {
+    // レポート全体のサマリーデータ
+  },
+  "links": {
+    "self": "/api/v1/reports/...",
+    "related": [ ... ]
+  }
+}
+    </pre>
+    
+    <h2>レポーティングAPI一覧</h2>
+    <table>
+        <tr>
+            <th>カテゴリ</th>
+            <th>説明</th>
+            <th>ドキュメントリンク</th>
+        </tr>
+        <tr>
+            <td>KPIダッシュボード</td>
+            <td>主要業績評価指標（KPI）の取得や管理に関するAPI</td>
+            <td><a href="./REST_API/レポーティング/01_KPIダッシュボードAPI.html">詳細</a></td>
+        </tr>
+        <tr>
+            <td>売上レポート</td>
+            <td>期間別、顧客別、プロジェクト別などの売上データを取得するAPI</td>
+            <td><a href="./REST_API/レポーティング/02_売上レポートAPI.html">詳細</a></td>
+        </tr>
+        <tr>
+            <td>粗利レポート</td>
+            <td>期間別、顧客別、プロジェクト別などの粗利データを取得するAPI</td>
+            <td><a href="./REST_API/レポーティング/03_粗利レポートAPI.html">詳細</a></td>
+        </tr>
+        <tr>
+            <td>稼働率レポート</td>
+            <td>技術者の稼働状況や空き状況を分析するAPI</td>
+            <td><a href="./REST_API/レポーティング/04_稼働率レポートAPI.html">詳細</a></td>
+        </tr>
+        <tr>
+            <td>予測分析</td>
+            <td>将来の売上や利益、リソース需要などを予測するAPI</td>
+            <td><a href="./REST_API/レポーティング/05_予測分析API.html">詳細</a></td>
+        </tr>
+        <tr>
+            <td>カスタムレポート</td>
+            <td>ユーザー定義のカスタムレポートを作成・管理するAPI</td>
+            <td><a href="./REST_API/レポーティング/06_カスタムレポートAPI.html">詳細</a></td>
+        </tr>
+    </table>
+    
+    <h2>認証・認可</h2>
+    <p>レポーティングAPIへのアクセスには適切な認証と認可が必要です。</p>
+    <ul>
+        <li>認証方式：JWT（JSON Web Token）</li>
+        <li>ヘッダー：<code>Authorization: Bearer {token}</code></li>
+        <li>
+            アクセス権限：
+            <ul>
+                <li><code>ROLE_ADMIN</code>：すべてのレポートにアクセス可能</li>
+                <li><code>ROLE_MANAGER</code>：担当部門のレポートにアクセス可能</li>
+                <li><code>ROLE_SALES</code>：売上関連レポートにアクセス可能</li>
+                <li><code>ROLE_ENGINEER</code>：一部の稼働率レポートのみアクセス可能</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h2>エラーレスポンス</h2>
+    <p>エラー発生時は以下の形式でレスポンスが返されます：</p>
+    <pre>
+{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "エラーメッセージ",
+    "details": { ... }
+  }
+}
+    </pre>
+    
+    <h2>共通クエリパラメータ</h2>
+    <table>
+        <tr>
+            <th>パラメータ</th>
+            <th>説明</th>
+            <th>例</th>
+        </tr>
+        <tr>
+            <td>from</td>
+            <td>レポート期間の開始日（ISO 8601形式）</td>
+            <td><code>from=2023-01-01</code></td>
+        </tr>
+        <tr>
+            <td>to</td>
+            <td>レポート期間の終了日（ISO 8601形式）</td>
+            <td><code>to=2023-12-31</code></td>
+        </tr>
+        <tr>
+            <td>granularity</td>
+            <td>データの粒度（daily, weekly, monthly, quarterly, annual）</td>
+            <td><code>granularity=monthly</code></td>
+        </tr>
+        <tr>
+            <td>departmentId</td>
+            <td>特定部門のデータに絞り込み</td>
+            <td><code>departmentId=123</code></td>
+        </tr>
+        <tr>
+            <td>customerId</td>
+            <td>特定顧客のデータに絞り込み</td>
+            <td><code>customerId=456</code></td>
+        </tr>
+        <tr>
+            <td>format</td>
+            <td>レスポンス形式（json, csv, excel）</td>
+            <td><code>format=json</code></td>
+        </tr>
+    </table>
+</body>
+</html>

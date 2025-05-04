@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工数管理API 設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #0066cc;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #333;
+            margin-top: 25px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .endpoint {
+            font-family: monospace;
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .api-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #0066cc;
+        }
+        .method {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            color: white;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #0066cc;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+    </style>
+</head>
+<body>
+    <a href="../勤怠工数管理API.html" class="back-link">← 勤怠・工数管理API一覧へ戻る</a>
+    <h1>工数管理API 設計書</h1>
+
+    <div class="api-section">
+        <h2>1. 概要</h2>
+        <p>
+            工数管理APIは、技術者のプロジェクトごとの作業時間（工数）を管理するためのAPIです。
+            技術者が日々の作業内容と工数を登録・更新したり、管理者やプロジェクトマネージャーが工数情報を確認・集計したりするための機能を提供します。
+        </p>
+    </div>
+
+    <div class="api-section">
+        <h2>2. API エンドポイント一覧</h2>
+        <table>
+            <tr>
+                <th>メソッド</th>
+                <th>パス</th>
+                <th>説明</th>
+                <th>アクセス権限</th>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/workload</td>
+                <td>工数一覧の取得</td>
+                <td>システム管理者、工数管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method post">POST</span></td>
+                <td>/api/v1/timesheet/workload</td>
+                <td>工数情報の登録</td>
+                <td>全ユーザー</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/workload/{id}</td>
+                <td>特定工数情報の取得</td>
+                <td>本人、上長、PL/PM、システム管理者、工数管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method put">PUT</span></td>
+                <td>/api/v1/timesheet/workload/{id}</td>
+                <td>工数情報の更新</td>
+                <td>本人（未承認の場合）、システム管理者、工数管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method delete">DELETE</span></td>
+                <td>/api/v1/timesheet/workload/{id}</td>
+                <td>工数情報の削除</td>
+                <td>本人（未承認の場合）、システム管理者、工数管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/workload/users/{userId}/daily</td>
+                <td>特定ユーザーの日次工数取得</td>
+                <td>本人、上長、PL/PM、システム管理者、工数管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/workload/users/{userId}/monthly</td>
+                <td>特定ユーザーの月次工数取得</td>
+                <td>本人、上長、PL/PM、システム管理者、工数管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/workload/projects/{projectId}/monthly</td>
+                <td>プロジェクト別月次工数取得</td>
+                <td>案件担当者、PL/PM、システム管理者、工数管理者</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- GET /api/v1/timesheet/workload -->
+    <div class="api-section">
+        <h2>3. API詳細</h2>
+        <h3 id="get-workload-list">3.1 工数一覧の取得</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/workload</span></p>
+        
+        <h4>説明</h4>
+        <p>工数情報の一覧を取得します。システム管理者または工数管理者が、条件に応じた工数情報を取得するために使用します。</p>
+        
+        <h4>リクエストパラメータ（クエリパラメータ）</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定ユーザーの工数情報のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定プロジェクトの工数情報のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の開始日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の終了日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>taskCategoryId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定作業分類の工数のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>No</td>
+                <td>承認ステータス（未提出、提出済、承認済、差戻し）</td>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>ページ番号（デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>1ページあたりの件数（デフォルト: 20, 最大: 100）</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート項目（date, userId, projectId, hours）</td>
+            </tr>
+            <tr>
+                <td>order</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート順序（asc, desc）</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "items": [
+      {
+        "id": "wl123456",
+        "userId": "user123",
+        "userName": "山田太郎",
+        "date": "2025-05-01",
+        "projectId": "proj001",
+        "projectName": "A社システム開発",
+        "taskCategoryId": "task001",
+        "taskCategoryName": "プログラミング",
+        "hours": 6.0,
+        "description": "ログイン機能の実装",
+        "status": "承認済",
+        "createdAt": "2025-05-01T18:10:23Z",
+        "updatedAt": "2025-05-02T10:20:41Z"
+      },
+      {
+        "id": "wl123457",
+        "userId": "user123",
+        "userName": "山田太郎",
+        "date": "2025-05-01",
+        "projectId": "proj002",
+        "projectName": "B社保守運用",
+        "taskCategoryId": "task003",
+        "taskCategoryName": "会議",
+        "hours": 2.0,
+        "description": "週次進捗会議",
+        "status": "承認済",
+        "createdAt": "2025-05-01T18:15:10Z",
+        "updatedAt": "2025-05-02T10:20:41Z"
+      }
+      // ... 他の工数情報 ...
+    ],
+    "pagination": {
+      "totalItems": 152,
+      "totalPages": 8,
+      "currentPage": 1,
+      "limit": 20
+    }
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "期間の指定が不正です。startDateはendDateより前の日付を指定してください。"
+}</code></pre>
+        
+        <p>ステータスコード: 401 Unauthorized</p>
+        <pre><code>{
+  "status": "error",
+  "code": "UNAUTHORIZED",
+  "message": "認証に失敗しました。再度ログインしてください。"
+}</code></pre>
+    </div>
+
+    <!-- POST /api/v1/timesheet/workload -->
+    <div class="api-section">
+        <h3 id="post-workload">3.2 工数情報の登録</h3>
+        <p><span class="method post">POST</span> <span class="endpoint">/api/v1/timesheet/workload</span></p>
+        
+        <h4>説明</h4>
+        <p>新しい工数情報を登録します。技術者自身が日々の作業工数を登録するために使用します。</p>
+        
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "date": "2025-05-02",             // 対象日（必須）
+  "projectId": "proj001",           // プロジェクトID（必須）
+  "taskCategoryId": "task001",      // 作業分類ID（必須）
+  "hours": 4.5,                     // 工数（時間）（必須）
+  "description": "APIの設計・実装",  // 作業内容（必須）
+  "status": "提出済"                // 承認ステータス（任意、デフォルト：未提出）
+}</code></pre>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 201 Created</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "id": "wl789012",
+    "userId": "user123",            // トークンから自動取得されたユーザーID
+    "date": "2025-05-02",
+    "projectId": "proj001",
+    "projectName": "A社システム開発",
+    "taskCategoryId": "task001",
+    "taskCategoryName": "プログラミング",
+    "hours": 4.5,
+    "description": "APIの設計・実装",
+    "status": "提出済",
+    "createdAt": "2025-05-02T18:40:12Z",
+    "updatedAt": "2025-05-02T18:40:12Z"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "工数の入力が不正です。",
+  "details": [
+    {
+      "field": "hours",
+      "message": "工数は0.5以上24以下の数値で入力してください"
+    }
+  ]
+}</code></pre>
+        
+        <p>ステータスコード: 404 Not Found</p>
+        <pre><code>{
+  "status": "error",
+  "code": "NOT_FOUND",
+  "message": "指定されたプロジェクトが存在しません。"
+}</code></pre>
+    </div>
+
+    <!-- GET /api/v1/timesheet/workload/{id} -->
+    <div class="api-section">
+        <h3 id="get-workload-detail">3.3 特定工数情報の取得</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/workload/{id}</span></p>
+        
+        <h4>説明</h4>
+        <p>特定の工数情報の詳細を取得します。工数IDを指定して、該当する工数情報を取得するために使用します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>取得する工数情報のID</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "id": "wl123456",
+    "userId": "user123",
+    "userName": "山田太郎",
+    "departmentId": "dept001",
+    "departmentName": "開発部",
+    "date": "2025-05-01",
+    "projectId": "proj001",
+    "projectName": "A社システム開発",
+    "taskCategoryId": "task001",
+    "taskCategoryName": "プログラミング",
+    "hours": 6.0,
+    "description": "ログイン機能の実装",
+    "status": "承認済",
+    "approvalHistory": [
+      {
+        "id": "apv12345",
+        "status": "提出済",
+        "updatedAt": "2025-05-01T18:10:23Z",
+        "updatedBy": "user123",
+        "comment": ""
+      },
+      {
+        "id": "apv12346",
+        "status": "承認済",
+        "updatedAt": "2025-05-02T10:20:41Z",
+        "updatedBy": "manager001",
+        "comment": "承認します"
+      }
+    ],
+    "createdAt": "2025-05-01T18:10:23Z",
+    "updatedAt": "2025-05-02T10:20:41Z"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 404 Not Found</p>
+        <pre><code>{
+  "status": "error",
+  "code": "NOT_FOUND",
+  "message": "指定されたIDの工数情報は存在しません。"
+}</code></pre>
+    </div>
+
+    <!-- PUT /api/v1/timesheet/workload/{id} -->
+    <div class="api-section">
+        <h3 id="put-workload">3.4 工数情報の更新</h3>
+        <p><span class="method put">PUT</span> <span class="endpoint">/api/v1/timesheet/workload/{id}</span></p>
+        
+        <h4>説明</h4>
+        <p>既存の工数情報を更新します。技術者自身が未承認の工数情報を修正する場合や、管理者が工数情報を修正する場合に使用します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>更新する工数情報のID</td>
+            </tr>
+        </table>
+        
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "date": "2025-05-01",                     // 対象日（変更可）
+  "projectId": "proj001",                   // プロジェクトID（変更可）
+  "taskCategoryId": "task001",              // 作業分類ID（変更可）
+  "hours": 6.5,                             // 工数（時間）（変更可）
+  "description": "ログイン機能の実装と単体テスト",  // 作業内容（変更可）
+  "status": "提出済"                         // 承認ステータス（変更可、管理者のみ）
+}</code></pre>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "id": "wl123456",
+    "userId": "user123",
+    "date": "2025-05-01",
+    "projectId": "proj001",
+    "projectName": "A社システム開発",
+    "taskCategoryId": "task001",
+    "taskCategoryName": "プログラミング",
+    "hours": 6.5,                            // 更新された工数
+    "description": "ログイン機能の実装と単体テスト",   // 更新された作業内容
+    "status": "提出済",
+    "createdAt": "2025-05-01T18:10:23Z",
+    "updatedAt": "2025-05-03T11:30:33Z"       // 更新日時が変更される
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "工数の入力が不正です。",
+  "details": [
+    {
+      "field": "hours",
+      "message": "工数は0.5以上24以下の数値で入力してください"
+    }
+  ]
+}</code></pre>
+        
+        <p>ステータスコード: 403 Forbidden</p>
+        <pre><code>{
+  "status": "error",
+  "code": "FORBIDDEN",
+  "message": "承認済みの工数情報を変更する権限がありません。"
+}</code></pre>
+    </div>
+
+    <!-- DELETE /api/v1/timesheet/workload/{id} -->
+    <div class="api-section">
+        <h3 id="delete-workload">3.5 工数情報の削除</h3>
+        <p><span class="method delete">DELETE</span> <span class="endpoint">/api/v1/timesheet/workload/{id}</span></p>
+        
+        <h4>説明</h4>
+        <p>特定の工数情報を削除します。技術者自身が未承認の工数情報を削除する場合や、管理者が工数情報を削除する場合に使用します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>削除する工数情報のID</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 204 No Content</p>
+        <p>（レスポンスボディなし）</p>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 403 Forbidden</p>
+        <pre><code>{
+  "status": "error",
+  "code": "FORBIDDEN",
+  "message": "承認済みの工数情報を削除する権限がありません。"
+}</code></pre>
+        
+        <p>ステータスコード: 404 Not Found</p>
+        <pre><code>{
+  "status": "error",
+  "code": "NOT_FOUND",
+  "message": "指定されたIDの工数情報は存在しません。"
+}</code></pre>
+    </div>
+
+    <!-- GET /api/v1/timesheet/workload/users/{userId}/daily -->
+    <div class="api-section">
+        <h3 id="get-user-daily-workload">3.6 特定ユーザーの日次工数取得</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/workload/users/{userId}/daily</span></p>
+        
+        <h4>説明</h4>
+        <p>特定ユーザーの日次工数情報を取得します。特定の日付またはオプションで期間を指定して工数情報を取得します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>対象ユーザーのID</td>
+            </tr>
+        </table>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>date</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定日付の工数情報を取得（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の開始日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の終了日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定プロジェクトの工数情報のみを取得する場合に指定</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "userId": "user123",
+    "userName": "山田太郎",
+    "departmentId": "dept001",
+    "departmentName": "開発部",
+    "items": [
+      {
+        "date": "2025-05-01",
+        "totalHours": 8.0,
+        "projects": [
+          {
+            "projectId": "proj001",
+            "projectName": "A社システム開発",
+            "workloads": [
+              {
+                "id": "wl123456",
+                "taskCategoryId": "task001",
+                "taskCategoryName": "プログラミング",
+                "hours": 6.0,
+                "description": "ログイン機能の実装",
+                "status": "承認済"
+              }
+            ],
+            "subtotal": 6.0
+          },
+          {
+            "projectId": "proj002",
+            "projectName": "B社保守運用",
+            "workloads": [
+              {
+                "id": "wl123457",
+                "taskCategoryId": "task003",
+                "taskCategoryName": "会議",
+                "hours": 2.0,
+                "description": "週次進捗会議",
+                "status": "承認済"
+              }
+            ],
+            "subtotal": 2.0
+          }
+        ]
+      },
+      {
+        "date": "2025-05-02",
+        "totalHours": 8.0,
+        "projects": [
+          {
+            "projectId": "proj001",
+            "projectName": "A社システム開発",
+            "workloads": [
+              {
+                "id": "wl789012",
+                "taskCategoryId": "task001",
+                "taskCategoryName": "プログラミング",
+                "hours": 4.5,
+                "description": "APIの設計・実装",
+                "status": "提出済"
+              },
+              {
+                "id": "wl789013",
+                "taskCategoryId": "task002",
+                "taskCategoryName": "テスト",
+                "hours": 3.5,
+                "description": "単体テスト実施",
+                "status": "提出済"
+              }
+            ],
+            "subtotal": 8.0
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "日付形式が不正です。YYYY-MM-DD形式で指定してください。"
+}</code></pre>
+        
+        <p>ステータスコード: 404 Not Found</p>
+        <pre><code>{
+  "status": "error",
+  "code": "NOT_FOUND",
+  "message": "指定されたユーザーは存在しません。"
+}</code></pre>
+    </div>
+
+    <!-- GET /api/v1/timesheet/workload/users/{userId}/monthly -->
+    <div class="api-section">
+        <h3 id="get-user-monthly-workload">3.7 特定ユーザーの月次工数取得</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/workload/users/{userId}/monthly</span></p>
+        
+        <h4>説明</h4>
+        <p>特定ユーザーの月次工数情報を取得します。特定の年月を指定して月全体の工数情報と集計結果を取得します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>対象ユーザーのID</td>
+            </tr>
+        </table>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>Yes</td>
+                <td>対象年（例: 2025）</td>
+            </tr>
+            <tr>
+                <td>month</td>
+                <td>integer</td>
+                <td>Yes</td>
+                <td>対象月（1-12）</td>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定プロジェクトの工数情報のみを取得する場合に指定</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "userId": "user123",
+    "userName": "山田太郎",
+    "departmentId": "dept001",
+    "departmentName": "開発部",
+    "year": 2025,
+    "month": 5,
+    "summary": {
+      "totalWorkingDays": 20,
+      "totalHours": 163.5,
+      "projectSummary": [
+        {
+          "projectId": "proj001",
+          "projectName": "A社システム開発",
+          "totalHours": 120.5,
+          "percentage": 73.7,
+          "taskCategorySummary": [
+            {
+              "taskCategoryId": "task001",
+              "taskCategoryName": "プログラミング",
+              "hours": 85.5,
+              "percentage": 52.3
+            },
+            {
+              "taskCategoryId": "task002",
+              "taskCategoryName": "テスト",
+              "hours": 25.0,
+              "percentage": 15.3
+            },
+            {
+              "taskCategoryId": "task003",
+              "taskCategoryName": "会議",
+              "hours": 10.0,
+              "percentage": 6.1
+            }
+          ]
+        },
+        {
+          "projectId": "proj002",
+          "projectName": "B社保守運用",
+          "totalHours": 43.0,
+          "percentage": 26.3,
+          "taskCategorySummary": [
+            {
+              "taskCategoryId": "task001",
+              "taskCategoryName": "プログラミング",
+              "hours": 20.0,
+              "percentage": 12.2
+            },
+            {
+              "taskCategoryId": "task003",
+              "taskCategoryName": "会議",
+              "hours": 23.0,
+              "percentage": 14.1
+            }
+          ]
+        }
+      ]
+    },
+    "dailyDetails": [
+      {
+        "date": "2025-05-01",
+        "dayOfWeek": "木",
+        "isHoliday": false,
+        "totalHours": 8.0,
+        "projects": [
+          {
+            "projectId": "proj001",
+            "hours": 6.0
+          },
+          {
+            "projectId": "proj002",
+            "hours": 2.0
+          }
+        ]
+      },
+      // ... 月内の他の日の工数情報 ...
+      {
+        "date": "2025-05-31",
+        "dayOfWeek": "土",
+        "isHoliday": true,
+        "totalHours": 0.0,
+        "projects": []
+      }
+    ],
+    "approvalStatus": "部分承認",  // 全承認、部分承認、未提出
+    "submissionDate": "2025-06-01T10:15:23Z"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "月の指定が不正です。1から12の間で指定してください。"
+}</code></pre>
+    </div>
+
+    <!-- GET /api/v1/timesheet/workload/projects/{projectId}/monthly -->
+    <div class="api-section">
+        <h3 id="get-project-monthly-workload">3.8 プロジェクト別月次工数取得</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/workload/projects/{projectId}/monthly</span></p>
+        
+        <h4>説明</h4>
+        <p>特定プロジェクトの月次工数情報を取得します。案件担当者やプロジェクトマネージャーが、プロジェクト全体の工数状況を把握するために使用します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>対象プロジェクトのID</td>
+            </tr>
+        </table>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>Yes</td>
+                <td>対象年（例: 2025）</td>
+            </tr>
+            <tr>
+                <td>month</td>
+                <td>integer</td>
+                <td>Yes</td>
+                <td>対象月（1-12）</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "projectId": "proj001",
+    "projectName": "A社システム開発",
+    "projectCode": "PROJ2025-001",
+    "clientName": "A株式会社",
+    "year": 2025,
+    "month": 5,
+    "summary": {
+      "totalWorkingDays": 20,
+      "totalHours": 450.5,
+      "plannedHours": 480.0,
+      "progressRate": 93.9,
+      "memberCount": 5,
+      "memberSummary": [
+        {
+          "userId": "user123",
+          "userName": "山田太郎",
+          "totalHours": 120.5,
+          "percentage": 26.7
+        },
+        {
+          "userId": "user456",
+          "userName": "鈴木花子",
+          "totalHours": 115.0,
+          "percentage": 25.5
+        },
+        // ... 他のメンバーの工数情報 ...
+      ],
+      "taskCategorySummary": [
+        {
+          "taskCategoryId": "task001",
+          "taskCategoryName": "プログラミング",
+          "hours": 290.5,
+          "percentage": 64.5
+        },
+        {
+          "taskCategoryId": "task002",
+          "taskCategoryName": "テスト",
+          "hours": 98.0,
+          "percentage": 21.8
+        },
+        {
+          "taskCategoryId": "task003",
+          "taskCategoryName": "会議",
+          "hours": 36.0,
+          "percentage": 8.0
+        },
+        {
+          "taskCategoryId": "task004",
+          "taskCategoryName": "ドキュメント作成",
+          "hours": 26.0,
+          "percentage": 5.7
+        }
+      ]
+    },
+    "dailyDetails": [
+      {
+        "date": "2025-05-01",
+        "dayOfWeek": "木",
+        "isHoliday": false,
+        "totalHours": 25.5,
+        "members": [
+          {
+            "userId": "user123",
+            "userName": "山田太郎",
+            "hours": 6.0
+          },
+          {
+            "userId": "user456",
+            "userName": "鈴木花子",
+            "hours": 7.5
+          },
+          // ... 他のメンバーの当日工数 ...
+        ]
+      },
+      // ... 月内の他の日の工数情報 ...
+    ],
+    "approvalStatus": {
+      "approved": 18,     // 承認済みの日数
+      "pending": 2,       // 未承認の日数
+      "notSubmitted": 0   // 未提出の日数
+    }
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 403 Forbidden</p>
+        <pre><code>{
+  "status": "error",
+  "code": "FORBIDDEN",
+  "message": "このプロジェクトの工数情報を参照する権限がありません。"
+}</code></pre>
+        
+        <p>ステータスコード: 404 Not Found</p>
+        <pre><code>{
+  "status": "error",
+  "code": "NOT_FOUND",
+  "message": "指定されたプロジェクトは存在しません。"
+}</code></pre>
+    </div>
+
+    <div class="api-section">
+        <h2>4. データ型定義</h2>
+        <h3>4.1 工数データ構造</h3>
+        <table>
+            <tr>
+                <th>フィールド名</th>
+                <th>型</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>工数データの一意識別子</td>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>ユーザーID</td>
+            </tr>
+            <tr>
+                <td>userName</td>
+                <td>string</td>
+                <td>ユーザー名</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>部門ID</td>
+            </tr>
+            <tr>
+                <td>departmentName</td>
+                <td>string</td>
+                <td>部門名</td>
+            </tr>
+            <tr>
+                <td>date</td>
+                <td>string</td>
+                <td>対象日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>プロジェクトID</td>
+            </tr>
+            <tr>
+                <td>projectName</td>
+                <td>string</td>
+                <td>プロジェクト名</td>
+            </tr>
+            <tr>
+                <td>taskCategoryId</td>
+                <td>string</td>
+                <td>作業分類ID</td>
+            </tr>
+            <tr>
+                <td>taskCategoryName</td>
+                <td>string</td>
+                <td>作業分類名</td>
+            </tr>
+            <tr>
+                <td>hours</td>
+                <td>number</td>
+                <td>工数（時間）</td>
+            </tr>
+            <tr>
+                <td>description</td>
+                <td>string</td>
+                <td>作業内容</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>承認ステータス（未提出、提出済、承認済、差戻し）</td>
+            </tr>
+            <tr>
+                <td>dayOfWeek</td>
+                <td>string</td>
+                <td>曜日（日、月、火、水、木、金、土）</td>
+            </tr>
+            <tr>
+                <td>isHoliday</td>
+                <td>boolean</td>
+                <td>休日フラグ</td>
+            </tr>
+            <tr>
+                <td>createdAt</td>
+                <td>string</td>
+                <td>作成日時（ISO8601形式）</td>
+            </tr>
+            <tr>
+                <td>updatedAt</td>
+                <td>string</td>
+                <td>更新日時（ISO8601形式）</td>
+            </tr>
+        </table>
+    </div>
+
+    <footer>
+        <p>© 2025 SES業務システム</p>
+    </footer>
+</body>
+</html>

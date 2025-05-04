@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マッチング機能API 仕様書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #2980b9;
+            margin-top: 30px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h3 {
+            color: #3498db;
+            margin-top: 25px;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            overflow: auto;
+        }
+        code {
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            background-color: #f8f8f8;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .endpoint {
+            margin-bottom: 30px;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 10px;
+            color: white;
+        }
+        .get {
+            background-color: #61affe;
+        }
+        .post {
+            background-color: #49cc90;
+        }
+        .put {
+            background-color: #fca130;
+        }
+        .delete {
+            background-color: #f93e3e;
+        }
+        .url {
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            font-weight: bold;
+        }
+        .nav-link {
+            display: block;
+            margin: 5px 0;
+            color: #3498db;
+            text-decoration: none;
+        }
+        .nav-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>マッチング機能API 仕様書</h1>
+
+    <h2>1. 概要</h2>
+    <p>
+        SES業務システムのマッチング機能APIは、技術者と案件のマッチングプロセスを効率化するためのインターフェースを提供します。
+        案件に適した技術者の検索、技術者に適した案件の検索、マッチング結果の管理、提案の作成と管理、提案書の生成と管理などの機能を含みます。
+    </p>
+
+    <h2>2. ベースパス</h2>
+    <p><code>/api/v1/matching</code></p>
+
+    <h2>3. 基本設計方針</h2>
+    <ul>
+        <li>RESTful設計原則に従い、リソース指向のAPIを提供します</li>
+        <li>JSON形式でデータをやり取りします</li>
+        <li>認証はJWTトークンを使用します</li>
+        <li>ページネーション、ソート、フィルタリングに対応します</li>
+        <li>適切なHTTPステータスコードとエラーメッセージを返します</li>
+        <li>APIバージョニングを採用し、後方互換性を維持します</li>
+    </ul>
+
+    <h2>4. 認証と認可</h2>
+    <p>
+        すべてのAPIリクエストは認証が必要です。認証はJWTトークンを使用し、Authorization HTTPヘッダーに<code>Bearer {token}</code>の形式で指定します。
+        各エンドポイントは特定のロールまたは権限が必要であり、それぞれのAPIドキュメントに記載されています。
+    </p>
+
+    <h2>5. APIグループ</h2>
+    <ul>
+        <li><a href="マッチング機能/01_マッチング検索API.html" class="nav-link">マッチング検索API</a> - 技術者と案件の相互検索機能</li>
+        <li><a href="マッチング機能/02_マッチング結果管理API.html" class="nav-link">マッチング結果管理API</a> - マッチング結果の保存・管理</li>
+        <li><a href="マッチング機能/03_提案管理API.html" class="nav-link">提案管理API</a> - クライアントへの提案作成・管理</li>
+        <li><a href="マッチング機能/04_提案書管理API.html" class="nav-link">提案書管理API</a> - 提案書の生成・管理</li>
+    </ul>
+
+    <h2>6. マッチングデータの基本構造</h2>
+
+    <h3>6.1 マッチング検索パラメータ</h3>
+    <p>マッチング検索に使用されるパラメータの基本構造は以下の通りです：</p>
+    <pre><code>{
+  "skills": [
+    {
+      "skillId": "string",
+      "skillName": "string",
+      "level": 1-5,
+      "importance": "required" | "preferred" | "optional"
+    }
+  ],
+  "experience": [
+    {
+      "industryId": "string",
+      "industryName": "string",
+      "years": number,
+      "importance": "required" | "preferred" | "optional"
+    }
+  ],
+  "qualifications": [
+    {
+      "qualificationId": "string",
+      "qualificationName": "string",
+      "importance": "required" | "preferred" | "optional"
+    }
+  ],
+  "workLocation": {
+    "prefectureId": "string",
+    "prefectureName": "string",
+    "cityId": "string",
+    "cityName": "string",
+    "remoteWork": boolean,
+    "importance": "required" | "preferred" | "optional"
+  },
+  "workConditions": {
+    "minRate": number,
+    "maxRate": number,
+    "contractType": "string",
+    "startDate": "YYYY-MM-DD",
+    "endDate": "YYYY-MM-DD",
+    "workingHours": number,
+    "workingDays": number,
+    "importance": "required" | "preferred" | "optional"
+  }
+}</code></pre>
+
+    <h3>6.2 マッチング結果</h3>
+    <p>マッチング結果の基本構造は以下の通りです：</p>
+    <pre><code>{
+  "id": "string",
+  "projectId": "string",
+  "engineerId": "string",
+  "matchingScore": number,
+  "matchingDetails": {
+    "skills": {
+      "score": number,
+      "details": [
+        {
+          "skillId": "string",
+          "skillName": "string",
+          "required": number,
+          "actual": number,
+          "match": boolean
+        }
+      ]
+    },
+    "experience": {
+      "score": number,
+      "details": [...]
+    },
+    "qualifications": {
+      "score": number,
+      "details": [...]
+    },
+    "workLocation": {
+      "score": number,
+      "match": boolean
+    },
+    "workConditions": {
+      "score": number,
+      "match": boolean
+    }
+  },
+  "created": "ISO-date",
+  "lastUpdated": "ISO-date",
+  "status": "active" | "inactive"
+}</code></pre>
+
+    <h3>6.3 提案</h3>
+    <p>提案の基本構造は以下の通りです：</p>
+    <pre><code>{
+  "id": "string",
+  "projectId": "string",
+  "engineerId": "string",
+  "matchingResultId": "string",
+  "proposalDate": "YYYY-MM-DD",
+  "status": "draft" | "pending" | "accepted" | "rejected" | "cancelled",
+  "rate": number,
+  "workStartDate": "YYYY-MM-DD",
+  "workEndDate": "YYYY-MM-DD",
+  "notes": "string",
+  "documents": [
+    {
+      "id": "string",
+      "name": "string",
+      "type": "string",
+      "url": "string",
+      "created": "ISO-date"
+    }
+  ],
+  "history": [
+    {
+      "status": "string",
+      "date": "ISO-date",
+      "userId": "string",
+      "userName": "string",
+      "notes": "string"
+    }
+  ],
+  "created": "ISO-date",
+  "createdBy": {
+    "id": "string",
+    "name": "string"
+  },
+  "lastUpdated": "ISO-date",
+  "lastUpdatedBy": {
+    "id": "string",
+    "name": "string"
+  }
+}</code></pre>
+
+    <h2>7. 共通のレスポンス形式</h2>
+
+    <h3>7.1 成功レスポンス</h3>
+    <p>すべての成功レスポンスは以下の形式に従います：</p>
+    <pre><code>{
+  "success": true,
+  "data": { ... }  // エンドポイント固有のデータ
+}</code></pre>
+
+    <h3>7.2 ページネーションレスポンス</h3>
+    <p>リスト取得操作のレスポンスは以下の形式に従います：</p>
+    <pre><code>{
+  "success": true,
+  "data": {
+    "items": [ ... ],  // データの配列
+    "pagination": {
+      "totalItems": number,
+      "totalPages": number,
+      "currentPage": number,
+      "pageSize": number
+    }
+  }
+}</code></pre>
+
+    <h3>7.3 エラーレスポンス</h3>
+    <p>エラーレスポンスは以下の形式に従います：</p>
+    <pre><code>{
+  "success": false,
+  "error": {
+    "code": "string",
+    "message": "string",
+    "details": { ... }  // オプション：詳細なエラー情報
+  }
+}</code></pre>
+
+    <h2>8. 共通のHTTPステータスコード</h2>
+    <table>
+        <tr>
+            <th>ステータスコード</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>200 OK</td>
+            <td>リクエストが成功し、レスポンスボディにデータが含まれています</td>
+        </tr>
+        <tr>
+            <td>201 Created</td>
+            <td>リソースが正常に作成されました</td>
+        </tr>
+        <tr>
+            <td>204 No Content</td>
+            <td>リクエストが成功しましたが、レスポンスボディにデータはありません</td>
+        </tr>
+        <tr>
+            <td>400 Bad Request</td>
+            <td>リクエストが不正です</td>
+        </tr>
+        <tr>
+            <td>401 Unauthorized</td>
+            <td>認証が必要です</td>
+        </tr>
+        <tr>
+            <td>403 Forbidden</td>
+            <td>権限がありません</td>
+        </tr>
+        <tr>
+            <td>404 Not Found</td>
+            <td>リソースが見つかりません</td>
+        </tr>
+        <tr>
+            <td>422 Unprocessable Entity</td>
+            <td>リクエストの形式は正しいが、意味的に処理できません</td>
+        </tr>
+        <tr>
+            <td>500 Internal Server Error</td>
+            <td>サーバー内部エラー</td>
+        </tr>
+    </table>
+
+    <h2>9. バージョン履歴</h2>
+    <table>
+        <tr>
+            <th>バージョン</th>
+            <th>日付</th>
+            <th>変更内容</th>
+        </tr>
+        <tr>
+            <td>1.0.0</td>
+            <td>2025-05-04</td>
+            <td>初版</td>
+        </tr>
+    </table>
+
+    <footer>
+        <p>© 2025 SES業務システム</p>
+    </footer>
+</body>
+</html>

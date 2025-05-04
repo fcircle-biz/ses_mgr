@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勤怠・工数管理API 設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #0066cc;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #333;
+            margin-top: 25px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .endpoint {
+            font-family: monospace;
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .api-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #0066cc;
+        }
+        .method {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            color: white;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .link-btn {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #0066cc;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin: 10px 0;
+            transition: background-color 0.3s;
+        }
+        .link-btn:hover {
+            background-color: #0052a3;
+        }
+    </style>
+</head>
+<body>
+    <h1>勤怠・工数管理API 設計書</h1>
+
+    <div class="api-section">
+        <h2>1. 概要</h2>
+        <p>
+            勤怠・工数管理APIは、SES業務システムにおける勤怠情報および工数情報の登録、参照、更新、削除、承認、および集計を行うためのRESTful APIです。
+            このAPIを通じて、技術者の勤怠状況、プロジェクトごとの工数、承認フロー、集計レポートなどを管理することができます。
+        </p>
+    </div>
+
+    <div class="api-section">
+        <h2>2. ベースパス</h2>
+        <p class="endpoint">/api/v1/timesheet</p>
+    </div>
+
+    <div class="api-section">
+        <h2>3. 基本設計方針</h2>
+        <h3>3.1 REST原則の遵守</h3>
+        <ul>
+            <li>リソース指向の設計</li>
+            <li>適切なHTTPメソッドの使用（GET, POST, PUT, DELETE）</li>
+            <li>ステートレスな通信</li>
+            <li>JSONフォーマットでのデータ交換</li>
+        </ul>
+
+        <h3>3.2 認証・認可</h3>
+        <ul>
+            <li>JWT（JSON Web Token）による認証</li>
+            <li>ロールベースのアクセス制御（技術者、管理者、承認者など）</li>
+            <li>各APIエンドポイントに対する適切な権限設定</li>
+        </ul>
+
+        <h3>3.3 エラーハンドリング</h3>
+        <ul>
+            <li>標準的なHTTPステータスコードの使用</li>
+            <li>詳細なエラーメッセージの提供</li>
+            <li>業務エラーとシステムエラーの区別</li>
+        </ul>
+
+        <h3>3.4 ペジネーション</h3>
+        <ul>
+            <li>一覧系APIにおけるページング機能の提供</li>
+            <li>検索条件によるフィルタリング</li>
+            <li>ソート機能</li>
+        </ul>
+    </div>
+
+    <div class="api-section">
+        <h2>4. 勤怠・工数データの基本構造</h2>
+        <h3>4.1 勤怠データ構造</h3>
+        <pre>
+{
+    "id": "勤怠データID",
+    "userId": "ユーザーID",
+    "date": "対象日（YYYY-MM-DD）",
+    "startTime": "勤務開始時間（HH:MM）",
+    "endTime": "勤務終了時間（HH:MM）",
+    "breakTime": "休憩時間（分）",
+    "totalWorkingHours": "総労働時間（時間）",
+    "remarks": "備考",
+    "status": "承認ステータス（未提出、提出済、承認済、差戻し）",
+    "createdAt": "作成日時",
+    "updatedAt": "更新日時"
+}
+        </pre>
+
+        <h3>4.2 工数データ構造</h3>
+        <pre>
+{
+    "id": "工数データID",
+    "userId": "ユーザーID",
+    "date": "対象日（YYYY-MM-DD）",
+    "projectId": "案件ID",
+    "taskCategoryId": "作業分類ID",
+    "hours": "工数（時間）",
+    "description": "作業内容",
+    "status": "承認ステータス（未提出、提出済、承認済、差戻し）",
+    "createdAt": "作成日時",
+    "updatedAt": "更新日時"
+}
+        </pre>
+
+        <h3>4.3 承認データ構造</h3>
+        <pre>
+{
+    "id": "承認データID",
+    "targetType": "承認対象タイプ（勤怠、工数）",
+    "targetId": "承認対象ID",
+    "userId": "承認対象ユーザーID",
+    "approverId": "承認者ID",
+    "status": "承認ステータス",
+    "comment": "承認コメント",
+    "createdAt": "作成日時",
+    "updatedAt": "更新日時"
+}
+        </pre>
+    </div>
+
+    <div class="api-section">
+        <h2>5. API一覧</h2>
+        <h3>5.1 勤怠管理API</h3>
+        <p>勤怠情報の登録、参照、更新、削除を行うAPIです。</p>
+        <a href="./勤怠工数管理/01_勤怠管理API.html" class="link-btn">勤怠管理API詳細</a>
+        <table>
+            <tr>
+                <th>メソッド</th>
+                <th>パス</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/attendance</td>
+                <td>勤怠一覧の取得</td>
+            </tr>
+            <tr>
+                <td><span class="method post">POST</span></td>
+                <td>/api/v1/timesheet/attendance</td>
+                <td>勤怠情報の登録</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/attendance/{id}</td>
+                <td>特定勤怠情報の取得</td>
+            </tr>
+            <tr>
+                <td><span class="method put">PUT</span></td>
+                <td>/api/v1/timesheet/attendance/{id}</td>
+                <td>勤怠情報の更新</td>
+            </tr>
+            <tr>
+                <td><span class="method delete">DELETE</span></td>
+                <td>/api/v1/timesheet/attendance/{id}</td>
+                <td>勤怠情報の削除</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/attendance/users/{userId}/daily</td>
+                <td>特定ユーザーの日次勤怠取得</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/attendance/users/{userId}/monthly</td>
+                <td>特定ユーザーの月次勤怠取得</td>
+            </tr>
+        </table>
+
+        <h3>5.2 工数管理API</h3>
+        <p>工数情報の登録、参照、更新、削除を行うAPIです。</p>
+        <a href="./勤怠工数管理/02_工数管理API.html" class="link-btn">工数管理API詳細</a>
+        <table>
+            <tr>
+                <th>メソッド</th>
+                <th>パス</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/workload</td>
+                <td>工数一覧の取得</td>
+            </tr>
+            <tr>
+                <td><span class="method post">POST</span></td>
+                <td>/api/v1/timesheet/workload</td>
+                <td>工数情報の登録</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/workload/{id}</td>
+                <td>特定工数情報の取得</td>
+            </tr>
+            <tr>
+                <td><span class="method put">PUT</span></td>
+                <td>/api/v1/timesheet/workload/{id}</td>
+                <td>工数情報の更新</td>
+            </tr>
+            <tr>
+                <td><span class="method delete">DELETE</span></td>
+                <td>/api/v1/timesheet/workload/{id}</td>
+                <td>工数情報の削除</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/workload/users/{userId}/daily</td>
+                <td>特定ユーザーの日次工数取得</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/workload/users/{userId}/monthly</td>
+                <td>特定ユーザーの月次工数取得</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/workload/projects/{projectId}/monthly</td>
+                <td>プロジェクト別月次工数取得</td>
+            </tr>
+        </table>
+
+        <h3>5.3 承認管理API</h3>
+        <p>勤怠・工数情報の承認フローを管理するAPIです。</p>
+        <a href="./勤怠工数管理/03_承認管理API.html" class="link-btn">承認管理API詳細</a>
+        <table>
+            <tr>
+                <th>メソッド</th>
+                <th>パス</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/approval</td>
+                <td>承認対象一覧の取得</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/approval/{id}</td>
+                <td>特定承認対象の詳細取得</td>
+            </tr>
+            <tr>
+                <td><span class="method post">POST</span></td>
+                <td>/api/v1/timesheet/approval/{id}/approve</td>
+                <td>承認処理</td>
+            </tr>
+            <tr>
+                <td><span class="method post">POST</span></td>
+                <td>/api/v1/timesheet/approval/{id}/reject</td>
+                <td>差し戻し処理</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/approval/users/{userId}</td>
+                <td>特定ユーザーの承認状況取得</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/approval/pending</td>
+                <td>未承認項目一覧取得</td>
+            </tr>
+        </table>
+
+        <h3>5.4 集計レポートAPI</h3>
+        <p>勤怠・工数データの集計と分析レポートを提供するAPIです。</p>
+        <a href="./勤怠工数管理/04_集計レポートAPI.html" class="link-btn">集計レポートAPI詳細</a>
+        <table>
+            <tr>
+                <th>メソッド</th>
+                <th>パス</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/report/attendance</td>
+                <td>勤怠集計レポート取得</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/report/workload</td>
+                <td>工数集計レポート取得</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/report/workload/projects</td>
+                <td>プロジェクト別工数集計</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/report/workload/departments</td>
+                <td>部門別工数集計</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/report/attendance/anomaly</td>
+                <td>勤怠異常レポート</td>
+            </tr>
+            <tr>
+                <td><span class="method post">POST</span></td>
+                <td>/api/v1/timesheet/report/export</td>
+                <td>レポートエクスポート</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="api-section">
+        <h2>6. エラーコード</h2>
+        <table>
+            <tr>
+                <th>HTTPステータス</th>
+                <th>エラーコード</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>400</td>
+                <td>BAD_REQUEST</td>
+                <td>リクエストの形式が不正</td>
+            </tr>
+            <tr>
+                <td>401</td>
+                <td>UNAUTHORIZED</td>
+                <td>認証に失敗</td>
+            </tr>
+            <tr>
+                <td>403</td>
+                <td>FORBIDDEN</td>
+                <td>リソースへのアクセス権限がない</td>
+            </tr>
+            <tr>
+                <td>404</td>
+                <td>NOT_FOUND</td>
+                <td>リソースが見つからない</td>
+            </tr>
+            <tr>
+                <td>409</td>
+                <td>CONFLICT</td>
+                <td>リソースの競合</td>
+            </tr>
+            <tr>
+                <td>500</td>
+                <td>INTERNAL_SERVER_ERROR</td>
+                <td>サーバー内部エラー</td>
+            </tr>
+        </table>
+    </div>
+
+    <footer>
+        <p>© 2025 SES業務システム</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支払管理API 設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .note {
+            background-color: #fef9e7;
+            border-left: 4px solid #f1c40f;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .endpoint {
+            margin: 20px 0;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .http-method {
+            font-weight: bold;
+            color: #fff;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .path {
+            font-family: monospace;
+            font-weight: bold;
+        }
+        .nav-container {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .nav-container ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        .nav-container li {
+            margin-bottom: 5px;
+        }
+        .breadcrumb {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="breadcrumb">
+        <a href="../請求支払管理API.html">請求・支払管理API</a> &gt; 支払管理API
+    </div>
+
+    <h1>支払管理API 設計書</h1>
+
+    <h2>1. 概要</h2>
+    <p>
+        支払管理APIは、技術者への支払い情報の登録、管理、照会を行うためのエンドポイントを提供します。
+        これにより、発注元から受け取った入金に基づいて、技術者への適切な支払管理が可能になります。
+    </p>
+
+    <h2>2. ベースパス</h2>
+    <p><code>/api/v1/billing</code></p>
+
+    <h2>3. エンドポイント一覧</h2>
+    <div class="nav-container">
+        <ul>
+            <li><a href="#get-payments-outgoing">GET /api/v1/billing/payments/outgoing</a> - 支払一覧の取得</li>
+            <li><a href="#post-payments-outgoing">POST /api/v1/billing/payments/outgoing</a> - 新規支払の登録</li>
+            <li><a href="#get-payment-outgoing">GET /api/v1/billing/payments/outgoing/{id}</a> - 特定支払の詳細取得</li>
+            <li><a href="#put-payment-outgoing">PUT /api/v1/billing/payments/outgoing/{id}</a> - 支払情報の更新</li>
+            <li><a href="#delete-payment-outgoing">DELETE /api/v1/billing/payments/outgoing/{id}</a> - 支払情報の削除</li>
+            <li><a href="#get-engineer-payments">GET /api/v1/billing/payments/outgoing/engineers/{engineerId}</a> - 技術者別支払一覧取得</li>
+            <li><a href="#get-payments-pending">GET /api/v1/billing/payments/outgoing/pending</a> - 未払い一覧取得</li>
+        </ul>
+    </div>
+
+    <h2>4. エンドポイント詳細</h2>
+
+    <div id="get-payments-outgoing" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/payments/outgoing</span></h3>
+        <p>支払一覧を取得します。ページネーションと各種検索条件による絞り込みが可能です。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>integer</td>
+                <td>いいえ</td>
+                <td>ページ番号 (デフォルト: 0)</td>
+            </tr>
+            <tr>
+                <td>size</td>
+                <td>integer</td>
+                <td>いいえ</td>
+                <td>1ページあたりの件数 (デフォルト: 20, 最大: 100)</td>
+            </tr>
+            <tr>
+                <td>engineerId</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>技術者ID</td>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>案件ID</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>支払ステータス (PENDING, APPROVED, PAID, CANCELLED)</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string (ISO日付)</td>
+                <td>いいえ</td>
+                <td>支払期間の開始日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string (ISO日付)</td>
+                <td>いいえ</td>
+                <td>支払期間の終了日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>paymentDate</td>
+                <td>string (ISO日付)</td>
+                <td>いいえ</td>
+                <td>支払日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>ソート条件 (例: paymentDate,desc)</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "content": [
+    {
+      "id": "PAYOUT2023050001",
+      "engineerId": "ENG001",
+      "engineerName": "鈴木一郎",
+      "projectId": "PROJ001",
+      "projectName": "基幹システム開発",
+      "amount": 400000,
+      "workPeriod": {
+        "startDate": "2023-04-01",
+        "endDate": "2023-04-30"
+      },
+      "paymentDate": "2023-05-25",
+      "status": "PAID",
+      "paymentMethod": "BANK_TRANSFER",
+      "createdAt": "2023-05-15T10:00:00Z",
+      "updatedAt": "2023-05-25T15:30:00Z"
+    },
+    {
+      "id": "PAYOUT2023050002",
+      "engineerId": "ENG002",
+      "engineerName": "佐藤次郎",
+      "projectId": "PROJ001",
+      "projectName": "基幹システム開発",
+      "amount": 380000,
+      "workPeriod": {
+        "startDate": "2023-04-01",
+        "endDate": "2023-04-30"
+      },
+      "paymentDate": "2023-05-25",
+      "status": "PAID",
+      "paymentMethod": "BANK_TRANSFER",
+      "createdAt": "2023-05-15T10:05:00Z",
+      "updatedAt": "2023-05-25T15:35:00Z"
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 20,
+    "sort": {
+      "sorted": true,
+      "unsorted": false
+    }
+  },
+  "totalElements": 28,
+  "totalPages": 2,
+  "last": false,
+  "first": true,
+  "size": 20,
+  "number": 0,
+  "sort": {
+    "sorted": true,
+    "unsorted": false
+  },
+  "numberOfElements": 20
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "無効なステータス値です: INVALID_STATUS",
+  "timestamp": "2023-05-15T10:00:00Z",
+  "path": "/api/v1/billing/payments/outgoing"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, PAYMENT_STAFF, REPORT_VIEWER</p>
+    </div>
+
+    <div id="post-payments-outgoing" class="endpoint">
+        <h3><span class="http-method post">POST</span><span class="path">/api/v1/billing/payments/outgoing</span></h3>
+        <p>新規支払情報を登録します。</p>
+
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "engineerId": "ENG001",
+  "projectId": "PROJ001",
+  "amount": 400000,
+  "workPeriod": {
+    "startDate": "2023-04-01",
+    "endDate": "2023-04-30"
+  },
+  "scheduledPaymentDate": "2023-05-25",
+  "status": "PENDING",
+  "paymentMethod": "BANK_TRANSFER",
+  "description": "4月分の業務委託料",
+  "attachments": [
+    {
+      "name": "勤務報告書_4月.pdf",
+      "contentType": "application/pdf",
+      "content": "base64EncodedString..."
+    }
+  ],
+  "notes": "交通費を含む"
+}</code></pre>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "id": "PAYOUT2023050001",
+  "engineerId": "ENG001",
+  "engineerName": "鈴木一郎",
+  "projectId": "PROJ001",
+  "projectName": "基幹システム開発",
+  "amount": 400000,
+  "workPeriod": {
+    "startDate": "2023-04-01",
+    "endDate": "2023-04-30"
+  },
+  "scheduledPaymentDate": "2023-05-25",
+  "paymentDate": null,
+  "status": "PENDING",
+  "paymentMethod": "BANK_TRANSFER",
+  "description": "4月分の業務委託料",
+  "attachments": [
+    {
+      "id": "ATT001",
+      "name": "勤務報告書_4月.pdf",
+      "contentType": "application/pdf",
+      "size": 245678,
+      "uploadDate": "2023-05-15T10:00:00Z",
+      "downloadUrl": "/api/v1/billing/payments/outgoing/PAYOUT2023050001/attachments/ATT001"
+    }
+  ],
+  "notes": "交通費を含む",
+  "createdAt": "2023-05-15T10:00:00Z",
+  "updatedAt": "2023-05-15T10:00:00Z",
+  "createdBy": "user123",
+  "approvalStatus": {
+    "required": true,
+    "approved": false,
+    "approvedBy": null,
+    "approvedAt": null
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "技術者ID 'ENG999' が見つかりません",
+  "timestamp": "2023-05-15T10:00:00Z",
+  "path": "/api/v1/billing/payments/outgoing"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, PAYMENT_STAFF</p>
+    </div>
+
+    <div id="get-payment-outgoing" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/payments/outgoing/{id}</span></h3>
+        <p>特定の支払情報の詳細を取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>支払ID</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "id": "PAYOUT2023050001",
+  "engineerId": "ENG001",
+  "engineerName": "鈴木一郎",
+  "projectId": "PROJ001",
+  "projectName": "基幹システム開発",
+  "amount": 400000,
+  "workPeriod": {
+    "startDate": "2023-04-01",
+    "endDate": "2023-04-30"
+  },
+  "scheduledPaymentDate": "2023-05-25",
+  "paymentDate": "2023-05-25",
+  "status": "PAID",
+  "paymentMethod": "BANK_TRANSFER",
+  "description": "4月分の業務委託料",
+  "attachments": [
+    {
+      "id": "ATT001",
+      "name": "勤務報告書_4月.pdf",
+      "contentType": "application/pdf",
+      "size": 245678,
+      "uploadDate": "2023-05-15T10:00:00Z",
+      "downloadUrl": "/api/v1/billing/payments/outgoing/PAYOUT2023050001/attachments/ATT001"
+    }
+  ],
+  "notes": "交通費を含む",
+  "createdAt": "2023-05-15T10:00:00Z",
+  "updatedAt": "2023-05-25T15:30:00Z",
+  "createdBy": "user123",
+  "approvalStatus": {
+    "required": true,
+    "approved": true,
+    "approvedBy": "manager456",
+    "approvedAt": "2023-05-20T11:30:00Z"
+  },
+  "engineerDetail": {
+    "name": "鈴木一郎",
+    "email": "suzuki@example.com",
+    "phone": "090-1234-5678",
+    "bankAccount": {
+      "bankName": "サンプル銀行",
+      "branchName": "渋谷支店",
+      "accountType": "普通",
+      "accountNumber": "1234567",
+      "accountName": "スズキ イチロウ"
+    }
+  },
+  "workDetail": {
+    "workingDays": 21,
+    "workingHours": 168,
+    "ratePerHour": 2380,
+    "workItems": [
+      {
+        "description": "システム開発",
+        "hours": 140,
+        "amount": 333200
+      },
+      {
+        "description": "打ち合わせ・レビュー",
+        "hours": 28,
+        "amount": 66640
+      }
+    ]
+  },
+  "paymentHistory": [
+    {
+      "action": "CREATED",
+      "timestamp": "2023-05-15T10:00:00Z",
+      "user": "user123"
+    },
+    {
+      "action": "APPROVED",
+      "timestamp": "2023-05-20T11:30:00Z",
+      "user": "manager456"
+    },
+    {
+      "action": "PAID",
+      "timestamp": "2023-05-25T15:30:00Z",
+      "user": "finance789"
+    }
+  ]
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "error": "Not Found",
+  "message": "支払ID 'PAYOUT2023050999' が見つかりません",
+  "timestamp": "2023-05-18T14:25:00Z",
+  "path": "/api/v1/billing/payments/outgoing/PAYOUT2023050999"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, PAYMENT_STAFF, REPORT_VIEWER</p>
+    </div>
+
+    <div id="put-payment-outgoing" class="endpoint">
+        <h3><span class="http-method put">PUT</span><span class="path">/api/v1/billing/payments/outgoing/{id}</span></h3>
+        <p>既存の支払情報を更新します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>支払ID</td>
+            </tr>
+        </table>
+
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "amount": 420000,
+  "workPeriod": {
+    "startDate": "2023-04-01",
+    "endDate": "2023-04-30"
+  },
+  "scheduledPaymentDate": "2023-05-25",
+  "status": "APPROVED",
+  "paymentMethod": "BANK_TRANSFER",
+  "description": "4月分の業務委託料（残業代追加）",
+  "notes": "交通費と残業代を含む"
+}</code></pre>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "id": "PAYOUT2023050001",
+  "engineerId": "ENG001",
+  "engineerName": "鈴木一郎",
+  "projectId": "PROJ001",
+  "projectName": "基幹システム開発",
+  "amount": 420000,
+  "workPeriod": {
+    "startDate": "2023-04-01",
+    "endDate": "2023-04-30"
+  },
+  "scheduledPaymentDate": "2023-05-25",
+  "paymentDate": null,
+  "status": "APPROVED",
+  "paymentMethod": "BANK_TRANSFER",
+  "description": "4月分の業務委託料（残業代追加）",
+  "notes": "交通費と残業代を含む",
+  "createdAt": "2023-05-15T10:00:00Z",
+  "updatedAt": "2023-05-18T16:45:00Z",
+  "approvalStatus": {
+    "required": true,
+    "approved": true,
+    "approvedBy": "manager456",
+    "approvedAt": "2023-05-18T16:45:00Z"
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "支払済みの支払情報は更新できません",
+  "timestamp": "2023-05-18T16:45:00Z",
+  "path": "/api/v1/billing/payments/outgoing/PAYOUT2023050001"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, PAYMENT_STAFF</p>
+    </div>
+
+    <div id="delete-payment-outgoing" class="endpoint">
+        <h3><span class="http-method delete">DELETE</span><span class="path">/api/v1/billing/payments/outgoing/{id}</span></h3>
+        <p>支払情報を削除します。PAIDステータスの支払は削除できません。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>支払ID</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "message": "支払 PAYOUT2023050002 が正常に削除されました",
+  "timestamp": "2023-05-19T11:30:00Z"
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "支払済みの支払情報は削除できません",
+  "timestamp": "2023-05-19T11:30:00Z",
+  "path": "/api/v1/billing/payments/outgoing/PAYOUT2023050001"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER</p>
+    </div>
+
+    <div id="get-engineer-payments" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/payments/outgoing/engineers/{engineerId}</span></h3>
+        <p>特定技術者の支払一覧を取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>engineerId</td>
+                <td>string</td>
+                <td>はい</td>
+                <td>技術者ID</td>
+            </tr>
+        </table>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>integer</td>
+                <td>いいえ</td>
+                <td>ページ番号 (デフォルト: 0)</td>
+            </tr>
+            <tr>
+                <td>size</td>
+                <td>integer</td>
+                <td>いいえ</td>
+                <td>1ページあたりの件数 (デフォルト: 20, 最大: 100)</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string (ISO日付)</td>
+                <td>いいえ</td>
+                <td>開始日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string (ISO日付)</td>
+                <td>いいえ</td>
+                <td>終了日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>支払ステータス (PENDING, APPROVED, PAID, CANCELLED)</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>ソート条件 (例: workPeriod.startDate,desc)</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "engineerId": "ENG001",
+  "engineerName": "鈴木一郎",
+  "payments": {
+    "content": [
+      {
+        "id": "PAYOUT2023050001",
+        "projectId": "PROJ001",
+        "projectName": "基幹システム開発",
+        "amount": 400000,
+        "workPeriod": {
+          "startDate": "2023-04-01",
+          "endDate": "2023-04-30"
+        },
+        "scheduledPaymentDate": "2023-05-25",
+        "paymentDate": "2023-05-25",
+        "status": "PAID",
+        "paymentMethod": "BANK_TRANSFER",
+        "description": "4月分の業務委託料"
+      },
+      {
+        "id": "PAYOUT2023040001",
+        "projectId": "PROJ001",
+        "projectName": "基幹システム開発",
+        "amount": 400000,
+        "workPeriod": {
+          "startDate": "2023-03-01",
+          "endDate": "2023-03-31"
+        },
+        "scheduledPaymentDate": "2023-04-25",
+        "paymentDate": "2023-04-25",
+        "status": "PAID",
+        "paymentMethod": "BANK_TRANSFER",
+        "description": "3月分の業務委託料"
+      }
+    ],
+    "pageable": {
+      "pageNumber": 0,
+      "pageSize": 20,
+      "sort": {
+        "sorted": true,
+        "unsorted": false
+      }
+    },
+    "totalElements": 10,
+    "totalPages": 1,
+    "last": true,
+    "first": true,
+    "size": 20,
+    "number": 0,
+    "sort": {
+      "sorted": true,
+      "unsorted": false
+    },
+    "numberOfElements": 10
+  },
+  "summary": {
+    "totalPaid": 4000000,
+    "totalPending": 0,
+    "lastPaymentDate": "2023-05-25",
+    "nextScheduledPayment": {
+      "scheduledDate": "2023-06-25",
+      "estimatedAmount": 400000
+    }
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "error": "Not Found",
+  "message": "技術者ID 'ENG999' が見つかりません",
+  "timestamp": "2023-05-20T10:15:00Z",
+  "path": "/api/v1/billing/payments/outgoing/engineers/ENG999"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, PAYMENT_STAFF, REPORT_VIEWER</p>
+    </div>
+
+    <div id="get-payments-pending" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/payments/outgoing/pending</span></h3>
+        <p>未払いの支払い一覧を取得します。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>integer</td>
+                <td>いいえ</td>
+                <td>ページ番号 (デフォルト: 0)</td>
+            </tr>
+            <tr>
+                <td>size</td>
+                <td>integer</td>
+                <td>いいえ</td>
+                <td>1ページあたりの件数 (デフォルト: 20, 最大: 100)</td>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>案件ID</td>
+            </tr>
+            <tr>
+                <td>dueBefore</td>
+                <td>string (ISO日付)</td>
+                <td>いいえ</td>
+                <td>この日付以前に支払予定のもの (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>ソート条件 (例: scheduledPaymentDate,asc)</td>
+            </tr>
+            <tr>
+                <td>approvalStatus</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>承認ステータス (APPROVED, PENDING_APPROVAL)</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "content": [
+    {
+      "id": "PAYOUT2023050005",
+      "engineerId": "ENG003",
+      "engineerName": "田中三郎",
+      "projectId": "PROJ002",
+      "projectName": "モバイルアプリ開発",
+      "amount": 350000,
+      "workPeriod": {
+        "startDate": "2023-04-01",
+        "endDate": "2023-04-30"
+      },
+      "scheduledPaymentDate": "2023-05-25",
+      "status": "APPROVED",
+      "paymentMethod": "BANK_TRANSFER",
+      "description": "4月分の業務委託料",
+      "daysUntilDue": 5,
+      "approvalStatus": {
+        "approved": true,
+        "approvedBy": "manager456",
+        "approvedAt": "2023-05-18T14:30:00Z"
+      }
+    },
+    {
+      "id": "PAYOUT2023050006",
+      "engineerId": "ENG004",
+      "engineerName": "伊藤四郎",
+      "projectId": "PROJ002",
+      "projectName": "モバイルアプリ開発",
+      "amount": 330000,
+      "workPeriod": {
+        "startDate": "2023-04-01",
+        "endDate": "2023-04-30"
+      },
+      "scheduledPaymentDate": "2023-05-25",
+      "status": "PENDING",
+      "paymentMethod": "BANK_TRANSFER",
+      "description": "4月分の業務委託料",
+      "daysUntilDue": 5,
+      "approvalStatus": {
+        "approved": false,
+        "approvedBy": null,
+        "approvedAt": null
+      }
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 20,
+    "sort": {
+      "sorted": true,
+      "unsorted": false
+    }
+  },
+  "totalElements": 12,
+  "totalPages": 1,
+  "last": true,
+  "first": true,
+  "size": 20,
+  "number": 0,
+  "sort": {
+    "sorted": true,
+    "unsorted": false
+  },
+  "numberOfElements": 12,
+  "summary": {
+    "totalPendingAmount": 4150000,
+    "pendingApproval": 2,
+    "approvedAndReady": 10,
+    "dueWithin7Days": 12,
+    "overdue": 0
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, PAYMENT_STAFF, REPORT_VIEWER</p>
+    </div>
+
+    <footer>
+        <p>最終更新日: 2025年5月4日</p>
+    </footer>
+</body>
+</html>

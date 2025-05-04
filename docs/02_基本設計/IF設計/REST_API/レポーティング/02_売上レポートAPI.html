@@ -1,0 +1,1263 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>売上レポートAPI</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 4px;
+            overflow: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .endpoint {
+            margin-bottom: 30px;
+        }
+        .endpoint h3 {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-left: 4px solid #2c3e50;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .patch { background-color: #50e3c2; }
+    </style>
+</head>
+<body>
+    <h1>売上レポートAPI</h1>
+    
+    <p>
+        売上レポートAPIは、SES業務システムにおける売上データを様々な軸で集計・分析するためのインターフェースを提供します。
+        月次、四半期、年間の期間別レポートや、顧客別、プロジェクト別、部門別など様々な切り口での売上分析が可能です。
+    </p>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/sales/monthly</h3>
+        <p><strong>説明：</strong> 月次売上レポートを取得します。特定の月や期間を指定して、月別の売上集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>年（例: 2023）。指定しない場合は当年</td>
+            </tr>
+            <tr>
+                <td>month</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>月（1-12）。指定しない場合は当月</td>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>開始月（ISO 8601形式: YYYY-MM-01）。year/monthと排他</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>終了月（ISO 8601形式: YYYY-MM-01）。fromと共に使用</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>部門IDでフィルター</td>
+            </tr>
+            <tr>
+                <td>compareWithPrevious</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>前年同月/前月との比較データを含める。デフォルトはfalse</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": "monthly",
+    "from": "2023-01-01",
+    "to": "2023-04-01",
+    "filters": {
+      "departmentId": null
+    }
+  },
+  "data": [
+    {
+      "year": 2023,
+      "month": 1,
+      "period": "2023-01",
+      "totalSales": 12500000,
+      "targetSales": 13000000,
+      "achievementRate": 0.96,
+      "previousYearSales": 11800000,
+      "yearOnYearChange": 0.06,
+      "invoiceCount": 25,
+      "customerCount": 18,
+      "breakdown": {
+        "newProjects": 2500000,
+        "continuingProjects": 10000000
+      }
+    },
+    {
+      "year": 2023,
+      "month": 2,
+      "period": "2023-02",
+      "totalSales": 12800000,
+      "targetSales": 13000000,
+      "achievementRate": 0.98,
+      "previousYearSales": 12000000,
+      "yearOnYearChange": 0.07,
+      "invoiceCount": 26,
+      "customerCount": 19,
+      "breakdown": {
+        "newProjects": 2800000,
+        "continuingProjects": 10000000
+      }
+    },
+    {
+      "year": 2023,
+      "month": 3,
+      "period": "2023-03",
+      "totalSales": 13200000,
+      "targetSales": 13500000,
+      "achievementRate": 0.98,
+      "previousYearSales": 12200000,
+      "yearOnYearChange": 0.08,
+      "invoiceCount": 27,
+      "customerCount": 20,
+      "breakdown": {
+        "newProjects": 3200000,
+        "continuingProjects": 10000000
+      }
+    },
+    {
+      "year": 2023,
+      "month": 4,
+      "period": "2023-04",
+      "totalSales": 13500000,
+      "targetSales": 13500000,
+      "achievementRate": 1.0,
+      "previousYearSales": 12500000,
+      "yearOnYearChange": 0.08,
+      "invoiceCount": 28,
+      "customerCount": 21,
+      "breakdown": {
+        "newProjects": 3500000,
+        "continuingProjects": 10000000
+      }
+    }
+  ],
+  "summary": {
+    "totalSales": 52000000,
+    "averageMonthlySales": 13000000,
+    "maxSalesMonth": "2023-04",
+    "maxSalesAmount": 13500000,
+    "minSalesMonth": "2023-01",
+    "minSalesAmount": 12500000,
+    "totalAchievementRate": 0.98,
+    "growth": {
+      "trend": "upward",
+      "growthRate": 0.08
+    }
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_DATE_RANGE",
+    "message": "無効な日付範囲が指定されました。",
+    "details": {
+      "from": "2023-04-01",
+      "to": "2023-01-01",
+      "reason": "終了日は開始日より後である必要があります。"
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のデータのみ）</li>
+            <li><code>ROLE_SALES</code>（担当顧客・案件のデータのみ）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/sales/quarterly</h3>
+        <p><strong>説明：</strong> 四半期売上レポートを取得します。年度内の四半期や複数四半期にわたる売上集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>年度（例: 2023）。指定しない場合は当年度</td>
+            </tr>
+            <tr>
+                <td>quarter</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>四半期（1-4）。指定しない場合は当四半期</td>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>開始四半期（YYYY-Q形式: 例 2023-1）。year/quarterと排他</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>終了四半期（YYYY-Q形式: 例 2023-4）。fromと共に使用</td>
+            </tr>
+            <tr>
+                <td>fiscalYear</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>会計年度を基準とするか。デフォルトはtrue</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>部門IDでフィルター</td>
+            </tr>
+            <tr>
+                <td>compareWithPrevious</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>前年同四半期との比較データを含める。デフォルトはfalse</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": "quarterly",
+    "from": "2022-3",
+    "to": "2023-2",
+    "fiscalYear": true,
+    "filters": {
+      "departmentId": null
+    }
+  },
+  "data": [
+    {
+      "year": 2022,
+      "quarter": 3,
+      "period": "2022-Q3",
+      "months": ["2022-07", "2022-08", "2022-09"],
+      "totalSales": 36000000,
+      "targetSales": 37500000,
+      "achievementRate": 0.96,
+      "previousYearSales": 33000000,
+      "yearOnYearChange": 0.09,
+      "invoiceCount": 75,
+      "customerCount": 20,
+      "monthlySales": {
+        "2022-07": 12000000,
+        "2022-08": 12000000,
+        "2022-09": 12000000
+      },
+      "breakdown": {
+        "newProjects": 6000000,
+        "continuingProjects": 30000000
+      }
+    },
+    {
+      "year": 2022,
+      "quarter": 4,
+      "period": "2022-Q4",
+      "months": ["2022-10", "2022-11", "2022-12"],
+      "totalSales": 37500000,
+      "targetSales": 39000000,
+      "achievementRate": 0.96,
+      "previousYearSales": 34500000,
+      "yearOnYearChange": 0.09,
+      "invoiceCount": 78,
+      "customerCount": 21,
+      "monthlySales": {
+        "2022-10": 12500000,
+        "2022-11": 12500000,
+        "2022-12": 12500000
+      },
+      "breakdown": {
+        "newProjects": 7500000,
+        "continuingProjects": 30000000
+      }
+    },
+    {
+      "year": 2023,
+      "quarter": 1,
+      "period": "2023-Q1",
+      "months": ["2023-01", "2023-02", "2023-03"],
+      "totalSales": 38500000,
+      "targetSales": 39000000,
+      "achievementRate": 0.99,
+      "previousYearSales": 35500000,
+      "yearOnYearChange": 0.08,
+      "invoiceCount": 78,
+      "customerCount": 22,
+      "monthlySales": {
+        "2023-01": 12500000,
+        "2023-02": 12800000,
+        "2023-03": 13200000
+      },
+      "breakdown": {
+        "newProjects": 8500000,
+        "continuingProjects": 30000000
+      }
+    },
+    {
+      "year": 2023,
+      "quarter": 2,
+      "period": "2023-Q2",
+      "months": ["2023-04", "2023-05", "2023-06"],
+      "totalSales": 40500000,
+      "targetSales": 40500000,
+      "achievementRate": 1.0,
+      "previousYearSales": 36500000,
+      "yearOnYearChange": 0.11,
+      "invoiceCount": 80,
+      "customerCount": 23,
+      "monthlySales": {
+        "2023-04": 13500000,
+        "2023-05": 13500000,
+        "2023-06": 13500000
+      },
+      "breakdown": {
+        "newProjects": 10500000,
+        "continuingProjects": 30000000
+      }
+    }
+  ],
+  "summary": {
+    "totalSales": 152500000,
+    "averageQuarterlySales": 38125000,
+    "maxSalesQuarter": "2023-Q2",
+    "maxSalesAmount": 40500000,
+    "minSalesQuarter": "2022-Q3",
+    "minSalesAmount": 36000000,
+    "totalAchievementRate": 0.98,
+    "growth": {
+      "trend": "upward",
+      "growthRate": 0.09
+    }
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_QUARTER",
+    "message": "無効な四半期が指定されました。",
+    "details": {
+      "quarter": "5",
+      "allowed": [1, 2, 3, 4]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のデータのみ）</li>
+            <li><code>ROLE_SALES</code>（担当顧客・案件のデータのみ）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/sales/annual</h3>
+        <p><strong>説明：</strong> 年間売上レポートを取得します。特定の年や複数年にわたる年次売上集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>年度（例: 2023）。指定しない場合は当年度</td>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>開始年度。yearと排他</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>終了年度。fromと共に使用</td>
+            </tr>
+            <tr>
+                <td>fiscalYear</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>会計年度を基準とするか。デフォルトはtrue</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>部門IDでフィルター</td>
+            </tr>
+            <tr>
+                <td>compareWithPrevious</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>前年との比較データを含める。デフォルトはtrue</td>
+            </tr>
+            <tr>
+                <td>granularity</td>
+                <td>string</td>
+                <td>No</td>
+                <td>内訳の集計単位（monthly, quarterly）。デフォルトはquarterly</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": "annual",
+    "from": 2021,
+    "to": 2023,
+    "fiscalYear": true,
+    "granularity": "quarterly",
+    "filters": {
+      "departmentId": null
+    }
+  },
+  "data": [
+    {
+      "year": 2021,
+      "fiscalYear": "FY2021",
+      "totalSales": 140000000,
+      "targetSales": 145000000,
+      "achievementRate": 0.97,
+      "previousYearSales": 130000000,
+      "yearOnYearChange": 0.08,
+      "invoiceCount": 280,
+      "customerCount": 25,
+      "quarterlyBreakdown": {
+        "Q1": 33000000,
+        "Q2": 34000000,
+        "Q3": 36000000,
+        "Q4": 37000000
+      },
+      "breakdown": {
+        "newProjects": 30000000,
+        "continuingProjects": 110000000
+      }
+    },
+    {
+      "year": 2022,
+      "fiscalYear": "FY2022",
+      "totalSales": 151000000,
+      "targetSales": 155000000,
+      "achievementRate": 0.97,
+      "previousYearSales": 140000000,
+      "yearOnYearChange": 0.08,
+      "invoiceCount": 300,
+      "customerCount": 28,
+      "quarterlyBreakdown": {
+        "Q1": 36500000,
+        "Q2": 37500000,
+        "Q3": 38000000,
+        "Q4": 39000000
+      },
+      "breakdown": {
+        "newProjects": 35000000,
+        "continuingProjects": 116000000
+      }
+    },
+    {
+      "year": 2023,
+      "fiscalYear": "FY2023",
+      "totalSales": 165000000,
+      "targetSales": 165000000,
+      "achievementRate": 1.0,
+      "previousYearSales": 151000000,
+      "yearOnYearChange": 0.09,
+      "invoiceCount": 320,
+      "customerCount": 30,
+      "quarterlyBreakdown": {
+        "Q1": 39000000,
+        "Q2": 41000000,
+        "Q3": 42000000,
+        "Q4": 43000000
+      },
+      "breakdown": {
+        "newProjects": 40000000,
+        "continuingProjects": 125000000
+      }
+    }
+  ],
+  "summary": {
+    "totalSales": 456000000,
+    "averageAnnualSales": 152000000,
+    "maxSalesYear": 2023,
+    "maxSalesAmount": 165000000,
+    "minSalesYear": 2021,
+    "minSalesAmount": 140000000,
+    "growth": {
+      "trend": "upward",
+      "totalGrowthRate": 0.18,
+      "cagr": 0.0857
+    }
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_YEAR_RANGE",
+    "message": "無効な年度範囲が指定されました。",
+    "details": {
+      "from": 2023,
+      "to": 2020,
+      "reason": "終了年度は開始年度より後である必要があります。"
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のデータのみ）</li>
+            <li><code>ROLE_SALES</code>（担当顧客・案件のデータのみ）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/sales/by-customer</h3>
+        <p><strong>説明：</strong> 顧客別の売上レポートを取得します。特定期間における顧客ごとの売上集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>開始日（ISO 8601形式）。デフォルトは当年初め</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>終了日（ISO 8601形式）。デフォルトは当日</td>
+            </tr>
+            <tr>
+                <td>period</td>
+                <td>string</td>
+                <td>No</td>
+                <td>集計期間（monthly, quarterly, annual）。デフォルトはmonthly</td>
+            </tr>
+            <tr>
+                <td>customerId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定顧客のみ表示する場合の顧客ID</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート順（totalSales, customerName）。デフォルトはtotalSales</td>
+            </tr>
+            <tr>
+                <td>order</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート方向（asc, desc）。デフォルトはdesc</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得する顧客数。デフォルトは20</td>
+            </tr>
+            <tr>
+                <td>offset</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得開始位置（ページネーション用）。デフォルトは0</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": {
+      "type": "custom",
+      "from": "2023-01-01",
+      "to": "2023-04-30"
+    },
+    "filters": {
+      "customerId": null
+    },
+    "pagination": {
+      "limit": 20,
+      "offset": 0,
+      "total": 28,
+      "next": "/api/v1/reports/sales/by-customer?limit=20&offset=20",
+      "previous": null
+    }
+  },
+  "data": [
+    {
+      "customerId": "customer_123",
+      "customerName": "株式会社ABC",
+      "customerCode": "C00123",
+      "industryType": "製造業",
+      "totalSales": 12000000,
+      "salesRatio": 0.12,
+      "projectCount": 5,
+      "engineerCount": 8,
+      "averageMonthlyRate": 850000,
+      "periodSales": {
+        "2023-01": 3000000,
+        "2023-02": 3000000,
+        "2023-03": 3000000,
+        "2023-04": 3000000
+      },
+      "projectSales": [
+        {
+          "projectId": "project_456",
+          "projectName": "基幹システム再構築",
+          "totalSales": 8000000
+        },
+        {
+          "projectId": "project_457",
+          "projectName": "モバイルアプリ開発",
+          "totalSales": 4000000
+        }
+      ],
+      "yearOnYearChange": 0.1
+    },
+    {
+      "customerId": "customer_124",
+      "customerName": "株式会社XYZ",
+      "customerCode": "C00124",
+      "industryType": "IT・通信",
+      "totalSales": 10500000,
+      "salesRatio": 0.105,
+      "projectCount": 3,
+      "engineerCount": 7,
+      "averageMonthlyRate": 750000,
+      "periodSales": {
+        "2023-01": 2500000,
+        "2023-02": 2500000,
+        "2023-03": 2700000,
+        "2023-04": 2800000
+      },
+      "projectSales": [
+        {
+          "projectId": "project_458",
+          "projectName": "クラウド移行支援",
+          "totalSales": 7000000
+        },
+        {
+          "projectId": "project_459",
+          "projectName": "セキュリティ診断",
+          "totalSales": 3500000
+        }
+      ],
+      "yearOnYearChange": 0.08
+    }
+    // 他の顧客...
+  ],
+  "summary": {
+    "totalCustomers": 28,
+    "totalSales": 100000000,
+    "averageSalesPerCustomer": 3571428.6,
+    "topIndustries": [
+      {
+        "industryType": "IT・通信",
+        "customerCount": 10,
+        "totalSales": 45000000,
+        "salesRatio": 0.45
+      },
+      {
+        "industryType": "製造業",
+        "customerCount": 8,
+        "totalSales": 30000000,
+        "salesRatio": 0.3
+      },
+      {
+        "industryType": "金融・保険",
+        "customerCount": 5,
+        "totalSales": 15000000,
+        "salesRatio": 0.15
+      }
+    ],
+    "customerConcentration": {
+      "top3Ratio": 0.35,
+      "top5Ratio": 0.5,
+      "top10Ratio": 0.75
+    }
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_SORT_PARAMETER",
+    "message": "無効なソートパラメータが指定されました。",
+    "details": {
+      "sort": "invalidField",
+      "allowed": ["totalSales", "customerName", "projectCount", "engineerCount"]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全顧客データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門の顧客データのみ）</li>
+            <li><code>ROLE_SALES</code>（担当顧客のデータのみ）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/sales/by-project</h3>
+        <p><strong>説明：</strong> プロジェクト別の売上レポートを取得します。特定期間におけるプロジェクトごとの売上集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>開始日（ISO 8601形式）。デフォルトは当年初め</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>終了日（ISO 8601形式）。デフォルトは当日</td>
+            </tr>
+            <tr>
+                <td>period</td>
+                <td>string</td>
+                <td>No</td>
+                <td>集計期間（monthly, quarterly, annual）。デフォルトはmonthly</td>
+            </tr>
+            <tr>
+                <td>customerId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定顧客のプロジェクトのみ表示する場合の顧客ID</td>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定プロジェクトのみ表示する場合のプロジェクトID</td>
+            </tr>
+            <tr>
+                <td>projectStatus</td>
+                <td>string</td>
+                <td>No</td>
+                <td>プロジェクト状態でフィルター（active, completed, all）。デフォルトはactive</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート順（totalSales, projectName, startDate）。デフォルトはtotalSales</td>
+            </tr>
+            <tr>
+                <td>order</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート方向（asc, desc）。デフォルトはdesc</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得するプロジェクト数。デフォルトは20</td>
+            </tr>
+            <tr>
+                <td>offset</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得開始位置（ページネーション用）。デフォルトは0</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": {
+      "type": "custom",
+      "from": "2023-01-01",
+      "to": "2023-04-30"
+    },
+    "filters": {
+      "customerId": null,
+      "projectId": null,
+      "projectStatus": "active"
+    },
+    "pagination": {
+      "limit": 20,
+      "offset": 0,
+      "total": 42,
+      "next": "/api/v1/reports/sales/by-project?limit=20&offset=20",
+      "previous": null
+    }
+  },
+  "data": [
+    {
+      "projectId": "project_456",
+      "projectName": "基幹システム再構築",
+      "projectCode": "P00456",
+      "customerId": "customer_123",
+      "customerName": "株式会社ABC",
+      "startDate": "2022-10-01",
+      "endDate": "2023-09-30",
+      "status": "active",
+      "totalSales": 8000000,
+      "salesRatio": 0.08,
+      "engineerCount": 5,
+      "periodSales": {
+        "2023-01": 2000000,
+        "2023-02": 2000000,
+        "2023-03": 2000000,
+        "2023-04": 2000000
+      },
+      "engineerSales": [
+        {
+          "engineerId": "engineer_123",
+          "engineerName": "開発太郎",
+          "totalSales": 3000000
+        },
+        {
+          "engineerId": "engineer_124",
+          "engineerName": "開発次郎",
+          "totalSales": 3000000
+        },
+        {
+          "engineerId": "engineer_125",
+          "engineerName": "開発花子",
+          "totalSales": 2000000
+        }
+      ]
+    },
+    {
+      "projectId": "project_458",
+      "projectName": "クラウド移行支援",
+      "projectCode": "P00458",
+      "customerId": "customer_124",
+      "customerName": "株式会社XYZ",
+      "startDate": "2022-12-01",
+      "endDate": "2023-08-31",
+      "status": "active",
+      "totalSales": 7000000,
+      "salesRatio": 0.07,
+      "engineerCount": 4,
+      "periodSales": {
+        "2023-01": 1750000,
+        "2023-02": 1750000,
+        "2023-03": 1750000,
+        "2023-04": 1750000
+      },
+      "engineerSales": [
+        {
+          "engineerId": "engineer_126",
+          "engineerName": "クラウド太郎",
+          "totalSales": 2000000
+        },
+        {
+          "engineerId": "engineer_127",
+          "engineerName": "クラウド次郎",
+          "totalSales": 2000000
+        },
+        {
+          "engineerId": "engineer_128",
+          "engineerName": "インフラ花子",
+          "totalSales": 3000000
+        }
+      ]
+    }
+    // 他のプロジェクト...
+  ],
+  "summary": {
+    "totalProjects": 42,
+    "activeProjects": 35,
+    "completedProjects": 7,
+    "totalSales": 100000000,
+    "averageSalesPerProject": 2380952.4,
+    "topProjectTypes": [
+      {
+        "projectType": "システム開発",
+        "projectCount": 18,
+        "totalSales": 45000000,
+        "salesRatio": 0.45
+      },
+      {
+        "projectType": "インフラ構築",
+        "projectCount": 12,
+        "totalSales": 30000000,
+        "salesRatio": 0.3
+      },
+      {
+        "projectType": "コンサルティング",
+        "projectCount": 8,
+        "totalSales": 15000000,
+        "salesRatio": 0.15
+      }
+    ]
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_PROJECT_STATUS",
+    "message": "無効なプロジェクト状態が指定されました。",
+    "details": {
+      "projectStatus": "invalid",
+      "allowed": ["active", "completed", "all"]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全プロジェクトデータへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のプロジェクトデータのみ）</li>
+            <li><code>ROLE_SALES</code>（担当プロジェクトのデータのみ）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/sales/by-department</h3>
+        <p><strong>説明：</strong> 部門別の売上レポートを取得します。特定期間における部門ごとの売上集計データを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>開始日（ISO 8601形式）。デフォルトは当年初め</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>終了日（ISO 8601形式）。デフォルトは当日</td>
+            </tr>
+            <tr>
+                <td>period</td>
+                <td>string</td>
+                <td>No</td>
+                <td>集計期間（monthly, quarterly, annual）。デフォルトはmonthly</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定部門のみ表示する場合の部門ID</td>
+            </tr>
+            <tr>
+                <td>includeSubDepartments</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>子部門を含めるかどうか。デフォルトはtrue</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート順（totalSales, departmentName）。デフォルトはtotalSales</td>
+            </tr>
+            <tr>
+                <td>order</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート方向（asc, desc）。デフォルトはdesc</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": {
+      "type": "custom",
+      "from": "2023-01-01",
+      "to": "2023-04-30"
+    },
+    "filters": {
+      "departmentId": null,
+      "includeSubDepartments": true
+    }
+  },
+  "data": [
+    {
+      "departmentId": "dept_123",
+      "departmentName": "ソリューション事業部",
+      "departmentCode": "D00123",
+      "parentDepartmentId": null,
+      "level": 1,
+      "totalSales": 45000000,
+      "salesRatio": 0.45,
+      "targetSales": 46000000,
+      "achievementRate": 0.98,
+      "previousYearSales": 41000000,
+      "yearOnYearChange": 0.09,
+      "engineerCount": 40,
+      "projectCount": 25,
+      "customerCount": 15,
+      "periodSales": {
+        "2023-01": 11000000,
+        "2023-02": 11200000,
+        "2023-03": 11300000,
+        "2023-04": 11500000
+      },
+      "subDepartments": [
+        {
+          "departmentId": "dept_1231",
+          "departmentName": "システム開発部",
+          "totalSales": 25000000,
+          "salesRatio": 0.25
+        },
+        {
+          "departmentId": "dept_1232",
+          "departmentName": "インフラ構築部",
+          "totalSales": 20000000,
+          "salesRatio": 0.2
+        }
+      ]
+    },
+    {
+      "departmentId": "dept_124",
+      "departmentName": "AIビジネス事業部",
+      "departmentCode": "D00124",
+      "parentDepartmentId": null,
+      "level": 1,
+      "totalSales": 30000000,
+      "salesRatio": 0.3,
+      "targetSales": 32000000,
+      "achievementRate": 0.94,
+      "previousYearSales": 25000000,
+      "yearOnYearChange": 0.2,
+      "engineerCount": 25,
+      "projectCount": 12,
+      "customerCount": 10,
+      "periodSales": {
+        "2023-01": 7000000,
+        "2023-02": 7500000,
+        "2023-03": 7700000,
+        "2023-04": 7800000
+      },
+      "subDepartments": [
+        {
+          "departmentId": "dept_1241",
+          "departmentName": "AI開発部",
+          "totalSales": 18000000,
+          "salesRatio": 0.18
+        },
+        {
+          "departmentId": "dept_1242",
+          "departmentName": "データサイエンス部",
+          "totalSales": 12000000,
+          "salesRatio": 0.12
+        }
+      ]
+    }
+    // 他の部門...
+  ],
+  "summary": {
+    "totalDepartments": 8,
+    "totalSales": 100000000,
+    "averageSalesPerDepartment": 12500000,
+    "targetAchievementRate": 0.96,
+    "yearOnYearChange": 0.12,
+    "departmentConcentration": {
+      "top3Ratio": 0.85
+    }
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "DEPARTMENT_NOT_FOUND",
+    "message": "指定された部門が見つかりません。",
+    "details": {
+      "departmentId": "non_existent_dept"
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全部門データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のデータのみ）</li>
+        </ul>
+    </div>
+</body>
+</html>

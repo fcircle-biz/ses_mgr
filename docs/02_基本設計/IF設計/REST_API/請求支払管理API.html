@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>請求・支払管理API 設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .note {
+            background-color: #fef9e7;
+            border-left: 4px solid #f1c40f;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .endpoint {
+            margin: 20px 0;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .http-method {
+            font-weight: bold;
+            color: #fff;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .path {
+            font-family: monospace;
+            font-weight: bold;
+        }
+        .nav-container {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .nav-container ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        .nav-container li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>請求・支払管理API 設計書</h1>
+
+    <h2>1. 概要</h2>
+    <p>
+        請求・支払管理APIは、SES業務システムにおける請求書発行、入金管理、支払処理、財務レポートなどの機能を提供するRESTful APIです。
+        このAPIを通じて、顧客への請求書発行から入金確認、技術者への支払管理までの一連の経理業務をシステム化し、業務効率の向上と正確性の担保を実現します。
+    </p>
+
+    <h3>ベースパス</h3>
+    <p><code>/api/v1/billing</code></p>
+
+    <h2>2. 基本設計方針</h2>
+    <ul>
+        <li>REST原則に従い、リソース指向のAPIとして設計</li>
+        <li>JSONフォーマットによるデータ交換</li>
+        <li>標準的なHTTPステータスコードを使用したエラーハンドリング</li>
+        <li>認証・認可はJWTトークンベースで実装</li>
+        <li>ページネーションによる大量データ取得の最適化</li>
+        <li>監査証跡のためのデータ変更履歴の記録</li>
+        <li>請求書PDFの生成と管理機能の提供</li>
+    </ul>
+
+    <h2>3. API構成</h2>
+    <div class="nav-container">
+        <h3>サブシステム構成</h3>
+        <ul>
+            <li><a href="請求支払管理/01_請求管理API.html">請求管理API</a> - 請求情報の作成・管理</li>
+            <li><a href="請求支払管理/02_請求書管理API.html">請求書管理API</a> - 請求書ドキュメントの生成・管理</li>
+            <li><a href="請求支払管理/03_入金管理API.html">入金管理API</a> - 入金情報の記録・管理</li>
+            <li><a href="請求支払管理/04_支払管理API.html">支払管理API</a> - 技術者への支払い管理</li>
+            <li><a href="請求支払管理/05_請求支払レポートAPI.html">請求・支払レポートAPI</a> - 財務レポート生成</li>
+        </ul>
+    </div>
+
+    <h2>4. データモデル概要</h2>
+    <h3>主要リソース</h3>
+    <ul>
+        <li><strong>Invoice (請求)</strong> - 顧客への請求情報</li>
+        <li><strong>InvoiceItem (請求明細)</strong> - 請求の詳細項目</li>
+        <li><strong>InvoiceDocument (請求書)</strong> - 請求書PDFデータ</li>
+        <li><strong>InvoiceTemplate (請求書テンプレート)</strong> - 請求書のフォーマット</li>
+        <li><strong>ReceivedPayment (入金)</strong> - 顧客からの入金情報</li>
+        <li><strong>OutgoingPayment (支払)</strong> - 技術者への支払情報</li>
+        <li><strong>BillingReport (請求・支払レポート)</strong> - 財務状況のレポート</li>
+    </ul>
+
+    <h3>Invoice (請求) データ構造例</h3>
+    <pre><code>{
+  "id": "INV2023050001",
+  "customerId": "CUST001",
+  "projectId": "PROJ001",
+  "billingPeriod": {
+    "startDate": "2023-04-01",
+    "endDate": "2023-04-30"
+  },
+  "issueDate": "2023-05-05",
+  "dueDate": "2023-05-31",
+  "status": "ISSUED", // DRAFT, ISSUED, PAID, PARTIALLY_PAID, CANCELLED
+  "totalAmount": 550000,
+  "taxAmount": 55000,
+  "currencyCode": "JPY",
+  "notes": "4月分の技術者派遣料金",
+  "items": [
+    {
+      "id": "ITEM001",
+      "description": "エンジニアA 稼働費 (160時間 × 3,000円)",
+      "quantity": 160,
+      "unitPrice": 3000,
+      "amount": 480000,
+      "taxRate": 10
+    },
+    {
+      "id": "ITEM002",
+      "description": "交通費",
+      "quantity": 1,
+      "unitPrice": 20000,
+      "amount": 20000,
+      "taxRate": 10
+    }
+  ],
+  "paymentTerms": "請求書発行日より30日以内にお支払いください",
+  "createdAt": "2023-05-01T10:00:00Z",
+  "updatedAt": "2023-05-05T09:30:00Z"
+}</code></pre>
+
+    <h3>ReceivedPayment (入金) データ構造例</h3>
+    <pre><code>{
+  "id": "PAY2023060001",
+  "invoiceId": "INV2023050001",
+  "customerId": "CUST001",
+  "amount": 550000,
+  "paymentDate": "2023-05-25",
+  "paymentMethod": "BANK_TRANSFER", // BANK_TRANSFER, CREDIT_CARD, CASH
+  "referenceNumber": "12345678",
+  "notes": "5月25日入金確認",
+  "status": "COMPLETED", // PENDING, COMPLETED, FAILED
+  "createdAt": "2023-05-25T14:30:00Z",
+  "updatedAt": "2023-05-25T14:30:00Z"
+}</code></pre>
+
+    <h2>5. 認証・認可</h2>
+    <p>
+        すべてのAPIリクエストはJWTベースの認証が必要です。トークンはリクエストヘッダの <code>Authorization</code> フィールドに <code>Bearer {token}</code> 形式で指定します。
+    </p>
+    <p>
+        権限レベルは以下の通りです：
+    </p>
+    <ul>
+        <li><strong>ADMIN</strong> - すべての操作が可能</li>
+        <li><strong>FINANCE_MANAGER</strong> - すべての請求・支払関連操作が可能</li>
+        <li><strong>BILLING_STAFF</strong> - 請求書発行と入金管理が可能</li>
+        <li><strong>PAYMENT_STAFF</strong> - 支払処理が可能</li>
+        <li><strong>REPORT_VIEWER</strong> - レポート閲覧のみ可能</li>
+    </ul>
+
+    <h2>6. エラーハンドリング</h2>
+    <p>
+        APIはHTTPステータスコードと統一されたエラーレスポンス形式を使用してエラーを通知します。
+    </p>
+    <h3>エラーレスポンス例</h3>
+    <pre><code>{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "請求期間の開始日は終了日より前である必要があります",
+  "timestamp": "2023-05-01T10:15:30Z",
+  "path": "/api/v1/billing/invoices"
+}</code></pre>
+
+    <h2>7. バージョニング</h2>
+    <p>
+        APIのバージョン管理はURLパスの一部として行います（例：<code>/api/v1/billing/...</code>）。
+        バージョンが変更される場合、下位互換性を考慮するか、移行期間を設けて複数バージョンを並行稼働します。
+    </p>
+
+    <footer>
+        <p>最終更新日: 2025年5月4日</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>バッチ管理API 基本設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #0066cc;
+            margin-top: 24px;
+        }
+        h1 {
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #0066cc;
+            padding-bottom: 5px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .note {
+            background-color: #e7f3fe;
+            border-left: 6px solid #2196F3;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border-left: 6px solid #ffc107;
+            padding: 10px;
+            margin: 15px 0;
+        }
+        .endpoint {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 5px;
+            border-left: 6px solid #6c757d;
+        }
+        .method {
+            font-weight: bold;
+            padding: 3px 8px;
+            border-radius: 3px;
+            color: white;
+            display: inline-block;
+            margin-right: 10px;
+        }
+        .get {
+            background-color: #61affe;
+        }
+        .post {
+            background-color: #49cc90;
+        }
+        .put {
+            background-color: #fca130;
+        }
+        .delete {
+            background-color: #f93e3e;
+        }
+        .path {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>バッチ管理API 基本設計</h1>
+
+    <h2>1. 概要</h2>
+    <p>
+        バッチ管理APIは、SES業務システムで実行される各種バッチジョブを管理するためのAPIです。
+        バッチジョブの一覧取得、詳細取得、実行、ステータス変更、スケジュール管理、実行履歴取得などの機能を提供します。
+    </p>
+
+    <h2>2. API一覧</h2>
+    <table>
+        <tr>
+            <th>メソッド</th>
+            <th>パス</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>GET</td>
+            <td>/api/v1/admin/batch/jobs</td>
+            <td>バッチジョブ一覧取得</td>
+        </tr>
+        <tr>
+            <td>GET</td>
+            <td>/api/v1/admin/batch/jobs/{id}</td>
+            <td>特定バッチジョブの詳細取得</td>
+        </tr>
+        <tr>
+            <td>POST</td>
+            <td>/api/v1/admin/batch/jobs/{id}/execute</td>
+            <td>バッチジョブの実行</td>
+        </tr>
+        <tr>
+            <td>PUT</td>
+            <td>/api/v1/admin/batch/jobs/{id}/status</td>
+            <td>バッチジョブのステータス変更</td>
+        </tr>
+        <tr>
+            <td>GET</td>
+            <td>/api/v1/admin/batch/schedules</td>
+            <td>バッチスケジュール一覧取得</td>
+        </tr>
+        <tr>
+            <td>POST</td>
+            <td>/api/v1/admin/batch/schedules</td>
+            <td>バッチスケジュール登録</td>
+        </tr>
+        <tr>
+            <td>PUT</td>
+            <td>/api/v1/admin/batch/schedules/{id}</td>
+            <td>バッチスケジュール更新</td>
+        </tr>
+        <tr>
+            <td>DELETE</td>
+            <td>/api/v1/admin/batch/schedules/{id}</td>
+            <td>バッチスケジュール削除</td>
+        </tr>
+        <tr>
+            <td>GET</td>
+            <td>/api/v1/admin/batch/history</td>
+            <td>バッチ実行履歴取得</td>
+        </tr>
+    </table>
+
+    <h2>3. API詳細</h2>
+
+    <div class="endpoint">
+        <h3><span class="method get">GET</span><span class="path">/api/v1/admin/batch/jobs</span></h3>
+        <p><strong>説明：</strong> システムに登録されているバッチジョブの一覧を取得します。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>number</td>
+                <td>×</td>
+                <td>ページ番号（デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>number</td>
+                <td>×</td>
+                <td>1ページあたりの件数（デフォルト: 20, 最大: 100）</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ステータスでフィルタリング（active, inactive）</td>
+            </tr>
+            <tr>
+                <td>category</td>
+                <td>string</td>
+                <td>×</td>
+                <td>カテゴリでフィルタリング</td>
+            </tr>
+            <tr>
+                <td>search</td>
+                <td>string</td>
+                <td>×</td>
+                <td>名前または説明で検索</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ソート条件（例: name:asc）</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "status": "success",
+  "data": [
+    {
+      "id": "batch001",
+      "name": "日次データ集計",
+      "description": "前日のデータを集計し、サマリーテーブルを更新するバッチ",
+      "category": "report",
+      "jobType": "daily_summary",
+      "status": "active",
+      "lastRun": {
+        "status": "success",
+        "startTime": "2024-05-04T01:00:00Z",
+        "endTime": "2024-05-04T01:10:25Z",
+        "executionTime": 625  // 秒
+      },
+      "nextRun": "2024-05-05T01:00:00Z",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-05-04T01:10:25Z"
+    },
+    {
+      "id": "batch002",
+      "name": "月次請求データ作成",
+      "description": "月次の請求データを作成するバッチ",
+      "category": "billing",
+      "jobType": "monthly_billing",
+      "status": "active",
+      "lastRun": {
+        "status": "success",
+        "startTime": "2024-05-01T02:00:00Z",
+        "endTime": "2024-05-01T02:35:12Z",
+        "executionTime": 2112  // 秒
+      },
+      "nextRun": "2024-06-01T02:00:00Z",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-05-01T02:35:12Z"
+    },
+    {
+      "id": "batch003",
+      "name": "顧客データインポート",
+      "description": "外部システムから顧客データをインポートするバッチ",
+      "category": "import",
+      "jobType": "customer_import",
+      "status": "active",
+      "lastRun": {
+        "status": "error",
+        "startTime": "2024-05-04T03:00:00Z",
+        "endTime": "2024-05-04T03:05:45Z",
+        "executionTime": 345,  // 秒
+        "errorMessage": "接続エラー: 外部システムが応答しません"
+      },
+      "nextRun": "2024-05-05T03:00:00Z",
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-05-04T03:05:45Z"
+    }
+    // ... その他のバッチジョブ
+  ],
+  "pagination": {
+    "total": 15,
+    "page": 1,
+    "limit": 20,
+    "pages": 1
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "INVALID_PARAMETER",
+    "message": "無効なパラメータが指定されました",
+    "details": [
+      {
+        "param": "status",
+        "message": "statusは active または inactive を指定してください"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.batch.read または system.batch.admin または system.admin 権限が必要です。</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method get">GET</span><span class="path">/api/v1/admin/batch/jobs/{id}</span></h3>
+        <p><strong>説明：</strong> 特定のバッチジョブの詳細情報を取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>バッチジョブID</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "id": "batch001",
+    "name": "日次データ集計",
+    "description": "前日のデータを集計し、サマリーテーブルを更新するバッチ",
+    "category": "report",
+    "jobType": "daily_summary",
+    "status": "active",
+    "cronExpression": "0 0 1 * * ?",  // 毎日午前1時に実行
+    "parameters": {
+      "targetTables": ["project_stats", "engineer_stats", "sales_stats"],
+      "daysToKeep": 365,
+      "notifyOnCompletion": true,
+      "notificationEmail": "system_admin@example.com"
+    },
+    "lastRun": {
+      "status": "success",
+      "startTime": "2024-05-04T01:00:00Z",
+      "endTime": "2024-05-04T01:10:25Z",
+      "executionTime": 625,  // 秒
+      "recordsProcessed": 15420,
+      "message": "処理が正常に完了しました",
+      "logs": [
+        "2024-05-04T01:00:00Z [INFO] バッチ処理を開始しました",
+        "2024-05-04T01:00:05Z [INFO] project_stats の集計を開始します",
+        "2024-05-04T01:03:15Z [INFO] project_stats の集計が完了しました（5,210レコード）",
+        // ... 他のログ
+        "2024-05-04T01:10:20Z [INFO] 古いデータの削除が完了しました",
+        "2024-05-04T01:10:25Z [INFO] バッチ処理が正常に終了しました"
+      ]
+    },
+    "executionHistory": [
+      {
+        "executionId": "exec12345",
+        "status": "success",
+        "startTime": "2024-05-04T01:00:00Z",
+        "endTime": "2024-05-04T01:10:25Z",
+        "executionTime": 625,
+        "recordsProcessed": 15420
+      },
+      {
+        "executionId": "exec12344",
+        "status": "success",
+        "startTime": "2024-05-03T01:00:00Z",
+        "endTime": "2024-05-03T01:09:45Z",
+        "executionTime": 585,
+        "recordsProcessed": 15100
+      },
+      {
+        "executionId": "exec12343",
+        "status": "error",
+        "startTime": "2024-05-02T01:00:00Z",
+        "endTime": "2024-05-02T01:02:30Z",
+        "executionTime": 150,
+        "errorMessage": "データベース接続エラー"
+      }
+      // ... その他の実行履歴（最新10件まで）
+    ],
+    "nextRun": "2024-05-05T01:00:00Z",
+    "schedules": [
+      {
+        "id": "schedule001",
+        "cronExpression": "0 0 1 * * ?",
+        "description": "毎日午前1時に実行",
+        "isActive": true
+      }
+    ],
+    "dependencies": [
+      {
+        "jobId": "batch005",
+        "jobName": "日次バックアップ",
+        "type": "waitForCompletion"
+      }
+    ],
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-05-04T01:10:25Z",
+    "createdBy": "u100001",
+    "updatedBy": "u100001"
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "BATCH_NOT_FOUND",
+    "message": "指定されたバッチジョブが見つかりません",
+    "details": []
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.batch.read または system.batch.admin または system.admin 権限が必要です。</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method post">POST</span><span class="path">/api/v1/admin/batch/jobs/{id}/execute</span></h3>
+        <p><strong>説明：</strong> 指定したバッチジョブを即時実行します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>バッチジョブID</td>
+            </tr>
+        </table>
+
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "parameters": {  // オプション：実行時パラメータの上書き
+    "targetDate": "2024-05-01",
+    "forceReprocess": true
+  },
+  "async": true,  // 非同期実行するかどうか（デフォルト: true）
+  "description": "手動実行（月初データ再集計）",  // 実行理由などの説明
+  "notifyOnCompletion": true,  // 完了時に通知するかどうか
+  "notificationEmail": "admin@example.com"  // 通知先メールアドレス
+}</code></pre>
+
+        <h4>レスポンス例（成功時 - 202 Accepted）</h4>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "message": "バッチジョブの実行を開始しました",
+    "executionId": "exec12346",
+    "jobId": "batch001",
+    "jobName": "日次データ集計",
+    "startTime": "2024-05-04T15:30:00Z",
+    "status": "running",
+    "async": true,
+    "statusUrl": "/api/v1/admin/batch/history/exec12346"  // ステータス確認用URL
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "BATCH_ALREADY_RUNNING",
+    "message": "指定されたバッチジョブは既に実行中です",
+    "details": [
+      {
+        "executionId": "exec12345",
+        "startTime": "2024-05-04T15:25:30Z",
+        "statusUrl": "/api/v1/admin/batch/history/exec12345"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.batch.execute または system.batch.admin または system.admin 権限が必要です。</p>
+        <div class="note">
+            <p><strong>注意：</strong> 非同期実行（async=true）の場合、APIはリクエストを受け付けた時点で結果を返し、バッチジョブは別プロセスとして実行されます。実行結果は後で履歴APIで確認してください。</p>
+        </div>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method put">PUT</span><span class="path">/api/v1/admin/batch/jobs/{id}/status</span></h3>
+        <p><strong>説明：</strong> バッチジョブのステータスを変更します。主に有効/無効の切り替えに使用します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>バッチジョブID</td>
+            </tr>
+        </table>
+
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "status": "inactive",  // active または inactive
+  "reason": "システムメンテナンスのため一時的に無効化"  // ステータス変更理由（オプション）
+}</code></pre>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "id": "batch001",
+    "name": "日次データ集計",
+    "status": "inactive",
+    "updatedAt": "2024-05-04T16:00:00Z",
+    "updatedBy": "u123456",
+    "reason": "システムメンテナンスのため一時的に無効化"
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "INVALID_STATUS",
+    "message": "無効なステータスが指定されました",
+    "details": [
+      {
+        "param": "status",
+        "message": "statusは active または inactive を指定してください"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.batch.admin または system.admin 権限が必要です。</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method get">GET</span><span class="path">/api/v1/admin/batch/schedules</span></h3>
+        <p><strong>説明：</strong> バッチジョブのスケジュール一覧を取得します。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>number</td>
+                <td>×</td>
+                <td>ページ番号（デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>number</td>
+                <td>×</td>
+                <td>1ページあたりの件数（デフォルト: 20, 最大: 100）</td>
+            </tr>
+            <tr>
+                <td>jobId</td>
+                <td>string</td>
+                <td>×</td>
+                <td>特定のジョブIDでフィルタリング</td>
+            </tr>
+            <tr>
+                <td>isActive</td>
+                <td>boolean</td>
+                <td>×</td>
+                <td>有効なスケジュールのみ取得（デフォルト: true）</td>
+            </tr>
+            <tr>
+                <td>type</td>
+                <td>string</td>
+                <td>×</td>
+                <td>スケジュールタイプでフィルタリング（daily, weekly, monthly）</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "status": "success",
+  "data": [
+    {
+      "id": "schedule001",
+      "jobId": "batch001",
+      "jobName": "日次データ集計",
+      "description": "毎日午前1時に実行",
+      "cronExpression": "0 0 1 * * ?",
+      "type": "daily",
+      "isActive": true,
+      "nextRun": "2024-05-05T01:00:00Z",
+      "parameters": {},  // ジョブパラメータのオーバーライド
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "schedule002",
+      "jobId": "batch002",
+      "jobName": "月次請求データ作成",
+      "description": "毎月1日午前2時に実行",
+      "cronExpression": "0 0 2 1 * ?",
+      "type": "monthly",
+      "isActive": true,
+      "nextRun": "2024-06-01T02:00:00Z",
+      "parameters": {},
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-01-01T00:00:00Z"
+    },
+    {
+      "id": "schedule003",
+      "jobId": "batch003",
+      "jobName": "顧客データインポート",
+      "description": "毎日午前3時に実行",
+      "cronExpression": "0 0 3 * * ?",
+      "type": "daily",
+      "isActive": true,
+      "nextRun": "2024-05-05T03:00:00Z",
+      "parameters": {
+        "source": "external_crm",
+        "includeDeleted": false
+      },
+      "createdAt": "2024-01-01T00:00:00Z",
+      "updatedAt": "2024-04-01T10:15:30Z"
+    }
+    // ... その他のスケジュール
+  ],
+  "pagination": {
+    "total": 25,
+    "page": 1,
+    "limit": 20,
+    "pages": 2
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "INVALID_PARAMETER",
+    "message": "無効なパラメータが指定されました",
+    "details": [
+      {
+        "param": "type",
+        "message": "typeは daily, weekly, monthly のいずれかを指定してください"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.batch.read または system.batch.admin または system.admin 権限が必要です。</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method post">POST</span><span class="path">/api/v1/admin/batch/schedules</span></h3>
+        <p><strong>説明：</strong> バッチジョブの新規スケジュールを登録します。</p>
+
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "jobId": "batch001",
+  "description": "毎週月曜日午前5時に実行",
+  "cronExpression": "0 0 5 ? * MON",
+  "type": "weekly",
+  "isActive": true,
+  "parameters": {
+    "mode": "full",
+    "retentionDays": 90
+  }
+}</code></pre>
+
+        <h4>レスポンス例（成功時 - 201 Created）</h4>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "id": "schedule004",
+    "jobId": "batch001",
+    "jobName": "日次データ集計",
+    "description": "毎週月曜日午前5時に実行",
+    "cronExpression": "0 0 5 ? * MON",
+    "type": "weekly",
+    "isActive": true,
+    "nextRun": "2024-05-06T05:00:00Z",  // 次回の実行予定日時
+    "parameters": {
+      "mode": "full",
+      "retentionDays": 90
+    },
+    "createdAt": "2024-05-04T16:30:00Z",
+    "updatedAt": "2024-05-04T16:30:00Z",
+    "createdBy": "u123456"
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "INVALID_CRON_EXPRESSION",
+    "message": "無効なcron式が指定されました",
+    "details": [
+      {
+        "param": "cronExpression",
+        "message": "cron式の書式が不正です"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.batch.admin または system.admin 権限が必要です。</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method put">PUT</span><span class="path">/api/v1/admin/batch/schedules/{id}</span></h3>
+        <p><strong>説明：</strong> 既存のバッチスケジュールを更新します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>スケジュールID</td>
+            </tr>
+        </table>
+
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "description": "毎週月曜日午前6時に実行",  // 説明を変更
+  "cronExpression": "0 0 6 ? * MON",      // 時刻を5時から6時に変更
+  "isActive": true,
+  "parameters": {
+    "mode": "full",
+    "retentionDays": 120                  // 保存期間を90日から120日に変更
+  }
+}</code></pre>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "id": "schedule004",
+    "jobId": "batch001",
+    "jobName": "日次データ集計",
+    "description": "毎週月曜日午前6時に実行",
+    "cronExpression": "0 0 6 ? * MON",
+    "type": "weekly",
+    "isActive": true,
+    "nextRun": "2024-05-06T06:00:00Z",  // 次回の実行予定日時（更新済み）
+    "parameters": {
+      "mode": "full",
+      "retentionDays": 120
+    },
+    "createdAt": "2024-05-04T16:30:00Z",
+    "updatedAt": "2024-05-04T17:00:00Z",
+    "updatedBy": "u123456"
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "SCHEDULE_NOT_FOUND",
+    "message": "指定されたスケジュールが見つかりません",
+    "details": []
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.batch.admin または system.admin 権限が必要です。</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method delete">DELETE</span><span class="path">/api/v1/admin/batch/schedules/{id}</span></h3>
+        <p><strong>説明：</strong> バッチスケジュールを削除します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>スケジュールID</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "message": "スケジュールが正常に削除されました",
+    "id": "schedule004",
+    "jobId": "batch001",
+    "jobName": "日次データ集計"
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "SCHEDULE_NOT_FOUND",
+    "message": "指定されたスケジュールが見つかりません",
+    "details": []
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.batch.admin または system.admin 権限が必要です。</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method get">GET</span><span class="path">/api/v1/admin/batch/history</span></h3>
+        <p><strong>説明：</strong> バッチジョブの実行履歴を取得します。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>number</td>
+                <td>×</td>
+                <td>ページ番号（デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>number</td>
+                <td>×</td>
+                <td>1ページあたりの件数（デフォルト: 50, 最大: 200）</td>
+            </tr>
+            <tr>
+                <td>jobId</td>
+                <td>string</td>
+                <td>×</td>
+                <td>バッチジョブIDでフィルタリング</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ステータスでフィルタリング（success, error, running, canceled）</td>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>×</td>
+                <td>開始日時（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>×</td>
+                <td>終了日時（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>executedBy</td>
+                <td>string</td>
+                <td>×</td>
+                <td>実行者（user:ユーザーID または scheduler）</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>×</td>
+                <td>ソート条件（例: startTime:desc）</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "status": "success",
+  "data": [
+    {
+      "executionId": "exec12345",
+      "jobId": "batch001",
+      "jobName": "日次データ集計",
+      "status": "success",
+      "startTime": "2024-05-04T01:00:00Z",
+      "endTime": "2024-05-04T01:10:25Z",
+      "executionTime": 625,  // 秒
+      "executedBy": "scheduler",  // スケジューラによる実行
+      "triggerType": "scheduled",
+      "recordsProcessed": 15420,
+      "parameters": {
+        "targetDate": "2024-05-03"
+      }
+    },
+    {
+      "executionId": "exec12346",
+      "jobId": "batch001",
+      "jobName": "日次データ集計",
+      "status": "success",
+      "startTime": "2024-05-04T15:30:00Z",
+      "endTime": "2024-05-04T15:40:15Z",
+      "executionTime": 615,  // 秒
+      "executedBy": "user:u123456",  // ユーザーによる手動実行
+      "triggerType": "manual",
+      "recordsProcessed": 15420,
+      "parameters": {
+        "targetDate": "2024-05-01",
+        "forceReprocess": true
+      },
+      "description": "手動実行（月初データ再集計）"
+    },
+    {
+      "executionId": "exec12347",
+      "jobId": "batch003",
+      "jobName": "顧客データインポート",
+      "status": "error",
+      "startTime": "2024-05-04T03:00:00Z",
+      "endTime": "2024-05-04T03:05:45Z",
+      "executionTime": 345,  // 秒
+      "executedBy": "scheduler",
+      "triggerType": "scheduled",
+      "errorMessage": "接続エラー: 外部システムが応答しません",
+      "parameters": {
+        "source": "external_crm",
+        "includeDeleted": false
+      }
+    }
+    // ... その他の実行履歴
+  ],
+  "pagination": {
+    "total": 1253,
+    "page": 1,
+    "limit": 50,
+    "pages": 26
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": "error",
+  "error": {
+    "code": "INVALID_DATE_RANGE",
+    "message": "無効な日付範囲が指定されました",
+    "details": [
+      {
+        "param": "from",
+        "message": "fromはtoより前の日時を指定してください"
+      }
+    ]
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>system.batch.read または system.batch.admin または system.admin 権限が必要です。</p>
+    </div>
+
+    <h2>4. バッチジョブの種類</h2>
+    <p>システムでは以下のようなバッチジョブを管理します：</p>
+
+    <h3>4.1 集計・レポート系バッチ</h3>
+    <table>
+        <tr>
+            <th>ジョブ名</th>
+            <th>説明</th>
+            <th>実行周期</th>
+        </tr>
+        <tr>
+            <td>日次データ集計</td>
+            <td>日次の業務データを集計し、レポート用のサマリーテーブルを更新</td>
+            <td>毎日（午前1時）</td>
+        </tr>
+        <tr>
+            <td>週次レポート生成</td>
+            <td>週次の業績レポートを生成</td>
+            <td>毎週月曜日（午前2時）</td>
+        </tr>
+        <tr>
+            <td>月次請求データ作成</td>
+            <td>月次の請求データを作成</td>
+            <td>毎月1日（午前2時）</td>
+        </tr>
+        <tr>
+            <td>月次支払データ作成</td>
+            <td>月次の支払データを作成</td>
+            <td>毎月25日（午前3時）</td>
+        </tr>
+    </table>
+
+    <h3>4.2 データ連携系バッチ</h3>
+    <table>
+        <tr>
+            <th>ジョブ名</th>
+            <th>説明</th>
+            <th>実行周期</th>
+        </tr>
+        <tr>
+            <td>顧客データインポート</td>
+            <td>外部システムから顧客データをインポート</td>
+            <td>毎日（午前3時）</td>
+        </tr>
+        <tr>
+            <td>従業員データ同期</td>
+            <td>人事システムと従業員データを同期</td>
+            <td>毎日（午前4時）</td>
+        </tr>
+        <tr>
+            <td>案件情報エクスポート</td>
+            <td>案件情報を外部システム向けにエクスポート</td>
+            <td>毎日（午前5時）</td>
+        </tr>
+    </table>
+
+    <h3>4.3 システムメンテナンス系バッチ</h3>
+    <table>
+        <tr>
+            <th>ジョブ名</th>
+            <th>説明</th>
+            <th>実行周期</th>
+        </tr>
+        <tr>
+            <td>日次バックアップ</td>
+            <td>データベースの日次バックアップを実行</td>
+            <td>毎日（午前0時）</td>
+        </tr>
+        <tr>
+            <td>ログ整理</td>
+            <td>古いログデータの整理・アーカイブ</td>
+            <td>毎週日曜日（午前1時）</td>
+        </tr>
+        <tr>
+            <td>一時ファイル削除</td>
+            <td>一時ファイルの削除</td>
+            <td>毎日（午前0時30分）</td>
+        </tr>
+        <tr>
+            <td>キャッシュクリア</td>
+            <td>システムキャッシュの定期的なクリア</td>
+            <td>毎日（午前4時30分）</td>
+        </tr>
+    </table>
+
+    <h2>5. Cron式の書式</h2>
+    <p>スケジュール設定には、標準的なCron式を使用します。Cron式は以下の6つのフィールドで構成されます：</p>
+
+    <pre><code>秒 分 時 日 月 曜日</code></pre>
+
+    <table>
+        <tr>
+            <th>フィールド</th>
+            <th>値の範囲</th>
+            <th>特殊文字</th>
+        </tr>
+        <tr>
+            <td>秒</td>
+            <td>0-59</td>
+            <td>, - * /</td>
+        </tr>
+        <tr>
+            <td>分</td>
+            <td>0-59</td>
+            <td>, - * /</td>
+        </tr>
+        <tr>
+            <td>時</td>
+            <td>0-23</td>
+            <td>, - * /</td>
+        </tr>
+        <tr>
+            <td>日</td>
+            <td>1-31</td>
+            <td>, - * ? / L W</td>
+        </tr>
+        <tr>
+            <td>月</td>
+            <td>1-12 または JAN-DEC</td>
+            <td>, - * /</td>
+        </tr>
+        <tr>
+            <td>曜日</td>
+            <td>1-7 または SUN-SAT</td>
+            <td>, - * ? / L #</td>
+        </tr>
+    </table>
+
+    <h3>5.1 Cron式の例</h3>
+    <table>
+        <tr>
+            <th>Cron式</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>0 0 1 * * ?</td>
+            <td>毎日午前1時に実行</td>
+        </tr>
+        <tr>
+            <td>0 0 * * * ?</td>
+            <td>毎時0分に実行</td>
+        </tr>
+        <tr>
+            <td>0 0 0 1 * ?</td>
+            <td>毎月1日の午前0時に実行</td>
+        </tr>
+        <tr>
+            <td>0 0 12 ? * MON-FRI</td>
+            <td>平日（月〜金）の正午に実行</td>
+        </tr>
+        <tr>
+            <td>0 0 0 ? * SUN</td>
+            <td>毎週日曜日の午前0時に実行</td>
+        </tr>
+        <tr>
+            <td>0 30 9 ? * MON#1</td>
+            <td>毎月第1月曜日の午前9時30分に実行</td>
+        </tr>
+    </table>
+
+    <h2>6. バッチジョブの実行ステータス</h2>
+    <p>バッチジョブの実行ステータスには以下の種類があります：</p>
+    <table>
+        <tr>
+            <th>ステータス</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>scheduled</td>
+            <td>実行がスケジュールされている状態。まだ実行開始されていない。</td>
+        </tr>
+        <tr>
+            <td>running</td>
+            <td>現在実行中の状態。</td>
+        </tr>
+        <tr>
+            <td>success</td>
+            <td>正常に完了した状態。</td>
+        </tr>
+        <tr>
+            <td>error</td>
+            <td>エラーが発生して終了した状態。</td>
+        </tr>
+        <tr>
+            <td>canceled</td>
+            <td>実行がキャンセルされた状態。</td>
+        </tr>
+        <tr>
+            <td>timeout</td>
+            <td>実行時間が制限を超えてタイムアウトした状態。</td>
+        </tr>
+    </table>
+
+    <h2>7. 改訂履歴</h2>
+    <table>
+        <tr>
+            <th>日付</th>
+            <th>バージョン</th>
+            <th>内容</th>
+            <th>担当者</th>
+        </tr>
+        <tr>
+            <td>2025/05/04</td>
+            <td>1.0</td>
+            <td>初版作成</td>
+            <td>S.Ichimaru</td>
+        </tr>
+    </table>
+
+</body>
+</html>

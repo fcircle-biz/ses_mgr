@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勤怠管理API 設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #0066cc;
+            border-bottom: 2px solid #0066cc;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #0066cc;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 5px;
+            margin-top: 30px;
+        }
+        h3 {
+            color: #333;
+            margin-top: 25px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        .endpoint {
+            font-family: monospace;
+            background-color: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .api-section {
+            margin-bottom: 40px;
+            padding: 20px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #0066cc;
+        }
+        .method {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            color: white;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #0066cc;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+    </style>
+</head>
+<body>
+    <a href="../勤怠工数管理API.html" class="back-link">← 勤怠・工数管理API一覧へ戻る</a>
+    <h1>勤怠管理API 設計書</h1>
+
+    <div class="api-section">
+        <h2>1. 概要</h2>
+        <p>
+            勤怠管理APIは、技術者の日々の勤怠情報（出勤時間、退勤時間、休憩時間など）を管理するためのAPIです。
+            技術者自身による勤怠情報の登録・更新や、管理者による勤怠情報の確認・修正などの機能を提供します。
+        </p>
+    </div>
+
+    <div class="api-section">
+        <h2>2. API エンドポイント一覧</h2>
+        <table>
+            <tr>
+                <th>メソッド</th>
+                <th>パス</th>
+                <th>説明</th>
+                <th>アクセス権限</th>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/attendance</td>
+                <td>勤怠一覧の取得</td>
+                <td>システム管理者、勤怠管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method post">POST</span></td>
+                <td>/api/v1/timesheet/attendance</td>
+                <td>勤怠情報の登録</td>
+                <td>全ユーザー</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/attendance/{id}</td>
+                <td>特定勤怠情報の取得</td>
+                <td>本人、システム管理者、勤怠管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method put">PUT</span></td>
+                <td>/api/v1/timesheet/attendance/{id}</td>
+                <td>勤怠情報の更新</td>
+                <td>本人（未承認の場合）、システム管理者、勤怠管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method delete">DELETE</span></td>
+                <td>/api/v1/timesheet/attendance/{id}</td>
+                <td>勤怠情報の削除</td>
+                <td>本人（未承認の場合）、システム管理者、勤怠管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/attendance/users/{userId}/daily</td>
+                <td>特定ユーザーの日次勤怠取得</td>
+                <td>本人、上長、システム管理者、勤怠管理者</td>
+            </tr>
+            <tr>
+                <td><span class="method get">GET</span></td>
+                <td>/api/v1/timesheet/attendance/users/{userId}/monthly</td>
+                <td>特定ユーザーの月次勤怠取得</td>
+                <td>本人、上長、システム管理者、勤怠管理者</td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- GET /api/v1/timesheet/attendance -->
+    <div class="api-section">
+        <h2>3. API詳細</h2>
+        <h3 id="get-attendance-list">3.1 勤怠一覧の取得</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/attendance</span></p>
+        
+        <h4>説明</h4>
+        <p>勤怠情報の一覧を取得します。システム管理者または勤怠管理者が、条件に応じた勤怠情報を取得するために使用します。</p>
+        
+        <h4>リクエストパラメータ（クエリパラメータ）</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定ユーザーの勤怠情報のみを取得する場合に指定</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の開始日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の終了日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>No</td>
+                <td>承認ステータス（未提出、提出済、承認済、差戻し）</td>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>ページ番号（デフォルト: 1）</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>1ページあたりの件数（デフォルト: 20, 最大: 100）</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート項目（date, userId, status）</td>
+            </tr>
+            <tr>
+                <td>order</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート順序（asc, desc）</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "items": [
+      {
+        "id": "at123456",
+        "userId": "user123",
+        "userName": "山田太郎",
+        "date": "2025-05-01",
+        "startTime": "09:00",
+        "endTime": "18:00",
+        "breakTime": 60,
+        "totalWorkingHours": 8.0,
+        "remarks": "在宅勤務",
+        "status": "承認済",
+        "createdAt": "2025-05-01T18:05:23Z",
+        "updatedAt": "2025-05-02T10:15:41Z"
+      },
+      {
+        "id": "at123457",
+        "userId": "user456",
+        "userName": "鈴木花子",
+        "date": "2025-05-01",
+        "startTime": "08:30",
+        "endTime": "17:30",
+        "breakTime": 60,
+        "totalWorkingHours": 8.0,
+        "remarks": "",
+        "status": "提出済",
+        "createdAt": "2025-05-01T17:35:10Z",
+        "updatedAt": "2025-05-01T17:35:10Z"
+      }
+      // ... 他の勤怠情報 ...
+    ],
+    "pagination": {
+      "totalItems": 152,
+      "totalPages": 8,
+      "currentPage": 1,
+      "limit": 20
+    }
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "期間の指定が不正です。startDateはendDateより前の日付を指定してください。"
+}</code></pre>
+        
+        <p>ステータスコード: 401 Unauthorized</p>
+        <pre><code>{
+  "status": "error",
+  "code": "UNAUTHORIZED",
+  "message": "認証に失敗しました。再度ログインしてください。"
+}</code></pre>
+        
+        <p>ステータスコード: 403 Forbidden</p>
+        <pre><code>{
+  "status": "error",
+  "code": "FORBIDDEN",
+  "message": "この操作を行う権限がありません。"
+}</code></pre>
+    </div>
+
+    <!-- POST /api/v1/timesheet/attendance -->
+    <div class="api-section">
+        <h3 id="post-attendance">3.2 勤怠情報の登録</h3>
+        <p><span class="method post">POST</span> <span class="endpoint">/api/v1/timesheet/attendance</span></p>
+        
+        <h4>説明</h4>
+        <p>新しい勤怠情報を登録します。技術者自身が日々の勤怠情報を登録するために使用します。</p>
+        
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "date": "2025-05-02",         // 対象日（必須）
+  "startTime": "09:15",         // 勤務開始時間（必須）
+  "endTime": "18:30",           // 勤務終了時間（必須）
+  "breakTime": 60,              // 休憩時間（分）（必須）
+  "remarks": "在宅勤務",         // 備考（任意）
+  "status": "提出済"            // 承認ステータス（任意、デフォルト：未提出）
+}</code></pre>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 201 Created</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "id": "at789012",
+    "userId": "user123",        // トークンから自動取得されたユーザーID
+    "date": "2025-05-02",
+    "startTime": "09:15",
+    "endTime": "18:30",
+    "breakTime": 60,
+    "totalWorkingHours": 8.25,   // 自動計算された総労働時間
+    "remarks": "在宅勤務",
+    "status": "提出済",
+    "createdAt": "2025-05-02T18:35:12Z",
+    "updatedAt": "2025-05-02T18:35:12Z"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "勤務時間の入力が不正です。終業時間は始業時間より後でなければなりません。",
+  "details": [
+    {
+      "field": "endTime",
+      "message": "終業時間は始業時間より後でなければなりません"
+    }
+  ]
+}</code></pre>
+        
+        <p>ステータスコード: 409 Conflict</p>
+        <pre><code>{
+  "status": "error",
+  "code": "DUPLICATE_RECORD",
+  "message": "指定された日付の勤怠情報は既に登録されています。"
+}</code></pre>
+    </div>
+
+    <!-- GET /api/v1/timesheet/attendance/{id} -->
+    <div class="api-section">
+        <h3 id="get-attendance-detail">3.3 特定勤怠情報の取得</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/attendance/{id}</span></p>
+        
+        <h4>説明</h4>
+        <p>特定の勤怠情報の詳細を取得します。勤怠IDを指定して、該当する勤怠情報を取得するために使用します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>取得する勤怠情報のID</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "id": "at123456",
+    "userId": "user123",
+    "userName": "山田太郎",
+    "departmentId": "dept001",
+    "departmentName": "開発部",
+    "date": "2025-05-01",
+    "startTime": "09:00",
+    "endTime": "18:00",
+    "breakTime": 60,
+    "totalWorkingHours": 8.0,
+    "overtimeHours": 0,
+    "remarks": "在宅勤務",
+    "status": "承認済",
+    "approvalHistory": [
+      {
+        "id": "apv12345",
+        "status": "提出済",
+        "updatedAt": "2025-05-01T18:05:23Z",
+        "updatedBy": "user123",
+        "comment": ""
+      },
+      {
+        "id": "apv12346",
+        "status": "承認済",
+        "updatedAt": "2025-05-02T10:15:41Z",
+        "updatedBy": "manager001",
+        "comment": "承認します"
+      }
+    ],
+    "createdAt": "2025-05-01T18:05:23Z",
+    "updatedAt": "2025-05-02T10:15:41Z"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 404 Not Found</p>
+        <pre><code>{
+  "status": "error",
+  "code": "NOT_FOUND",
+  "message": "指定されたIDの勤怠情報は存在しません。"
+}</code></pre>
+    </div>
+
+    <!-- PUT /api/v1/timesheet/attendance/{id} -->
+    <div class="api-section">
+        <h3 id="put-attendance">3.4 勤怠情報の更新</h3>
+        <p><span class="method put">PUT</span> <span class="endpoint">/api/v1/timesheet/attendance/{id}</span></p>
+        
+        <h4>説明</h4>
+        <p>既存の勤怠情報を更新します。技術者自身が未承認の勤怠情報を修正する場合や、管理者が勤怠情報を修正する場合に使用します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>更新する勤怠情報のID</td>
+            </tr>
+        </table>
+        
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "date": "2025-05-01",         // 対象日（変更可）
+  "startTime": "09:30",         // 勤務開始時間（変更可）
+  "endTime": "19:00",           // 勤務終了時間（変更可）
+  "breakTime": 60,              // 休憩時間（分）（変更可）
+  "remarks": "在宅勤務 + 夕方オンライン会議",  // 備考（変更可）
+  "status": "提出済"            // 承認ステータス（変更可、管理者のみ）
+}</code></pre>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "id": "at123456",
+    "userId": "user123",
+    "date": "2025-05-01",
+    "startTime": "09:30",
+    "endTime": "19:00",
+    "breakTime": 60,
+    "totalWorkingHours": 8.5,    // 更新された総労働時間
+    "remarks": "在宅勤務 + 夕方オンライン会議",
+    "status": "提出済",
+    "createdAt": "2025-05-01T18:05:23Z",
+    "updatedAt": "2025-05-03T11:22:33Z"  // 更新日時が変更される
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "勤務時間の入力が不正です。",
+  "details": [
+    {
+      "field": "breakTime",
+      "message": "休憩時間は勤務時間内である必要があります"
+    }
+  ]
+}</code></pre>
+        
+        <p>ステータスコード: 403 Forbidden</p>
+        <pre><code>{
+  "status": "error",
+  "code": "FORBIDDEN",
+  "message": "承認済みの勤怠情報を変更する権限がありません。"
+}</code></pre>
+    </div>
+
+    <!-- DELETE /api/v1/timesheet/attendance/{id} -->
+    <div class="api-section">
+        <h3 id="delete-attendance">3.5 勤怠情報の削除</h3>
+        <p><span class="method delete">DELETE</span> <span class="endpoint">/api/v1/timesheet/attendance/{id}</span></p>
+        
+        <h4>説明</h4>
+        <p>特定の勤怠情報を削除します。技術者自身が未承認の勤怠情報を削除する場合や、管理者が勤怠情報を削除する場合に使用します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>削除する勤怠情報のID</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 204 No Content</p>
+        <p>（レスポンスボディなし）</p>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 403 Forbidden</p>
+        <pre><code>{
+  "status": "error",
+  "code": "FORBIDDEN",
+  "message": "承認済みの勤怠情報を削除する権限がありません。"
+}</code></pre>
+        
+        <p>ステータスコード: 404 Not Found</p>
+        <pre><code>{
+  "status": "error",
+  "code": "NOT_FOUND",
+  "message": "指定されたIDの勤怠情報は存在しません。"
+}</code></pre>
+    </div>
+
+    <!-- GET /api/v1/timesheet/attendance/users/{userId}/daily -->
+    <div class="api-section">
+        <h3 id="get-user-daily-attendance">3.6 特定ユーザーの日次勤怠取得</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/attendance/users/{userId}/daily</span></p>
+        
+        <h4>説明</h4>
+        <p>特定ユーザーの日次勤怠情報を取得します。特定の日付またはオプションで期間を指定して勤怠情報を取得します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>対象ユーザーのID</td>
+            </tr>
+        </table>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>date</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定日付の勤怠情報を取得（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の開始日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string</td>
+                <td>No</td>
+                <td>取得対象期間の終了日（YYYY-MM-DD形式）</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "userId": "user123",
+    "userName": "山田太郎",
+    "departmentId": "dept001",
+    "departmentName": "開発部",
+    "items": [
+      {
+        "id": "at123456",
+        "date": "2025-05-01",
+        "startTime": "09:00",
+        "endTime": "18:00",
+        "breakTime": 60,
+        "totalWorkingHours": 8.0,
+        "remarks": "在宅勤務",
+        "status": "承認済",
+        "createdAt": "2025-05-01T18:05:23Z",
+        "updatedAt": "2025-05-02T10:15:41Z"
+      },
+      {
+        "id": "at123457",
+        "date": "2025-05-02",
+        "startTime": "09:15",
+        "endTime": "18:30",
+        "breakTime": 60,
+        "totalWorkingHours": 8.25,
+        "remarks": "在宅勤務",
+        "status": "提出済",
+        "createdAt": "2025-05-02T18:35:12Z",
+        "updatedAt": "2025-05-02T18:35:12Z"
+      }
+      // ... 対象期間の他の日の勤怠情報 ...
+    ]
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "日付形式が不正です。YYYY-MM-DD形式で指定してください。"
+}</code></pre>
+        
+        <p>ステータスコード: 404 Not Found</p>
+        <pre><code>{
+  "status": "error",
+  "code": "NOT_FOUND",
+  "message": "指定されたユーザーは存在しません。"
+}</code></pre>
+    </div>
+
+    <!-- GET /api/v1/timesheet/attendance/users/{userId}/monthly -->
+    <div class="api-section">
+        <h3 id="get-user-monthly-attendance">3.7 特定ユーザーの月次勤怠取得</h3>
+        <p><span class="method get">GET</span> <span class="endpoint">/api/v1/timesheet/attendance/users/{userId}/monthly</span></p>
+        
+        <h4>説明</h4>
+        <p>特定ユーザーの月次勤怠情報を取得します。特定の年月を指定して月全体の勤怠情報と集計結果を取得します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>対象ユーザーのID</td>
+            </tr>
+        </table>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>year</td>
+                <td>integer</td>
+                <td>Yes</td>
+                <td>対象年（例: 2025）</td>
+            </tr>
+            <tr>
+                <td>month</td>
+                <td>integer</td>
+                <td>Yes</td>
+                <td>対象月（1-12）</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス（成功時）</h4>
+        <p>ステータスコード: 200 OK</p>
+        <pre><code>{
+  "status": "success",
+  "data": {
+    "userId": "user123",
+    "userName": "山田太郎",
+    "departmentId": "dept001",
+    "departmentName": "開発部",
+    "year": 2025,
+    "month": 5,
+    "summary": {
+      "totalWorkingDays": 20,
+      "actualWorkingDays": 20,
+      "totalWorkingHours": 163.5,
+      "expectedWorkingHours": 160.0,
+      "overtimeHours": 3.5,
+      "lateArrivalCount": 0,
+      "earlyDepartureCount": 0,
+      "absenceCount": 0,
+      "paidLeaveCount": 0,
+      "sickLeaveCount": 0,
+      "otherLeaveCount": 0
+    },
+    "items": [
+      {
+        "id": "at123456",
+        "date": "2025-05-01",
+        "startTime": "09:00",
+        "endTime": "18:00",
+        "breakTime": 60,
+        "totalWorkingHours": 8.0,
+        "remarks": "在宅勤務",
+        "status": "承認済",
+        "dayOfWeek": "木",
+        "isHoliday": false
+      },
+      // ... 月内の他の日の勤怠情報 ...
+      {
+        "id": "at123475",
+        "date": "2025-05-31",
+        "startTime": "09:00",
+        "endTime": "18:00",
+        "breakTime": 60,
+        "totalWorkingHours": 8.0,
+        "remarks": "",
+        "status": "提出済",
+        "dayOfWeek": "土",
+        "isHoliday": true
+      }
+    ],
+    "approvalStatus": "部分承認",  // 全承認、部分承認、未提出
+    "submissionDate": "2025-06-01T10:15:23Z"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <p>ステータスコード: 400 Bad Request</p>
+        <pre><code>{
+  "status": "error",
+  "code": "INVALID_PARAMETER",
+  "message": "月の指定が不正です。1から12の間で指定してください。"
+}</code></pre>
+    </div>
+
+    <div class="api-section">
+        <h2>4. データ型定義</h2>
+        <h3>4.1 勤怠データ構造</h3>
+        <table>
+            <tr>
+                <th>フィールド名</th>
+                <th>型</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>勤怠データの一意識別子</td>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>ユーザーID</td>
+            </tr>
+            <tr>
+                <td>userName</td>
+                <td>string</td>
+                <td>ユーザー名</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>部門ID</td>
+            </tr>
+            <tr>
+                <td>departmentName</td>
+                <td>string</td>
+                <td>部門名</td>
+            </tr>
+            <tr>
+                <td>date</td>
+                <td>string</td>
+                <td>対象日（YYYY-MM-DD形式）</td>
+            </tr>
+            <tr>
+                <td>startTime</td>
+                <td>string</td>
+                <td>勤務開始時間（HH:MM形式）</td>
+            </tr>
+            <tr>
+                <td>endTime</td>
+                <td>string</td>
+                <td>勤務終了時間（HH:MM形式）</td>
+            </tr>
+            <tr>
+                <td>breakTime</td>
+                <td>integer</td>
+                <td>休憩時間（分）</td>
+            </tr>
+            <tr>
+                <td>totalWorkingHours</td>
+                <td>number</td>
+                <td>総労働時間（時間）</td>
+            </tr>
+            <tr>
+                <td>overtimeHours</td>
+                <td>number</td>
+                <td>時間外労働時間（時間）</td>
+            </tr>
+            <tr>
+                <td>remarks</td>
+                <td>string</td>
+                <td>備考</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>string</td>
+                <td>承認ステータス（未提出、提出済、承認済、差戻し）</td>
+            </tr>
+            <tr>
+                <td>dayOfWeek</td>
+                <td>string</td>
+                <td>曜日（日、月、火、水、木、金、土）</td>
+            </tr>
+            <tr>
+                <td>isHoliday</td>
+                <td>boolean</td>
+                <td>休日フラグ</td>
+            </tr>
+            <tr>
+                <td>createdAt</td>
+                <td>string</td>
+                <td>作成日時（ISO8601形式）</td>
+            </tr>
+            <tr>
+                <td>updatedAt</td>
+                <td>string</td>
+                <td>更新日時（ISO8601形式）</td>
+            </tr>
+        </table>
+    </div>
+
+    <footer>
+        <p>© 2025 SES業務システム</p>
+    </footer>
+</body>
+</html>

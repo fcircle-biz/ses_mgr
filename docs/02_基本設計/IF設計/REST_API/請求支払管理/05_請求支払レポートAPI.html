@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>請求・支払レポートAPI 設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .note {
+            background-color: #fef9e7;
+            border-left: 4px solid #f1c40f;
+            padding: 10px 15px;
+            margin: 15px 0;
+        }
+        .endpoint {
+            margin: 20px 0;
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            border-left: 4px solid #3498db;
+        }
+        .http-method {
+            font-weight: bold;
+            color: #fff;
+            padding: 3px 6px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .path {
+            font-family: monospace;
+            font-weight: bold;
+        }
+        .nav-container {
+            background-color: #f8f9fa;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .nav-container ul {
+            list-style-type: none;
+            padding-left: 20px;
+        }
+        .nav-container li {
+            margin-bottom: 5px;
+        }
+        .breadcrumb {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="breadcrumb">
+        <a href="../請求支払管理API.html">請求・支払管理API</a> &gt; 請求・支払レポートAPI
+    </div>
+
+    <h1>請求・支払レポートAPI 設計書</h1>
+
+    <h2>1. 概要</h2>
+    <p>
+        請求・支払レポートAPIは、請求や支払いに関する集計データやレポートを提供するためのエンドポイントです。
+        月次売上、顧客別売上、プロジェクト別収益、キャッシュフロー、損益などの財務指標を取得できます。
+    </p>
+
+    <h2>2. ベースパス</h2>
+    <p><code>/api/v1/billing/reports</code></p>
+
+    <h2>3. エンドポイント一覧</h2>
+    <div class="nav-container">
+        <ul>
+            <li><a href="#get-monthly-report">GET /api/v1/billing/reports/monthly</a> - 月次売上レポート取得</li>
+            <li><a href="#get-customer-report">GET /api/v1/billing/reports/customers</a> - 顧客別売上レポート取得</li>
+            <li><a href="#get-project-report">GET /api/v1/billing/reports/projects</a> - プロジェクト別売上レポート取得</li>
+            <li><a href="#get-cash-flow-report">GET /api/v1/billing/reports/cash-flow</a> - キャッシュフローレポート取得</li>
+            <li><a href="#get-profit-loss-report">GET /api/v1/billing/reports/profit-loss</a> - 損益レポート取得</li>
+            <li><a href="#post-export-report">POST /api/v1/billing/reports/export</a> - レポートエクスポート</li>
+        </ul>
+    </div>
+
+    <h2>4. エンドポイント詳細</h2>
+
+    <div id="get-monthly-report" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/reports/monthly</span></h3>
+        <p>月次の売上レポートを取得します。指定した期間の月ごとの請求額、入金額、支払額などの集計データを返します。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string (ISO日付)</td>
+                <td>はい</td>
+                <td>集計開始日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string (ISO日付)</td>
+                <td>はい</td>
+                <td>集計終了日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>includeUnpaid</td>
+                <td>boolean</td>
+                <td>いいえ</td>
+                <td>未入金の請求も含めるかどうか (デフォルト: false)</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "reportType": "MONTHLY_REVENUE",
+  "parameters": {
+    "startDate": "2023-01-01",
+    "endDate": "2023-06-30",
+    "includeUnpaid": false
+  },
+  "generatedAt": "2023-05-25T10:00:00Z",
+  "data": {
+    "months": [
+      {
+        "year": 2023,
+        "month": 1,
+        "label": "2023年1月",
+        "invoicedAmount": 4850000,
+        "paidAmount": 4850000,
+        "outgoingAmount": 3500000,
+        "margin": 1350000,
+        "marginRate": 27.8,
+        "invoiceCount": 5
+      },
+      {
+        "year": 2023,
+        "month": 2,
+        "label": "2023年2月",
+        "invoicedAmount": 5120000,
+        "paidAmount": 5120000,
+        "outgoingAmount": 3680000,
+        "margin": 1440000,
+        "marginRate": 28.1,
+        "invoiceCount": 5
+      },
+      {
+        "year": 2023,
+        "month": 3,
+        "label": "2023年3月",
+        "invoicedAmount": 5280000,
+        "paidAmount": 5280000,
+        "outgoingAmount": 3800000,
+        "margin": 1480000,
+        "marginRate": 28.0,
+        "invoiceCount": 6
+      },
+      {
+        "year": 2023,
+        "month": 4,
+        "label": "2023年4月",
+        "invoicedAmount": 5350000,
+        "paidAmount": 5350000,
+        "outgoingAmount": 3820000,
+        "margin": 1530000,
+        "marginRate": 28.6,
+        "invoiceCount": 6
+      },
+      {
+        "year": 2023,
+        "month": 5,
+        "label": "2023年5月",
+        "invoicedAmount": 5620000,
+        "paidAmount": 4100000,
+        "outgoingAmount": 3950000,
+        "margin": 150000,
+        "marginRate": 3.7,
+        "invoiceCount": 7
+      },
+      {
+        "year": 2023,
+        "month": 6,
+        "label": "2023年6月",
+        "invoicedAmount": 0,
+        "paidAmount": 0,
+        "outgoingAmount": 0,
+        "margin": 0,
+        "marginRate": 0,
+        "invoiceCount": 0
+      }
+    ],
+    "summary": {
+      "totalInvoicedAmount": 26220000,
+      "totalPaidAmount": 24700000,
+      "totalOutgoingAmount": 18750000,
+      "totalMargin": 5950000,
+      "averageMarginRate": 24.1,
+      "totalInvoiceCount": 29
+    },
+    "trends": {
+      "invoicedAmountTrend": "+16.0%",
+      "marginTrend": "+13.3%"
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF, PAYMENT_STAFF, REPORT_VIEWER</p>
+    </div>
+
+    <div id="get-customer-report" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/reports/customers</span></h3>
+        <p>顧客別の売上レポートを取得します。指定した期間の顧客ごとの請求額、入金額、支払額などの集計データを返します。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string (ISO日付)</td>
+                <td>はい</td>
+                <td>集計開始日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string (ISO日付)</td>
+                <td>はい</td>
+                <td>集計終了日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>includeUnpaid</td>
+                <td>boolean</td>
+                <td>いいえ</td>
+                <td>未入金の請求も含めるかどうか (デフォルト: false)</td>
+            </tr>
+            <tr>
+                <td>customerId</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>特定の顧客IDでフィルタリング</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>ソート条件 (例: invoicedAmount,desc)</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "reportType": "CUSTOMER_REVENUE",
+  "parameters": {
+    "startDate": "2023-01-01",
+    "endDate": "2023-05-31",
+    "includeUnpaid": true,
+    "sort": "invoicedAmount,desc"
+  },
+  "generatedAt": "2023-05-25T10:30:00Z",
+  "data": {
+    "customers": [
+      {
+        "customerId": "CUST001",
+        "customerName": "株式会社テクノA",
+        "invoicedAmount": 8250000,
+        "paidAmount": 7700000,
+        "outgoingAmount": 6000000,
+        "margin": 1700000,
+        "marginRate": 22.1,
+        "invoiceCount": 10,
+        "projects": [
+          {
+            "projectId": "PROJ001",
+            "projectName": "基幹システム開発",
+            "invoicedAmount": 5500000,
+            "engineerCount": 2
+          },
+          {
+            "projectId": "PROJ005",
+            "projectName": "社内システム保守",
+            "invoicedAmount": 2750000,
+            "engineerCount": 1
+          }
+        ]
+      },
+      {
+        "customerId": "CUST002",
+        "customerName": "B技研",
+        "invoicedAmount": 7200000,
+        "paidAmount": 7200000,
+        "outgoingAmount": 5200000,
+        "margin": 2000000,
+        "marginRate": 27.8,
+        "invoiceCount": 5,
+        "projects": [
+          {
+            "projectId": "PROJ002",
+            "projectName": "モバイルアプリ開発",
+            "invoicedAmount": 7200000,
+            "engineerCount": 3
+          }
+        ]
+      },
+      {
+        "customerId": "CUST003",
+        "customerName": "株式会社C情報システム",
+        "invoicedAmount": 6600000,
+        "paidAmount": 6600000,
+        "outgoingAmount": 4850000,
+        "margin": 1750000,
+        "marginRate": 26.5,
+        "invoiceCount": 10,
+        "projects": [
+          {
+            "projectId": "PROJ003",
+            "projectName": "ウェブシステム保守",
+            "invoicedAmount": 3300000,
+            "engineerCount": 1
+          },
+          {
+            "projectId": "PROJ006",
+            "projectName": "データ分析基盤構築",
+            "invoicedAmount": 3300000,
+            "engineerCount": 1
+          }
+        ]
+      },
+      {
+        "customerId": "CUST004",
+        "customerName": "D商事",
+        "invoicedAmount": 4170000,
+        "paidAmount": 3200000,
+        "outgoingAmount": 2700000,
+        "margin": 500000,
+        "marginRate": 15.6,
+        "invoiceCount": 4,
+        "projects": [
+          {
+            "projectId": "PROJ004",
+            "projectName": "モバイルアプリ改修",
+            "invoicedAmount": 4170000,
+            "engineerCount": 2
+          }
+        ]
+      }
+    ],
+    "summary": {
+      "totalCustomers": 4,
+      "totalInvoicedAmount": 26220000,
+      "totalPaidAmount": 24700000,
+      "totalOutgoingAmount": 18750000,
+      "totalMargin": 5950000,
+      "averageMarginRate": 24.1,
+      "totalInvoiceCount": 29
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF, PAYMENT_STAFF, REPORT_VIEWER</p>
+    </div>
+
+    <div id="get-project-report" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/reports/projects</span></h3>
+        <p>プロジェクト別の売上レポートを取得します。指定した期間のプロジェクトごとの請求額、入金額、支払額などの集計データを返します。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string (ISO日付)</td>
+                <td>はい</td>
+                <td>集計開始日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string (ISO日付)</td>
+                <td>はい</td>
+                <td>集計終了日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>includeUnpaid</td>
+                <td>boolean</td>
+                <td>いいえ</td>
+                <td>未入金の請求も含めるかどうか (デフォルト: false)</td>
+            </tr>
+            <tr>
+                <td>projectId</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>特定のプロジェクトIDでフィルタリング</td>
+            </tr>
+            <tr>
+                <td>customerId</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>特定の顧客IDでフィルタリング</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>ソート条件 (例: marginRate,desc)</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "reportType": "PROJECT_REVENUE",
+  "parameters": {
+    "startDate": "2023-01-01",
+    "endDate": "2023-05-31",
+    "includeUnpaid": true,
+    "sort": "marginRate,desc"
+  },
+  "generatedAt": "2023-05-25T11:00:00Z",
+  "data": {
+    "projects": [
+      {
+        "projectId": "PROJ002",
+        "projectName": "モバイルアプリ開発",
+        "customerId": "CUST002",
+        "customerName": "B技研",
+        "invoicedAmount": 7200000,
+        "paidAmount": 7200000,
+        "outgoingAmount": 5200000,
+        "margin": 2000000,
+        "marginRate": 27.8,
+        "invoiceCount": 5,
+        "engineers": [
+          {
+            "engineerId": "ENG003",
+            "engineerName": "田中三郎",
+            "totalAmount": 1750000
+          },
+          {
+            "engineerId": "ENG004",
+            "engineerName": "伊藤四郎",
+            "totalAmount": 1650000
+          },
+          {
+            "engineerId": "ENG008",
+            "engineerName": "山本八郎",
+            "totalAmount": 1800000
+          }
+        ],
+        "monthlyTrend": [
+          {
+            "year": 2023,
+            "month": 1,
+            "invoicedAmount": 1440000,
+            "marginRate": 27.8
+          },
+          {
+            "year": 2023,
+            "month": 2,
+            "invoicedAmount": 1440000,
+            "marginRate": 27.8
+          },
+          {
+            "year": 2023,
+            "month": 3,
+            "invoicedAmount": 1440000,
+            "marginRate": 27.8
+          },
+          {
+            "year": 2023,
+            "month": 4,
+            "invoicedAmount": 1440000,
+            "marginRate": 27.8
+          },
+          {
+            "year": 2023,
+            "month": 5,
+            "invoicedAmount": 1440000,
+            "marginRate": 27.8
+          }
+        ]
+      },
+      {
+        "projectId": "PROJ006",
+        "projectName": "データ分析基盤構築",
+        "customerId": "CUST003",
+        "customerName": "株式会社C情報システム",
+        "invoicedAmount": 3300000,
+        "paidAmount": 3300000,
+        "outgoingAmount": 2420000,
+        "margin": 880000,
+        "marginRate": 26.7,
+        "invoiceCount": 5,
+        "engineers": [
+          {
+            "engineerId": "ENG007",
+            "engineerName": "中村七郎",
+            "totalAmount": 2420000
+          }
+        ],
+        "monthlyTrend": [
+          {
+            "year": 2023,
+            "month": 1,
+            "invoicedAmount": 660000,
+            "marginRate": 26.7
+          },
+          {
+            "year": 2023,
+            "month": 2,
+            "invoicedAmount": 660000,
+            "marginRate": 26.7
+          },
+          {
+            "year": 2023,
+            "month": 3,
+            "invoicedAmount": 660000,
+            "marginRate": 26.7
+          },
+          {
+            "year": 2023,
+            "month": 4,
+            "invoicedAmount": 660000,
+            "marginRate": 26.7
+          },
+          {
+            "year": 2023,
+            "month": 5,
+            "invoicedAmount": 660000,
+            "marginRate": 26.7
+          }
+        ]
+      }
+    ],
+    "summary": {
+      "totalProjects": 6,
+      "totalInvoicedAmount": 26220000,
+      "totalPaidAmount": 24700000,
+      "totalOutgoingAmount": 18750000,
+      "totalMargin": 5950000,
+      "averageMarginRate": 24.1,
+      "highestMarginProject": "PROJ002",
+      "lowestMarginProject": "PROJ004"
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF, PAYMENT_STAFF, REPORT_VIEWER</p>
+    </div>
+
+    <div id="get-cash-flow-report" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/reports/cash-flow</span></h3>
+        <p>キャッシュフローレポートを取得します。指定した期間の入金と支払いの流れを分析します。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string (ISO日付)</td>
+                <td>はい</td>
+                <td>集計開始日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string (ISO日付)</td>
+                <td>はい</td>
+                <td>集計終了日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>forecastMonths</td>
+                <td>integer</td>
+                <td>いいえ</td>
+                <td>予測を含める将来の月数 (デフォルト: 0)</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "reportType": "CASH_FLOW",
+  "parameters": {
+    "startDate": "2023-01-01",
+    "endDate": "2023-05-31",
+    "forecastMonths": 2
+  },
+  "generatedAt": "2023-05-25T11:30:00Z",
+  "data": {
+    "periods": [
+      {
+        "year": 2023,
+        "month": 1,
+        "label": "2023年1月",
+        "inflow": 4850000,
+        "outflow": 3500000,
+        "netCashFlow": 1350000,
+        "runningBalance": 1350000
+      },
+      {
+        "year": 2023,
+        "month": 2,
+        "label": "2023年2月",
+        "inflow": 5120000,
+        "outflow": 3680000,
+        "netCashFlow": 1440000,
+        "runningBalance": 2790000
+      },
+      {
+        "year": 2023,
+        "month": 3,
+        "label": "2023年3月",
+        "inflow": 5280000,
+        "outflow": 3800000,
+        "netCashFlow": 1480000,
+        "runningBalance": 4270000
+      },
+      {
+        "year": 2023,
+        "month": 4,
+        "label": "2023年4月",
+        "inflow": 5350000,
+        "outflow": 3820000,
+        "netCashFlow": 1530000,
+        "runningBalance": 5800000
+      },
+      {
+        "year": 2023,
+        "month": 5,
+        "label": "2023年5月",
+        "inflow": 4100000,
+        "outflow": 3950000,
+        "netCashFlow": 150000,
+        "runningBalance": 5950000
+      },
+      {
+        "year": 2023,
+        "month": 6,
+        "label": "2023年6月 (予測)",
+        "inflow": 5800000,
+        "outflow": 4100000,
+        "netCashFlow": 1700000,
+        "runningBalance": 7650000,
+        "isForecast": true
+      },
+      {
+        "year": 2023,
+        "month": 7,
+        "label": "2023年7月 (予測)",
+        "inflow": 5900000,
+        "outflow": 4200000,
+        "netCashFlow": 1700000,
+        "runningBalance": 9350000,
+        "isForecast": true
+      }
+    ],
+    "categories": {
+      "inflow": [
+        {
+          "category": "顧客請求",
+          "amount": 24700000,
+          "percentage": 100
+        }
+      ],
+      "outflow": [
+        {
+          "category": "技術者支払",
+          "amount": 18750000,
+          "percentage": 100
+        }
+      ]
+    },
+    "summary": {
+      "totalInflow": 24700000,
+      "totalOutflow": 18750000,
+      "netCashFlow": 5950000,
+      "cashFlowTrend": "+35.7%",
+      "forecastAccuracy": "高"
+    },
+    "outstanding": {
+      "receivable": {
+        "total": 1520000,
+        "within30Days": 1520000,
+        "within60Days": 0,
+        "within90Days": 0,
+        "over90Days": 0
+      },
+      "payable": {
+        "total": 0,
+        "within30Days": 0,
+        "within60Days": 0,
+        "within90Days": 0,
+        "over90Days": 0
+      }
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, REPORT_VIEWER</p>
+    </div>
+
+    <div id="get-profit-loss-report" class="endpoint">
+        <h3><span class="http-method get">GET</span><span class="path">/api/v1/billing/reports/profit-loss</span></h3>
+        <p>損益レポートを取得します。指定した期間の売上、原価、粗利益などの集計データを返します。</p>
+
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>string (ISO日付)</td>
+                <td>はい</td>
+                <td>集計開始日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>string (ISO日付)</td>
+                <td>はい</td>
+                <td>集計終了日 (YYYY-MM-DD)</td>
+            </tr>
+            <tr>
+                <td>groupBy</td>
+                <td>string</td>
+                <td>いいえ</td>
+                <td>集計単位 (month, quarter, year のいずれか。デフォルト: month)</td>
+            </tr>
+            <tr>
+                <td>includeUnpaid</td>
+                <td>boolean</td>
+                <td>いいえ</td>
+                <td>未入金の請求も含めるかどうか (デフォルト: false)</td>
+            </tr>
+        </table>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "reportType": "PROFIT_LOSS",
+  "parameters": {
+    "startDate": "2023-01-01",
+    "endDate": "2023-05-31",
+    "groupBy": "month",
+    "includeUnpaid": false
+  },
+  "generatedAt": "2023-05-25T12:00:00Z",
+  "data": {
+    "periods": [
+      {
+        "year": 2023,
+        "month": 1,
+        "label": "2023年1月",
+        "revenue": 4850000,
+        "costs": {
+          "engineerPayments": 3500000,
+          "operationCosts": 350000,
+          "otherCosts": 150000,
+          "totalCosts": 4000000
+        },
+        "grossProfit": 850000,
+        "grossProfitMargin": 17.5,
+        "operatingProfit": 500000,
+        "operatingProfitMargin": 10.3
+      },
+      {
+        "year": 2023,
+        "month": 2,
+        "label": "2023年2月",
+        "revenue": 5120000,
+        "costs": {
+          "engineerPayments": 3680000,
+          "operationCosts": 360000,
+          "otherCosts": 160000,
+          "totalCosts": 4200000
+        },
+        "grossProfit": 920000,
+        "grossProfitMargin": 18.0,
+        "operatingProfit": 560000,
+        "operatingProfitMargin": 10.9
+      },
+      {
+        "year": 2023,
+        "month": 3,
+        "label": "2023年3月",
+        "revenue": 5280000,
+        "costs": {
+          "engineerPayments": 3800000,
+          "operationCosts": 370000,
+          "otherCosts": 165000,
+          "totalCosts": 4335000
+        },
+        "grossProfit": 945000,
+        "grossProfitMargin": 17.9,
+        "operatingProfit": 575000,
+        "operatingProfitMargin": 10.9
+      },
+      {
+        "year": 2023,
+        "month": 4,
+        "label": "2023年4月",
+        "revenue": 5350000,
+        "costs": {
+          "engineerPayments": 3820000,
+          "operationCosts": 375000,
+          "otherCosts": 170000,
+          "totalCosts": 4365000
+        },
+        "grossProfit": 985000,
+        "grossProfitMargin": 18.4,
+        "operatingProfit": 610000,
+        "operatingProfitMargin": 11.4
+      },
+      {
+        "year": 2023,
+        "month": 5,
+        "label": "2023年5月",
+        "revenue": 4100000,
+        "costs": {
+          "engineerPayments": 2950000,
+          "operationCosts": 380000,
+          "otherCosts": 175000,
+          "totalCosts": 3505000
+        },
+        "grossProfit": 595000,
+        "grossProfitMargin": 14.5,
+        "operatingProfit": 215000,
+        "operatingProfitMargin": 5.2
+      }
+    ],
+    "summary": {
+      "totalRevenue": 24700000,
+      "totalCosts": {
+        "engineerPayments": 17750000,
+        "operationCosts": 1835000,
+        "otherCosts": 820000,
+        "totalCosts": 20405000
+      },
+      "totalGrossProfit": 4295000,
+      "averageGrossProfitMargin": 17.4,
+      "totalOperatingProfit": 2460000,
+      "averageOperatingProfitMargin": 10.0
+    },
+    "trends": {
+      "revenueTrend": "+8.9%",
+      "profitTrend": "+2.1%",
+      "costTrend": "+8.8%"
+    }
+  }
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, REPORT_VIEWER</p>
+    </div>
+
+    <div id="post-export-report" class="endpoint">
+        <h3><span class="http-method post">POST</span><span class="path">/api/v1/billing/reports/export</span></h3>
+        <p>指定したレポートをエクスポートします。CSV、Excel、PDFなどの形式でレポートを出力できます。</p>
+
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "reportType": "MONTHLY_REVENUE",
+  "parameters": {
+    "startDate": "2023-01-01",
+    "endDate": "2023-05-31",
+    "includeUnpaid": false
+  },
+  "format": "EXCEL",
+  "includeCharts": true,
+  "fileName": "月次売上レポート_2023年1月-5月"
+}</code></pre>
+
+        <h4>レスポンス例</h4>
+        <pre><code>{
+  "fileId": "EXP2023052501",
+  "fileName": "月次売上レポート_2023年1月-5月.xlsx",
+  "format": "EXCEL",
+  "fileSize": 156234,
+  "downloadUrl": "/api/v1/billing/reports/export/download/EXP2023052501",
+  "expiresAt": "2023-05-26T12:00:00Z",
+  "generatedAt": "2023-05-25T12:00:00Z"
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 400,
+  "error": "Bad Request",
+  "message": "無効なレポートタイプです: INVALID_REPORT_TYPE",
+  "timestamp": "2023-05-25T12:00:00Z",
+  "path": "/api/v1/billing/reports/export"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>ADMIN, FINANCE_MANAGER, BILLING_STAFF, PAYMENT_STAFF, REPORT_VIEWER</p>
+    </div>
+
+    <footer>
+        <p>最終更新日: 2025年5月4日</p>
+    </footer>
+</body>
+</html>

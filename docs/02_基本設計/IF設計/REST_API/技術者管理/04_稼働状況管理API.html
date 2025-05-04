@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>稼働状況管理API - 技術者管理API仕様書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #0066cc;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, monospace;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, monospace;
+        }
+        .endpoint {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-left: 4px solid #0066cc;
+            margin-bottom: 30px;
+            border-radius: 0 5px 5px 0;
+        }
+        .method {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-right: 10px;
+            color: white;
+        }
+        .get {
+            background-color: #61affe;
+        }
+        .post {
+            background-color: #49cc90;
+        }
+        .put {
+            background-color: #fca130;
+        }
+        .delete {
+            background-color: #f93e3e;
+        }
+        .path {
+            font-family: Consolas, monospace;
+            font-weight: bold;
+        }
+        .nav-container {
+            background-color: #f5f5f5;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+        .nav-container h3 {
+            margin-top: 0;
+        }
+        .param-name {
+            font-weight: bold;
+        }
+        .required {
+            color: #f93e3e;
+        }
+        .param-type {
+            color: #666;
+            font-style: italic;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #0066cc;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <a href="../技術者管理API.html" class="back-link">← 技術者管理API 仕様書に戻る</a>
+    
+    <h1>稼働状況管理API</h1>
+    
+    <div class="nav-container">
+        <h3>目次</h3>
+        <ul>
+            <li><a href="#overview">概要</a></li>
+            <li><a href="#get-engineer-availability">技術者の稼働状況取得</a></li>
+            <li><a href="#put-engineer-availability">技術者の稼働状況更新</a></li>
+            <li><a href="#get-availability-calendar">複数技術者の稼働カレンダー取得</a></li>
+            <li><a href="#get-availability-statistics">技術者稼働統計情報取得</a></li>
+        </ul>
+    </div>
+
+    <h2 id="overview">概要</h2>
+    <p>
+        稼働状況管理APIは、技術者の稼働状況を管理するためのエンドポイントを提供します。
+        技術者ごとの稼働状況の取得や更新、複数技術者の稼働カレンダーの取得、稼働統計情報の取得などが可能です。
+        これにより、技術者のアサイン管理や空き状況の把握、リソースの効率的な配置が可能になります。
+    </p>
+
+    <!-- GET /api/v1/engineers/{id}/availability -->
+    <div class="endpoint" id="get-engineer-availability">
+        <h3>
+            <span class="method get">GET</span>
+            <span class="path">/api/v1/engineers/{id}/availability</span>
+        </h3>
+        <p>特定の技術者の稼働状況を取得します。期間指定により期間内の稼働状況を確認できます。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>技術者ID</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+        </table>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>デフォルト</th>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>取得開始日（YYYY-MM-DD形式）</td>
+                <td>string</td>
+                <td>現在の日付</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>取得終了日（YYYY-MM-DD形式）</td>
+                <td>string</td>
+                <td>startDateから3ヶ月後</td>
+            </tr>
+            <tr>
+                <td>includeProjects</td>
+                <td>アサイン案件情報を含めるか</td>
+                <td>boolean</td>
+                <td>false</td>
+            </tr>
+            <tr>
+                <td>includeHistory</td>
+                <td>過去の稼働履歴を含めるか</td>
+                <td>boolean</td>
+                <td>false</td>
+            </tr>
+        </table>
+        
+        <h4>リクエスト例</h4>
+        <pre><code>GET /api/v1/engineers/E12345/availability?startDate=2023-10-01&endDate=2023-12-31&includeProjects=true</code></pre>
+        
+        <h4>レスポンス例（成功: 200 OK）</h4>
+        <pre><code>{
+  "data": {
+    "engineerId": "E12345",
+    "firstName": "太郎",
+    "lastName": "山田",
+    "currentStatus": {
+      "isAvailable": true,
+      "availableFrom": "2023-10-01",
+      "availableUntil": null,
+      "workPattern": "週5日",
+      "workLocation": "リモート/オンサイト"
+    },
+    "assignments": [
+      {
+        "projectId": "P45678",
+        "projectName": "オンライン決済システム開発",
+        "clientName": "株式会社ABC",
+        "role": "バックエンドエンジニア",
+        "startDate": "2023-10-15",
+        "endDate": "2024-03-31",
+        "workPattern": "週5日",
+        "workLocation": "リモート/オンサイト週1日",
+        "status": "確定"
+      }
+    ],
+    "availabilityCalendar": [
+      {
+        "date": "2023-10-01",
+        "status": "available",
+        "note": null
+      },
+      {
+        "date": "2023-10-02",
+        "status": "available",
+        "note": null
+      },
+      // ... 他の日付データ
+      {
+        "date": "2023-10-15",
+        "status": "assigned",
+        "projectId": "P45678",
+        "note": null
+      },
+      // ... 他の日付データ
+      {
+        "date": "2023-11-03",
+        "status": "holiday",
+        "note": "文化の日"
+      },
+      {
+        "date": "2023-12-29",
+        "status": "leave",
+        "note": "年末休暇"
+      }
+      // ... 他の日付データ
+    ],
+    "history": null
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "code": "RESOURCE_NOT_FOUND",
+  "message": "指定されたIDの技術者が見つかりませんでした"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>技術者管理者ロール、人事ロール、営業ロール、管理者ロールがアクセス可能です。</p>
+    </div>
+
+    <!-- PUT /api/v1/engineers/{id}/availability -->
+    <div class="endpoint" id="put-engineer-availability">
+        <h3>
+            <span class="method put">PUT</span>
+            <span class="path">/api/v1/engineers/{id}/availability</span>
+        </h3>
+        <p>特定の技術者の稼働状況を更新します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>技術者ID</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+        </table>
+        
+        <h4>リクエストボディ</h4>
+        <table>
+            <tr>
+                <th>フィールド</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>isAvailable</td>
+                <td>稼働可能フラグ</td>
+                <td>boolean</td>
+                <td>◯</td>
+            </tr>
+            <tr>
+                <td>availableFrom</td>
+                <td>稼働開始可能日（YYYY-MM-DD形式）</td>
+                <td>string</td>
+                <td>isAvailableがtrueの場合は必須</td>
+            </tr>
+            <tr>
+                <td>availableUntil</td>
+                <td>稼働終了予定日（YYYY-MM-DD形式）</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>workPattern</td>
+                <td>稼働パターン（例: 週5日, 週3日など）</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>workLocation</td>
+                <td>勤務場所（例: リモート, オンサイトなど）</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>note</td>
+                <td>備考</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>leaves</td>
+                <td>休暇情報の配列</td>
+                <td>array</td>
+                <td>-</td>
+            </tr>
+        </table>
+        
+        <h4>リクエスト例</h4>
+        <pre><code>{
+  "isAvailable": true,
+  "availableFrom": "2023-10-01",
+  "availableUntil": "2024-03-31",
+  "workPattern": "週4日",
+  "workLocation": "リモート/オンサイト",
+  "note": "金曜日は社内業務のため案件アサイン不可",
+  "leaves": [
+    {
+      "startDate": "2023-12-29",
+      "endDate": "2024-01-03",
+      "type": "年末年始休暇",
+      "note": "年末年始休暇"
+    },
+    {
+      "startDate": "2024-02-12",
+      "endDate": "2024-02-12",
+      "type": "有給休暇",
+      "note": "私用のため"
+    }
+  ]
+}</code></pre>
+        
+        <h4>レスポンス例（成功: 200 OK）</h4>
+        <pre><code>{
+  "engineerId": "E12345",
+  "firstName": "太郎",
+  "lastName": "山田",
+  "availability": {
+    "isAvailable": true,
+    "availableFrom": "2023-10-01",
+    "availableUntil": "2024-03-31",
+    "workPattern": "週4日",
+    "workLocation": "リモート/オンサイト",
+    "note": "金曜日は社内業務のため案件アサイン不可"
+  },
+  "leaves": [
+    {
+      "startDate": "2023-12-29",
+      "endDate": "2024-01-03",
+      "type": "年末年始休暇",
+      "note": "年末年始休暇"
+    },
+    {
+      "startDate": "2024-02-12",
+      "endDate": "2024-02-12",
+      "type": "有給休暇",
+      "note": "私用のため"
+    }
+  ],
+  "message": "技術者の稼働状況が正常に更新されました"
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "code": "RESOURCE_NOT_FOUND",
+  "message": "指定されたIDの技術者が見つかりませんでした"
+}</code></pre>
+
+        <pre><code>{
+  "status": 400,
+  "code": "VALIDATION_ERROR",
+  "message": "入力データの検証に失敗しました",
+  "details": [
+    {
+      "field": "availableFrom",
+      "message": "稼働可能な場合は稼働開始可能日が必要です"
+    },
+    {
+      "field": "leaves[0].endDate",
+      "message": "終了日は開始日以降の日付である必要があります"
+    }
+  ]
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>技術者管理者ロール、人事ロール、管理者ロールがアクセス可能です。</p>
+    </div>
+
+    <!-- GET /api/v1/engineers/availability/calendar -->
+    <div class="endpoint" id="get-availability-calendar">
+        <h3>
+            <span class="method get">GET</span>
+            <span class="path">/api/v1/engineers/availability/calendar</span>
+        </h3>
+        <p>複数の技術者の稼働カレンダーを取得します。部署や条件で絞り込むことが可能です。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>デフォルト</th>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>取得開始日（YYYY-MM-DD形式）</td>
+                <td>string</td>
+                <td>現在の日付</td>
+            </tr>
+            <tr>
+                <td>endDate</td>
+                <td>取得終了日（YYYY-MM-DD形式）</td>
+                <td>string</td>
+                <td>startDateから1ヶ月後</td>
+            </tr>
+            <tr>
+                <td>engineerIds</td>
+                <td>技術者IDリスト（カンマ区切り）</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>department</td>
+                <td>部署でフィルタリング</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>skills</td>
+                <td>スキルIDリスト（カンマ区切り）</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>onlyAvailable</td>
+                <td>稼働可能な技術者のみ表示</td>
+                <td>boolean</td>
+                <td>false</td>
+            </tr>
+        </table>
+        
+        <h4>リクエスト例</h4>
+        <pre><code>GET /api/v1/engineers/availability/calendar?startDate=2023-10-01&endDate=2023-10-31&department=ITソリューション部&onlyAvailable=true</code></pre>
+        
+        <h4>レスポンス例（成功: 200 OK）</h4>
+        <pre><code>{
+  "data": {
+    "startDate": "2023-10-01",
+    "endDate": "2023-10-31",
+    "calendar": [
+      {
+        "engineerId": "E12345",
+        "firstName": "太郎",
+        "lastName": "山田",
+        "department": "ITソリューション部",
+        "availability": [
+          {
+            "date": "2023-10-01",
+            "status": "available",
+            "note": null
+          },
+          {
+            "date": "2023-10-02",
+            "status": "available",
+            "note": null
+          },
+          // ... 他の日付データ
+          {
+            "date": "2023-10-15",
+            "status": "assigned",
+            "projectId": "P45678",
+            "note": null
+          },
+          // ... 他の日付データ
+        ]
+      },
+      {
+        "engineerId": "E12346",
+        "firstName": "花子",
+        "lastName": "鈴木",
+        "department": "ITソリューション部",
+        "availability": [
+          {
+            "date": "2023-10-01",
+            "status": "assigned",
+            "projectId": "P45679",
+            "note": null
+          },
+          // ... 他の日付データ
+          {
+            "date": "2023-10-15",
+            "status": "available",
+            "note": null
+          },
+          // ... 他の日付データ
+        ]
+      }
+      // ... 他の技術者データ
+    ],
+    "holidays": [
+      {
+        "date": "2023-10-09",
+        "name": "スポーツの日"
+      }
+    ],
+    "summary": {
+      "totalEngineers": 12,
+      "availableEngineers": {
+        "2023-10-01": 8,
+        "2023-10-02": 7,
+        // ... 他の日付データ
+      }
+    }
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 400,
+  "code": "INVALID_PARAMETER",
+  "message": "無効なパラメータが指定されました",
+  "details": [
+    {
+      "field": "endDate",
+      "message": "終了日は開始日から31日以内に設定してください"
+    }
+  ]
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>技術者管理者ロール、人事ロール、営業ロール、管理者ロールがアクセス可能です。</p>
+    </div>
+
+    <!-- GET /api/v1/engineers/availability/statistics -->
+    <div class="endpoint" id="get-availability-statistics">
+        <h3>
+            <span class="method get">GET</span>
+            <span class="path">/api/v1/engineers/availability/statistics</span>
+        </h3>
+        <p>技術者の稼働統計情報を取得します。部署ごとの稼働率や案件アサイン状況などを確認できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>デフォルト</th>
+            </tr>
+            <tr>
+                <td>period</td>
+                <td>集計期間（month: 月次, quarter: 四半期, year: 年次）</td>
+                <td>string</td>
+                <td>month</td>
+            </tr>
+            <tr>
+                <td>startDate</td>
+                <td>集計開始日（YYYY-MM-DD形式）</td>
+                <td>string</td>
+                <td>現在の月初</td>
+            </tr>
+            <tr>
+                <td>department</td>
+                <td>部署でフィルタリング</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>groupBy</td>
+                <td>グループ化（department: 部署別, position: 役職別, employmentStatus: 雇用形態別）</td>
+                <td>string</td>
+                <td>department</td>
+            </tr>
+        </table>
+        
+        <h4>リクエスト例</h4>
+        <pre><code>GET /api/v1/engineers/availability/statistics?period=quarter&startDate=2023-10-01&groupBy=department</code></pre>
+        
+        <h4>レスポンス例（成功: 200 OK）</h4>
+        <pre><code>{
+  "data": {
+    "period": {
+      "type": "quarter",
+      "startDate": "2023-10-01",
+      "endDate": "2023-12-31",
+      "description": "2023年第4四半期"
+    },
+    "summary": {
+      "totalEngineers": 50,
+      "assignedEngineers": 42,
+      "availableEngineers": 8,
+      "assignmentRate": 84.0,
+      "availabilityRate": 16.0
+    },
+    "departmentStats": [
+      {
+        "department": "ITソリューション部",
+        "totalEngineers": 20,
+        "assignedEngineers": 18,
+        "availableEngineers": 2,
+        "assignmentRate": 90.0,
+        "availabilityRate": 10.0
+      },
+      {
+        "department": "デジタル開発部",
+        "totalEngineers": 15,
+        "assignedEngineers": 12,
+        "availableEngineers": 3,
+        "assignmentRate": 80.0,
+        "availabilityRate": 20.0
+      },
+      {
+        "department": "インフラサービス部",
+        "totalEngineers": 10,
+        "assignedEngineers": 8,
+        "availableEngineers": 2,
+        "assignmentRate": 80.0,
+        "availabilityRate": 20.0
+      },
+      {
+        "department": "QAテスト部",
+        "totalEngineers": 5,
+        "assignedEngineers": 4,
+        "availableEngineers": 1,
+        "assignmentRate": 80.0,
+        "availabilityRate": 20.0
+      }
+    ],
+    "monthlyTrend": [
+      {
+        "month": "2023-10",
+        "assignmentRate": 82.0,
+        "availabilityRate": 18.0
+      },
+      {
+        "month": "2023-11",
+        "assignmentRate": 84.0,
+        "availabilityRate": 16.0
+      },
+      {
+        "month": "2023-12",
+        "assignmentRate": 86.0,
+        "availabilityRate": 14.0
+      }
+    ],
+    "skillsInDemand": [
+      {
+        "skillId": "S001",
+        "skillName": "Java",
+        "assignedCount": 15,
+        "demandScore": 95
+      },
+      {
+        "skillId": "S002",
+        "skillName": "Spring Boot",
+        "assignedCount": 12,
+        "demandScore": 90
+      },
+      {
+        "skillId": "S010",
+        "skillName": "Python",
+        "assignedCount": 8,
+        "demandScore": 85
+      }
+      // ... 他のスキルデータ
+    ]
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 400,
+  "code": "INVALID_PARAMETER",
+  "message": "無効なパラメータが指定されました",
+  "details": [
+    {
+      "field": "period",
+      "message": "有効な集計期間を指定してください（month, quarter, year）"
+    }
+  ]
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>技術者管理者ロール、人事ロール、管理者ロールがアクセス可能です。</p>
+    </div>
+
+    <footer>
+        <p>最終更新日: 2023-09-01</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,1665 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>予測分析API</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 4px;
+            overflow: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .endpoint {
+            margin-bottom: 30px;
+        }
+        .endpoint h3 {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-left: 4px solid #2c3e50;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .patch { background-color: #50e3c2; }
+    </style>
+</head>
+<body>
+    <h1>予測分析API</h1>
+    
+    <p>
+        予測分析APIは、SES業務システムの過去のデータから将来のトレンドや数値を予測するためのインターフェースを提供します。
+        売上予測、利益予測、稼働率予測、リソース需要予測など、将来の業績やリソース配分を計画するための分析機能を提供します。
+        また、「もし〜したら」というシミュレーション機能も備えています。
+    </p>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/forecast/sales</h3>
+        <p><strong>説明：</strong> 売上予測データを取得します。過去のデータをベースに将来の売上額を予測します。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測開始日（ISO 8601形式）。デフォルトは翌月1日</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測終了日（ISO 8601形式）。デフォルトは12ヶ月後</td>
+            </tr>
+            <tr>
+                <td>granularity</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測単位（monthly, quarterly, annual）。デフォルトはmonthly</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定部門の予測のみを表示する場合の部門ID</td>
+            </tr>
+            <tr>
+                <td>customerId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定顧客の予測のみを表示する場合の顧客ID</td>
+            </tr>
+            <tr>
+                <td>scenarioId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測に使用するシナリオID</td>
+            </tr>
+            <tr>
+                <td>confidenceInterval</td>
+                <td>string</td>
+                <td>No</td>
+                <td>信頼区間レベル（80, 90, 95, 99）。デフォルトは90</td>
+            </tr>
+            <tr>
+                <td>includeHistorical</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>過去の実績データも含めるかどうか。デフォルトはfalse</td>
+            </tr>
+            <tr>
+                <td>historicalMonths</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>含める過去データの月数。デフォルトは12</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "forecast": {
+      "from": "2023-06-01",
+      "to": "2024-05-31",
+      "granularity": "monthly",
+      "confidenceInterval": 90
+    },
+    "model": {
+      "type": "timeSeries",
+      "algorithm": "ARIMA",
+      "accuracy": 0.92,
+      "trainedOn": "2023-05-01",
+      "features": ["historical_sales", "seasonality", "active_projects", "growth_trend"]
+    },
+    "filters": {
+      "departmentId": null,
+      "customerId": null,
+      "scenarioId": "default"
+    }
+  },
+  "data": [
+    {
+      "period": "2023-06",
+      "forecast": 14800000,
+      "lowerBound": 13900000,
+      "upperBound": 15700000,
+      "trend": "upward",
+      "seasonalIndex": 1.02,
+      "confidenceLevel": 0.9,
+      "factors": {
+        "baseline": 14500000,
+        "seasonality": 290000,
+        "trend": 10000
+      }
+    },
+    {
+      "period": "2023-07",
+      "forecast": 15000000,
+      "lowerBound": 14000000,
+      "upperBound": 16000000,
+      "trend": "upward",
+      "seasonalIndex": 1.03,
+      "confidenceLevel": 0.9,
+      "factors": {
+        "baseline": 14600000,
+        "seasonality": 380000,
+        "trend": 20000
+      }
+    },
+    {
+      "period": "2023-08",
+      "forecast": 14500000,
+      "lowerBound": 13400000,
+      "upperBound": 15600000,
+      "trend": "downward",
+      "seasonalIndex": 0.98,
+      "confidenceLevel": 0.9,
+      "factors": {
+        "baseline": 14700000,
+        "seasonality": -230000,
+        "trend": 30000
+      }
+    },
+    // 他の月の予測...
+    {
+      "period": "2024-05",
+      "forecast": 16500000,
+      "lowerBound": 14800000,
+      "upperBound": 18200000,
+      "trend": "upward",
+      "seasonalIndex": 1.05,
+      "confidenceLevel": 0.9,
+      "factors": {
+        "baseline": 15600000,
+        "seasonality": 780000,
+        "trend": 120000
+      }
+    }
+  ],
+  "summary": {
+    "totalForecastSales": 183000000,
+    "averageMonthlyForecast": 15250000,
+    "yearOverYearGrowth": 0.11,
+    "peakMonth": "2024-03",
+    "peakValue": 17200000,
+    "lowestMonth": "2023-08",
+    "lowestValue": 14500000,
+    "seasonalPattern": "Q4 and Q1 high, Q3 low",
+    "forecastReliability": "high",
+    "riskFactors": [
+      "経済状況の変化",
+      "競合の市場参入",
+      "技術者の採用状況"
+    ]
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_CONFIDENCE_INTERVAL",
+    "message": "無効な信頼区間レベルが指定されました。",
+    "details": {
+      "confidenceInterval": "97",
+      "allowed": [80, 90, 95, 99]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全予測データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門の予測データのみ）</li>
+            <li><code>ROLE_EXECUTIVE</code>（全予測データへのアクセス）</li>
+            <li><code>ROLE_FINANCE</code>（全予測データへのアクセス）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/forecast/profit</h3>
+        <p><strong>説明：</strong> 利益予測データを取得します。過去のデータをベースに将来の粗利額と利益率を予測します。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測開始日（ISO 8601形式）。デフォルトは翌月1日</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測終了日（ISO 8601形式）。デフォルトは12ヶ月後</td>
+            </tr>
+            <tr>
+                <td>granularity</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測単位（monthly, quarterly, annual）。デフォルトはmonthly</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定部門の予測のみを表示する場合の部門ID</td>
+            </tr>
+            <tr>
+                <td>customerId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定顧客の予測のみを表示する場合の顧客ID</td>
+            </tr>
+            <tr>
+                <td>scenarioId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測に使用するシナリオID</td>
+            </tr>
+            <tr>
+                <td>confidenceInterval</td>
+                <td>string</td>
+                <td>No</td>
+                <td>信頼区間レベル（80, 90, 95, 99）。デフォルトは90</td>
+            </tr>
+            <tr>
+                <td>includeHistorical</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>過去の実績データも含めるかどうか。デフォルトはfalse</td>
+            </tr>
+            <tr>
+                <td>historicalMonths</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>含める過去データの月数。デフォルトは12</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "forecast": {
+      "from": "2023-06-01",
+      "to": "2024-05-31",
+      "granularity": "monthly",
+      "confidenceInterval": 90
+    },
+    "model": {
+      "type": "multivariate",
+      "algorithm": "ProphetWithRegressors",
+      "accuracy": 0.89,
+      "trainedOn": "2023-05-01",
+      "features": ["historical_profit", "sales_forecast", "cost_trends", "engineer_mix"]
+    },
+    "filters": {
+      "departmentId": null,
+      "customerId": null,
+      "scenarioId": "default"
+    }
+  },
+  "data": [
+    {
+      "period": "2023-06",
+      "forecastSales": 14800000,
+      "forecastCost": 10500000,
+      "forecastProfit": 4300000,
+      "forecastMargin": 0.291,
+      "profitLowerBound": 3900000,
+      "profitUpperBound": 4700000,
+      "marginLowerBound": 0.264,
+      "marginUpperBound": 0.318,
+      "trend": "upward",
+      "confidenceLevel": 0.9,
+      "factors": {
+        "laborCostChanges": -0.005,
+        "rateChanges": 0.01,
+        "engineerMixEffect": 0.008
+      }
+    },
+    {
+      "period": "2023-07",
+      "forecastSales": 15000000,
+      "forecastCost": 10600000,
+      "forecastProfit": 4400000,
+      "forecastMargin": 0.293,
+      "profitLowerBound": 3950000,
+      "profitUpperBound": 4850000,
+      "marginLowerBound": 0.263,
+      "marginUpperBound": 0.323,
+      "trend": "stable",
+      "confidenceLevel": 0.9,
+      "factors": {
+        "laborCostChanges": 0,
+        "rateChanges": 0.002,
+        "engineerMixEffect": 0
+      }
+    },
+    // 他の月の予測...
+    {
+      "period": "2024-05",
+      "forecastSales": 16500000,
+      "forecastCost": 11400000,
+      "forecastProfit": 5100000,
+      "forecastMargin": 0.309,
+      "profitLowerBound": 4400000,
+      "profitUpperBound": 5800000,
+      "marginLowerBound": 0.267,
+      "marginUpperBound": 0.352,
+      "trend": "upward",
+      "confidenceLevel": 0.9,
+      "factors": {
+        "laborCostChanges": -0.01,
+        "rateChanges": 0.015,
+        "engineerMixEffect": 0.014
+      }
+    }
+  ],
+  "summary": {
+    "totalForecastProfit": 56000000,
+    "averageMonthlyProfit": 4666667,
+    "averageProfitMargin": 0.306,
+    "yearOverYearProfitGrowth": 0.18,
+    "yearOverYearMarginGrowth": 0.06,
+    "peakMonth": "2024-03",
+    "peakProfit": 5300000,
+    "peakMargin": 0.314,
+    "lowestMonth": "2023-08",
+    "lowestProfit": 4250000,
+    "lowestMargin": 0.294,
+    "marginTrend": "gradually_increasing",
+    "keyDrivers": [
+      "スキルミックスの最適化",
+      "高単価案件の増加",
+      "コスト効率の向上"
+    ],
+    "riskFactors": [
+      "人件費の上昇",
+      "単価の下落圧力",
+      "ベンチ率の上昇"
+    ]
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_FORECAST_RANGE",
+    "message": "無効な予測期間が指定されました。",
+    "details": {
+      "from": "2023-06-01",
+      "to": "2025-06-01",
+      "maxMonths": 24,
+      "message": "予測期間は最大24ヶ月までです。"
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全予測データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門の予測データのみ）</li>
+            <li><code>ROLE_EXECUTIVE</code>（全予測データへのアクセス）</li>
+            <li><code>ROLE_FINANCE</code>（全予測データへのアクセス）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/forecast/utilization</h3>
+        <p><strong>説明：</strong> 稼働率予測データを取得します。過去のデータをベースに将来の技術者稼働率を予測します。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測開始日（ISO 8601形式）。デフォルトは翌月1日</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測終了日（ISO 8601形式）。デフォルトは6ヶ月後</td>
+            </tr>
+            <tr>
+                <td>granularity</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測単位（monthly, weekly）。デフォルトはmonthly</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定部門の予測のみを表示する場合の部門ID</td>
+            </tr>
+            <tr>
+                <td>skillId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定スキルに関する予測のみを表示する場合のスキルID</td>
+            </tr>
+            <tr>
+                <td>scenarioId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測に使用するシナリオID</td>
+            </tr>
+            <tr>
+                <td>confidenceInterval</td>
+                <td>string</td>
+                <td>No</td>
+                <td>信頼区間レベル（80, 90, 95, 99）。デフォルトは90</td>
+            </tr>
+            <tr>
+                <td>includeHistorical</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>過去の実績データも含めるかどうか。デフォルトはfalse</td>
+            </tr>
+            <tr>
+                <td>historicalMonths</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>含める過去データの月数。デフォルトは6</td>
+            </tr>
+            <tr>
+                <td>includeDetailedBreakdown</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>詳細な内訳データを含めるかどうか。デフォルトはfalse</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "forecast": {
+      "from": "2023-06-01",
+      "to": "2023-11-30",
+      "granularity": "monthly",
+      "confidenceInterval": 90
+    },
+    "model": {
+      "type": "regression",
+      "algorithm": "GradientBoosting",
+      "accuracy": 0.91,
+      "trainedOn": "2023-05-01",
+      "features": ["project_end_dates", "project_pipeline", "hiring_plan", "historical_patterns"]
+    },
+    "filters": {
+      "departmentId": null,
+      "skillId": null,
+      "scenarioId": "default"
+    }
+  },
+  "data": [
+    {
+      "period": "2023-06",
+      "forecastUtilizationRate": 0.94,
+      "rateLowerBound": 0.91,
+      "rateUpperBound": 0.97,
+      "forecastTotalEngineers": 98,
+      "forecastBillableEngineers": 92,
+      "forecastBenchEngineers": 4,
+      "forecastTrainingEngineers": 2,
+      "trend": "stable",
+      "confidenceLevel": 0.9,
+      "factors": {
+        "projectCompletions": -3,
+        "newProjects": 5,
+        "seasonalEffect": 0.01,
+        "hiringEffect": 1
+      },
+      "breakdown": {
+        "byDepartment": {
+          "dept_1231": {
+            "utilizationRate": 0.97,
+            "totalEngineers": 46,
+            "billableEngineers": 45
+          },
+          "dept_1232": {
+            "utilizationRate": 0.94,
+            "totalEngineers": 36,
+            "billableEngineers": 34
+          },
+          "dept_1241": {
+            "utilizationRate": 0.88,
+            "totalEngineers": 16,
+            "billableEngineers": 14
+          }
+        },
+        "bySkill": {
+          "Java": {
+            "utilizationRate": 0.97,
+            "totalEngineers": 36,
+            "billableEngineers": 35
+          },
+          "AWS": {
+            "utilizationRate": 0.97,
+            "totalEngineers": 32,
+            "billableEngineers": 31
+          },
+          "Python": {
+            "utilizationRate": 0.92,
+            "totalEngineers": 26,
+            "billableEngineers": 24
+          }
+        }
+      }
+    },
+    {
+      "period": "2023-07",
+      "forecastUtilizationRate": 0.93,
+      "rateLowerBound": 0.9,
+      "rateUpperBound": 0.96,
+      "forecastTotalEngineers": 100,
+      "forecastBillableEngineers": 93,
+      "forecastBenchEngineers": 5,
+      "forecastTrainingEngineers": 2,
+      "trend": "slight_decrease",
+      "confidenceLevel": 0.9,
+      "factors": {
+        "projectCompletions": -4,
+        "newProjects": 3,
+        "seasonalEffect": -0.01,
+        "hiringEffect": 2
+      },
+      "breakdown": {
+        "byDepartment": {
+          "dept_1231": {
+            "utilizationRate": 0.96,
+            "totalEngineers": 47,
+            "billableEngineers": 45
+          },
+          "dept_1232": {
+            "utilizationRate": 0.92,
+            "totalEngineers": 37,
+            "billableEngineers": 34
+          },
+          "dept_1241": {
+            "utilizationRate": 0.88,
+            "totalEngineers": 16,
+            "billableEngineers": 14
+          }
+        },
+        "bySkill": {
+          "Java": {
+            "utilizationRate": 0.97,
+            "totalEngineers": 36,
+            "billableEngineers": 35
+          },
+          "AWS": {
+            "utilizationRate": 0.94,
+            "totalEngineers": 33,
+            "billableEngineers": 31
+          },
+          "Python": {
+            "utilizationRate": 0.89,
+            "totalEngineers": 27,
+            "billableEngineers": 24
+          }
+        }
+      }
+    },
+    // 他の月の予測...
+    {
+      "period": "2023-11",
+      "forecastUtilizationRate": 0.96,
+      "rateLowerBound": 0.92,
+      "rateUpperBound": 0.99,
+      "forecastTotalEngineers": 105,
+      "forecastBillableEngineers": 101,
+      "forecastBenchEngineers": 2,
+      "forecastTrainingEngineers": 2,
+      "trend": "increase",
+      "confidenceLevel": 0.9,
+      "factors": {
+        "projectCompletions": -2,
+        "newProjects": 7,
+        "seasonalEffect": 0.02,
+        "hiringEffect": 1
+      },
+      "breakdown": {
+        "byDepartment": {
+          "dept_1231": {
+            "utilizationRate": 0.98,
+            "totalEngineers": 49,
+            "billableEngineers": 48
+          },
+          "dept_1232": {
+            "utilizationRate": 0.95,
+            "totalEngineers": 39,
+            "billableEngineers": 37
+          },
+          "dept_1241": {
+            "utilizationRate": 0.94,
+            "totalEngineers": 17,
+            "billableEngineers": 16
+          }
+        },
+        "bySkill": {
+          "Java": {
+            "utilizationRate": 0.97,
+            "totalEngineers": 37,
+            "billableEngineers": 36
+          },
+          "AWS": {
+            "utilizationRate": 0.97,
+            "totalEngineers": 34,
+            "billableEngineers": 33
+          },
+          "Python": {
+            "utilizationRate": 0.96,
+            "totalEngineers": 28,
+            "billableEngineers": 27
+          }
+        }
+      }
+    }
+  ],
+  "summary": {
+    "averageUtilizationRate": 0.943,
+    "utilizationTrend": "improving",
+    "expectedPeakMonth": "2023-11",
+    "expectedPeakRate": 0.96,
+    "expectedLowestMonth": "2023-07",
+    "expectedLowestRate": 0.93,
+    "averageBenchEngineers": 3.5,
+    "keyRisks": [
+      "8月に複数プロジェクト終了",
+      "Python技術者の需要変動",
+      "夏季休暇の影響"
+    ],
+    "optimizationOpportunities": [
+      "スキルアップ研修の7月実施を検討",
+      "プロジェクト開始時期の調整",
+      "マルチスキル技術者の育成強化"
+    ],
+    "skillDemandTrends": {
+      "increasing": ["AWS", "Kubernetes", "Python", "React"],
+      "stable": ["Java", "C#", "SQL"],
+      "decreasing": ["PHP", "jQuery"]
+    }
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_GRANULARITY",
+    "message": "無効な予測単位が指定されました。",
+    "details": {
+      "granularity": "daily",
+      "allowed": ["monthly", "weekly"]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全予測データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門の予測データのみ）</li>
+            <li><code>ROLE_HR</code>（全予測データへのアクセス）</li>
+            <li><code>ROLE_EXECUTIVE</code>（全予測データへのアクセス）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/forecast/resource-needs</h3>
+        <p><strong>説明：</strong> リソース需要予測データを取得します。将来のプロジェクトや顧客需要に基づいて、必要となる技術者の数やスキルを予測します。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測開始日（ISO 8601形式）。デフォルトは翌月1日</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測終了日（ISO 8601形式）。デフォルトは6ヶ月後</td>
+            </tr>
+            <tr>
+                <td>granularity</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測単位（monthly, quarterly）。デフォルトはmonthly</td>
+            </tr>
+            <tr>
+                <td>skillCategory</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定スキルカテゴリに関する予測のみを表示する場合のカテゴリ</td>
+            </tr>
+            <tr>
+                <td>skillId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定スキルに関する予測のみを表示する場合のスキルID</td>
+            </tr>
+            <tr>
+                <td>departmentId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定部門の予測のみを表示する場合の部門ID</td>
+            </tr>
+            <tr>
+                <td>scenarioId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>予測に使用するシナリオID</td>
+            </tr>
+            <tr>
+                <td>confidenceInterval</td>
+                <td>string</td>
+                <td>No</td>
+                <td>信頼区間レベル（80, 90, 95, 99）。デフォルトは90</td>
+            </tr>
+            <tr>
+                <td>includeGapAnalysis</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>現在のリソースと必要量のギャップ分析を含めるかどうか。デフォルトはtrue</td>
+            </tr>
+            <tr>
+                <td>includePipeline</td>
+                <td>boolean</td>
+                <td>No</td>
+                <td>営業パイプラインからの予測需要を含めるかどうか。デフォルトはtrue</td>
+            </tr>
+            <tr>
+                <td>pipelineConfidenceThreshold</td>
+                <td>number</td>
+                <td>No</td>
+                <td>パイプラインの確度しきい値（0.0-1.0）。デフォルトは0.5</td>
+            </tr>
+            <tr>
+                <td>format</td>
+                <td>string</td>
+                <td>No</td>
+                <td>レスポンス形式（json, csv, excel）。デフォルトはjson</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "forecast": {
+      "from": "2023-06-01",
+      "to": "2023-11-30",
+      "granularity": "monthly",
+      "confidenceInterval": 90
+    },
+    "model": {
+      "type": "composite",
+      "algorithm": "ResourceDemandForecasting",
+      "accuracy": 0.85,
+      "trainedOn": "2023-05-01",
+      "features": ["confirmed_projects", "pipeline_opportunities", "historical_demand", "market_trends"]
+    },
+    "filters": {
+      "skillCategory": null,
+      "skillId": null,
+      "departmentId": null,
+      "scenarioId": "default",
+      "pipelineConfidenceThreshold": 0.5
+    }
+  },
+  "data": [
+    {
+      "period": "2023-06",
+      "totalResourceNeeds": 93,
+      "confirmedNeeds": 88,
+      "pipelineNeeds": 5,
+      "lowerBound": 89,
+      "upperBound": 97,
+      "availableResources": 90,
+      "resourceGap": 3,
+      "resourceUtilization": 0.97,
+      "skillNeeds": [
+        {
+          "skillId": "skill_001",
+          "skillName": "Java",
+          "category": "言語",
+          "totalNeeded": 36,
+          "currentAvailable": 35,
+          "gap": 1,
+          "needTrend": "stable",
+          "demandSource": {
+            "confirmed": 34,
+            "pipeline": 2
+          },
+          "levelBreakdown": {
+            "上級": {
+              "needed": 11,
+              "available": 10,
+              "gap": 1
+            },
+            "中級": {
+              "needed": 15,
+              "available": 15,
+              "gap": 0
+            },
+            "初級": {
+              "needed": 10,
+              "available": 10,
+              "gap": 0
+            }
+          }
+        },
+        {
+          "skillId": "skill_010",
+          "skillName": "AWS",
+          "category": "クラウド",
+          "totalNeeded": 33,
+          "currentAvailable": 30,
+          "gap": 3,
+          "needTrend": "increasing",
+          "demandSource": {
+            "confirmed": 30,
+            "pipeline": 3
+          },
+          "levelBreakdown": {
+            "上級": {
+              "needed": 9,
+              "available": 8,
+              "gap": 1
+            },
+            "中級": {
+              "needed": 18,
+              "available": 17,
+              "gap": 1
+            },
+            "初級": {
+              "needed": 6,
+              "available": 5,
+              "gap": 1
+            }
+          }
+        },
+        // 他のスキル...
+      ],
+      "roleNeeds": [
+        {
+          "role": "プロジェクトマネージャー",
+          "totalNeeded": 8,
+          "currentAvailable": 8,
+          "gap": 0
+        },
+        {
+          "role": "アーキテクト",
+          "totalNeeded": 10,
+          "currentAvailable": 9,
+          "gap": 1
+        },
+        {
+          "role": "リードエンジニア",
+          "totalNeeded": 15,
+          "currentAvailable": 14,
+          "gap": 1
+        },
+        {
+          "role": "エンジニア",
+          "totalNeeded": 60,
+          "currentAvailable": 59,
+          "gap": 1
+        }
+      ]
+    },
+    // 他の月の予測...
+    {
+      "period": "2023-11",
+      "totalResourceNeeds": 101,
+      "confirmedNeeds": 83,
+      "pipelineNeeds": 18,
+      "lowerBound": 94,
+      "upperBound": 108,
+      "availableResources": 95,
+      "resourceGap": 6,
+      "resourceUtilization": 0.94,
+      "skillNeeds": [
+        {
+          "skillId": "skill_001",
+          "skillName": "Java",
+          "category": "言語",
+          "totalNeeded": 37,
+          "currentAvailable": 36,
+          "gap": 1,
+          "needTrend": "stable",
+          "demandSource": {
+            "confirmed": 33,
+            "pipeline": 4
+          },
+          "levelBreakdown": {
+            "上級": {
+              "needed": 12,
+              "available": 11,
+              "gap": 1
+            },
+            "中級": {
+              "needed": 15,
+              "available": 15,
+              "gap": 0
+            },
+            "初級": {
+              "needed": 10,
+              "available": 10,
+              "gap": 0
+            }
+          }
+        },
+        {
+          "skillId": "skill_010",
+          "skillName": "AWS",
+          "category": "クラウド",
+          "totalNeeded": 37,
+          "currentAvailable": 33,
+          "gap": 4,
+          "needTrend": "increasing",
+          "demandSource": {
+            "confirmed": 30,
+            "pipeline": 7
+          },
+          "levelBreakdown": {
+            "上級": {
+              "needed": 10,
+              "available": 8,
+              "gap": 2
+            },
+            "中級": {
+              "needed": 20,
+              "available": 18,
+              "gap": 2
+            },
+            "初級": {
+              "needed": 7,
+              "available": 7,
+              "gap": 0
+            }
+          }
+        },
+        // 他のスキル...
+      ],
+      "roleNeeds": [
+        // 役割別の需要...
+      ]
+    }
+  ],
+  "summary": {
+    "averageTotalNeeds": 95.5,
+    "peakNeedsMonth": "2023-11",
+    "peakNeedsCount": 101,
+    "highGapSkills": [
+      {
+        "skillName": "AWS",
+        "category": "クラウド",
+        "averageGap": 3.5,
+        "trend": "increasing"
+      },
+      {
+        "skillName": "Kubernetes",
+        "category": "インフラ",
+        "averageGap": 2.8,
+        "trend": "increasing"
+      },
+      {
+        "skillName": "React",
+        "category": "フレームワーク",
+        "averageGap": 2.3,
+        "trend": "increasing"
+      }
+    ],
+    "criticalRoles": [
+      {
+        "role": "アーキテクト",
+        "averageGap": 1.2,
+        "trend": "increasing"
+      },
+      {
+        "role": "リードエンジニア",
+        "averageGap": 1.3,
+        "trend": "increasing"
+      }
+    ],
+    "recommendedActions": [
+      {
+        "action": "AWS認定資格取得支援",
+        "targetCount": 5,
+        "priority": "high",
+        "timeline": "1-3ヶ月"
+      },
+      {
+        "action": "Kubernetesトレーニング実施",
+        "targetCount": 6,
+        "priority": "high",
+        "timeline": "1-2ヶ月"
+      },
+      {
+        "action": "アーキテクト育成プログラム",
+        "targetCount": 3,
+        "priority": "medium",
+        "timeline": "3-6ヶ月"
+      },
+      {
+        "action": "React技術者の採用",
+        "targetCount": 2,
+        "priority": "medium",
+        "timeline": "1-3ヶ月"
+      }
+    ]
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_PIPELINE_CONFIDENCE_THRESHOLD",
+    "message": "無効なパイプライン確度しきい値が指定されました。",
+    "details": {
+      "pipelineConfidenceThreshold": "1.5",
+      "allowedRange": "0.0から1.0の範囲で指定してください。"
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全予測データへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門の予測データのみ）</li>
+            <li><code>ROLE_HR</code>（全予測データへのアクセス）</li>
+            <li><code>ROLE_EXECUTIVE</code>（全予測データへのアクセス）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method post">POST</span> /api/v1/reports/forecast/simulation</h3>
+        <p><strong>説明：</strong> カスタムパラメータを指定してシミュレーションを実行します。「もし〜したら」という仮説に基づいた予測結果を取得できます。</p>
+        
+        <h4>リクエストボディ例</h4>
+        <pre>
+{
+  "baseScenarioId": "default",
+  "simulationName": "単価5%アップ+リソース最適化",
+  "description": "すべての案件の単価を5%引き上げ、かつベンチ率を2%低減した場合のシミュレーション",
+  "parameters": {
+    "rateIncrease": 0.05,
+    "benchRateReduction": 0.02,
+    "hiringPace": "normal",
+    "projectWinRate": "normal",
+    "costIncrease": 0.02
+  },
+  "simulationPeriod": {
+    "from": "2023-06-01",
+    "to": "2024-05-31"
+  },
+  "metrics": ["sales", "profit", "margin", "utilization"],
+  "compareWithBaseScenario": true,
+  "granularity": "monthly"
+}
+        </pre>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "simulation": {
+      "id": "sim_20230501_123456",
+      "name": "単価5%アップ+リソース最適化",
+      "description": "すべての案件の単価を5%引き上げ、かつベンチ率を2%低減した場合のシミュレーション",
+      "baseScenarioId": "default",
+      "parameters": {
+        "rateIncrease": 0.05,
+        "benchRateReduction": 0.02,
+        "hiringPace": "normal",
+        "projectWinRate": "normal",
+        "costIncrease": 0.02
+      },
+      "period": {
+        "from": "2023-06-01",
+        "to": "2024-05-31",
+        "granularity": "monthly"
+      },
+      "metrics": ["sales", "profit", "margin", "utilization"]
+    }
+  },
+  "data": [
+    {
+      "period": "2023-06",
+      "baseScenario": {
+        "sales": 14800000,
+        "profit": 4300000,
+        "margin": 0.291,
+        "utilization": 0.94
+      },
+      "simulationScenario": {
+        "sales": 15540000,
+        "profit": 4958000,
+        "margin": 0.319,
+        "utilization": 0.96
+      },
+      "difference": {
+        "sales": 740000,
+        "salesPercentage": 0.05,
+        "profit": 658000,
+        "profitPercentage": 0.153,
+        "margin": 0.028,
+        "utilization": 0.02
+      },
+      "factors": {
+        "rateIncrease": {
+          "salesImpact": 740000,
+          "profitImpact": 740000
+        },
+        "benchRateReduction": {
+          "utilizationImpact": 0.02,
+          "profitImpact": 148000
+        },
+        "costIncrease": {
+          "profitImpact": -230000
+        }
+      }
+    },
+    // 他の月の予測...
+    {
+      "period": "2024-05",
+      "baseScenario": {
+        "sales": 16500000,
+        "profit": 5100000,
+        "margin": 0.309,
+        "utilization": 0.96
+      },
+      "simulationScenario": {
+        "sales": 17325000,
+        "profit": 5940000,
+        "margin": 0.343,
+        "utilization": 0.98
+      },
+      "difference": {
+        "sales": 825000,
+        "salesPercentage": 0.05,
+        "profit": 840000,
+        "profitPercentage": 0.165,
+        "margin": 0.034,
+        "utilization": 0.02
+      },
+      "factors": {
+        "rateIncrease": {
+          "salesImpact": 825000,
+          "profitImpact": 825000
+        },
+        "benchRateReduction": {
+          "utilizationImpact": 0.02,
+          "profitImpact": 180000
+        },
+        "costIncrease": {
+          "profitImpact": -165000
+        }
+      }
+    }
+  ],
+  "summary": {
+    "totalImpact": {
+      "sales": {
+        "amount": 9900000,
+        "percentage": 0.05
+      },
+      "profit": {
+        "amount": 8880000,
+        "percentage": 0.158
+      },
+      "averageMargin": {
+        "baseScenario": 0.306,
+        "simulationScenario": 0.338,
+        "difference": 0.032
+      },
+      "averageUtilization": {
+        "baseScenario": 0.943,
+        "simulationScenario": 0.963,
+        "difference": 0.02
+      }
+    },
+    "sensitivities": {
+      "rateIncrease": {
+        "profitElasticity": 3.1,
+        "description": "単価1%の上昇で利益は約3.1%増加"
+      },
+      "utilization": {
+        "profitElasticity": 1.5,
+        "description": "稼働率1%の向上で利益は約1.5%増加"
+      },
+      "costIncrease": {
+        "profitElasticity": -0.9,
+        "description": "コスト1%の増加で利益は約0.9%減少"
+      }
+    },
+    "keyInsights": [
+      "単価の引き上げは利益に最も大きな影響を与えるが、競争力にも影響する可能性がある",
+      "稼働率の向上は持続的な利益向上のための重要要素",
+      "リソース配分の最適化は競争力を維持しながら利益を向上させる効果的な方法"
+    ],
+    "recommendations": [
+      {
+        "action": "高単価スキル領域への技術者シフト",
+        "impact": "high",
+        "timeline": "3-6ヶ月",
+        "difficulty": "medium"
+      },
+      {
+        "action": "優先顧客向け単価交渉戦略",
+        "impact": "high",
+        "timeline": "1-3ヶ月",
+        "difficulty": "high"
+      },
+      {
+        "action": "ベンチ期間短縮のためのマッチング最適化",
+        "impact": "medium",
+        "timeline": "1-2ヶ月",
+        "difficulty": "low"
+      }
+    ]
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_SIMULATION_PARAMETER",
+    "message": "無効なシミュレーションパラメータが指定されました。",
+    "details": {
+      "parameter": "rateIncrease",
+      "value": 0.5,
+      "message": "単価増加率は0.0〜0.2の範囲で指定してください。"
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全シミュレーション機能へのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（一部のシミュレーション機能へのアクセス）</li>
+            <li><code>ROLE_EXECUTIVE</code>（全シミュレーション機能へのアクセス）</li>
+            <li><code>ROLE_FINANCE</code>（全シミュレーション機能へのアクセス）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/forecast/scenarios</h3>
+        <p><strong>説明：</strong> 予測シナリオの一覧を取得します。シミュレーションに使用できる基本シナリオやカスタムシナリオを取得できます。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>type</td>
+                <td>string</td>
+                <td>No</td>
+                <td>シナリオタイプ（base, custom, simulation, all）。デフォルトはall</td>
+            </tr>
+            <tr>
+                <td>createdBy</td>
+                <td>string</td>
+                <td>No</td>
+                <td>特定ユーザーが作成したシナリオのみ表示する場合のユーザーID</td>
+            </tr>
+            <tr>
+                <td>keyword</td>
+                <td>string</td>
+                <td>No</td>
+                <td>シナリオ名や説明に含まれるキーワードで検索</td>
+            </tr>
+            <tr>
+                <td>sort</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート順（name, createdAt, lastUsed）。デフォルトはlastUsed</td>
+            </tr>
+            <tr>
+                <td>order</td>
+                <td>string</td>
+                <td>No</td>
+                <td>ソート方向（asc, desc）。デフォルトはdesc</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得するシナリオ数。デフォルトは20</td>
+            </tr>
+            <tr>
+                <td>offset</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得開始位置。デフォルトは0</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "filters": {
+      "type": "all",
+      "createdBy": null,
+      "keyword": null
+    },
+    "pagination": {
+      "limit": 20,
+      "offset": 0,
+      "total": 8,
+      "next": null,
+      "previous": null
+    }
+  },
+  "data": [
+    {
+      "id": "default",
+      "name": "デフォルトシナリオ",
+      "description": "現状の市場環境と会社戦略に基づく標準予測シナリオ",
+      "type": "base",
+      "createdBy": "system",
+      "createdAt": "2023-01-01T00:00:00Z",
+      "lastModifiedAt": "2023-04-01T00:00:00Z",
+      "lastUsed": "2023-05-01T10:30:00Z",
+      "parameters": {
+        "marketGrowthRate": 0.05,
+        "inflationRate": 0.02,
+        "labourCostGrowth": 0.03,
+        "projectSuccessRate": 0.75,
+        "customerRetentionRate": 0.9,
+        "hiringPace": "normal",
+        "utilizationTarget": 0.93
+      },
+      "usageCount": 423,
+      "usageByMetric": {
+        "sales": 156,
+        "profit": 142,
+        "utilization": 78,
+        "resourceNeeds": 47
+      }
+    },
+    {
+      "id": "optimistic",
+      "name": "楽観シナリオ",
+      "description": "市場拡大と新規顧客獲得が計画通り進む場合の予測",
+      "type": "base",
+      "createdBy": "system",
+      "createdAt": "2023-01-01T00:00:00Z",
+      "lastModifiedAt": "2023-04-01T00:00:00Z",
+      "lastUsed": "2023-04-28T15:20:00Z",
+      "parameters": {
+        "marketGrowthRate": 0.08,
+        "inflationRate": 0.02,
+        "labourCostGrowth": 0.03,
+        "projectSuccessRate": 0.85,
+        "customerRetentionRate": 0.95,
+        "hiringPace": "accelerated",
+        "utilizationTarget": 0.95
+      },
+      "usageCount": 187,
+      "usageByMetric": {
+        "sales": 76,
+        "profit": 64,
+        "utilization": 31,
+        "resourceNeeds": 16
+      }
+    },
+    {
+      "id": "conservative",
+      "name": "保守シナリオ",
+      "description": "市場の停滞や予期せぬ障害がある場合の予測",
+      "type": "base",
+      "createdBy": "system",
+      "createdAt": "2023-01-01T00:00:00Z",
+      "lastModifiedAt": "2023-04-01T00:00:00Z",
+      "lastUsed": "2023-04-27T09:15:00Z",
+      "parameters": {
+        "marketGrowthRate": 0.02,
+        "inflationRate": 0.03,
+        "labourCostGrowth": 0.04,
+        "projectSuccessRate": 0.65,
+        "customerRetentionRate": 0.85,
+        "hiringPace": "slow",
+        "utilizationTarget": 0.9
+      },
+      "usageCount": 156,
+      "usageByMetric": {
+        "sales": 58,
+        "profit": 53,
+        "utilization": 27,
+        "resourceNeeds": 18
+      }
+    },
+    {
+      "id": "custom_20230415_123456",
+      "name": "新規事業展開シナリオ",
+      "description": "AI事業展開による高単価案件獲得を見込んだシナリオ",
+      "type": "custom",
+      "createdBy": "user_123",
+      "createdAt": "2023-04-15T14:30:00Z",
+      "lastModifiedAt": "2023-04-20T11:45:00Z",
+      "lastUsed": "2023-04-30T16:20:00Z",
+      "parameters": {
+        "marketGrowthRate": 0.07,
+        "inflationRate": 0.02,
+        "labourCostGrowth": 0.04,
+        "projectSuccessRate": 0.7,
+        "customerRetentionRate": 0.88,
+        "hiringPace": "accelerated",
+        "utilizationTarget": 0.92,
+        "skillMixShift": {
+          "AI": 0.15,
+          "Cloud": 0.1
+        },
+        "rateIncrease": 0.08
+      },
+      "usageCount": 24,
+      "usageByMetric": {
+        "sales": 8,
+        "profit": 10,
+        "utilization": 3,
+        "resourceNeeds": 3
+      }
+    },
+    {
+      "id": "sim_20230501_123456",
+      "name": "単価5%アップ+リソース最適化",
+      "description": "すべての案件の単価を5%引き上げ、かつベンチ率を2%低減した場合のシミュレーション",
+      "type": "simulation",
+      "createdBy": "user_456",
+      "createdAt": "2023-05-01T12:00:00Z",
+      "lastModifiedAt": "2023-05-01T12:00:00Z",
+      "lastUsed": "2023-05-01T12:00:00Z",
+      "baseScenarioId": "default",
+      "parameters": {
+        "rateIncrease": 0.05,
+        "benchRateReduction": 0.02,
+        "hiringPace": "normal",
+        "projectWinRate": "normal",
+        "costIncrease": 0.02
+      },
+      "usageCount": 1,
+      "usageByMetric": {
+        "sales": 1,
+        "profit": 1,
+        "utilization": 1,
+        "resourceNeeds": 0
+      }
+    }
+  ],
+  "summary": {
+    "totalScenarios": 8,
+    "categoryCounts": {
+      "base": 3,
+      "custom": 2,
+      "simulation": 3
+    },
+    "recentlyCreated": [
+      {
+        "id": "sim_20230501_123456",
+        "name": "単価5%アップ+リソース最適化",
+        "createdAt": "2023-05-01T12:00:00Z"
+      }
+    ],
+    "mostUsed": [
+      {
+        "id": "default",
+        "name": "デフォルトシナリオ",
+        "usageCount": 423
+      }
+    ]
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_SCENARIO_TYPE",
+    "message": "無効なシナリオタイプが指定されました。",
+    "details": {
+      "type": "invalid",
+      "allowed": ["base", "custom", "simulation", "all"]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全シナリオデータへのアクセス）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門関連のシナリオデータへのアクセス）</li>
+            <li><code>ROLE_EXECUTIVE</code>（全シナリオデータへのアクセス）</li>
+            <li><code>ROLE_FINANCE</code>（全シナリオデータへのアクセス）</li>
+        </ul>
+    </div>
+</body>
+</html>

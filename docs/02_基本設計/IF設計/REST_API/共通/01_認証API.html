@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>認証API設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 5px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .api-path {
+            font-weight: bold;
+            color: #2980b9;
+        }
+        .http-method {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .get {
+            background-color: #61affe;
+            color: white;
+        }
+        .post {
+            background-color: #49cc90;
+            color: white;
+        }
+        .put {
+            background-color: #fca130;
+            color: white;
+        }
+        .delete {
+            background-color: #f93e3e;
+            color: white;
+        }
+        .endpoint {
+            margin: 40px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .endpoint-title {
+            margin-top: 0;
+            font-size: 1.4em;
+        }
+        .required {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .optional {
+            color: #7f8c8d;
+        }
+        .note {
+            background-color: #e7f4ff;
+            padding: 15px;
+            border-left: 5px solid #3498db;
+            margin: 20px 0;
+        }
+        .breadcrumb {
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="breadcrumb">
+        <a href="../共通API.html">共通API</a> &gt; 認証API
+    </div>
+
+    <h1>認証API設計書</h1>
+    
+    <h2>1. 概要</h2>
+    <p>認証APIは、ユーザーのログイン、ログアウト、パスワード管理、プロフィール管理などの認証関連機能を提供します。</p>
+    
+    <h3>1.1 認証方式</h3>
+    <p>JWT（JSON Web Token）を使用したトークンベースの認証方式を採用します。認証フローは以下の通りです。</p>
+    <ol>
+        <li>ユーザーがログイン情報を送信</li>
+        <li>認証成功時、アクセストークンとリフレッシュトークンを発行</li>
+        <li>以降のAPIリクエストには、Authorization ヘッダーにアクセストークンを付与</li>
+        <li>アクセストークンの有効期限が切れた場合、リフレッシュトークンを使用して再取得</li>
+    </ol>
+    
+    <div class="note">
+        <strong>Note:</strong> アクセストークンの有効期限は30分、リフレッシュトークンの有効期限は2週間に設定しています。
+    </div>
+    
+    <h2>2. API一覧</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>エンドポイント</th>
+                <th>メソッド</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>/api/v1/auth/login</td>
+                <td>POST</td>
+                <td>ユーザーログイン認証</td>
+            </tr>
+            <tr>
+                <td>/api/v1/auth/logout</td>
+                <td>POST</td>
+                <td>ユーザーログアウト</td>
+            </tr>
+            <tr>
+                <td>/api/v1/auth/refresh-token</td>
+                <td>POST</td>
+                <td>アクセストークンの更新</td>
+            </tr>
+            <tr>
+                <td>/api/v1/auth/profile</td>
+                <td>GET</td>
+                <td>ログインユーザーのプロフィール取得</td>
+            </tr>
+            <tr>
+                <td>/api/v1/auth/profile</td>
+                <td>PUT</td>
+                <td>ログインユーザーのプロフィール更新</td>
+            </tr>
+            <tr>
+                <td>/api/v1/auth/password</td>
+                <td>PUT</td>
+                <td>パスワード変更</td>
+            </tr>
+            <tr>
+                <td>/api/v1/auth/password/reset-request</td>
+                <td>POST</td>
+                <td>パスワードリセット要求</td>
+            </tr>
+            <tr>
+                <td>/api/v1/auth/password/reset</td>
+                <td>POST</td>
+                <td>パスワードリセット実行</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h2>3. API詳細</h2>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method post">POST</span> <span class="api-path">/api/v1/auth/login</span></h3>
+        <p>ユーザーのログイン認証を行い、認証トークンを発行します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストボディ（JSON）：</p>
+        <pre><code>{
+  "email": "user@example.com",
+  "password": "password123",
+  "remember_me": false
+}</code></pre>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>email</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>ユーザーのメールアドレス</td>
+                </tr>
+                <tr>
+                    <td>password</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>ユーザーのパスワード</td>
+                </tr>
+                <tr>
+                    <td>remember_me</td>
+                    <td>boolean</td>
+                    <td class="optional">任意</td>
+                    <td>true の場合、リフレッシュトークンの有効期間を延長（デフォルト: false）</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <pre><code>{
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "token_type": "Bearer",
+    "expires_in": 1800,
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "email": "user@example.com",
+      "name": "山田 太郎",
+      "role": "manager"
+    }
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>認証失敗時（401 Unauthorized）：</p>
+        <pre><code>{
+  "error": {
+    "code": "INVALID_CREDENTIALS",
+    "message": "メールアドレスまたはパスワードが正しくありません。"
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>認証不要（全てのユーザーがアクセス可能）</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method post">POST</span> <span class="api-path">/api/v1/auth/logout</span></h3>
+        <p>現在のセッションをログアウトし、発行されたトークンを無効化します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}</code></pre>
+        
+        <p>リクエストボディ：不要</p>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <pre><code>{
+  "data": {
+    "message": "ログアウトが完了しました。"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>認証エラー時（401 Unauthorized）：</p>
+        <pre><code>{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "認証が必要です。"
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>認証済みユーザー</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method post">POST</span> <span class="api-path">/api/v1/auth/refresh-token</span></h3>
+        <p>有効期限切れのアクセストークンを、リフレッシュトークンを使用して再発行します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストボディ（JSON）：</p>
+        <pre><code>{
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}</code></pre>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>refresh_token</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>以前のログイン時に発行されたリフレッシュトークン</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <pre><code>{
+  "data": {
+    "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "token_type": "Bearer",
+    "expires_in": 1800
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>無効なリフレッシュトークン（401 Unauthorized）：</p>
+        <pre><code>{
+  "error": {
+    "code": "INVALID_REFRESH_TOKEN",
+    "message": "リフレッシュトークンが無効または期限切れです。"
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>認証不要（有効なリフレッシュトークンが必要）</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method get">GET</span> <span class="api-path">/api/v1/auth/profile</span></h3>
+        <p>ログインユーザーの詳細プロフィール情報を取得します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}</code></pre>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <pre><code>{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com",
+    "name": "山田 太郎",
+    "department": "営業部",
+    "position": "マネージャー",
+    "phone": "03-1234-5678",
+    "role": "manager",
+    "last_login_at": "2023-05-01T09:00:00.000Z",
+    "created_at": "2023-01-15T10:30:00.000Z",
+    "updated_at": "2023-04-20T14:45:00.000Z"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>認証エラー時（401 Unauthorized）：</p>
+        <pre><code>{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "認証が必要です。"
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>認証済みユーザー</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method put">PUT</span> <span class="api-path">/api/v1/auth/profile</span></h3>
+        <p>ログインユーザーのプロフィール情報を更新します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}
+Content-Type: application/json</code></pre>
+        
+        <p>リクエストボディ（JSON）：</p>
+        <pre><code>{
+  "name": "山田 太郎",
+  "department": "営業部",
+  "position": "マネージャー",
+  "phone": "03-1234-5678"
+}</code></pre>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>name</td>
+                    <td>string</td>
+                    <td class="optional">任意</td>
+                    <td>ユーザーの名前</td>
+                </tr>
+                <tr>
+                    <td>department</td>
+                    <td>string</td>
+                    <td class="optional">任意</td>
+                    <td>所属部署</td>
+                </tr>
+                <tr>
+                    <td>position</td>
+                    <td>string</td>
+                    <td class="optional">任意</td>
+                    <td>役職</td>
+                </tr>
+                <tr>
+                    <td>phone</td>
+                    <td>string</td>
+                    <td class="optional">任意</td>
+                    <td>電話番号</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <pre><code>{
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "user@example.com",
+    "name": "山田 太郎",
+    "department": "営業部",
+    "position": "マネージャー",
+    "phone": "03-1234-5678",
+    "role": "manager",
+    "last_login_at": "2023-05-01T09:00:00.000Z",
+    "created_at": "2023-01-15T10:30:00.000Z",
+    "updated_at": "2023-05-01T10:15:00.000Z"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>バリデーションエラー時（400 Bad Request）：</p>
+        <pre><code>{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "入力データにエラーがあります。",
+    "details": [
+      {
+        "field": "name",
+        "message": "名前は必須です。"
+      }
+    ]
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>認証済みユーザー</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method put">PUT</span> <span class="api-path">/api/v1/auth/password</span></h3>
+        <p>ログインユーザーのパスワードを変更します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}
+Content-Type: application/json</code></pre>
+        
+        <p>リクエストボディ（JSON）：</p>
+        <pre><code>{
+  "current_password": "oldpassword123",
+  "new_password": "newpassword456",
+  "new_password_confirmation": "newpassword456"
+}</code></pre>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>current_password</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>現在のパスワード</td>
+                </tr>
+                <tr>
+                    <td>new_password</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>新しいパスワード（8文字以上、英数字混在）</td>
+                </tr>
+                <tr>
+                    <td>new_password_confirmation</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>新しいパスワード（確認用）</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <pre><code>{
+  "data": {
+    "message": "パスワードが正常に変更されました。"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>現在のパスワードが不正の場合（400 Bad Request）：</p>
+        <pre><code>{
+  "error": {
+    "code": "INVALID_CURRENT_PASSWORD",
+    "message": "現在のパスワードが正しくありません。"
+  }
+}</code></pre>
+        
+        <p>パスワード検証エラー時（400 Bad Request）：</p>
+        <pre><code>{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "入力データにエラーがあります。",
+    "details": [
+      {
+        "field": "new_password",
+        "message": "パスワードは8文字以上で、英字と数字を含む必要があります。"
+      },
+      {
+        "field": "new_password_confirmation",
+        "message": "パスワード（確認用）が一致しません。"
+      }
+    ]
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>認証済みユーザー</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method post">POST</span> <span class="api-path">/api/v1/auth/password/reset-request</span></h3>
+        <p>パスワードリセットのリクエストを送信し、リセット用のメールを送信します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストボディ（JSON）：</p>
+        <pre><code>{
+  "email": "user@example.com"
+}</code></pre>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>email</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>パスワードをリセットするアカウントのメールアドレス</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <pre><code>{
+  "data": {
+    "message": "パスワードリセット用のメールを送信しました。メールに記載されている手順に従ってください。"
+  }
+}</code></pre>
+        
+        <div class="note">
+            <strong>Note:</strong> セキュリティ上の理由から、指定されたメールアドレスが存在しない場合でも同じレスポンスを返します。
+        </div>
+        
+        <h4>アクセス権限</h4>
+        <p>認証不要（全てのユーザーがアクセス可能）</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method post">POST</span> <span class="api-path">/api/v1/auth/password/reset</span></h3>
+        <p>パスワードリセットトークンを使用して、新しいパスワードを設定します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストボディ（JSON）：</p>
+        <pre><code>{
+  "token": "abcdef123456",
+  "email": "user@example.com",
+  "password": "newpassword456",
+  "password_confirmation": "newpassword456"
+}</code></pre>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>token</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>パスワードリセットメールに記載されたトークン</td>
+                </tr>
+                <tr>
+                    <td>email</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>アカウントのメールアドレス</td>
+                </tr>
+                <tr>
+                    <td>password</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>新しいパスワード（8文字以上、英数字混在）</td>
+                </tr>
+                <tr>
+                    <td>password_confirmation</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>新しいパスワード（確認用）</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <pre><code>{
+  "data": {
+    "message": "パスワードが正常にリセットされました。新しいパスワードでログインしてください。"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>無効なトークンの場合（400 Bad Request）：</p>
+        <pre><code>{
+  "error": {
+    "code": "INVALID_RESET_TOKEN",
+    "message": "パスワードリセットトークンが無効または期限切れです。"
+  }
+}</code></pre>
+        
+        <p>パスワード検証エラー時（400 Bad Request）：</p>
+        <pre><code>{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "入力データにエラーがあります。",
+    "details": [
+      {
+        "field": "password",
+        "message": "パスワードは8文字以上で、英字と数字を含む必要があります。"
+      },
+      {
+        "field": "password_confirmation",
+        "message": "パスワード（確認用）が一致しません。"
+      }
+    ]
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>認証不要（有効なリセットトークンが必要）</p>
+    </div>
+    
+    <h2>4. セキュリティ上の考慮事項</h2>
+    <ul>
+        <li>パスワードは、bcryptなどの安全なハッシュアルゴリズムを使用して保存</li>
+        <li>認証トークンには十分なエントロピーを持たせ、有効期限を設定</li>
+        <li>ログイン試行回数に制限を設け、連続した失敗時には一時的なロックを実施</li>
+        <li>パスワードリセットトークンは使い捨てとし、期限を設定（通常24時間）</li>
+        <li>認証に関わる全てのエンドポイントはHTTPS経由でのみアクセス可能</li>
+        <li>機密情報（パスワードなど）は決してログに出力しない</li>
+    </ul>
+</body>
+</html>

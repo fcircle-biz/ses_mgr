@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>REST API設計概要 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+        h1 {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            margin-bottom: 30px;
+        }
+        .section {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            font-size: 0.9em;
+            border-left: 3px solid #3498db;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .note {
+            background-color: #fffde7;
+            padding: 15px;
+            border-left: 4px solid #ffd600;
+            margin: 20px 0;
+        }
+        .api-link {
+            display: block;
+            margin: 5px 0;
+            padding: 10px;
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            text-decoration: none;
+            color: #3498db;
+            transition: background-color 0.2s;
+        }
+        .api-link:hover {
+            background-color: #eee;
+            text-decoration: none;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <h1>REST API設計概要</h1>
+    
+    <div class="section">
+        <h2>1. 目的</h2>
+        <p>本文書は、SES業務システムにおけるREST APIの設計概要を示すものである。SES業務システムの各機能をREST APIとして提供することで、以下の効果を目指す：</p>
+        <ul>
+            <li>フロントエンド（Webアプリケーション、モバイルアプリケーション）とバックエンドの分離による開発効率の向上</li>
+            <li>将来的な外部システム連携の容易化</li>
+            <li>スケーラビリティの確保</li>
+            <li>保守性・拡張性の向上</li>
+        </ul>
+        <p>本APIは、SES業務に関わる案件管理、技術者管理、マッチング、契約管理、勤怠・工数管理、請求・支払管理、レポーティング等の機能を提供する。</p>
+    </div>
+    
+    <div class="section">
+        <h2>2. 設計方針</h2>
+        <h3>2.1 RESTfulの原則</h3>
+        <p>本APIはRESTの原則に基づいて設計する。主な原則は以下の通り：</p>
+        <ul>
+            <li><strong>リソース指向：</strong> 操作の対象をリソースとして定義し、URIで表現する</li>
+            <li><strong>HTTPメソッドの適切な使用：</strong> GET, POST, PUT, DELETE等のHTTPメソッドを適切に使い分ける</li>
+            <li><strong>ステートレスな通信：</strong> リクエスト間で状態を保持せず、各リクエストは独立して処理可能とする</li>
+            <li><strong>統一インターフェース：</strong> リソースに対する操作を統一的なインターフェースで提供する</li>
+        </ul>
+        
+        <h3>2.2 リソース指向設計</h3>
+        <p>API設計においては、以下のリソース指向の考え方を適用する：</p>
+        <ul>
+            <li>業務エンティティをリソースとして定義（案件、技術者、契約、請求書など）</li>
+            <li>リソース名は名詞の複数形を基本とする（例：projects, engineers, contracts）</li>
+            <li>リソース間の関係性はURIパスの階層構造で表現</li>
+            <li>CRUD操作はHTTPメソッドで表現</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>3. 全体構成</h2>
+        <h3>3.1 APIのエンドポイント構成</h3>
+        <p>APIのベースURLは以下の通りとする：</p>
+        <pre><code>https://{hostname}/api/v1/</code></pre>
+        
+        <p>主要なエンドポイントは以下の通り：</p>
+        <table>
+            <tr>
+                <th>リソース</th>
+                <th>ベースパス</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>案件管理</td>
+                <td>/api/v1/projects</td>
+                <td>案件の登録、照会、更新、削除等</td>
+            </tr>
+            <tr>
+                <td>技術者管理</td>
+                <td>/api/v1/engineers</td>
+                <td>技術者の登録、照会、更新、削除等</td>
+            </tr>
+            <tr>
+                <td>マッチング</td>
+                <td>/api/v1/matching</td>
+                <td>案件と技術者のマッチング、提案管理等</td>
+            </tr>
+            <tr>
+                <td>契約管理</td>
+                <td>/api/v1/contracts</td>
+                <td>契約の作成、照会、更新、電子署名等</td>
+            </tr>
+            <tr>
+                <td>勤怠・工数管理</td>
+                <td>/api/v1/timesheet</td>
+                <td>勤怠登録、工数入力、承認、集計等</td>
+            </tr>
+            <tr>
+                <td>請求・支払管理</td>
+                <td>/api/v1/billing</td>
+                <td>請求書作成、入金管理、支払管理等</td>
+            </tr>
+            <tr>
+                <td>レポーティング</td>
+                <td>/api/v1/reports</td>
+                <td>各種レポート生成、KPI照会等</td>
+            </tr>
+            <tr>
+                <td>システム管理</td>
+                <td>/api/v1/admin</td>
+                <td>ユーザー管理、権限管理、マスタ管理等</td>
+            </tr>
+        </table>
+        
+        <h3>3.2 バージョニング方針</h3>
+        <p>APIのバージョニングは以下の方針で行う：</p>
+        <ul>
+            <li>URLパスにバージョン番号を含める（例：/api/v1/projects）</li>
+            <li>メジャーバージョンのみをURLに含め、マイナーバージョンはドキュメントで管理</li>
+            <li>下位互換性のない変更を行う場合は、バージョン番号を上げる</li>
+            <li>旧バージョンは一定期間（原則6ヶ月）並行稼働させ、移行期間を設ける</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>4. 共通仕様</h2>
+        <h3>4.1 リクエスト/レスポンスフォーマット</h3>
+        <p>APIのリクエスト/レスポンスは原則としてJSONフォーマットを使用する。</p>
+        
+        <h4>リクエストヘッダ</h4>
+        <pre><code>Content-Type: application/json
+Accept: application/json
+Authorization: Bearer {JWT_TOKEN}</code></pre>
+        
+        <h4>レスポンスフォーマット（成功時）</h4>
+        <pre><code>{
+  "data": {
+    // リソースデータ
+  },
+  "meta": {
+    // メタデータ（ページネーション情報など）
+  }
+}</code></pre>
+        
+        <h3>4.2 HTTPメソッドの使い分け</h3>
+        <table>
+            <tr>
+                <th>HTTPメソッド</th>
+                <th>用途</th>
+                <th>例</th>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td>リソースの取得</td>
+                <td>GET /api/v1/projects/{id} - 特定の案件を取得</td>
+            </tr>
+            <tr>
+                <td>POST</td>
+                <td>リソースの新規作成</td>
+                <td>POST /api/v1/projects - 新規案件を作成</td>
+            </tr>
+            <tr>
+                <td>PUT</td>
+                <td>リソース全体の更新</td>
+                <td>PUT /api/v1/projects/{id} - 案件全体を更新</td>
+            </tr>
+            <tr>
+                <td>PATCH</td>
+                <td>リソースの部分更新</td>
+                <td>PATCH /api/v1/projects/{id} - 案件の一部項目を更新</td>
+            </tr>
+            <tr>
+                <td>DELETE</td>
+                <td>リソースの削除</td>
+                <td>DELETE /api/v1/projects/{id} - 案件を削除</td>
+            </tr>
+        </table>
+        
+        <h3>4.3 ステータスコード</h3>
+        <p>主に使用するHTTPステータスコードは以下の通り：</p>
+        <table>
+            <tr>
+                <th>ステータスコード</th>
+                <th>意味</th>
+                <th>使用例</th>
+            </tr>
+            <tr>
+                <td>200 OK</td>
+                <td>リクエスト成功</td>
+                <td>GETリクエスト成功、PUT/PATCHリクエスト成功</td>
+            </tr>
+            <tr>
+                <td>201 Created</td>
+                <td>リソース作成成功</td>
+                <td>POSTリクエストによるリソース作成成功</td>
+            </tr>
+            <tr>
+                <td>204 No Content</td>
+                <td>成功したが返却コンテンツなし</td>
+                <td>DELETEリクエスト成功</td>
+            </tr>
+            <tr>
+                <td>400 Bad Request</td>
+                <td>不正なリクエスト</td>
+                <td>パラメータ不正、バリデーションエラー</td>
+            </tr>
+            <tr>
+                <td>401 Unauthorized</td>
+                <td>認証エラー</td>
+                <td>認証トークンなし、または無効</td>
+            </tr>
+            <tr>
+                <td>403 Forbidden</td>
+                <td>権限エラー</td>
+                <td>認証済みだが権限不足</td>
+            </tr>
+            <tr>
+                <td>404 Not Found</td>
+                <td>リソース未発見</td>
+                <td>指定されたIDのリソースが存在しない</td>
+            </tr>
+            <tr>
+                <td>409 Conflict</td>
+                <td>競合エラー</td>
+                <td>リソースの競合（既に存在する、など）</td>
+            </tr>
+            <tr>
+                <td>422 Unprocessable Entity</td>
+                <td>処理できないエンティティ</td>
+                <td>セマンティクスエラー、ビジネスルール違反</td>
+            </tr>
+            <tr>
+                <td>500 Internal Server Error</td>
+                <td>サーバー内部エラー</td>
+                <td>予期せぬサーバーエラー</td>
+            </tr>
+        </table>
+        
+        <h3>4.4 エラーレスポンス形式</h3>
+        <p>エラー発生時のレスポンス形式は以下の通り：</p>
+        <pre><code>{
+  "error": {
+    "code": "ERROR_CODE",
+    "message": "エラーメッセージ",
+    "details": [
+      {
+        "field": "フィールド名",
+        "message": "詳細なエラーメッセージ"
+      }
+    ]
+  }
+}</code></pre>
+        
+        <h3>4.5 ページネーション仕様</h3>
+        <p>リストを返すAPIでは、以下のページネーション機能を提供する：</p>
+        
+        <h4>リクエストパラメータ</h4>
+        <pre><code>GET /api/v1/projects?page=1&per_page=20</code></pre>
+        
+        <h4>レスポンス例（meta部分）</h4>
+        <pre><code>{
+  "data": [...],
+  "meta": {
+    "pagination": {
+      "total_count": 100,
+      "total_pages": 5,
+      "current_page": 1,
+      "per_page": 20
+    }
+  }
+}</code></pre>
+        
+        <h3>4.6 ソート・フィルタリング仕様</h3>
+        <h4>ソート</h4>
+        <pre><code>GET /api/v1/projects?sort=created_at:desc,name:asc</code></pre>
+        
+        <h4>フィルタリング</h4>
+        <pre><code>GET /api/v1/projects?status=active&client_id=123&min_price=500000</code></pre>
+        
+        <h4>検索</h4>
+        <pre><code>GET /api/v1/projects?q=Java開発</code></pre>
+    </div>
+    
+    <div class="section">
+        <h2>5. 認証・認可方式</h2>
+        <p>APIの認証・認可は以下の方式を採用する：</p>
+        
+        <h3>5.1 認証方式</h3>
+        <ul>
+            <li><strong>JWT（JSON Web Token）ベースの認証：</strong> 認証成功後、JWTトークンを発行</li>
+            <li><strong>トークン有効期限：</strong> アクセストークン（1時間）、リフレッシュトークン（2週間）</li>
+            <li><strong>認証エンドポイント：</strong> /api/v1/auth/login, /api/v1/auth/refresh</li>
+        </ul>
+        
+        <h3>5.2 認可方式</h3>
+        <ul>
+            <li><strong>ロールベースの権限制御：</strong> ユーザーに割り当てられたロールに基づいてアクセス制御</li>
+            <li><strong>リソースオーナーシップ：</strong> リソース作成者や担当者に特別な権限を付与</li>
+            <li><strong>スコープベースの制御：</strong> APIトークンに含まれるスコープに基づいてアクセス制御</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>6. 横断的関心事</h2>
+        <h3>6.1 ロギング</h3>
+        <ul>
+            <li>全APIリクエスト/レスポンスのロギング（必要に応じて機密情報をマスク）</li>
+            <li>エラーログの詳細記録</li>
+            <li>監査ログの取得（誰が、いつ、何を行ったか）</li>
+        </ul>
+        
+        <h3>6.2 パフォーマンス</h3>
+        <ul>
+            <li>レスポンスタイムのモニタリング（目標：95%のリクエストが300ms以内）</li>
+            <li>キャッシュ戦略（読み取り頻度の高いリソースにETagを使用）</li>
+            <li>大量データ取得の最適化（ページネーション、部分レスポンス）</li>
+        </ul>
+        
+        <h3>6.3 セキュリティ</h3>
+        <ul>
+            <li>HTTPS通信の強制</li>
+            <li>API Rate Limiting（アカウントごとにリクエスト数制限）</li>
+            <li>入力検証とサニタイズ</li>
+            <li>機密データの適切な取り扱い</li>
+            <li>APIキーのローテーション</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>7. 各機能領域APIへのリンク</h2>
+        <p>各機能領域の詳細なAPI設計については、以下のリンクを参照してください：</p>
+        <a href="REST_API/案件管理API.html" class="api-link">・案件管理API設計</a>
+        <a href="REST_API/技術者管理API.html" class="api-link">・技術者管理API設計</a>
+        <a href="REST_API/マッチングAPI.html" class="api-link">・マッチングAPI設計</a>
+        <a href="REST_API/契約管理API.html" class="api-link">・契約管理API設計</a>
+        <a href="REST_API/勤怠工数管理API.html" class="api-link">・勤怠・工数管理API設計</a>
+        <a href="REST_API/請求支払API.html" class="api-link">・請求・支払管理API設計</a>
+        <a href="REST_API/レポーティングAPI.html" class="api-link">・レポーティングAPI設計</a>
+        <a href="REST_API/システム管理API.html" class="api-link">・システム管理API設計</a>
+    </div>
+    
+    <div class="note">
+        <p><strong>注意：</strong> 本API設計は基本設計段階のものであり、詳細設計フェーズにおいて具体的な実装詳細が決定される。各APIの詳細仕様については、各機能領域のAPI設計書を参照のこと。また、要件の変更に伴い、本設計も変更される可能性がある。</p>
+    </div>
+    
+    <footer>
+        <p>SES業務システム REST API設計概要 | 作成日: 2025年5月4日</p>
+    </footer>
+</body>
+</html>

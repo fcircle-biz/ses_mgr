@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技術者基本API - 技術者管理API仕様書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #0066cc;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, monospace;
+        }
+        code {
+            background-color: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, monospace;
+        }
+        .endpoint {
+            background-color: #f0f8ff;
+            padding: 15px;
+            border-left: 4px solid #0066cc;
+            margin-bottom: 30px;
+            border-radius: 0 5px 5px 0;
+        }
+        .method {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            font-weight: bold;
+            margin-right: 10px;
+            color: white;
+        }
+        .get {
+            background-color: #61affe;
+        }
+        .post {
+            background-color: #49cc90;
+        }
+        .put {
+            background-color: #fca130;
+        }
+        .delete {
+            background-color: #f93e3e;
+        }
+        .path {
+            font-family: Consolas, monospace;
+            font-weight: bold;
+        }
+        .nav-container {
+            background-color: #f5f5f5;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-radius: 5px;
+        }
+        .nav-container h3 {
+            margin-top: 0;
+        }
+        .param-name {
+            font-weight: bold;
+        }
+        .required {
+            color: #f93e3e;
+        }
+        .param-type {
+            color: #666;
+            font-style: italic;
+        }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 20px;
+            text-decoration: none;
+            color: #0066cc;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <a href="../技術者管理API.html" class="back-link">← 技術者管理API 仕様書に戻る</a>
+    
+    <h1>技術者基本API</h1>
+    
+    <div class="nav-container">
+        <h3>目次</h3>
+        <ul>
+            <li><a href="#overview">概要</a></li>
+            <li><a href="#get-engineers">技術者一覧の取得</a></li>
+            <li><a href="#post-engineers">新規技術者の登録</a></li>
+            <li><a href="#get-engineer">特定技術者の詳細取得</a></li>
+            <li><a href="#put-engineer">特定技術者の更新</a></li>
+            <li><a href="#delete-engineer">特定技術者の削除</a></li>
+        </ul>
+    </div>
+
+    <h2 id="overview">概要</h2>
+    <p>
+        技術者基本APIは、技術者の基本情報を管理するためのエンドポイントを提供します。
+        技術者の登録、一覧取得、詳細情報の取得、更新、削除などの基本的なCRUD操作が可能です。
+    </p>
+
+    <!-- GET /api/v1/engineers -->
+    <div class="endpoint" id="get-engineers">
+        <h3>
+            <span class="method get">GET</span>
+            <span class="path">/api/v1/engineers</span>
+        </h3>
+        <p>技術者一覧を取得します。クエリパラメータを使用してフィルタリングや並び替えが可能です。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>デフォルト</th>
+            </tr>
+            <tr>
+                <td>page</td>
+                <td>ページ番号（1から開始）</td>
+                <td>number</td>
+                <td>1</td>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>1ページあたりの件数（最大100）</td>
+                <td>number</td>
+                <td>20</td>
+            </tr>
+            <tr>
+                <td>sortBy</td>
+                <td>並び替えフィールド（id, lastName, joinedDate, yearsOfExperience, updatedAt）</td>
+                <td>string</td>
+                <td>updatedAt</td>
+            </tr>
+            <tr>
+                <td>sortOrder</td>
+                <td>並び順（asc, desc）</td>
+                <td>string</td>
+                <td>desc</td>
+            </tr>
+            <tr>
+                <td>department</td>
+                <td>部署でフィルタリング</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>employmentStatus</td>
+                <td>雇用形態でフィルタリング</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>available</td>
+                <td>稼働可能状態でフィルタリング</td>
+                <td>boolean</td>
+                <td>-</td>
+            </tr>
+        </table>
+        
+        <h4>リクエスト例</h4>
+        <pre><code>GET /api/v1/engineers?page=1&limit=10&department=ITソリューション部&available=true</code></pre>
+        
+        <h4>レスポンス例（成功: 200 OK）</h4>
+        <pre><code>{
+  "data": [
+    {
+      "id": "E12345",
+      "firstName": "太郎",
+      "lastName": "山田",
+      "firstNameKana": "タロウ",
+      "lastNameKana": "ヤマダ",
+      "email": "taro.yamada@example.com",
+      "department": "ITソリューション部",
+      "position": "シニアエンジニア",
+      "employmentStatus": "正社員",
+      "yearsOfExperience": 8,
+      "isAvailable": true,
+      "skillSummary": "Webアプリケーション開発、クラウドインフラ構築",
+      "updatedAt": "2023-05-20T14:45:00Z"
+    },
+    {
+      "id": "E12346",
+      "firstName": "花子",
+      "lastName": "鈴木",
+      "firstNameKana": "ハナコ",
+      "lastNameKana": "スズキ",
+      "email": "hanako.suzuki@example.com",
+      "department": "ITソリューション部",
+      "position": "リードエンジニア",
+      "employmentStatus": "正社員",
+      "yearsOfExperience": 10,
+      "isAvailable": true,
+      "skillSummary": "プロジェクト管理、サーバサイド開発",
+      "updatedAt": "2023-06-10T09:15:00Z"
+    }
+    // ... 他の技術者データ
+  ],
+  "links": {
+    "self": "/api/v1/engineers?page=1&limit=10&department=ITソリューション部&available=true",
+    "next": "/api/v1/engineers?page=2&limit=10&department=ITソリューション部&available=true",
+    "last": "/api/v1/engineers?page=5&limit=10&department=ITソリューション部&available=true"
+  }
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 400,
+  "code": "INVALID_PARAMETER",
+  "message": "無効なパラメータが指定されました",
+  "details": [
+    {
+      "field": "limit",
+      "message": "limitは100以下である必要があります"
+    }
+  ]
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>技術者管理者ロール、人事ロール、管理者ロールがアクセス可能です。</p>
+    </div>
+
+    <!-- POST /api/v1/engineers -->
+    <div class="endpoint" id="post-engineers">
+        <h3>
+            <span class="method post">POST</span>
+            <span class="path">/api/v1/engineers</span>
+        </h3>
+        <p>新規技術者を登録します。</p>
+
+        <h4>リクエストボディ</h4>
+        <table>
+            <tr>
+                <th>フィールド</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>firstName</td>
+                <td>名前</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+            <tr>
+                <td>lastName</td>
+                <td>姓</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+            <tr>
+                <td>firstNameKana</td>
+                <td>名前（カナ）</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+            <tr>
+                <td>lastNameKana</td>
+                <td>姓（カナ）</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+            <tr>
+                <td>email</td>
+                <td>メールアドレス</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+            <tr>
+                <td>phoneNumber</td>
+                <td>電話番号</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+            <tr>
+                <td>birthDate</td>
+                <td>生年月日（YYYY-MM-DD形式）</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+            <tr>
+                <td>gender</td>
+                <td>性別（male, female, other）</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>address</td>
+                <td>住所オブジェクト</td>
+                <td>object</td>
+                <td>◯</td>
+            </tr>
+            <tr>
+                <td>employmentStatus</td>
+                <td>雇用形態</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+            <tr>
+                <td>joinedDate</td>
+                <td>入社日（YYYY-MM-DD形式）</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+            <tr>
+                <td>yearsOfExperience</td>
+                <td>経験年数</td>
+                <td>number</td>
+                <td>◯</td>
+            </tr>
+            <tr>
+                <td>department</td>
+                <td>部署</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+            <tr>
+                <td>position</td>
+                <td>役職</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>isAvailable</td>
+                <td>稼働可能フラグ</td>
+                <td>boolean</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>nextAvailableDate</td>
+                <td>次回稼働可能日（YYYY-MM-DD形式）</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>monthlyRate</td>
+                <td>月額単価（円）</td>
+                <td>number</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>skillSummary</td>
+                <td>スキル概要</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>profileImage</td>
+                <td>プロフィール画像URL</td>
+                <td>string</td>
+                <td>-</td>
+            </tr>
+        </table>
+        
+        <h4>リクエスト例</h4>
+        <pre><code>{
+  "firstName": "次郎",
+  "lastName": "佐藤",
+  "firstNameKana": "ジロウ",
+  "lastNameKana": "サトウ",
+  "email": "jiro.sato@example.com",
+  "phoneNumber": "090-9876-5432",
+  "birthDate": "1990-07-15",
+  "gender": "male",
+  "address": {
+    "postalCode": "150-0002",
+    "prefecture": "東京都",
+    "city": "渋谷区",
+    "street": "渋谷2-2-2",
+    "building": "渋谷ビル202"
+  },
+  "employmentStatus": "正社員",
+  "joinedDate": "2021-04-01",
+  "yearsOfExperience": 5,
+  "department": "デジタル開発部",
+  "position": "ミドルエンジニア",
+  "isAvailable": true,
+  "nextAvailableDate": "2023-10-01",
+  "monthlyRate": 700000,
+  "skillSummary": "Javaバックエンド開発、データベース設計"
+}</code></pre>
+        
+        <h4>レスポンス例（成功: 201 Created）</h4>
+        <pre><code>{
+  "id": "E12350",
+  "firstName": "次郎",
+  "lastName": "佐藤",
+  "firstNameKana": "ジロウ",
+  "lastNameKana": "サトウ",
+  "email": "jiro.sato@example.com",
+  "phoneNumber": "090-9876-5432",
+  "birthDate": "1990-07-15",
+  "gender": "male",
+  "address": {
+    "postalCode": "150-0002",
+    "prefecture": "東京都",
+    "city": "渋谷区",
+    "street": "渋谷2-2-2",
+    "building": "渋谷ビル202"
+  },
+  "employmentStatus": "正社員",
+  "joinedDate": "2021-04-01",
+  "yearsOfExperience": 5,
+  "department": "デジタル開発部",
+  "position": "ミドルエンジニア",
+  "isAvailable": true,
+  "nextAvailableDate": "2023-10-01",
+  "monthlyRate": 700000,
+  "skillSummary": "Javaバックエンド開発、データベース設計",
+  "profileImage": null,
+  "createdAt": "2023-09-10T08:45:00Z",
+  "updatedAt": "2023-09-10T08:45:00Z"
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 400,
+  "code": "VALIDATION_ERROR",
+  "message": "入力データの検証に失敗しました",
+  "details": [
+    {
+      "field": "email",
+      "message": "既に登録されているメールアドレスです"
+    },
+    {
+      "field": "birthDate",
+      "message": "無効な日付形式です。YYYY-MM-DD形式で入力してください"
+    }
+  ]
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>技術者管理者ロール、人事ロール、管理者ロールがアクセス可能です。</p>
+    </div>
+
+    <!-- GET /api/v1/engineers/{id} -->
+    <div class="endpoint" id="get-engineer">
+        <h3>
+            <span class="method get">GET</span>
+            <span class="path">/api/v1/engineers/{id}</span>
+        </h3>
+        <p>特定の技術者の詳細情報を取得します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>技術者ID</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+        </table>
+        
+        <h4>リクエスト例</h4>
+        <pre><code>GET /api/v1/engineers/E12345</code></pre>
+        
+        <h4>レスポンス例（成功: 200 OK）</h4>
+        <pre><code>{
+  "id": "E12345",
+  "firstName": "太郎",
+  "lastName": "山田",
+  "firstNameKana": "タロウ",
+  "lastNameKana": "ヤマダ",
+  "email": "taro.yamada@example.com",
+  "phoneNumber": "090-1234-5678",
+  "birthDate": "1985-04-01",
+  "gender": "male",
+  "address": {
+    "postalCode": "100-0001",
+    "prefecture": "東京都",
+    "city": "千代田区",
+    "street": "千代田1-1-1",
+    "building": "千代田ビル101"
+  },
+  "employmentStatus": "正社員",
+  "joinedDate": "2020-04-01",
+  "yearsOfExperience": 8,
+  "department": "ITソリューション部",
+  "position": "シニアエンジニア",
+  "isAvailable": true,
+  "nextAvailableDate": "2023-10-01",
+  "monthlyRate": 800000,
+  "skillSummary": "Webアプリケーション開発、クラウドインフラ構築",
+  "profileImage": "/images/engineers/E12345.jpg",
+  "createdAt": "2022-01-15T09:30:00Z",
+  "updatedAt": "2023-05-20T14:45:00Z"
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "code": "RESOURCE_NOT_FOUND",
+  "message": "指定されたIDの技術者が見つかりませんでした"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>技術者管理者ロール、人事ロール、営業ロール、管理者ロールがアクセス可能です。</p>
+    </div>
+
+    <!-- PUT /api/v1/engineers/{id} -->
+    <div class="endpoint" id="put-engineer">
+        <h3>
+            <span class="method put">PUT</span>
+            <span class="path">/api/v1/engineers/{id}</span>
+        </h3>
+        <p>特定の技術者の情報を更新します。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>技術者ID</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+        </table>
+        
+        <h4>リクエストボディ</h4>
+        <p>リクエストボディは技術者登録API（POST）と同じフィールドを持ちますが、すべてのフィールドは任意です。更新したいフィールドのみを含めることができます。</p>
+        
+        <h4>リクエスト例</h4>
+        <pre><code>{
+  "position": "テクニカルリード",
+  "department": "デジタルイノベーション部",
+  "isAvailable": false,
+  "nextAvailableDate": "2024-01-10",
+  "monthlyRate": 850000,
+  "skillSummary": "Webアプリケーション開発、クラウドインフラ構築、チームリード"
+}</code></pre>
+        
+        <h4>レスポンス例（成功: 200 OK）</h4>
+        <pre><code>{
+  "id": "E12345",
+  "firstName": "太郎",
+  "lastName": "山田",
+  "firstNameKana": "タロウ",
+  "lastNameKana": "ヤマダ",
+  "email": "taro.yamada@example.com",
+  "phoneNumber": "090-1234-5678",
+  "birthDate": "1985-04-01",
+  "gender": "male",
+  "address": {
+    "postalCode": "100-0001",
+    "prefecture": "東京都",
+    "city": "千代田区",
+    "street": "千代田1-1-1",
+    "building": "千代田ビル101"
+  },
+  "employmentStatus": "正社員",
+  "joinedDate": "2020-04-01",
+  "yearsOfExperience": 8,
+  "department": "デジタルイノベーション部",
+  "position": "テクニカルリード",
+  "isAvailable": false,
+  "nextAvailableDate": "2024-01-10",
+  "monthlyRate": 850000,
+  "skillSummary": "Webアプリケーション開発、クラウドインフラ構築、チームリード",
+  "profileImage": "/images/engineers/E12345.jpg",
+  "createdAt": "2022-01-15T09:30:00Z",
+  "updatedAt": "2023-09-10T10:25:00Z"
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "code": "RESOURCE_NOT_FOUND",
+  "message": "指定されたIDの技術者が見つかりませんでした"
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>技術者管理者ロール、人事ロール、管理者ロールがアクセス可能です。</p>
+    </div>
+
+    <!-- DELETE /api/v1/engineers/{id} -->
+    <div class="endpoint" id="delete-engineer">
+        <h3>
+            <span class="method delete">DELETE</span>
+            <span class="path">/api/v1/engineers/{id}</span>
+        </h3>
+        <p>特定の技術者を削除します。ただし、進行中の案件や契約に関連付けられている技術者は削除できません。</p>
+
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>説明</th>
+                <th>タイプ</th>
+                <th>必須</th>
+            </tr>
+            <tr>
+                <td>id</td>
+                <td>技術者ID</td>
+                <td>string</td>
+                <td>◯</td>
+            </tr>
+        </table>
+        
+        <h4>リクエスト例</h4>
+        <pre><code>DELETE /api/v1/engineers/E12345</code></pre>
+        
+        <h4>レスポンス例（成功: 204 No Content）</h4>
+        <p>成功時はレスポンスボディなしで204 No Contentが返されます。</p>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "status": 404,
+  "code": "RESOURCE_NOT_FOUND",
+  "message": "指定されたIDの技術者が見つかりませんでした"
+}</code></pre>
+
+        <pre><code>{
+  "status": 409,
+  "code": "CONFLICT",
+  "message": "この技術者は現在進行中の案件に関連付けられているため削除できません",
+  "details": [
+    {
+      "project_id": "P45678",
+      "project_name": "オンライン決済システム開発"
+    }
+  ]
+}</code></pre>
+
+        <h4>アクセス権限</h4>
+        <p>技術者管理者ロール、管理者ロールがアクセス可能です。</p>
+    </div>
+
+    <footer>
+        <p>最終更新日: 2023-09-01</p>
+    </footer>
+</body>
+</html>

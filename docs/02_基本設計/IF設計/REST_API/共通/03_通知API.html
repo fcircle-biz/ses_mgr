@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>通知API設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 5px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .api-path {
+            font-weight: bold;
+            color: #2980b9;
+        }
+        .http-method {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .get {
+            background-color: #61affe;
+            color: white;
+        }
+        .post {
+            background-color: #49cc90;
+            color: white;
+        }
+        .put {
+            background-color: #fca130;
+            color: white;
+        }
+        .delete {
+            background-color: #f93e3e;
+            color: white;
+        }
+        .endpoint {
+            margin: 40px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .endpoint-title {
+            margin-top: 0;
+            font-size: 1.4em;
+        }
+        .required {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .optional {
+            color: #7f8c8d;
+        }
+        .note {
+            background-color: #e7f4ff;
+            padding: 15px;
+            border-left: 5px solid #3498db;
+            margin: 20px 0;
+        }
+        .breadcrumb {
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="breadcrumb">
+        <a href="../共通API.html">共通API</a> &gt; 通知API
+    </div>
+
+    <h1>通知API設計書</h1>
+    
+    <h2>1. 概要</h2>
+    <p>通知APIは、ユーザーへのシステム通知を管理するための機能を提供します。案件のマッチング、承認依頼、契約更新、請求書発行などの重要なイベントをユーザーに通知することができます。</p>
+    
+    <h3>1.1 通知の種類</h3>
+    <p>システムでは以下の種類の通知をサポートしています：</p>
+    <ul>
+        <li>システム通知：システムからの一般的なお知らせ</li>
+        <li>タスク通知：ユーザーによるアクションが必要なタスク</li>
+        <li>アラート通知：緊急性の高い重要な通知</li>
+        <li>イベント通知：特定のイベントに関する情報</li>
+    </ul>
+    
+    <h3>1.2 通知のライフサイクル</h3>
+    <p>各通知は以下のライフサイクルを持ちます：</p>
+    <ol>
+        <li>作成：システムの各機能から通知が作成されます</li>
+        <li>配信：対象ユーザーの通知一覧に表示されます</li>
+        <li>既読：ユーザーが通知を確認すると既読状態になります</li>
+        <li>削除：ユーザーが通知を削除するか、一定期間後に自動削除されます</li>
+    </ol>
+    
+    <div class="note">
+        <strong>Note:</strong> 通知の作成はシステム内部の各機能から行われ、このAPIでは参照と状態更新のみを提供します。
+    </div>
+    
+    <h2>2. API一覧</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>エンドポイント</th>
+                <th>メソッド</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>/api/v1/common/notifications</td>
+                <td>GET</td>
+                <td>通知一覧取得</td>
+            </tr>
+            <tr>
+                <td>/api/v1/common/notifications/{id}</td>
+                <td>GET</td>
+                <td>特定通知の詳細取得</td>
+            </tr>
+            <tr>
+                <td>/api/v1/common/notifications/{id}/read</td>
+                <td>PUT</td>
+                <td>通知を既読にする</td>
+            </tr>
+            <tr>
+                <td>/api/v1/common/notifications/read-all</td>
+                <td>PUT</td>
+                <td>全通知を既読にする</td>
+            </tr>
+            <tr>
+                <td>/api/v1/common/notifications/{id}</td>
+                <td>DELETE</td>
+                <td>通知の削除</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h2>3. API詳細</h2>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method get">GET</span> <span class="api-path">/api/v1/common/notifications</span></h3>
+        <p>ログインユーザーの通知一覧を取得します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}</code></pre>
+        
+        <p>クエリパラメータ：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>page</td>
+                    <td>number</td>
+                    <td class="optional">任意</td>
+                    <td>ページ番号（デフォルト: 1）</td>
+                </tr>
+                <tr>
+                    <td>page_size</td>
+                    <td>number</td>
+                    <td class="optional">任意</td>
+                    <td>1ページあたりの件数（デフォルト: 20, 最大: 100）</td>
+                </tr>
+                <tr>
+                    <td>type</td>
+                    <td>string</td>
+                    <td class="optional">任意</td>
+                    <td>通知タイプでフィルタリング（system, task, alert, event）</td>
+                </tr>
+                <tr>
+                    <td>read_status</td>
+                    <td>string</td>
+                    <td class="optional">任意</td>
+                    <td>既読状態でフィルタリング（read, unread, all）（デフォルト: all）</td>
+                </tr>
+                <tr>
+                    <td>sort</td>
+                    <td>string</td>
+                    <td class="optional">任意</td>
+                    <td>ソート順（created_at:desc, created_at:asc）（デフォルト: created_at:desc）</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <pre><code>{
+  "data": [
+    {
+      "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+      "type": "task",
+      "title": "新しい案件の提案依頼があります",
+      "body": "株式会社テクノロジーの案件「Javaエンジニア募集」に対して提案依頼がありました。",
+      "read": false,
+      "created_at": "2023-05-01T10:30:00.000Z",
+      "metadata": {
+        "project_id": "550e8400-e29b-41d4-a716-446655440000",
+        "project_name": "Javaエンジニア募集",
+        "client_name": "株式会社テクノロジー",
+        "action_url": "/projects/550e8400-e29b-41d4-a716-446655440000"
+      }
+    },
+    {
+      "id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+      "type": "system",
+      "title": "メンテナンスのお知らせ",
+      "body": "システムメンテナンスのため、2023年5月5日 22:00から2023年5月6日 2:00までサービスを停止いたします。",
+      "read": true,
+      "created_at": "2023-04-28T15:00:00.000Z",
+      "metadata": {
+        "maintenance_id": "123456",
+        "severity": "info"
+      }
+    },
+    {
+      "id": "6ba7b811-9dad-11d1-80b4-00c04fd430c8",
+      "type": "alert",
+      "title": "契約の有効期限が近づいています",
+      "body": "株式会社ABCとの契約「システム開発支援」の有効期限が10日後に迫っています。契約更新の検討をお願いします。",
+      "read": false,
+      "created_at": "2023-04-25T09:15:00.000Z",
+      "metadata": {
+        "contract_id": "c123456",
+        "contract_name": "システム開発支援",
+        "client_name": "株式会社ABC",
+        "expiry_date": "2023-05-10",
+        "action_url": "/contracts/c123456"
+      }
+    }
+  ],
+  "pagination": {
+    "current_page": 1,
+    "page_size": 20,
+    "total_pages": 2,
+    "total_items": 25
+  },
+  "summary": {
+    "unread_count": 12,
+    "total_count": 25
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>認証エラー時（401 Unauthorized）：</p>
+        <pre><code>{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "認証が必要です。"
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>認証済みユーザー</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method get">GET</span> <span class="api-path">/api/v1/common/notifications/{id}</span></h3>
+        <p>特定の通知の詳細情報を取得します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}</code></pre>
+        
+        <p>パスパラメータ：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>取得する通知のID</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <pre><code>{
+  "data": {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "type": "task",
+    "title": "新しい案件の提案依頼があります",
+    "body": "株式会社テクノロジーの案件「Javaエンジニア募集」に対して提案依頼がありました。\n\n詳細を確認し、適切な技術者を選定して提案してください。",
+    "read": false,
+    "created_at": "2023-05-01T10:30:00.000Z",
+    "updated_at": "2023-05-01T10:30:00.000Z",
+    "metadata": {
+      "project_id": "550e8400-e29b-41d4-a716-446655440000",
+      "project_name": "Javaエンジニア募集",
+      "client_name": "株式会社テクノロジー",
+      "required_skills": ["Java", "Spring", "MySQL"],
+      "deadline": "2023-05-10T17:00:00.000Z",
+      "action_url": "/projects/550e8400-e29b-41d4-a716-446655440000",
+      "importance": "high"
+    },
+    "sender": {
+      "id": "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
+      "name": "営業担当 佐藤"
+    },
+    "recipient": {
+      "id": "6ba7b813-9dad-11d1-80b4-00c04fd430c8",
+      "name": "マッチング担当 田中"
+    }
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>通知が存在しない場合（404 Not Found）：</p>
+        <pre><code>{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定された通知が存在しません。"
+  }
+}</code></pre>
+        
+        <p>権限エラー時（403 Forbidden）：</p>
+        <pre><code>{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "この通知へのアクセス権限がありません。"
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>通知の受信者であるユーザー</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method put">PUT</span> <span class="api-path">/api/v1/common/notifications/{id}/read</span></h3>
+        <p>指定された通知を既読状態に更新します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}</code></pre>
+        
+        <p>パスパラメータ：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>既読にする通知のID</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p>リクエストボディ：不要</p>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <pre><code>{
+  "data": {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "read": true,
+    "updated_at": "2023-05-02T14:45:00.000Z"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>通知が存在しない場合（404 Not Found）：</p>
+        <pre><code>{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定された通知が存在しません。"
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>通知の受信者であるユーザー</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method put">PUT</span> <span class="api-path">/api/v1/common/notifications/read-all</span></h3>
+        <p>ユーザーの全ての未読通知を既読状態に更新します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}</code></pre>
+        
+        <p>クエリパラメータ：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>type</td>
+                    <td>string</td>
+                    <td class="optional">任意</td>
+                    <td>特定タイプの通知のみを既読にする場合（system, task, alert, event）</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p>リクエストボディ：不要</p>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <pre><code>{
+  "data": {
+    "marked_as_read": 12,
+    "updated_at": "2023-05-02T14:50:00.000Z"
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>認証エラー時（401 Unauthorized）：</p>
+        <pre><code>{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "認証が必要です。"
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>認証済みユーザー</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method delete">DELETE</span> <span class="api-path">/api/v1/common/notifications/{id}</span></h3>
+        <p>指定された通知を削除します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}</code></pre>
+        
+        <p>パスパラメータ：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>削除する通知のID</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（204 No Content）：</p>
+        <p>レスポンスボディなし</p>
+        
+        <h4>エラーレスポンス</h4>
+        <p>通知が存在しない場合（404 Not Found）：</p>
+        <pre><code>{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定された通知が存在しません。"
+  }
+}</code></pre>
+        
+        <p>権限エラー時（403 Forbidden）：</p>
+        <pre><code>{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "この通知を削除する権限がありません。"
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>通知の受信者であるユーザー</p>
+    </div>
+    
+    <h2>4. 通知データモデル</h2>
+    
+    <h3>4.1 基本構造</h3>
+    <p>通知データの基本構造は以下の通りです：</p>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>フィールド</th>
+                <th>型</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>id</td>
+                <td>string</td>
+                <td>通知の一意識別子（UUID形式）</td>
+            </tr>
+            <tr>
+                <td>type</td>
+                <td>string</td>
+                <td>通知タイプ（system, task, alert, event）</td>
+            </tr>
+            <tr>
+                <td>title</td>
+                <td>string</td>
+                <td>通知のタイトル</td>
+            </tr>
+            <tr>
+                <td>body</td>
+                <td>string</td>
+                <td>通知の本文</td>
+            </tr>
+            <tr>
+                <td>read</td>
+                <td>boolean</td>
+                <td>既読状態（true: 既読, false: 未読）</td>
+            </tr>
+            <tr>
+                <td>created_at</td>
+                <td>string (ISO8601)</td>
+                <td>通知の作成日時</td>
+            </tr>
+            <tr>
+                <td>updated_at</td>
+                <td>string (ISO8601)</td>
+                <td>通知の最終更新日時</td>
+            </tr>
+            <tr>
+                <td>metadata</td>
+                <td>object</td>
+                <td>通知に関連する追加情報（通知タイプによって内容が異なる）</td>
+            </tr>
+            <tr>
+                <td>sender</td>
+                <td>object</td>
+                <td>通知の送信者情報（id, name）</td>
+            </tr>
+            <tr>
+                <td>recipient</td>
+                <td>object</td>
+                <td>通知の受信者情報（id, name）</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h3>4.2 タイプ別メタデータ</h3>
+    <p>通知タイプごとのメタデータの例：</p>
+    
+    <h4>システム通知（system）</h4>
+    <pre><code>{
+  "metadata": {
+    "maintenance_id": "123456",
+    "severity": "info", // info, warning, critical
+    "affected_services": ["matching", "billing"],
+    "start_time": "2023-05-05T22:00:00.000Z",
+    "end_time": "2023-05-06T02:00:00.000Z"
+  }
+}</code></pre>
+    
+    <h4>タスク通知（task）</h4>
+    <pre><code>{
+  "metadata": {
+    "task_id": "task123",
+    "project_id": "proj456",
+    "project_name": "Javaエンジニア募集",
+    "client_name": "株式会社テクノロジー",
+    "deadline": "2023-05-10T17:00:00.000Z",
+    "action_url": "/tasks/task123",
+    "importance": "high" // low, medium, high
+  }
+}</code></pre>
+    
+    <h4>アラート通知（alert）</h4>
+    <pre><code>{
+  "metadata": {
+    "alert_type": "contract_expiry",
+    "contract_id": "c123456",
+    "contract_name": "システム開発支援",
+    "client_name": "株式会社ABC",
+    "expiry_date": "2023-05-10",
+    "days_remaining": 10,
+    "action_url": "/contracts/c123456",
+    "severity": "warning" // info, warning, critical
+  }
+}</code></pre>
+    
+    <h4>イベント通知（event）</h4>
+    <pre><code>{
+  "metadata": {
+    "event_type": "engineer_assigned",
+    "engineer_id": "e123456",
+    "engineer_name": "鈴木 一郎",
+    "project_id": "p789012",
+    "project_name": "基幹システム開発",
+    "client_name": "株式会社DEF",
+    "start_date": "2023-06-01",
+    "action_url": "/projects/p789012"
+  }
+}</code></pre>
+    
+    <h2>5. 実装上の注意点</h2>
+    
+    <h3>5.1 リアルタイム通知</h3>
+    <p>効果的な通知体験を提供するために、以下の実装を検討することを推奨します：</p>
+    <ul>
+        <li>WebSocketやServer-Sent Events（SSE）を使用したリアルタイム通知の配信</li>
+        <li>Push通知（モバイルアプリケーションやブラウザ通知）の実装</li>
+        <li>定期的なポーリングによる新規通知の確認（リアルタイム通信が実装できない場合）</li>
+    </ul>
+    
+    <h3>5.2 通知の保存期間</h3>
+    <p>通知の保存期間ポリシーは以下の通りです：</p>
+    <ul>
+        <li>既読通知：30日間保存後に自動削除</li>
+        <li>未読通知：90日間保存後に自動削除</li>
+        <li>重要度の高い通知（contractなど）：180日間保存後に自動削除</li>
+    </ul>
+    
+    <h3>5.3 通知の集約</h3>
+    <p>同種の通知が短時間に多数発生する場合は、通知を集約して表示することを検討してください。例えば、「5件の新しい案件が追加されました」のように集約することで、通知の氾濫を防止できます。</p>
+</body>
+</html>

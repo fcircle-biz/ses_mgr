@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>案件関連情報API設計 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+        h1 {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            margin-bottom: 30px;
+        }
+        .section {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            font-size: 0.9em;
+            border-left: 3px solid #3498db;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .api-method {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+            min-width: 60px;
+            text-align: center;
+        }
+        .get {
+            background-color: #61affe;
+        }
+        .post {
+            background-color: #49cc90;
+        }
+        .put {
+            background-color: #fca130;
+        }
+        .patch {
+            background-color: #50e3c2;
+        }
+        .delete {
+            background-color: #f93e3e;
+        }
+        .endpoint {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .response-example, .request-example {
+            margin: 15px 0;
+        }
+        .note {
+            background-color: #fffde7;
+            padding: 15px;
+            border-left: 4px solid #ffd600;
+            margin: 20px 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        .navigation {
+            margin: 20px 0;
+        }
+        .navigation a {
+            display: inline-block;
+            margin-right: 15px;
+            color: #3498db;
+            text-decoration: none;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>案件関連情報API設計</h1>
+    
+    <div class="navigation">
+        <a href="../案件管理API.html">← 案件管理API概要へ戻る</a>
+        <a href="03_案件ステータス管理API.html">← 前へ：案件ステータス管理API</a>
+    </div>
+
+    <div class="section">
+        <h2>1. 概要</h2>
+        <p>案件関連情報APIは、SES業務システムにおける案件に関連する補足情報を管理するためのインターフェースを提供します。案件のスキル要件、履歴、添付資料などの関連情報を取得・更新するためのエンドポイントを定義しています。</p>
+        <p>このAPIを利用することで、以下のような案件関連情報を管理できます：</p>
+        <ul>
+            <li>案件に必要なスキル要件の管理</li>
+            <li>案件の変更履歴の取得</li>
+            <li>案件に関連する添付資料の管理</li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>2. エンドポイント一覧</h2>
+        <table>
+            <tr>
+                <th>HTTPメソッド</th>
+                <th>エンドポイント</th>
+                <th>説明</th>
+                <th>必要権限</th>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td>/api/v1/projects/{id}/skills</td>
+                <td>案件のスキル要件取得</td>
+                <td>projects:read</td>
+            </tr>
+            <tr>
+                <td>PUT</td>
+                <td>/api/v1/projects/{id}/skills</td>
+                <td>案件のスキル要件更新</td>
+                <td>projects:update</td>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td>/api/v1/projects/{id}/history</td>
+                <td>案件の履歴取得</td>
+                <td>projects:read</td>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td>/api/v1/projects/{id}/attachments</td>
+                <td>案件の添付資料一覧取得</td>
+                <td>projects:read</td>
+            </tr>
+            <tr>
+                <td>POST</td>
+                <td>/api/v1/projects/{id}/attachments</td>
+                <td>案件の添付資料追加</td>
+                <td>projects:update</td>
+            </tr>
+            <tr>
+                <td>DELETE</td>
+                <td>/api/v1/projects/{id}/attachments/{attachmentId}</td>
+                <td>案件の添付資料削除</td>
+                <td>projects:update</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2>3. 各エンドポイントの詳細</h2>
+        
+        <div class="endpoint">
+            <h3>3.1 案件のスキル要件取得</h3>
+            <p><span class="api-method get">GET</span> <code>/api/v1/projects/{id}/skills</code></p>
+            <p>指定された案件に必要なスキル要件の一覧を取得します。</p>
+            
+            <h4>パスパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                </tr>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td>案件ID</td>
+                    <td>Yes</td>
+                </tr>
+            </table>
+            
+            <h4>クエリパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                    <th>デフォルト値</th>
+                </tr>
+                <tr>
+                    <td>required_only</td>
+                    <td>boolean</td>
+                    <td>必須スキルのみ取得するか</td>
+                    <td>No</td>
+                    <td>false</td>
+                </tr>
+                <tr>
+                    <td>include_categories</td>
+                    <td>boolean</td>
+                    <td>スキルカテゴリ情報も含めるか</td>
+                    <td>No</td>
+                    <td>true</td>
+                </tr>
+                <tr>
+                    <td>include_details</td>
+                    <td>boolean</td>
+                    <td>スキル詳細情報も含めるか</td>
+                    <td>No</td>
+                    <td>false</td>
+                </tr>
+            </table>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (200 OK)</h5>
+                <pre><code>{
+  "data": {
+    "project_id": "proj-001",
+    "project_name": "次世代ECサイト開発プロジェクト",
+    "skills": [
+      {
+        "id": "proj-skill-001",
+        "skill": {
+          "id": "skill-201",
+          "name": "React",
+          "category": {
+            "id": "cat-101",
+            "name": "フロントエンド開発"
+          },
+          "details": {
+            "description": "ReactはFacebookが開発したJavaScriptライブラリで、ユーザーインターフェースを構築するためのもの。",
+            "related_technologies": ["JavaScript", "TypeScript", "Redux"]
+          }
+        },
+        "level": "expert",
+        "years_experience": 3,
+        "is_required": true,
+        "priority": "high",
+        "notes": "SPAフロントエンド開発の主担当として、React経験が豊富な人材が必要"
+      },
+      {
+        "id": "proj-skill-002",
+        "skill": {
+          "id": "skill-202",
+          "name": "Node.js",
+          "category": {
+            "id": "cat-102",
+            "name": "バックエンド開発"
+          },
+          "details": {
+            "description": "Node.jsはChrome V8 JavaScriptエンジン上に構築されたJavaScriptランタイム環境。",
+            "related_technologies": ["Express", "NestJS", "JavaScript"]
+          }
+        },
+        "level": "intermediate",
+        "years_experience": 2,
+        "is_required": true,
+        "priority": "high",
+        "notes": "APIバックエンド開発担当。Express.jsフレームワークでの開発経験があると望ましい"
+      },
+      {
+        "id": "proj-skill-003",
+        "skill": {
+          "id": "skill-203",
+          "name": "AWS",
+          "category": {
+            "id": "cat-103",
+            "name": "クラウド/インフラ"
+          },
+          "details": {
+            "description": "Amazon Web Services (AWS)はAmazonが提供するクラウドコンピューティングサービス。",
+            "related_technologies": ["EC2", "S3", "Lambda", "CloudFormation"]
+          }
+        },
+        "level": "intermediate",
+        "years_experience": 1,
+        "is_required": false,
+        "priority": "medium",
+        "notes": "AWSでのデプロイ経験があると望ましい"
+      }
+    ],
+    "updated_at": "2025-05-15T14:30:00+09:00"
+  }
+}</code></pre>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>リソースが見つからない (404 Not Found)</h5>
+                <pre><code>{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定された案件が見つかりません。",
+    "details": []
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:read 権限が必要</li>
+                <li>所属部署や担当顧客によるアクセス制限がある場合あり</li>
+            </ul>
+        </div>
+        
+        <div class="endpoint">
+            <h3>3.2 案件のスキル要件更新</h3>
+            <p><span class="api-method put">PUT</span> <code>/api/v1/projects/{id}/skills</code></p>
+            <p>指定された案件のスキル要件を更新します。既存のスキル要件は全て置き換えられます。</p>
+            
+            <h4>パスパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                </tr>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td>案件ID</td>
+                    <td>Yes</td>
+                </tr>
+            </table>
+            
+            <h4>リクエストボディ</h4>
+            <div class="request-example">
+                <pre><code>{
+  "skills": [
+    {
+      "skill_id": "skill-201",
+      "level": "expert",
+      "years_experience": 3,
+      "is_required": true,
+      "priority": "high",
+      "notes": "SPAフロントエンド開発の主担当として、React経験が豊富な人材が必要"
+    },
+    {
+      "skill_id": "skill-202",
+      "level": "intermediate",
+      "years_experience": 2,
+      "is_required": true,
+      "priority": "high",
+      "notes": "APIバックエンド開発担当。Express.jsフレームワークでの開発経験があると望ましい"
+    },
+    {
+      "skill_id": "skill-203",
+      "level": "intermediate",
+      "years_experience": 1,
+      "is_required": false,
+      "priority": "medium",
+      "notes": "AWSでのデプロイ経験があると望ましい"
+    },
+    {
+      "skill_id": "skill-210",
+      "level": "beginner",
+      "years_experience": 0,
+      "is_required": false,
+      "priority": "low",
+      "notes": "Docker経験があれば尚可"
+    }
+  ]
+}</code></pre>
+            </div>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (200 OK)</h5>
+                <pre><code>{
+  "data": {
+    "project_id": "proj-001",
+    "updated_skills": [
+      {
+        "id": "proj-skill-001",
+        "skill": {
+          "id": "skill-201",
+          "name": "React"
+        },
+        "level": "expert",
+        "is_required": true,
+        "status": "updated"
+      },
+      {
+        "id": "proj-skill-002",
+        "skill": {
+          "id": "skill-202",
+          "name": "Node.js"
+        },
+        "level": "intermediate",
+        "is_required": true,
+        "status": "updated"
+      },
+      {
+        "id": "proj-skill-003",
+        "skill": {
+          "id": "skill-203",
+          "name": "AWS"
+        },
+        "level": "intermediate",
+        "is_required": false,
+        "status": "updated"
+      },
+      {
+        "id": "proj-skill-004",
+        "skill": {
+          "id": "skill-210",
+          "name": "Docker"
+        },
+        "level": "beginner",
+        "is_required": false,
+        "status": "added"
+      }
+    ],
+    "removed_skills": [],
+    "updated_at": "2025-05-20T10:15:00+09:00",
+    "updated_by": {
+      "id": "user-301",
+      "name": "鈴木一郎"
+    }
+  }
+}</code></pre>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>バリデーションエラー (400 Bad Request)</h5>
+                <pre><code>{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "入力内容に誤りがあります。",
+    "details": [
+      {
+        "field": "skills[0].skill_id",
+        "message": "存在しないスキルIDが指定されています。"
+      },
+      {
+        "field": "skills[1].level",
+        "message": "スキルレベルは 'beginner', 'intermediate', 'advanced', 'expert' のいずれかである必要があります。"
+      }
+    ]
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:update 権限が必要</li>
+                <li>案件作成者・案件担当者または管理者権限を持つユーザーのみ更新可能</li>
+            </ul>
+        </div>
+        
+        <div class="endpoint">
+            <h3>3.3 案件の履歴取得</h3>
+            <p><span class="api-method get">GET</span> <code>/api/v1/projects/{id}/history</code></p>
+            <p>指定された案件の変更履歴を取得します。案件情報の変更、ステータス変更、スキル要件の更新など、案件に関連する全ての変更履歴を確認できます。</p>
+            
+            <h4>パスパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                </tr>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td>案件ID</td>
+                    <td>Yes</td>
+                </tr>
+            </table>
+            
+            <h4>クエリパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                    <th>デフォルト値</th>
+                </tr>
+                <tr>
+                    <td>limit</td>
+                    <td>number</td>
+                    <td>取得する履歴の最大件数</td>
+                    <td>No</td>
+                    <td>50</td>
+                </tr>
+                <tr>
+                    <td>offset</td>
+                    <td>number</td>
+                    <td>取得開始位置</td>
+                    <td>No</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td>from_date</td>
+                    <td>string (ISO8601)</td>
+                    <td>この日時以降の履歴を取得</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>to_date</td>
+                    <td>string (ISO8601)</td>
+                    <td>この日時以前の履歴を取得</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>action_types</td>
+                    <td>string (comma separated)</td>
+                    <td>取得する変更種別（created,updated,status_changed,skills_updated,attachment_added,attachment_removed）</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+            </table>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (200 OK)</h5>
+                <pre><code>{
+  "data": {
+    "project_id": "proj-001",
+    "project_name": "次世代ECサイト開発プロジェクト",
+    "history": [
+      {
+        "id": "hist-105",
+        "action": "status_changed",
+        "timestamp": "2025-06-15T09:30:00+09:00",
+        "actor": {
+          "id": "user-301",
+          "name": "鈴木一郎"
+        },
+        "changes": {
+          "status": {
+            "from": "open",
+            "to": "in_progress"
+          }
+        },
+        "comment": "契約締結完了のため進行中ステータスに更新",
+        "related_entities": [
+          {
+            "type": "contract",
+            "id": "contract-123",
+            "name": "ECサイト開発契約"
+          }
+        ]
+      },
+      {
+        "id": "hist-104",
+        "action": "attachment_added",
+        "timestamp": "2025-05-25T11:15:00+09:00",
+        "actor": {
+          "id": "user-301",
+          "name": "鈴木一郎"
+        },
+        "changes": {
+          "attachment": {
+            "id": "attach-102",
+            "name": "契約書ドラフト.pdf"
+          }
+        },
+        "comment": "契約書ドラフトを添付"
+      },
+      {
+        "id": "hist-103",
+        "action": "skills_updated",
+        "timestamp": "2025-05-20T10:15:00+09:00",
+        "actor": {
+          "id": "user-301",
+          "name": "鈴木一郎"
+        },
+        "changes": {
+          "skills": {
+            "added": [
+              {
+                "id": "skill-210",
+                "name": "Docker"
+              }
+            ],
+            "updated": [
+              {
+                "id": "skill-201",
+                "name": "React"
+              },
+              {
+                "id": "skill-202",
+                "name": "Node.js"
+              },
+              {
+                "id": "skill-203",
+                "name": "AWS"
+              }
+            ],
+            "removed": []
+          }
+        },
+        "comment": "スキル要件を更新"
+      },
+      {
+        "id": "hist-102",
+        "action": "status_changed",
+        "timestamp": "2025-05-20T14:45:00+09:00",
+        "actor": {
+          "id": "user-301",
+          "name": "鈴木一郎"
+        },
+        "changes": {
+          "status": {
+            "from": "draft",
+            "to": "open"
+          }
+        },
+        "comment": "案件内容確定のため公開ステータスへ変更"
+      },
+      {
+        "id": "hist-101",
+        "action": "attachment_added",
+        "timestamp": "2025-05-01T10:35:00+09:00",
+        "actor": {
+          "id": "user-301",
+          "name": "鈴木一郎"
+        },
+        "changes": {
+          "attachment": {
+            "id": "attach-101",
+            "name": "案件概要書.pdf"
+          }
+        },
+        "comment": "案件概要書を添付"
+      },
+      {
+        "id": "hist-100",
+        "action": "created",
+        "timestamp": "2025-05-01T10:30:00+09:00",
+        "actor": {
+          "id": "user-301",
+          "name": "鈴木一郎"
+        },
+        "changes": {},
+        "comment": "案件新規作成"
+      }
+    ],
+    "meta": {
+      "total_count": 6,
+      "offset": 0,
+      "limit": 50
+    }
+  }
+}</code></pre>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>リソースが見つからない (404 Not Found)</h5>
+                <pre><code>{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定された案件が見つかりません。",
+    "details": []
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:read 権限が必要</li>
+                <li>所属部署や担当顧客によるアクセス制限がある場合あり</li>
+            </ul>
+        </div>
+        
+        <div class="endpoint">
+            <h3>3.4 案件の添付資料一覧取得</h3>
+            <p><span class="api-method get">GET</span> <code>/api/v1/projects/{id}/attachments</code></p>
+            <p>指定された案件に添付されている資料の一覧を取得します。</p>
+            
+            <h4>パスパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                </tr>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td>案件ID</td>
+                    <td>Yes</td>
+                </tr>
+            </table>
+            
+            <h4>クエリパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                    <th>デフォルト値</th>
+                </tr>
+                <tr>
+                    <td>file_types</td>
+                    <td>string (comma separated)</td>
+                    <td>ファイルタイプでフィルタリング（pdf,image,document,spreadsheet）</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>sort</td>
+                    <td>string</td>
+                    <td>ソート条件（uploaded_at:desc/asc, name:asc/desc）</td>
+                    <td>No</td>
+                    <td>uploaded_at:desc</td>
+                </tr>
+            </table>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (200 OK)</h5>
+                <pre><code>{
+  "data": {
+    "project_id": "proj-001",
+    "attachments": [
+      {
+        "id": "attach-102",
+        "name": "契約書ドラフト.pdf",
+        "size": 3145728,
+        "content_type": "application/pdf",
+        "file_type": "pdf",
+        "url": "/api/v1/projects/proj-001/attachments/attach-102",
+        "thumbnail_url": "/api/v1/projects/proj-001/attachments/attach-102/thumbnail",
+        "uploaded_at": "2025-05-25T11:15:00+09:00",
+        "uploaded_by": {
+          "id": "user-301",
+          "name": "鈴木一郎"
+        },
+        "description": "契約書ドラフトv1",
+        "version": "1.0",
+        "is_public": false
+      },
+      {
+        "id": "attach-101",
+        "name": "案件概要書.pdf",
+        "size": 2459648,
+        "content_type": "application/pdf",
+        "file_type": "pdf",
+        "url": "/api/v1/projects/proj-001/attachments/attach-101",
+        "thumbnail_url": "/api/v1/projects/proj-001/attachments/attach-101/thumbnail",
+        "uploaded_at": "2025-05-01T10:35:00+09:00",
+        "uploaded_by": {
+          "id": "user-301",
+          "name": "鈴木一郎"
+        },
+        "description": "案件の概要とスコープを記載",
+        "version": "1.0",
+        "is_public": true
+      }
+    ]
+  }
+}</code></pre>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>リソースが見つからない (404 Not Found)</h5>
+                <pre><code>{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定された案件が見つかりません。",
+    "details": []
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:read 権限が必要</li>
+                <li>所属部署や担当顧客によるアクセス制限がある場合あり</li>
+                <li>非公開（is_public: false）の添付資料は、より高い権限が必要な場合あり</li>
+            </ul>
+        </div>
+        
+        <div class="endpoint">
+            <h3>3.5 案件の添付資料追加</h3>
+            <p><span class="api-method post">POST</span> <code>/api/v1/projects/{id}/attachments</code></p>
+            <p>指定された案件に新しい添付資料を追加します。multipart/form-dataを使用してファイルをアップロードします。</p>
+            
+            <h4>パスパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                </tr>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td>案件ID</td>
+                    <td>Yes</td>
+                </tr>
+            </table>
+            
+            <h4>フォームパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                </tr>
+                <tr>
+                    <td>file</td>
+                    <td>file</td>
+                    <td>アップロードするファイル</td>
+                    <td>Yes</td>
+                </tr>
+                <tr>
+                    <td>description</td>
+                    <td>string</td>
+                    <td>ファイルの説明</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <td>version</td>
+                    <td>string</td>
+                    <td>ファイルのバージョン情報</td>
+                    <td>No</td>
+                </tr>
+                <tr>
+                    <td>is_public</td>
+                    <td>boolean</td>
+                    <td>公開ファイルかどうか</td>
+                    <td>No</td>
+                </tr>
+            </table>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (201 Created)</h5>
+                <pre><code>{
+  "data": {
+    "id": "attach-103",
+    "name": "技術仕様書.docx",
+    "size": 1572864,
+    "content_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "file_type": "document",
+    "url": "/api/v1/projects/proj-001/attachments/attach-103",
+    "thumbnail_url": "/api/v1/projects/proj-001/attachments/attach-103/thumbnail",
+    "uploaded_at": "2025-06-20T15:45:00+09:00",
+    "uploaded_by": {
+      "id": "user-301",
+      "name": "鈴木一郎"
+    },
+    "description": "技術要件詳細仕様書",
+    "version": "1.0",
+    "is_public": true,
+    "project": {
+      "id": "proj-001",
+      "name": "次世代ECサイト開発プロジェクト"
+    }
+  }
+}</code></pre>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>バリデーションエラー (400 Bad Request)</h5>
+                <pre><code>{
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "ファイルアップロードに失敗しました。",
+    "details": [
+      {
+        "field": "file",
+        "message": "ファイルサイズは10MB以下である必要があります。"
+      }
+    ]
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:update 権限が必要</li>
+                <li>案件作成者・案件担当者または管理者権限を持つユーザーのみアップロード可能</li>
+            </ul>
+        </div>
+        
+        <div class="endpoint">
+            <h3>3.6 案件の添付資料削除</h3>
+            <p><span class="api-method delete">DELETE</span> <code>/api/v1/projects/{id}/attachments/{attachmentId}</code></p>
+            <p>指定された案件の特定の添付資料を削除します。</p>
+            
+            <h4>パスパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                </tr>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td>案件ID</td>
+                    <td>Yes</td>
+                </tr>
+                <tr>
+                    <td>attachmentId</td>
+                    <td>string</td>
+                    <td>添付資料ID</td>
+                    <td>Yes</td>
+                </tr>
+            </table>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (204 No Content)</h5>
+                <p>レスポンスボディなし</p>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>リソースが見つからない (404 Not Found)</h5>
+                <pre><code>{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定された添付資料が見つかりません。",
+    "details": []
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:update 権限が必要</li>
+                <li>基本的に添付資料をアップロードしたユーザーまたは管理者のみ削除可能</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>4. 添付資料管理に関する追加情報</h2>
+        
+        <h3>4.1 サポートされるファイル形式</h3>
+        <p>案件添付資料としてサポートされる主なファイル形式は以下の通りです：</p>
+        <table>
+            <tr>
+                <th>ファイルタイプ</th>
+                <th>拡張子</th>
+                <th>MIME タイプ</th>
+            </tr>
+            <tr>
+                <td>PDF</td>
+                <td>.pdf</td>
+                <td>application/pdf</td>
+            </tr>
+            <tr>
+                <td>Word文書</td>
+                <td>.doc, .docx</td>
+                <td>application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document</td>
+            </tr>
+            <tr>
+                <td>Excel表計算</td>
+                <td>.xls, .xlsx</td>
+                <td>application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</td>
+            </tr>
+            <tr>
+                <td>PowerPoint</td>
+                <td>.ppt, .pptx</td>
+                <td>application/vnd.ms-powerpoint, application/vnd.openxmlformats-officedocument.presentationml.presentation</td>
+            </tr>
+            <tr>
+                <td>テキスト</td>
+                <td>.txt</td>
+                <td>text/plain</td>
+            </tr>
+            <tr>
+                <td>画像</td>
+                <td>.jpg, .jpeg, .png, .gif</td>
+                <td>image/jpeg, image/png, image/gif</td>
+            </tr>
+            <tr>
+                <td>圧縮ファイル</td>
+                <td>.zip</td>
+                <td>application/zip</td>
+            </tr>
+        </table>
+        
+        <h3>4.2 ファイルサイズ制限</h3>
+        <p>添付ファイルには以下のサイズ制限があります：</p>
+        <ul>
+            <li>最大ファイルサイズ: 10MB</li>
+            <li>一案件あたりの合計ファイルサイズ: 50MB</li>
+        </ul>
+        
+        <h3>4.3 添付ファイルのセキュリティ</h3>
+        <p>添付ファイルのセキュリティについては以下の点に注意してください：</p>
+        <ul>
+            <li>全てのファイルはアップロード時にウイルススキャンが実施されます</li>
+            <li>非公開（is_public: false）に設定されたファイルは、限られたユーザーのみアクセス可能です</li>
+            <li>添付資料のダウンロードには認証と適切な権限が必要です</li>
+            <li>全てのファイルアクセスはログに記録されます</li>
+        </ul>
+    </div>
+    
+    <div class="note">
+        <p><strong>注意：</strong> 添付資料には機密情報や個人情報を含む場合があります。適切なアクセス制御と取り扱いに注意してください。また、大きなファイルをアップロードする場合は、接続環境によっては時間がかかる場合があります。</p>
+    </div>
+    
+    <div class="navigation">
+        <a href="../案件管理API.html">← 案件管理API概要へ戻る</a>
+        <a href="03_案件ステータス管理API.html">← 前へ：案件ステータス管理API</a>
+    </div>
+    
+    <footer>
+        <p>SES業務システム 案件関連情報API設計 | 作成日: 2025年5月4日</p>
+    </footer>
+</body>
+</html>

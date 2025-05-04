@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>契約管理API 設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 5px;
+        }
+        code {
+            background-color: #f8f8f8;
+            border-radius: 3px;
+            padding: 2px 5px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 10px;
+            overflow-x: auto;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .endpoint {
+            margin-bottom: 30px;
+        }
+        .http-method {
+            display: inline-block;
+            padding: 3px 6px;
+            border-radius: 3px;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .http-method.get {
+            background-color: #61affe;
+        }
+        .http-method.post {
+            background-color: #49cc90;
+        }
+        .http-method.put {
+            background-color: #fca130;
+        }
+        .http-method.delete {
+            background-color: #f93e3e;
+        }
+        .path {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+        }
+        .toc {
+            background-color: #f8f8f8;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .toc ul {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>契約管理API 設計書</h1>
+    
+    <div class="toc">
+        <h2>目次</h2>
+        <ul>
+            <li><a href="#overview">1. 概要</a></li>
+            <li><a href="#base-path">2. ベースパス</a></li>
+            <li><a href="#design-policy">3. 基本設計方針</a></li>
+            <li><a href="#data-structure">4. 契約データの基本構造</a></li>
+            <li><a href="#api-modules">5. API機能モジュール</a>
+                <ul>
+                    <li><a href="契約管理/01_契約基本API.html">5.1 契約基本API</a></li>
+                    <li><a href="契約管理/02_契約書ドキュメントAPI.html">5.2 契約書ドキュメントAPI</a></li>
+                    <li><a href="契約管理/03_電子署名API.html">5.3 電子署名API</a></li>
+                    <li><a href="契約管理/04_契約テンプレートAPI.html">5.4 契約テンプレートAPI</a></li>
+                </ul>
+            </li>
+            <li><a href="#auth">6. 認証・認可</a></li>
+            <li><a href="#errors">7. エラーハンドリング</a></li>
+        </ul>
+    </div>
+
+    <h2 id="overview">1. 概要</h2>
+    <p>
+        契約管理APIは、SES業務システムにおける契約管理機能を提供するRESTful APIです。このAPIを通じて、契約の作成、更新、削除、契約書の生成・管理、電子署名の処理、
+        契約テンプレートの管理など、SES事業における契約に関わる一連の業務をプログラマティックに操作することが可能です。
+    </p>
+    <p>
+        本APIは、フロントエンドアプリケーションからの呼び出しに加え、他のマイクロサービスとの連携も考慮した設計となっており、
+        案件管理や技術者管理、請求・支払管理などのサブシステムと密接に連携して動作します。
+    </p>
+
+    <h2 id="base-path">2. ベースパス</h2>
+    <p>
+        すべての契約管理APIは以下のベースパスから始まります：
+    </p>
+    <pre><code>/api/v1/contracts</code></pre>
+
+    <h2 id="design-policy">3. 基本設計方針</h2>
+    <p>
+        契約管理APIは以下の設計方針に基づいて実装されています：
+    </p>
+    <ul>
+        <li><strong>REST原則準拠</strong>: リソース指向の設計、適切なHTTPメソッドの使用、ステートレス通信</li>
+        <li><strong>JSON形式</strong>: すべてのリクエスト/レスポンスはJSON形式で行われます</li>
+        <li><strong>バージョニング</strong>: APIパスにバージョン番号を含め、後方互換性を確保</li>
+        <li><strong>認証・認可</strong>: JWTベースの認証と役割ベースのアクセス制御（RBAC）</li>
+        <li><strong>監査ログ</strong>: すべての契約操作は監査可能な形で記録</li>
+        <li><strong>HATEOAS対応</strong>: リソース間のナビゲーション用にハイパーメディアリンクの提供</li>
+        <li><strong>部分更新</strong>: リソースの部分的な更新のためのJSONパッチサポート</li>
+        <li><strong>分割設計</strong>: 機能領域ごとにエンドポイントを分割し、関心の分離を実現</li>
+    </ul>
+
+    <h2 id="data-structure">4. 契約データの基本構造</h2>
+    <p>
+        契約リソースは以下の基本構造を持ちます：
+    </p>
+    <pre><code>{
+  "id": "string",                  // 契約ID
+  "contractNumber": "string",      // 契約番号
+  "status": "string",              // 契約ステータス（draft, pending_signature, active, expired, terminated, etc）
+  "title": "string",               // 契約タイトル
+  "description": "string",         // 契約概要
+  "startDate": "string",           // 契約開始日 (ISO 8601)
+  "endDate": "string",             // 契約終了日 (ISO 8601)
+  "clientId": "string",            // クライアント（発注企業）ID
+  "clientName": "string",          // クライアント名
+  "vendorId": "string",            // ベンダー（受注企業）ID
+  "vendorName": "string",          // ベンダー名
+  "engineerId": "string",          // 対象技術者ID
+  "engineerName": "string",        // 対象技術者名
+  "projectId": "string",           // 関連案件ID
+  "projectName": "string",         // 関連案件名
+  "contractType": "string",        // 契約タイプ（業務委託, 派遣, 紹介予定派遣, etc）
+  "billingInfo": {                 // 請求情報
+    "amount": "number",            // 金額
+    "currency": "string",          // 通貨コード
+    "billingCycle": "string",      // 請求サイクル（monthly, weekly, etc）
+    "paymentTerms": "number"       // 支払い条件（支払期日日数）
+  },
+  "workConditions": {              // 勤務条件
+    "location": "string",          // 勤務地
+    "workingHours": "string",      // 勤務時間
+    "holidays": "string"           // 休日
+  },
+  "documentId": "string",          // 関連契約書ドキュメントID
+  "templateId": "string",          // 使用されたテンプレートID
+  "signatures": [                  // 署名情報
+    {
+      "partyId": "string",         // 署名者（企業または個人）ID
+      "partyName": "string",       // 署名者名
+      "status": "string",          // 署名ステータス
+      "signedAt": "string",        // 署名日時
+      "signatureId": "string"      // 署名ID
+    }
+  ],
+  "metadata": {                    // メタデータ
+    "createdBy": "string",         // 作成者
+    "createdAt": "string",         // 作成日時
+    "updatedBy": "string",         // 更新者
+    "updatedAt": "string"          // 更新日時
+  },
+  "_links": {                      // HATEOAS リンク
+    "self": { "href": "/api/v1/contracts/{id}" },
+    "document": { "href": "/api/v1/contracts/{id}/document" },
+    "signatures": { "href": "/api/v1/contracts/{id}/signatures" },
+    "history": { "href": "/api/v1/contracts/{id}/history" }
+  }
+}</code></pre>
+
+    <h2 id="api-modules">5. API機能モジュール</h2>
+    <p>
+        契約管理APIは以下の機能モジュールに分かれています。各モジュールの詳細は関連ドキュメントを参照してください。
+    </p>
+    <ul>
+        <li><a href="契約管理/01_契約基本API.html"><strong>契約基本API</strong></a> - 契約の基本的なCRUD操作と検索機能</li>
+        <li><a href="契約管理/02_契約書ドキュメントAPI.html"><strong>契約書ドキュメントAPI</strong></a> - 契約書の生成、取得、プレビュー、アップロード機能</li>
+        <li><a href="契約管理/03_電子署名API.html"><strong>電子署名API</strong></a> - 電子署名プロセスの管理と追跡</li>
+        <li><a href="契約管理/04_契約テンプレートAPI.html"><strong>契約テンプレートAPI</strong></a> - 契約テンプレートの管理</li>
+    </ul>
+
+    <h2 id="auth">6. 認証・認可</h2>
+    <p>
+        すべての契約管理APIエンドポイントは認証が必要です。アクセストークンは、認証ヘッダーのBearer方式で提供する必要があります。
+    </p>
+    <pre><code>Authorization: Bearer {access_token}</code></pre>
+    <p>
+        各エンドポイントには、アクセスするために必要なロール・権限が定義されています。詳細は各APIの詳細ドキュメントを参照してください。
+    </p>
+    <p>
+        主な権限ロール：
+    </p>
+    <ul>
+        <li><code>contract:read</code> - 契約情報の閲覧権限</li>
+        <li><code>contract:write</code> - 契約情報の作成・更新権限</li>
+        <li><code>contract:delete</code> - 契約情報の削除権限</li>
+        <li><code>contract:sign</code> - 契約の署名権限</li>
+        <li><code>template:read</code> - テンプレートの閲覧権限</li>
+        <li><code>template:write</code> - テンプレートの作成・更新権限</li>
+        <li><code>admin</code> - すべての操作に対する権限</li>
+    </ul>
+
+    <h2 id="errors">7. エラーハンドリング</h2>
+    <p>
+        APIは適切なHTTPステータスコードとともに、一貫した形式のエラーレスポンスを返します。
+    </p>
+    <pre><code>{
+  "error": {
+    "code": "string",           // エラーコード
+    "message": "string",        // 人間可読なエラーメッセージ
+    "details": [ ... ],         // 詳細エラー情報（オプション）
+    "timestamp": "string",      // エラー発生時刻
+    "path": "string"            // エラーが発生したリクエストパス
+  }
+}</code></pre>
+    <p>
+        主なHTTPステータスコード：
+    </p>
+    <table>
+        <tr>
+            <th>ステータスコード</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>200 OK</td>
+            <td>リクエストが成功し、レスポンスボディに結果が含まれる</td>
+        </tr>
+        <tr>
+            <td>201 Created</td>
+            <td>リソースが正常に作成された</td>
+        </tr>
+        <tr>
+            <td>204 No Content</td>
+            <td>リクエストが成功したが、返すべきコンテンツがない</td>
+        </tr>
+        <tr>
+            <td>400 Bad Request</td>
+            <td>リクエストの形式が不正</td>
+        </tr>
+        <tr>
+            <td>401 Unauthorized</td>
+            <td>認証が必要または認証が失敗</td>
+        </tr>
+        <tr>
+            <td>403 Forbidden</td>
+            <td>認証済みだが、操作の権限がない</td>
+        </tr>
+        <tr>
+            <td>404 Not Found</td>
+            <td>リクエストされたリソースが存在しない</td>
+        </tr>
+        <tr>
+            <td>409 Conflict</td>
+            <td>リソースの状態が操作と競合している</td>
+        </tr>
+        <tr>
+            <td>422 Unprocessable Entity</td>
+            <td>リクエストの形式は正しいが、意味的に処理できない</td>
+        </tr>
+        <tr>
+            <td>500 Internal Server Error</td>
+            <td>サーバー内部エラー</td>
+        </tr>
+    </table>
+    
+</body>
+</html>

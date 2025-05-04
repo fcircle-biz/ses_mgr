@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>案件ステータス管理API設計 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 30px;
+            margin-bottom: 10px;
+        }
+        h1 {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            margin-bottom: 30px;
+        }
+        .section {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #e74c3c;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Monaco, Consolas, 'Courier New', monospace;
+            font-size: 0.9em;
+            border-left: 3px solid #3498db;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .api-method {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 3px;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+            min-width: 60px;
+            text-align: center;
+        }
+        .get {
+            background-color: #61affe;
+        }
+        .post {
+            background-color: #49cc90;
+        }
+        .put {
+            background-color: #fca130;
+        }
+        .patch {
+            background-color: #50e3c2;
+        }
+        .delete {
+            background-color: #f93e3e;
+        }
+        .endpoint {
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .response-example, .request-example {
+            margin: 15px 0;
+        }
+        .note {
+            background-color: #fffde7;
+            padding: 15px;
+            border-left: 4px solid #ffd600;
+            margin: 20px 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        .navigation {
+            margin: 20px 0;
+        }
+        .navigation a {
+            display: inline-block;
+            margin-right: 15px;
+            color: #3498db;
+            text-decoration: none;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+        .status-flow {
+            width: 100%;
+            max-width: 800px;
+            margin: 30px auto;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>案件ステータス管理API設計</h1>
+    
+    <div class="navigation">
+        <a href="../案件管理API.html">← 案件管理API概要へ戻る</a>
+        <a href="02_案件検索API.html">← 前へ：案件検索API</a>
+        <a href="04_案件関連情報API.html">次へ：案件関連情報API →</a>
+    </div>
+
+    <div class="section">
+        <h2>1. 概要</h2>
+        <p>案件ステータス管理APIは、SES業務システムにおける案件のライフサイクル管理を実現するためのインターフェースを提供します。案件のステータス変更、ステータス履歴の取得、有効なステータス遷移の確認などの機能を提供します。</p>
+        
+        <h3>1.1 案件ステータスの種類</h3>
+        <table>
+            <tr>
+                <th>ステータス</th>
+                <th>説明</th>
+                <th>遷移可能なステータス</th>
+            </tr>
+            <tr>
+                <td>draft</td>
+                <td>案件情報作成中（下書き状態）</td>
+                <td>open, cancelled</td>
+            </tr>
+            <tr>
+                <td>open</td>
+                <td>公開中（技術者募集中）</td>
+                <td>in_progress, on_hold, cancelled</td>
+            </tr>
+            <tr>
+                <td>in_progress</td>
+                <td>進行中（契約成立・稼働中）</td>
+                <td>on_hold, completed</td>
+            </tr>
+            <tr>
+                <td>on_hold</td>
+                <td>一時停止中</td>
+                <td>open, in_progress, cancelled</td>
+            </tr>
+            <tr>
+                <td>completed</td>
+                <td>完了（案件終了）</td>
+                <td>-</td>
+            </tr>
+            <tr>
+                <td>cancelled</td>
+                <td>キャンセル（案件中止）</td>
+                <td>-</td>
+            </tr>
+        </table>
+        
+        <h3>1.2 ステータスフロー</h3>
+        <div class="status-flow">
+            <pre><code>
+      +--------+      +------+      +-------------+      +------------+
+      |        |      |      |      |             |      |            |
+ +--->| draft  |----->| open |----->| in_progress |----->| completed  |
+ |    |        |      |      |      |             |      |            |
+ |    +--------+      +------+      +-------------+      +------------+
+ |        |              |                 |
+ |        |              |                 |
+ |        v              v                 v
+ |    +------------+  +--------+  +--------+
+ |    |            |  |        |  |        |
+ +----|  cancelled |<-| on_hold |<-+        |
+      |            |  |        |
+      +------------+  +--------+</code></pre>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>2. エンドポイント一覧</h2>
+        <table>
+            <tr>
+                <th>HTTPメソッド</th>
+                <th>エンドポイント</th>
+                <th>説明</th>
+                <th>必要権限</th>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td>/api/v1/projects/{id}/status</td>
+                <td>案件ステータス履歴の取得</td>
+                <td>projects:read</td>
+            </tr>
+            <tr>
+                <td>POST</td>
+                <td>/api/v1/projects/{id}/status</td>
+                <td>案件ステータスの変更</td>
+                <td>projects:update_status</td>
+            </tr>
+            <tr>
+                <td>GET</td>
+                <td>/api/v1/projects/status/transitions</td>
+                <td>有効なステータス遷移の取得</td>
+                <td>projects:read</td>
+            </tr>
+        </table>
+    </div>
+    
+    <div class="section">
+        <h2>3. 各エンドポイントの詳細</h2>
+        
+        <div class="endpoint">
+            <h3>3.1 案件ステータス履歴の取得</h3>
+            <p><span class="api-method get">GET</span> <code>/api/v1/projects/{id}/status</code></p>
+            <p>指定された案件のステータス履歴を取得します。ステータス変更の日時、実行者、コメントなどが含まれます。</p>
+            
+            <h4>パスパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                </tr>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td>案件ID</td>
+                    <td>Yes</td>
+                </tr>
+            </table>
+            
+            <h4>クエリパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                    <th>デフォルト値</th>
+                </tr>
+                <tr>
+                    <td>limit</td>
+                    <td>number</td>
+                    <td>取得する履歴の最大件数</td>
+                    <td>No</td>
+                    <td>20</td>
+                </tr>
+                <tr>
+                    <td>offset</td>
+                    <td>number</td>
+                    <td>取得開始位置</td>
+                    <td>No</td>
+                    <td>0</td>
+                </tr>
+            </table>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (200 OK)</h5>
+                <pre><code>{
+  "data": {
+    "project_id": "proj-001",
+    "current_status": "in_progress",
+    "history": [
+      {
+        "id": "status-hist-003",
+        "from": "open",
+        "to": "in_progress",
+        "timestamp": "2025-06-15T09:30:00+09:00",
+        "actor": {
+          "id": "user-301",
+          "name": "鈴木一郎"
+        },
+        "comment": "契約締結完了のため進行中ステータスに更新",
+        "related_entities": [
+          {
+            "type": "contract",
+            "id": "contract-123",
+            "name": "ECサイト開発契約"
+          }
+        ]
+      },
+      {
+        "id": "status-hist-002",
+        "from": "draft",
+        "to": "open",
+        "timestamp": "2025-05-20T14:45:00+09:00",
+        "actor": {
+          "id": "user-301",
+          "name": "鈴木一郎"
+        },
+        "comment": "案件内容確定のため公開ステータスへ変更",
+        "related_entities": []
+      },
+      {
+        "id": "status-hist-001",
+        "from": null,
+        "to": "draft",
+        "timestamp": "2025-05-01T10:30:00+09:00",
+        "actor": {
+          "id": "user-301",
+          "name": "鈴木一郎"
+        },
+        "comment": "案件新規作成",
+        "related_entities": []
+      }
+    ],
+    "meta": {
+      "total_count": 3,
+      "offset": 0,
+      "limit": 20
+    }
+  }
+}</code></pre>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>リソースが見つからない (404 Not Found)</h5>
+                <pre><code>{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定された案件が見つかりません。",
+    "details": []
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:read 権限が必要</li>
+                <li>所属部署や担当顧客によるアクセス制限がある場合あり</li>
+            </ul>
+        </div>
+        
+        <div class="endpoint">
+            <h3>3.2 案件ステータスの変更</h3>
+            <p><span class="api-method post">POST</span> <code>/api/v1/projects/{id}/status</code></p>
+            <p>指定された案件のステータスを変更します。ステータス変更時には遷移可能なステータスかどうかの検証が行われます。</p>
+            
+            <h4>パスパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                </tr>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td>案件ID</td>
+                    <td>Yes</td>
+                </tr>
+            </table>
+            
+            <h4>リクエストボディ</h4>
+            <div class="request-example">
+                <pre><code>{
+  "status": "in_progress",
+  "comment": "契約成立により進行中ステータスに変更",
+  "related_entities": [
+    {
+      "type": "contract",
+      "id": "contract-123"
+    }
+  ],
+  "force": false,
+  "notify_stakeholders": true
+}</code></pre>
+            </div>
+            
+            <h4>リクエストパラメータ詳細</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                    <th>デフォルト値</th>
+                </tr>
+                <tr>
+                    <td>status</td>
+                    <td>string</td>
+                    <td>変更先ステータス</td>
+                    <td>Yes</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>comment</td>
+                    <td>string</td>
+                    <td>変更理由・コメント</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>related_entities</td>
+                    <td>object[]</td>
+                    <td>関連エンティティ情報</td>
+                    <td>No</td>
+                    <td>[]</td>
+                </tr>
+                <tr>
+                    <td>force</td>
+                    <td>boolean</td>
+                    <td>通常遷移条件を無視して強制的に変更する（管理者のみ）</td>
+                    <td>No</td>
+                    <td>false</td>
+                </tr>
+                <tr>
+                    <td>notify_stakeholders</td>
+                    <td>boolean</td>
+                    <td>ステークホルダーに通知するか</td>
+                    <td>No</td>
+                    <td>true</td>
+                </tr>
+            </table>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (200 OK)</h5>
+                <pre><code>{
+  "data": {
+    "id": "proj-001",
+    "status": "in_progress",
+    "previous_status": "open",
+    "updated_at": "2025-06-15T09:30:00+09:00",
+    "updated_by": {
+      "id": "user-301",
+      "name": "鈴木一郎"
+    },
+    "comment": "契約成立により進行中ステータスに変更",
+    "related_entities": [
+      {
+        "type": "contract",
+        "id": "contract-123",
+        "name": "ECサイト開発契約",
+        "url": "/api/v1/contracts/contract-123"
+      }
+    ],
+    "notified_stakeholders": [
+      {
+        "id": "user-102",
+        "name": "佐藤次郎",
+        "notified_at": "2025-06-15T09:30:05+09:00"
+      },
+      {
+        "id": "user-103",
+        "name": "田中花子",
+        "notified_at": "2025-06-15T09:30:05+09:00"
+      }
+    ],
+    "required_approvals": []
+  }
+}</code></pre>
+            </div>
+            
+            <h4>エラーレスポンス</h4>
+            <div class="response-example">
+                <h5>ビジネスルールエラー (422 Unprocessable Entity)</h5>
+                <pre><code>{
+  "error": {
+    "code": "INVALID_STATUS_TRANSITION",
+    "message": "現在のステータス 'draft' から 'completed' への変更は許可されていません。",
+    "details": [
+      {
+        "field": "status",
+        "message": "有効なステータス遷移: draft -> open, draft -> cancelled"
+      }
+    ]
+  }
+}</code></pre>
+            </div>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:update_status 権限が必要</li>
+                <li>一部のステータス変更（例：完了への変更）は上位権限が必要な場合あり</li>
+                <li>force パラメータを使用するには管理者権限が必要</li>
+            </ul>
+        </div>
+        
+        <div class="endpoint">
+            <h3>3.3 有効なステータス遷移の取得</h3>
+            <p><span class="api-method get">GET</span> <code>/api/v1/projects/status/transitions</code></p>
+            <p>案件ステータス間の有効な遷移ルールを取得します。案件ステータスのワークフロー管理に使用します。</p>
+            
+            <h4>クエリパラメータ</h4>
+            <table>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>説明</th>
+                    <th>必須</th>
+                    <th>デフォルト値</th>
+                </tr>
+                <tr>
+                    <td>from_status</td>
+                    <td>string</td>
+                    <td>遷移元ステータス（指定した場合、そのステータスから遷移可能なステータスのみ返却）</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>to_status</td>
+                    <td>string</td>
+                    <td>遷移先ステータス（指定した場合、そのステータスへ遷移可能なステータスのみ返却）</td>
+                    <td>No</td>
+                    <td>-</td>
+                </tr>
+            </table>
+            
+            <h4>レスポンス</h4>
+            <div class="response-example">
+                <h5>成功時 (200 OK)</h5>
+                <pre><code>{
+  "data": {
+    "statuses": [
+      {
+        "id": "draft",
+        "name": "下書き",
+        "description": "案件情報作成中（下書き状態）",
+        "transitions_to": ["open", "cancelled"]
+      },
+      {
+        "id": "open",
+        "name": "公開中",
+        "description": "公開中（技術者募集中）",
+        "transitions_to": ["in_progress", "on_hold", "cancelled"]
+      },
+      {
+        "id": "in_progress",
+        "name": "進行中",
+        "description": "進行中（契約成立・稼働中）",
+        "transitions_to": ["on_hold", "completed"]
+      },
+      {
+        "id": "on_hold",
+        "name": "一時停止中",
+        "description": "一時停止中",
+        "transitions_to": ["open", "in_progress", "cancelled"]
+      },
+      {
+        "id": "completed",
+        "name": "完了",
+        "description": "完了（案件終了）",
+        "transitions_to": []
+      },
+      {
+        "id": "cancelled",
+        "name": "キャンセル",
+        "description": "キャンセル（案件中止）",
+        "transitions_to": []
+      }
+    ],
+    "transition_rules": [
+      {
+        "from": "draft",
+        "to": "open",
+        "conditions": [
+          {
+            "field": "required_fields",
+            "description": "必須項目がすべて入力されていること"
+          },
+          {
+            "field": "approval",
+            "description": "部門管理者の承認が必要"
+          }
+        ]
+      },
+      {
+        "from": "open",
+        "to": "in_progress",
+        "conditions": [
+          {
+            "field": "contract",
+            "description": "有効な契約が存在すること"
+          }
+        ]
+      },
+      // その他の遷移ルール...
+    ]
+  }
+}</code></pre>
+            </div>
+            
+            <h5>from_statusパラメータ指定時のレスポンス例</h5>
+            <pre><code>{
+  "data": {
+    "status": {
+      "id": "open",
+      "name": "公開中",
+      "description": "公開中（技術者募集中）"
+    },
+    "possible_transitions": [
+      {
+        "to": "in_progress",
+        "name": "進行中",
+        "description": "進行中（契約成立・稼働中）",
+        "conditions": [
+          {
+            "field": "contract",
+            "description": "有効な契約が存在すること"
+          }
+        ]
+      },
+      {
+        "to": "on_hold",
+        "name": "一時停止中",
+        "description": "一時停止中",
+        "conditions": []
+      },
+      {
+        "to": "cancelled",
+        "name": "キャンセル",
+        "description": "キャンセル（案件中止）",
+        "conditions": []
+      }
+    ]
+  }
+}</code></pre>
+            
+            <h4>アクセス権限要件</h4>
+            <ul>
+                <li>projects:read 権限が必要</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>4. ステータス変更に関する追加情報</h2>
+        
+        <h3>4.1 自動化されたステータス変更</h3>
+        <p>一部のステータス変更は、システムイベントによって自動的にトリガーされることがあります：</p>
+        <ul>
+            <li><strong>契約締結時</strong>：契約が締結されると、対応する案件のステータスが自動的に「in_progress」に変更される場合があります。</li>
+            <li><strong>期間終了時</strong>：案件の終了日に達した場合、所定の条件を満たせば自動的に「completed」ステータスに変更されることがあります。</li>
+            <li><strong>契約キャンセル時</strong>：関連する契約がキャンセルされた場合、案件ステータスも連動して変更される場合があります。</li>
+        </ul>
+        
+        <h3>4.2 承認ワークフロー</h3>
+        <p>特定のステータス変更には承認プロセスが必要な場合があります：</p>
+        <ul>
+            <li><strong>draft から open への変更</strong>：部門責任者または案件管理者の承認が必要な場合があります。</li>
+            <li><strong>in_progress から completed への変更</strong>：顧客担当者の確認と部門責任者の承認が必要な場合があります。</li>
+        </ul>
+        <p>承認が必要な場合、ステータス変更リクエストは即時に完了せず、承認待ちの状態になります。承認プロセスは別途、承認管理APIを通じて処理されます。</p>
+        
+        <h3>4.3 ステータス関連の通知</h3>
+        <p>ステータス変更時には、関連するステークホルダーに通知が送信されます：</p>
+        <ul>
+            <li>案件担当者</li>
+            <li>部門責任者</li>
+            <li>割り当てられた技術者</li>
+            <li>顧客担当者（特定のステータス変更時）</li>
+        </ul>
+        <p><code>notify_stakeholders</code>パラメータを<code>false</code>に設定することで、通知送信を無効化することができます。</p>
+    </div>
+    
+    <div class="note">
+        <p><strong>注意：</strong> ステータス変更は案件のライフサイクル管理において重要なプロセスです。無効なステータス変更を防ぐため、クライアントアプリケーションは<code>/api/v1/projects/status/transitions</code>エンドポイントを使用して、現在のステータスから遷移可能なステータスのみをユーザーに提示することをおすすめします。</p>
+    </div>
+    
+    <div class="navigation">
+        <a href="../案件管理API.html">← 案件管理API概要へ戻る</a>
+        <a href="02_案件検索API.html">← 前へ：案件検索API</a>
+        <a href="04_案件関連情報API.html">次へ：案件関連情報API →</a>
+    </div>
+    
+    <footer>
+        <p>SES業務システム 案件ステータス管理API設計 | 作成日: 2025年5月4日</p>
+    </footer>
+</body>
+</html>

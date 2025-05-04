@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPIダッシュボードAPI</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 4px;
+            overflow: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .endpoint {
+            margin-bottom: 30px;
+        }
+        .endpoint h3 {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-left: 4px solid #2c3e50;
+        }
+        .method {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            color: white;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .get { background-color: #61affe; }
+        .post { background-color: #49cc90; }
+        .put { background-color: #fca130; }
+        .delete { background-color: #f93e3e; }
+        .patch { background-color: #50e3c2; }
+    </style>
+</head>
+<body>
+    <h1>KPIダッシュボードAPI</h1>
+    
+    <p>
+        KPIダッシュボードAPIは、SES業務の主要業績評価指標（KPI）を取得・管理するためのインターフェースを提供します。
+        このAPIを通じて、ダッシュボード上に表示するKPI指標のデータを取得したり、ダッシュボードの設定を管理したりすることができます。
+    </p>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/dashboard/kpi</h3>
+        <p><strong>説明：</strong> 設定されているすべてのKPI指標のリストと最新の値を取得します。</p>
+        
+        <h4>リクエストパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>場所</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>period</td>
+                <td>query</td>
+                <td>string</td>
+                <td>No</td>
+                <td>KPI算出期間（daily, weekly, monthly, quarterly, annual）。デフォルトはmonthly</td>
+            </tr>
+            <tr>
+                <td>date</td>
+                <td>query</td>
+                <td>string</td>
+                <td>No</td>
+                <td>KPI算出基準日。デフォルトは当日</td>
+            </tr>
+            <tr>
+                <td>category</td>
+                <td>query</td>
+                <td>string</td>
+                <td>No</td>
+                <td>KPIカテゴリ（sales, profit, utilization, growth, etc.）</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": "monthly",
+    "date": "2023-05-01"
+  },
+  "data": [
+    {
+      "id": "sales_total",
+      "name": "総売上",
+      "category": "sales",
+      "value": 15000000,
+      "unit": "円",
+      "trend": "up",
+      "changeRate": 0.05,
+      "target": 16000000,
+      "targetAchievement": 0.9375,
+      "lastUpdated": "2023-05-01T00:00:00Z",
+      "links": {
+        "details": "/api/v1/reports/dashboard/kpi/sales_total"
+      }
+    },
+    {
+      "id": "profit_margin",
+      "name": "粗利率",
+      "category": "profit",
+      "value": 0.28,
+      "unit": "%",
+      "trend": "stable",
+      "changeRate": 0.01,
+      "target": 0.3,
+      "targetAchievement": 0.93,
+      "lastUpdated": "2023-05-01T00:00:00Z",
+      "links": {
+        "details": "/api/v1/reports/dashboard/kpi/profit_margin"
+      }
+    },
+    {
+      "id": "utilization_rate",
+      "name": "技術者稼働率",
+      "category": "utilization",
+      "value": 0.92,
+      "unit": "%",
+      "trend": "up",
+      "changeRate": 0.03,
+      "target": 0.95,
+      "targetAchievement": 0.97,
+      "lastUpdated": "2023-05-01T00:00:00Z",
+      "links": {
+        "details": "/api/v1/reports/dashboard/kpi/utilization_rate"
+      }
+    }
+    // 他のKPI指標...
+  ]
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_DATE_FORMAT",
+    "message": "日付形式が不正です。YYYY-MM-DD形式で指定してください。",
+    "details": {
+      "parameter": "date",
+      "value": "2023/05/01",
+      "expected": "YYYY-MM-DD"
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code></li>
+            <li><code>ROLE_MANAGER</code></li>
+            <li><code>ROLE_SALES</code>（一部のKPIのみ閲覧可能）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/dashboard/kpi/{kpiId}</h3>
+        <p><strong>説明：</strong> 特定のKPI指標の詳細情報と履歴データを取得します。</p>
+        
+        <h4>パスパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>kpiId</td>
+                <td>string</td>
+                <td>Yes</td>
+                <td>KPI指標のID</td>
+            </tr>
+        </table>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>from</td>
+                <td>string</td>
+                <td>No</td>
+                <td>履歴データの開始日（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>to</td>
+                <td>string</td>
+                <td>No</td>
+                <td>履歴データの終了日（ISO 8601形式）</td>
+            </tr>
+            <tr>
+                <td>granularity</td>
+                <td>string</td>
+                <td>No</td>
+                <td>データの粒度（daily, weekly, monthly）。デフォルトは指標の設定に依存</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "from": "2023-01-01",
+    "to": "2023-05-01",
+    "granularity": "monthly"
+  },
+  "data": {
+    "id": "sales_total",
+    "name": "総売上",
+    "description": "月間の総売上額（税抜）",
+    "category": "sales",
+    "currentValue": 15000000,
+    "unit": "円",
+    "trend": "up",
+    "changeRate": 0.05,
+    "target": 16000000,
+    "targetAchievement": 0.9375,
+    "lastUpdated": "2023-05-01T00:00:00Z",
+    "formula": "SUM(invoices.amount) WHERE status = 'confirmed' AND date BETWEEN period_start AND period_end",
+    "history": [
+      {
+        "date": "2023-01-01",
+        "value": 14200000,
+        "target": 15000000
+      },
+      {
+        "date": "2023-02-01",
+        "value": 13800000,
+        "target": 15000000
+      },
+      {
+        "date": "2023-03-01",
+        "value": 14500000,
+        "target": 15500000
+      },
+      {
+        "date": "2023-04-01",
+        "value": 14300000,
+        "target": 15500000
+      },
+      {
+        "date": "2023-05-01",
+        "value": 15000000,
+        "target": 16000000
+      }
+    ],
+    "relatedKpis": [
+      "monthly_sales_per_employee",
+      "sales_growth_rate"
+    ]
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "KPI_NOT_FOUND",
+    "message": "指定されたKPI指標が見つかりません。",
+    "details": {
+      "kpiId": "non_existent_kpi"
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code></li>
+            <li><code>ROLE_MANAGER</code></li>
+            <li><code>ROLE_SALES</code>（一部のKPIのみ閲覧可能）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/dashboard/summary</h3>
+        <p><strong>説明：</strong> ダッシュボードに表示するサマリー情報を取得します。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>period</td>
+                <td>string</td>
+                <td>No</td>
+                <td>期間（daily, weekly, monthly, quarterly, annual）。デフォルトはmonthly</td>
+            </tr>
+            <tr>
+                <td>date</td>
+                <td>string</td>
+                <td>No</td>
+                <td>基準日（ISO 8601形式）。デフォルトは当日</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "period": "monthly",
+    "date": "2023-05-01"
+  },
+  "data": {
+    "salesSummary": {
+      "currentPeriodSales": 15000000,
+      "previousPeriodSales": 14300000,
+      "changeRate": 0.05,
+      "targetAchievement": 0.9375
+    },
+    "profitSummary": {
+      "currentPeriodProfit": 4200000,
+      "previousPeriodProfit": 3900000,
+      "changeRate": 0.08,
+      "profitMargin": 0.28,
+      "targetAchievement": 0.93
+    },
+    "utilizationSummary": {
+      "overallUtilizationRate": 0.92,
+      "previousPeriodRate": 0.89,
+      "changeRate": 0.03,
+      "activeEngineers": 85,
+      "benchEngineers": 7,
+      "trainingEngineers": 3
+    },
+    "projectSummary": {
+      "activeProjects": 42,
+      "newProjects": 5,
+      "completedProjects": 3,
+      "delayedProjects": 2
+    },
+    "customerSummary": {
+      "activeCustomers": 28,
+      "newCustomers": 2,
+      "topCustomers": [
+        {
+          "id": "customer_123",
+          "name": "株式会社ABC",
+          "sales": 3200000
+        },
+        {
+          "id": "customer_456",
+          "name": "株式会社XYZ",
+          "sales": 2800000
+        },
+        {
+          "id": "customer_789",
+          "name": "株式会社DEF",
+          "sales": 2500000
+        }
+      ]
+    }
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_PERIOD",
+    "message": "無効な期間が指定されました。",
+    "details": {
+      "parameter": "period",
+      "value": "invalidPeriod",
+      "allowed": ["daily", "weekly", "monthly", "quarterly", "annual"]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code></li>
+            <li><code>ROLE_MANAGER</code></li>
+            <li><code>ROLE_SALES</code>（一部の情報のみ閲覧可能）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/dashboard/recent-activities</h3>
+        <p><strong>説明：</strong> 最近のシステム活動情報を取得します。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>limit</td>
+                <td>integer</td>
+                <td>No</td>
+                <td>取得するアクティビティの最大数。デフォルトは20、最大100</td>
+            </tr>
+            <tr>
+                <td>type</td>
+                <td>string</td>
+                <td>No</td>
+                <td>アクティビティタイプのフィルター（project, engineer, contract, invoice, etc.）</td>
+            </tr>
+            <tr>
+                <td>since</td>
+                <td>string</td>
+                <td>No</td>
+                <td>この日時以降のアクティビティのみ取得（ISO 8601形式）</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "count": 5,
+    "total": 120
+  },
+  "data": [
+    {
+      "id": "activity_123",
+      "type": "project",
+      "action": "created",
+      "timestamp": "2023-05-01T10:30:00Z",
+      "description": "新規案件「クラウド移行支援プロジェクト」が登録されました",
+      "actor": {
+        "id": "user_789",
+        "name": "営業太郎"
+      },
+      "details": {
+        "projectId": "project_456",
+        "projectName": "クラウド移行支援プロジェクト",
+        "customerId": "customer_123",
+        "customerName": "株式会社ABC"
+      },
+      "links": {
+        "project": "/api/v1/projects/project_456"
+      }
+    },
+    {
+      "id": "activity_122",
+      "type": "engineer",
+      "action": "assigned",
+      "timestamp": "2023-05-01T09:45:00Z",
+      "description": "技術者「開発次郎」がプロジェクト「基幹システム再構築」にアサインされました",
+      "actor": {
+        "id": "user_456",
+        "name": "マネージャ花子"
+      },
+      "details": {
+        "engineerId": "engineer_789",
+        "engineerName": "開発次郎",
+        "projectId": "project_123",
+        "projectName": "基幹システム再構築",
+        "startDate": "2023-06-01"
+      },
+      "links": {
+        "engineer": "/api/v1/engineers/engineer_789",
+        "project": "/api/v1/projects/project_123"
+      }
+    },
+    {
+      "id": "activity_121",
+      "type": "contract",
+      "action": "signed",
+      "timestamp": "2023-04-30T16:20:00Z",
+      "description": "契約「株式会社XYZ - データ分析支援」が締結されました",
+      "actor": {
+        "id": "user_123",
+        "name": "管理部長"
+      },
+      "details": {
+        "contractId": "contract_456",
+        "contractName": "データ分析支援",
+        "customerId": "customer_456",
+        "customerName": "株式会社XYZ",
+        "startDate": "2023-05-15",
+        "endDate": "2023-11-14"
+      },
+      "links": {
+        "contract": "/api/v1/contracts/contract_456"
+      }
+    }
+    // 他のアクティビティ...
+  ]
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_PARAMETER",
+    "message": "パラメータが無効です。",
+    "details": {
+      "parameter": "limit",
+      "value": "200",
+      "max": "100"
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（全てのアクティビティ）</li>
+            <li><code>ROLE_MANAGER</code>（担当部門のアクティビティ）</li>
+            <li><code>ROLE_SALES</code>（担当顧客・案件のアクティビティ）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> /api/v1/reports/dashboard/settings</h3>
+        <p><strong>説明：</strong> ユーザーのダッシュボード設定を取得します。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>設定を取得するユーザーID。指定しない場合は現在のユーザー</td>
+            </tr>
+        </table>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:00:00Z",
+    "userId": "user_123"
+  },
+  "data": {
+    "layout": [
+      {
+        "id": "widget_sales_overview",
+        "type": "kpi_group",
+        "title": "売上概況",
+        "position": {
+          "row": 0,
+          "col": 0,
+          "width": 6,
+          "height": 2
+        },
+        "config": {
+          "kpis": ["sales_total", "sales_growth_rate", "sales_per_employee"]
+        }
+      },
+      {
+        "id": "widget_profit_overview",
+        "type": "kpi_group",
+        "title": "利益概況",
+        "position": {
+          "row": 0,
+          "col": 6,
+          "width": 6,
+          "height": 2
+        },
+        "config": {
+          "kpis": ["profit_total", "profit_margin", "profit_growth_rate"]
+        }
+      },
+      {
+        "id": "widget_sales_chart",
+        "type": "line_chart",
+        "title": "売上推移",
+        "position": {
+          "row": 2,
+          "col": 0,
+          "width": 8,
+          "height": 4
+        },
+        "config": {
+          "dataSource": "sales_history",
+          "period": "monthly",
+          "showTarget": true,
+          "showPrevious": true
+        }
+      },
+      {
+        "id": "widget_recent_activities",
+        "type": "activity_feed",
+        "title": "最近のアクティビティ",
+        "position": {
+          "row": 2,
+          "col": 8,
+          "width": 4,
+          "height": 4
+        },
+        "config": {
+          "limit": 10,
+          "types": ["project", "contract", "engineer"]
+        }
+      }
+      // 他のウィジェット...
+    ],
+    "preferences": {
+      "refreshInterval": 300,
+      "defaultPeriod": "monthly",
+      "expandedWidgets": ["widget_sales_overview"],
+      "theme": "light"
+    },
+    "favoriteReports": [
+      {
+        "id": "report_123",
+        "name": "月次売上レポート",
+        "url": "/api/v1/reports/sales/monthly"
+      },
+      {
+        "id": "report_456",
+        "name": "技術者稼働状況",
+        "url": "/api/v1/reports/utilization/monthly"
+      }
+    ]
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "USER_NOT_FOUND",
+    "message": "指定されたユーザーが見つかりません。",
+    "details": {
+      "userId": "non_existent_user"
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（任意のユーザーの設定）</li>
+            <li><code>ROLE_MANAGER</code>（自分自身の設定のみ）</li>
+            <li><code>ROLE_SALES</code>（自分自身の設定のみ）</li>
+            <li><code>ROLE_ENGINEER</code>（自分自身の設定のみ）</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method put">PUT</span> /api/v1/reports/dashboard/settings</h3>
+        <p><strong>説明：</strong> ユーザーのダッシュボード設定を更新します。</p>
+        
+        <h4>クエリパラメータ</h4>
+        <table>
+            <tr>
+                <th>パラメータ名</th>
+                <th>型</th>
+                <th>必須</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>userId</td>
+                <td>string</td>
+                <td>No</td>
+                <td>設定を更新するユーザーID。指定しない場合は現在のユーザー</td>
+            </tr>
+        </table>
+        
+        <h4>リクエストボディ例</h4>
+        <pre>
+{
+  "layout": [
+    {
+      "id": "widget_sales_overview",
+      "type": "kpi_group",
+      "title": "売上概況",
+      "position": {
+        "row": 0,
+        "col": 0,
+        "width": 6,
+        "height": 2
+      },
+      "config": {
+        "kpis": ["sales_total", "sales_growth_rate", "sales_per_employee"]
+      }
+    },
+    // 他のウィジェット...
+  ],
+  "preferences": {
+    "refreshInterval": 600,
+    "defaultPeriod": "monthly",
+    "expandedWidgets": ["widget_sales_overview", "widget_profit_overview"],
+    "theme": "dark"
+  },
+  "favoriteReports": [
+    {
+      "id": "report_123",
+      "name": "月次売上レポート",
+      "url": "/api/v1/reports/sales/monthly"
+    },
+    {
+      "id": "report_789",
+      "name": "顧客別売上分析",
+      "url": "/api/v1/reports/sales/by-customer"
+    }
+  ]
+}
+        </pre>
+        
+        <h4>レスポンス例（200 OK）</h4>
+        <pre>
+{
+  "meta": {
+    "timestamp": "2023-05-01T12:05:00Z",
+    "userId": "user_123"
+  },
+  "message": "ダッシュボード設定が正常に更新されました。",
+  "data": {
+    // 更新された設定（リクエストボディと同じ構造）
+  }
+}
+        </pre>
+        
+        <h4>エラーレスポンス例</h4>
+        <pre>
+{
+  "error": {
+    "code": "INVALID_WIDGET_CONFIG",
+    "message": "ウィジェット設定が無効です。",
+    "details": {
+      "widget": "widget_sales_chart",
+      "property": "dataSource",
+      "value": "invalid_source",
+      "allowed": ["sales_history", "profit_history", "utilization_history"]
+    }
+  }
+}
+        </pre>
+        
+        <h4>アクセス権限要件</h4>
+        <ul>
+            <li><code>ROLE_ADMIN</code>（任意のユーザーの設定）</li>
+            <li><code>ROLE_MANAGER</code>（自分自身の設定のみ）</li>
+            <li><code>ROLE_SALES</code>（自分自身の設定のみ）</li>
+            <li><code>ROLE_ENGINEER</code>（自分自身の設定のみ）</li>
+        </ul>
+    </div>
+</body>
+</html>

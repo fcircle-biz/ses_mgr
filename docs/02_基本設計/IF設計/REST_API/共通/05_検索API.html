@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>検索API設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-bottom: 1px solid #bdc3c7;
+            padding-bottom: 5px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        code {
+            background-color: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+        }
+        .api-path {
+            font-weight: bold;
+            color: #2980b9;
+        }
+        .http-method {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        .get {
+            background-color: #61affe;
+            color: white;
+        }
+        .post {
+            background-color: #49cc90;
+            color: white;
+        }
+        .put {
+            background-color: #fca130;
+            color: white;
+        }
+        .delete {
+            background-color: #f93e3e;
+            color: white;
+        }
+        .endpoint {
+            margin: 40px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        .endpoint-title {
+            margin-top: 0;
+            font-size: 1.4em;
+        }
+        .required {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .optional {
+            color: #7f8c8d;
+        }
+        .note {
+            background-color: #e7f4ff;
+            padding: 15px;
+            border-left: 5px solid #3498db;
+            margin: 20px 0;
+        }
+        .warning {
+            background-color: #fff5e6;
+            padding: 15px;
+            border-left: 5px solid #e67e22;
+            margin: 20px 0;
+        }
+        .example {
+            background-color: #f0f7fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .breadcrumb {
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+        .breadcrumb a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="breadcrumb">
+        <a href="../共通API.html">共通API</a> &gt; 検索API
+    </div>
+
+    <h1>検索API設計書</h1>
+    
+    <h2>1. 概要</h2>
+    <p>検索APIは、システム全体を横断的に検索するための機能を提供します。技術者、案件、契約書、請求書など、様々なリソースを統一されたインターフェースで検索することができます。</p>
+    
+    <h3>1.1 検索の基本方針</h3>
+    <ul>
+        <li>キーワード検索：単語または複数単語の組み合わせによる全文検索</li>
+        <li>フィルター検索：属性やカテゴリによるフィルタリング</li>
+        <li>検索対象範囲の指定：特定のリソースタイプのみを検索対象とすることが可能</li>
+        <li>検索結果のグループ化：リソースタイプごとにグループ化した検索結果の提供</li>
+        <li>検索履歴の管理：ユーザーの検索履歴を保存し、再利用可能に</li>
+    </ul>
+    
+    <h3>1.2 検索対象リソース</h3>
+    <p>検索API で検索可能な主なリソースタイプは以下の通りです：</p>
+    <ul>
+        <li>engineers：技術者情報</li>
+        <li>projects：案件情報</li>
+        <li>contracts：契約情報</li>
+        <li>invoices：請求書情報</li>
+        <li>files：各種ファイル</li>
+        <li>clients：取引先情報</li>
+        <li>matching：マッチング結果</li>
+    </ul>
+    
+    <div class="note">
+        <strong>Note:</strong> 検索結果は、ユーザーの権限に基づいてフィルタリングされます。ユーザーがアクセス権限を持たないリソースは検索結果に含まれません。
+    </div>
+    
+    <h2>2. API一覧</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>エンドポイント</th>
+                <th>メソッド</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>/api/v1/common/search</td>
+                <td>POST</td>
+                <td>横断検索の実行</td>
+            </tr>
+            <tr>
+                <td>/api/v1/common/search/history</td>
+                <td>GET</td>
+                <td>検索履歴の取得</td>
+            </tr>
+            <tr>
+                <td>/api/v1/common/search/history/{id}</td>
+                <td>DELETE</td>
+                <td>検索履歴の削除</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h2>3. API詳細</h2>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method post">POST</span> <span class="api-path">/api/v1/common/search</span></h3>
+        <p>システム全体を横断的に検索し、条件に合致するリソースを取得します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}
+Content-Type: application/json</code></pre>
+        
+        <p>リクエストボディ（JSON）：</p>
+        <pre><code>{
+  "query": "Java 開発 案件",
+  "resource_types": ["engineers", "projects"],
+  "filters": {
+    "location": ["東京", "神奈川"],
+    "skills": ["Java", "Spring"],
+    "min_rate": 600000,
+    "max_rate": 900000,
+    "period_from": "2023-06-01",
+    "period_to": "2023-12-31"
+  },
+  "sort": {
+    "field": "matching_score",
+    "order": "desc"
+  },
+  "pagination": {
+    "page": 1,
+    "page_size": 20
+  },
+  "group_by_resource_type": true,
+  "save_search": true
+}</code></pre>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>query</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>検索キーワード（空白区切りで複数のキーワードを指定可能）</td>
+                </tr>
+                <tr>
+                    <td>resource_types</td>
+                    <td>array</td>
+                    <td class="optional">任意</td>
+                    <td>検索対象のリソースタイプの配列。指定しない場合は全てのリソースタイプが検索対象となります。</td>
+                </tr>
+                <tr>
+                    <td>filters</td>
+                    <td>object</td>
+                    <td class="optional">任意</td>
+                    <td>検索結果をフィルタリングするための条件。リソースタイプごとに異なるフィルター条件を指定可能。</td>
+                </tr>
+                <tr>
+                    <td>sort</td>
+                    <td>object</td>
+                    <td class="optional">任意</td>
+                    <td>検索結果のソート条件。field: ソート対象のフィールド、order: ソート順序（"asc" または "desc"）。</td>
+                </tr>
+                <tr>
+                    <td>pagination</td>
+                    <td>object</td>
+                    <td class="optional">任意</td>
+                    <td>ページネーション設定。page: ページ番号（1から開始）、page_size: 1ページあたりの件数（デフォルト: 20, 最大: 100）。</td>
+                </tr>
+                <tr>
+                    <td>group_by_resource_type</td>
+                    <td>boolean</td>
+                    <td class="optional">任意</td>
+                    <td>true の場合、検索結果をリソースタイプごとにグループ化して返却します（デフォルト: false）。</td>
+                </tr>
+                <tr>
+                    <td>save_search</td>
+                    <td>boolean</td>
+                    <td class="optional">任意</td>
+                    <td>true の場合、この検索条件を検索履歴に保存します（デフォルト: false）。</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <p>group_by_resource_type = false の場合：</p>
+        <pre><code>{
+  "data": {
+    "results": [
+      {
+        "id": "e12345",
+        "type": "engineers",
+        "title": "鈴木 一郎",
+        "subtitle": "Javaエンジニア",
+        "description": "Java, Spring Bootでの開発経験10年。金融系システム開発のスペシャリスト。",
+        "matching_score": 0.95,
+        "url": "/engineers/e12345",
+        "attributes": {
+          "skills": ["Java", "Spring", "MySQL", "AWS"],
+          "experience_years": 10,
+          "current_status": "稼働可能",
+          "preferred_location": "東京",
+          "monthly_rate": 800000
+        }
+      },
+      {
+        "id": "p67890",
+        "type": "projects",
+        "title": "金融系Webアプリケーション開発",
+        "subtitle": "株式会社ABCテクノロジー",
+        "description": "Java / Spring Bootを使用した金融系Webアプリケーションの開発案件。",
+        "matching_score": 0.92,
+        "url": "/projects/p67890",
+        "attributes": {
+          "skills": ["Java", "Spring Boot", "MySQL", "AWS"],
+          "location": "東京",
+          "period": "2023-06-01 ～ 2023-12-31",
+          "monthly_rate": 850000,
+          "status": "募集中"
+        }
+      }
+    ],
+    "pagination": {
+      "current_page": 1,
+      "page_size": 20,
+      "total_pages": 3,
+      "total_items": 45
+    },
+    "search_id": "s123456789",
+    "query_time_ms": 124
+  }
+}</code></pre>
+        
+        <p>group_by_resource_type = true の場合：</p>
+        <pre><code>{
+  "data": {
+    "grouped_results": {
+      "engineers": {
+        "results": [
+          {
+            "id": "e12345",
+            "type": "engineers",
+            "title": "鈴木 一郎",
+            "subtitle": "Javaエンジニア",
+            "description": "Java, Spring Bootでの開発経験10年。金融系システム開発のスペシャリスト。",
+            "matching_score": 0.95,
+            "url": "/engineers/e12345",
+            "attributes": {
+              "skills": ["Java", "Spring", "MySQL", "AWS"],
+              "experience_years": 10,
+              "current_status": "稼働可能",
+              "preferred_location": "東京",
+              "monthly_rate": 800000
+            }
+          },
+          // 他の技術者結果...
+        ],
+        "count": 25,
+        "total": 25
+      },
+      "projects": {
+        "results": [
+          {
+            "id": "p67890",
+            "type": "projects",
+            "title": "金融系Webアプリケーション開発",
+            "subtitle": "株式会社ABCテクノロジー",
+            "description": "Java / Spring Bootを使用した金融系Webアプリケーションの開発案件。",
+            "matching_score": 0.92,
+            "url": "/projects/p67890",
+            "attributes": {
+              "skills": ["Java", "Spring Boot", "MySQL", "AWS"],
+              "location": "東京",
+              "period": "2023-06-01 ～ 2023-12-31",
+              "monthly_rate": 850000,
+              "status": "募集中"
+            }
+          },
+          // 他の案件結果...
+        ],
+        "count": 5,
+        "total": 20
+      }
+    },
+    "pagination": {
+      "current_page": 1,
+      "page_size": 20,
+      "total_pages": 3,
+      "total_items": 45
+    },
+    "search_id": "s123456789",
+    "query_time_ms": 130
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>検索キーワードがない場合（400 Bad Request）：</p>
+        <pre><code>{
+  "error": {
+    "code": "INVALID_QUERY",
+    "message": "検索キーワードを指定してください。"
+  }
+}</code></pre>
+        
+        <p>無効なリソースタイプが指定された場合（400 Bad Request）：</p>
+        <pre><code>{
+  "error": {
+    "code": "INVALID_RESOURCE_TYPE",
+    "message": "無効なリソースタイプが指定されています。",
+    "details": {
+      "invalid_types": ["invalid_type"]
+    }
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>認証済みユーザー</p>
+        
+        <div class="note">
+            <p>検索結果には、ユーザーがアクセス権限を持つリソースのみが含まれます。検索処理自体はすべての認証済みユーザーが実行可能です。</p>
+        </div>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method get">GET</span> <span class="api-path">/api/v1/common/search/history</span></h3>
+        <p>現在のユーザーの検索履歴を取得します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}</code></pre>
+        
+        <p>クエリパラメータ：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>page</td>
+                    <td>number</td>
+                    <td class="optional">任意</td>
+                    <td>ページ番号（デフォルト: 1）</td>
+                </tr>
+                <tr>
+                    <td>page_size</td>
+                    <td>number</td>
+                    <td class="optional">任意</td>
+                    <td>1ページあたりの件数（デフォルト: 20, 最大: 50）</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（200 OK）：</p>
+        <pre><code>{
+  "data": {
+    "history": [
+      {
+        "id": "s123456789",
+        "query": "Java 開発 案件",
+        "resource_types": ["engineers", "projects"],
+        "filters": {
+          "location": ["東京", "神奈川"],
+          "skills": ["Java", "Spring"]
+        },
+        "created_at": "2023-05-01T15:30:00.000Z",
+        "result_count": 45
+      },
+      {
+        "id": "s987654321",
+        "query": "Python データ分析",
+        "resource_types": ["engineers"],
+        "filters": {
+          "skills": ["Python", "pandas", "scikit-learn"]
+        },
+        "created_at": "2023-04-28T10:15:00.000Z",
+        "result_count": 12
+      }
+    ],
+    "pagination": {
+      "current_page": 1,
+      "page_size": 20,
+      "total_pages": 1,
+      "total_items": 2
+    }
+  }
+}</code></pre>
+        
+        <h4>エラーレスポンス</h4>
+        <p>認証エラー時（401 Unauthorized）：</p>
+        <pre><code>{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "認証が必要です。"
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>認証済みユーザー（自分の検索履歴のみ閲覧可能）</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3 class="endpoint-title"><span class="http-method delete">DELETE</span> <span class="api-path">/api/v1/common/search/history/{id}</span></h3>
+        <p>指定した検索履歴を削除します。</p>
+        
+        <h4>リクエスト</h4>
+        <p>リクエストヘッダー：</p>
+        <pre><code>Authorization: Bearer {access_token}</code></pre>
+        
+        <p>パスパラメータ：</p>
+        <table>
+            <thead>
+                <tr>
+                    <th>パラメータ</th>
+                    <th>型</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>id</td>
+                    <td>string</td>
+                    <td class="required">必須</td>
+                    <td>削除する検索履歴のID</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h4>レスポンス</h4>
+        <p>成功時のレスポンス（204 No Content）：</p>
+        <p>レスポンスボディなし</p>
+        
+        <h4>エラーレスポンス</h4>
+        <p>検索履歴が存在しない場合（404 Not Found）：</p>
+        <pre><code>{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "指定された検索履歴が存在しません。"
+  }
+}</code></pre>
+        
+        <p>権限エラー時（403 Forbidden）：</p>
+        <pre><code>{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "この検索履歴を削除する権限がありません。"
+  }
+}</code></pre>
+        
+        <h4>アクセス権限</h4>
+        <p>認証済みユーザー（自分の検索履歴のみ削除可能）</p>
+    </div>
+    
+    <h2>4. リソースタイプ別検索フィルター</h2>
+    <p>各リソースタイプで使用可能な主なフィルターパラメータは以下の通りです：</p>
+    
+    <h3>4.1 技術者（engineers）</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>フィルター名</th>
+                <th>型</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>skills</td>
+                <td>array</td>
+                <td>保有スキルでフィルタリング（例：["Java", "Python"]）</td>
+            </tr>
+            <tr>
+                <td>skill_levels</td>
+                <td>object</td>
+                <td>スキルレベルでフィルタリング（例：{"Java": "expert", "Python": "intermediate"}）</td>
+            </tr>
+            <tr>
+                <td>experience_years_min</td>
+                <td>number</td>
+                <td>最小経験年数</td>
+            </tr>
+            <tr>
+                <td>experience_years_max</td>
+                <td>number</td>
+                <td>最大経験年数</td>
+            </tr>
+            <tr>
+                <td>status</td>
+                <td>array</td>
+                <td>稼働状況でフィルタリング（例：["available", "partially_available"]）</td>
+            </tr>
+            <tr>
+                <td>availability_date</td>
+                <td>string</td>
+                <td>指定日時点での稼働可能な技術者を検索（ISO8601形式）</td>
+            </tr>
+            <tr>
+                <td>locations</td>
+                <td>array</td>
+                <td>希望勤務地でフィルタリング（例：["東京", "神奈川"]）</td>
+            </tr>
+            <tr>
+                <td>min_rate</td>
+                <td>number</td>
+                <td>最低単価（月額）</td>
+            </tr>
+            <tr>
+                <td>max_rate</td>
+                <td>number</td>
+                <td>最高単価（月額）</td>
+            </tr>
+            <tr>
+                <td>job_types</td>
+                <td>array</td>
+                <td>職種でフィルタリング（例：["PM", "SE", "PG"]）</td>
+            </tr>
+            <tr>
+                <td>industries</td>
+                <td>array</td>
+                <td>経験業界でフィルタリング（例：["金融", "製造"]）</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h3>4.2 案件（projects）</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>フィルター名</th>
+                <th>型</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>required_skills</td>
+                <td>array</td>
+                <td>必要スキルでフィルタリング（例：["Java", "AWS"]）</td>
+            </tr>
+            <tr>
+                <td>locations</td>
+                <td>array</td>
+                <td>勤務地でフィルタリング（例：["東京", "大阪"]）</td>
+            </tr>
+            <tr>
+                <td>project_types</td>
+                <td>array</td>
+                <td>案件種別でフィルタリング（例：["新規開発", "保守"]）</td>
+            </tr>
+            <tr>
+                <td>industries</td>
+                <td>array</td>
+                <td>業界でフィルタリング（例：["金融", "小売"]）</td>
+            </tr>
+            <tr>
+                <td>statuses</td>
+                <td>array</td>
+                <td>案件状態でフィルタリング（例：["open", "in_progress"]）</td>
+            </tr>
+            <tr>
+                <td>min_rate</td>
+                <td>number</td>
+                <td>最低単価（月額）</td>
+            </tr>
+            <tr>
+                <td>max_rate</td>
+                <td>number</td>
+                <td>最高単価（月額）</td>
+            </tr>
+            <tr>
+                <td>period_from</td>
+                <td>string</td>
+                <td>開始日の下限（ISO8601日付形式）</td>
+            </tr>
+            <tr>
+                <td>period_to</td>
+                <td>string</td>
+                <td>終了日の上限（ISO8601日付形式）</td>
+            </tr>
+            <tr>
+                <td>contract_types</td>
+                <td>array</td>
+                <td>契約形態でフィルタリング（例：["準委任", "請負"]）</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h3>4.3 契約（contracts）</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>フィルター名</th>
+                <th>型</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>client_ids</td>
+                <td>array</td>
+                <td>クライアントIDでフィルタリング</td>
+            </tr>
+            <tr>
+                <td>engineer_ids</td>
+                <td>array</td>
+                <td>技術者IDでフィルタリング</td>
+            </tr>
+            <tr>
+                <td>project_ids</td>
+                <td>array</td>
+                <td>案件IDでフィルタリング</td>
+            </tr>
+            <tr>
+                <td>statuses</td>
+                <td>array</td>
+                <td>契約状態でフィルタリング（例：["draft", "active", "expired"]）</td>
+            </tr>
+            <tr>
+                <td>contract_types</td>
+                <td>array</td>
+                <td>契約形態でフィルタリング（例：["準委任", "請負"]）</td>
+            </tr>
+            <tr>
+                <td>start_date_from</td>
+                <td>string</td>
+                <td>開始日の下限（ISO8601日付形式）</td>
+            </tr>
+            <tr>
+                <td>start_date_to</td>
+                <td>string</td>
+                <td>開始日の上限（ISO8601日付形式）</td>
+            </tr>
+            <tr>
+                <td>end_date_from</td>
+                <td>string</td>
+                <td>終了日の下限（ISO8601日付形式）</td>
+            </tr>
+            <tr>
+                <td>end_date_to</td>
+                <td>string</td>
+                <td>終了日の上限（ISO8601日付形式）</td>
+            </tr>
+            <tr>
+                <td>signed</td>
+                <td>boolean</td>
+                <td>署名状態でフィルタリング（true: 署名済み, false: 未署名）</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h3>4.4 請求書（invoices）</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>フィルター名</th>
+                <th>型</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>client_ids</td>
+                <td>array</td>
+                <td>クライアントIDでフィルタリング</td>
+            </tr>
+            <tr>
+                <td>contract_ids</td>
+                <td>array</td>
+                <td>契約IDでフィルタリング</td>
+            </tr>
+            <tr>
+                <td>engineer_ids</td>
+                <td>array</td>
+                <td>技術者IDでフィルタリング</td>
+            </tr>
+            <tr>
+                <td>statuses</td>
+                <td>array</td>
+                <td>請求書状態でフィルタリング（例：["draft", "issued", "paid"]）</td>
+            </tr>
+            <tr>
+                <td>issue_date_from</td>
+                <td>string</td>
+                <td>発行日の下限（ISO8601日付形式）</td>
+            </tr>
+            <tr>
+                <td>issue_date_to</td>
+                <td>string</td>
+                <td>発行日の上限（ISO8601日付形式）</td>
+            </tr>
+            <tr>
+                <td>due_date_from</td>
+                <td>string</td>
+                <td>支払期限の下限（ISO8601日付形式）</td>
+            </tr>
+            <tr>
+                <td>due_date_to</td>
+                <td>string</td>
+                <td>支払期限の上限（ISO8601日付形式）</td>
+            </tr>
+            <tr>
+                <td>min_amount</td>
+                <td>number</td>
+                <td>最低請求金額</td>
+            </tr>
+            <tr>
+                <td>max_amount</td>
+                <td>number</td>
+                <td>最高請求金額</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h3>4.5 ファイル（files）</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>フィルター名</th>
+                <th>型</th>
+                <th>説明</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>file_types</td>
+                <td>array</td>
+                <td>ファイルタイプでフィルタリング（例：["contract", "invoice", "skill_sheet"]）</td>
+            </tr>
+            <tr>
+                <td>mime_types</td>
+                <td>array</td>
+                <td>MIMEタイプでフィルタリング（例：["application/pdf", "image/jpeg"]）</td>
+            </tr>
+            <tr>
+                <td>resource_ids</td>
+                <td>array</td>
+                <td>関連リソースIDでフィルタリング</td>
+            </tr>
+            <tr>
+                <td>created_by</td>
+                <td>string</td>
+                <td>作成者IDでフィルタリング</td>
+            </tr>
+            <tr>
+                <td>created_from</td>
+                <td>string</td>
+                <td>作成日の下限（ISO8601日付形式）</td>
+            </tr>
+            <tr>
+                <td>created_to</td>
+                <td>string</td>
+                <td>作成日の上限（ISO8601日付形式）</td>
+            </tr>
+            <tr>
+                <td>tags</td>
+                <td>array</td>
+                <td>タグでフィルタリング（例：["契約書", "2023年度"]）</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <h2>5. 検索クエリの書き方</h2>
+    <p>効果的な検索を行うためのクエリの書き方について説明します。</p>
+    
+    <h3>5.1 基本的なキーワード検索</h3>
+    <p>スペース区切りで複数のキーワードを指定すると、AND検索として扱われます。</p>
+    <div class="example">
+        <p><strong>例：</strong> <code>Java Spring 金融</code></p>
+        <p>⇒ "Java" AND "Spring" AND "金融" を含むリソースを検索</p>
+    </div>
+    
+    <h3>5.2 フレーズ検索</h3>
+    <p>引用符（"）で囲むと、フレーズとして検索されます。</p>
+    <div class="example">
+        <p><strong>例：</strong> <code>"Java エンジニア" 東京</code></p>
+        <p>⇒ "Java エンジニア"というフレーズ AND "東京" を含むリソースを検索</p>
+    </div>
+    
+    <h3>5.3 OR検索</h3>
+    <p>OR演算子を使用して、いずれかのキーワードを含むリソースを検索できます。</p>
+    <div class="example">
+        <p><strong>例：</strong> <code>Java OR Python</code></p>
+        <p>⇒ "Java" または "Python" を含むリソースを検索</p>
+    </div>
+    
+    <h3>5.4 除外検索</h3>
+    <p>マイナス記号（-）を使用して、特定のキーワードを含まないリソースを検索できます。</p>
+    <div class="example">
+        <p><strong>例：</strong> <code>Java -初級</code></p>
+        <p>⇒ "Java" を含み、"初級" を含まないリソースを検索</p>
+    </div>
+    
+    <h3>5.5 前方一致・後方一致</h3>
+    <p>アスタリスク（*）をワイルドカードとして使用できます。</p>
+    <div class="example">
+        <p><strong>例：</strong> <code>Java*</code> （前方一致）</p>
+        <p>⇒ "Java", "JavaScript", "JavaEE" などを含むリソースを検索</p>
+        
+        <p><strong>例：</strong> <code>*エンジニア</code> （後方一致）</p>
+        <p>⇒ "Javaエンジニア", "インフラエンジニア" などを含むリソースを検索</p>
+    </div>
+    
+    <h2>6. 実装上の注意点</h2>
+    
+    <h3>6.1 検索パフォーマンス</h3>
+    <p>大量のデータに対する検索を効率的に行うために、以下の実装を検討してください：</p>
+    <ul>
+        <li>全文検索エンジン（Elasticsearch, OpenSearch など）の導入</li>
+        <li>検索インデックスの適切な設計と最適化</li>
+        <li>キャッシュ機構の実装</li>
+        <li>非同期検索処理（検索実行 → 結果取得）の検討</li>
+    </ul>
+    
+    <h3>6.2 検索結果のセキュリティ</h3>
+    <p>検索結果には、ユーザーがアクセス権限を持つリソースのみを含めるように実装してください。検索クエリの実行前または検索結果のフィルタリング時に、アクセス制御を適用することが重要です。</p>
+    
+    <h3>6.3 日本語検索の最適化</h3>
+    <p>日本語テキストの効果的な検索のために、以下の対応を検討してください：</p>
+    <ul>
+        <li>形態素解析による日本語トークン化（MeCab, Kuromoji など）</li>
+        <li>同義語辞書の活用（「エンジニア」と「技術者」など）</li>
+        <li>かな・カナ・漢字の表記ゆれ対応</li>
+    </ul>
+    
+    <h3>6.4 検索結果のスコアリング</h3>
+    <p>検索結果の relevance score（関連度スコア）の計算には、以下の要素を考慮することを推奨します：</p>
+    <ul>
+        <li>キーワードマッチングの度合い（TF-IDF, BM25 など）</li>
+        <li>フィールドの重み付け（タイトル > 説明文 など）</li>
+        <li>最新性（より新しいリソースを優先）</li>
+        <li>ユーザーの過去の行動履歴に基づくパーソナライズ</li>
+    </ul>
+</body>
+</html>
