@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>システム設計書 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        pre, code {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            padding: 2px 4px;
+        }
+        pre {
+            padding: 10px;
+            overflow: auto;
+            line-height: 1.45;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .cover {
+            text-align: center;
+            margin: 50px 0;
+        }
+        .cover h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            border: none;
+        }
+        .cover p {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .cover .version {
+            margin-top: 50px;
+        }
+        .update-history {
+            margin-bottom: 40px;
+        }
+        .comment {
+            color: #666;
+            font-style: italic;
+            background-color: #fffde7;
+            padding: 10px;
+            border-left: 3px solid #fdd835;
+            margin: 10px 0;
+        }
+        .todo {
+            color: #d81b60;
+            font-weight: bold;
+            background-color: #fce4ec;
+            padding: 10px;
+            border-left: 3px solid #d81b60;
+            margin: 10px 0;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .image-placeholder {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            background-color: #f9f9f9;
+            width: 80%;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="cover">
+        <h1>システム設計書</h1>
+        <p>SES業務システム</p>
+        <p class="version">Version 1.0.0</p>
+        <p>作成日: 2025年5月4日</p>
+    </div>
+
+    <div class="update-history">
+        <h2>変更履歴</h2>
+        <table>
+            <tr>
+                <th>版数</th>
+                <th>日付</th>
+                <th>変更内容</th>
+                <th>変更者</th>
+            </tr>
+            <tr>
+                <td>1.0.0</td>
+                <td>2025/05/04</td>
+                <td>初版作成</td>
+                <td>設計担当者</td>
+            </tr>
+        </table>
+    </div>
+
+    <h2>目次</h2>
+    <ol>
+        <li><a href="#introduction">はじめに</a></li>
+        <li><a href="#system-overview">システム概要</a></li>
+        <li><a href="#architecture">システムアーキテクチャ</a>
+            <ol>
+                <li><a href="#system-architecture">システム全体構成</a></li>
+                <li><a href="#microservices">マイクロサービス構成</a></li>
+                <li><a href="#subsystems">サブシステム構成</a></li>
+            </ol>
+        </li>
+        <li><a href="#deployment">デプロイメント設計</a>
+            <ol>
+                <li><a href="#deployment-diagram">デプロイメント図</a></li>
+                <li><a href="#network">ネットワーク構成</a></li>
+                <li><a href="#server">サーバー構成</a></li>
+            </ol>
+        </li>
+        <li><a href="#security">セキュリティ設計</a>
+            <ol>
+                <li><a href="#authentication">認証設計</a></li>
+                <li><a href="#authorization">認可設計</a></li>
+                <li><a href="#data-protection">データ保護</a></li>
+            </ol>
+        </li>
+        <li><a href="#performance">性能設計</a>
+            <ol>
+                <li><a href="#response-time">レスポンスタイム</a></li>
+                <li><a href="#throughput">スループット</a></li>
+                <li><a href="#scaling">スケーリング方針</a></li>
+            </ol>
+        </li>
+        <li><a href="#availability">可用性設計</a>
+            <ol>
+                <li><a href="#redundancy">冗長構成</a></li>
+                <li><a href="#failover">フェイルオーバー</a></li>
+                <li><a href="#disaster-recovery">災害対策</a></li>
+            </ol>
+        </li>
+        <li><a href="#backup">バックアップ設計</a></li>
+        <li><a href="#batch">バッチ処理設計</a></li>
+        <li><a href="#authority">権限設計</a></li>
+        <li><a href="#error">エラー処理設計</a></li>
+        <li><a href="#logging">ログ設計</a></li>
+        <li><a href="#monitoring">監視設計</a></li>
+        <li><a href="#migration">移行設計</a></li>
+        <li><a href="#appendix">付録</a></li>
+    </ol>
+
+    <h2 id="introduction">1. はじめに</h2>
+    <p>本書は、SES業務システムの基本設計を記述したものである。要件定義フェーズで決定した機能要件・非機能要件を実現するための技術的な設計方針およびシステム構成について定義する。</p>
+
+    <h3>1.1 目的</h3>
+    <p>本書の目的は以下の通りである：</p>
+    <ul>
+        <li>SES業務システムの全体構成を明確にすること</li>
+        <li>システムアーキテクチャと技術選定の根拠を示すこと</li>
+        <li>品質特性（性能、可用性、セキュリティなど）を確保するための設計を記述すること</li>
+        <li>詳細設計・実装フェーズの前提となる設計指針を提供すること</li>
+    </ul>
+
+    <h3>1.2 対象読者</h3>
+    <p>本書の想定読者は以下の通りである：</p>
+    <ul>
+        <li>プロジェクト管理者</li>
+        <li>システムアーキテクト</li>
+        <li>アプリケーション開発者</li>
+        <li>テスト担当者</li>
+        <li>システム運用担当者</li>
+    </ul>
+
+    <h3>1.3 関連ドキュメント</h3>
+    <p>本書は以下のドキュメントと関連している：</p>
+    <table>
+        <tr>
+            <th>ドキュメント名</th>
+            <th>版数</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>要件定義書</td>
+            <td>1.0</td>
+            <td>SES業務システムの機能要件・非機能要件を記述したドキュメント</td>
+        </tr>
+        <tr>
+            <td>UI設計書</td>
+            <td>1.0</td>
+            <td>SES業務システムのユーザーインターフェース設計を記述したドキュメント</td>
+        </tr>
+        <tr>
+            <td>DB設計書</td>
+            <td>1.0</td>
+            <td>SES業務システムのデータベース設計を記述したドキュメント</td>
+        </tr>
+        <tr>
+            <td>インターフェース設計書</td>
+            <td>1.0</td>
+            <td>SES業務システムの外部インターフェース設計を記述したドキュメント</td>
+        </tr>
+    </table>
+
+    <h2 id="system-overview">2. システム概要</h2>
+    <p>SES業務システムは、SES（System Engineering Service）事業者向けの業務管理システムである。案件管理、技術者管理、マッチング、契約管理、勤怠・工数管理、請求・支払、レポーティングなどの機能を提供し、SES事業の効率化と収益性向上を支援する。</p>
+
+    <h3>2.1 システムの目的</h3>
+    <p>SES業務システムの目的は以下の通りである：</p>
+    <ul>
+        <li>SES事業の基幹業務プロセスを統合的に管理すること</li>
+        <li>案件と技術者のマッチング精度を向上させ、稼働率を高めること</li>
+        <li>契約から請求までのプロセスを効率化し、事務作業を削減すること</li>
+        <li>リアルタイムな経営情報を提供し、意思決定を支援すること</li>
+    </ul>
+
+    <h3>2.2 システムの特徴</h3>
+    <p>SES業務システムの主な特徴は以下の通りである：</p>
+    <ul>
+        <li>マイクロサービスアーキテクチャによる柔軟なシステム構成</li>
+        <li>AI技術を活用したマッチングエンジン</li>
+        <li>電子契約システムとの連携による契約業務のペーパーレス化</li>
+        <li>クラウドネイティブな設計によるスケーラビリティの確保</li>
+        <li>レスポンシブデザインによるマルチデバイス対応</li>
+    </ul>
+
+    <h2 id="architecture">3. システムアーキテクチャ</h2>
+    <h3 id="system-architecture">3.1 システム全体構成</h3>
+    <div class="container">
+        <div class="image-placeholder">
+            [システム全体構成図]<br>
+            ここにシステム全体の構成図を挿入
+        </div>
+    </div>
+    <p>SES業務システムは、マイクロサービスアーキテクチャとクラウドネイティブ設計を採用し、以下のレイヤー構造で構成される。</p>
+    
+    <h4>3.1.1 アーキテクチャ概要</h4>
+    <ul>
+        <li><strong>プレゼンテーション層</strong>：ユーザーインターフェース
+            <ul>
+                <li>Web UI（レスポンシブデザイン）</li>
+                <li>モバイルアプリケーション</li>
+                <li>管理者向けダッシュボード</li>
+            </ul>
+        </li>
+        <li><strong>API層</strong>：外部インターフェース
+            <ul>
+                <li>API Gateway</li>
+                <li>RESTful API</li>
+                <li>GraphQL API（※将来拡張予定）</li>
+            </ul>
+        </li>
+        <li><strong>アプリケーション層</strong>：業務ロジック
+            <ul>
+                <li>ドメイン駆動設計に基づくマイクロサービス群</li>
+                <li>イベント駆動アーキテクチャ</li>
+                <li>ワークフロー管理</li>
+            </ul>
+        </li>
+        <li><strong>データ層</strong>：データ管理
+            <ul>
+                <li>リレーショナルデータベース（PostgreSQL）</li>
+                <li>NoSQLデータベース（特定用途向け）</li>
+                <li>キャッシュ（Redis）</li>
+                <li>メッセージキュー（RabbitMQ）</li>
+                <li>オブジェクトストレージ（MinIO/S3互換）</li>
+            </ul>
+        </li>
+        <li><strong>インフラストラクチャ層</strong>：基盤
+            <ul>
+                <li>Kubernetesによるコンテナオーケストレーション</li>
+                <li>クラウドインフラ（AWS/Azure/GCP等）</li>
+                <li>CI/CDパイプライン</li>
+                <li>監視・ロギング基盤</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h4>3.1.2 アーキテクチャスタイル</h4>
+    <p>SES業務システムでは、以下のアーキテクチャスタイルとパターンを適用する：</p>
+    <table>
+        <tr>
+            <th>アーキテクチャスタイル</th>
+            <th>適用範囲</th>
+            <th>選定理由</th>
+        </tr>
+        <tr>
+            <td><strong>マイクロサービスアーキテクチャ</strong></td>
+            <td>システム全体</td>
+            <td>
+                <ul>
+                    <li>機能ごとの独立した開発・デプロイが可能</li>
+                    <li>異なるチームによる並行開発の促進</li>
+                    <li>技術スタックの柔軟な選択</li>
+                    <li>個別のサービスの独立したスケーリング</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>イベント駆動アーキテクチャ</strong></td>
+            <td>サービス間連携</td>
+            <td>
+                <ul>
+                    <li>疎結合の実現</li>
+                    <li>非同期処理によるスケーラビリティ向上</li>
+                    <li>サービス障害時の耐障害性</li>
+                    <li>ビジネスイベントの明示的モデリング</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>レイヤードアーキテクチャ</strong></td>
+            <td>各マイクロサービス内部</td>
+            <td>
+                <ul>
+                    <li>関心の分離による保守性向上</li>
+                    <li>テスト容易性の確保</li>
+                    <li>構造化された設計によるコード品質の維持</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>CQRS</strong><br>(Command Query Responsibility Segregation)</td>
+            <td>特定のマイクロサービス<br>（レポーティング、検索機能等）</td>
+            <td>
+                <ul>
+                    <li>読み取りと書き込みの最適化分離</li>
+                    <li>複雑なクエリ処理の効率化</li>
+                    <li>高負荷な読み取り処理のスケーラビリティ向上</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td><strong>API Gateway</strong></td>
+            <td>外部インターフェース</td>
+            <td>
+                <ul>
+                    <li>クライアントリクエストの一元管理</li>
+                    <li>認証・認可の集中処理</li>
+                    <li>マイクロサービスへのルーティング</li>
+                    <li>クライアント向けAPIの最適化</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+    
+    <h4>3.1.3 技術スタック概要</h4>
+    <p>SES業務システムは、要件定義に基づく以下の技術スタックを採用する：</p>
+    <table>
+        <tr>
+            <th>カテゴリ</th>
+            <th>採用技術</th>
+            <th>選定理由</th>
+        </tr>
+        <tr>
+            <td>バックエンド言語</td>
+            <td>Java 21</td>
+            <td>最新のLTS版、バーチャルスレッド対応、パフォーマンス向上、長期サポート</td>
+        </tr>
+        <tr>
+            <td>バックエンドフレームワーク</td>
+            <td>Spring Boot</td>
+            <td>高い拡張性と保守性、豊富なライブラリ、企業利用に最適</td>
+        </tr>
+        <tr>
+            <td>フロントエンド</td>
+            <td>Thymeleaf</td>
+            <td>Springとの親和性、サーバーサイドレンダリング、迅速な開発</td>
+        </tr>
+        <tr>
+            <td>データベース</td>
+            <td>PostgreSQL</td>
+            <td>高信頼性、データ整合性の確保、拡張性の高さ</td>
+        </tr>
+        <tr>
+            <td>コンテナ技術</td>
+            <td>Docker</td>
+            <td>環境の一貫性、開発・本番環境の差異解消、デプロイ効率化</td>
+        </tr>
+        <tr>
+            <td>CI/CD</td>
+            <td>GitHub Actions</td>
+            <td>Gitリポジトリとの連携、ワークフロー自動化、柔軟なパイプライン</td>
+        </tr>
+        <tr>
+            <td>アプリケーションアーキテクチャ</td>
+            <td>レイヤードアーキテクチャ</td>
+            <td>責務の分離、保守性向上、テスト容易性</td>
+        </tr>
+    </table>
+    
+    <h4>3.1.4 アーキテクチャの進化計画</h4>
+    <p>SES業務システムのアーキテクチャは、以下のフェーズで進化させる計画である：</p>
+    <ol>
+        <li><strong>フェーズ1（初期リリース）</strong>: コア機能のモノリシック実装</li>
+        <li><strong>フェーズ2（機能拡張）</strong>: 全機能モジュールの実装と改善</li>
+        <li><strong>フェーズ3（最適化）</strong>: パフォーマンス改善、セキュリティ強化</li>
+        <li><strong>フェーズ4（機能強化）</strong>: 高度なマッチングアルゴリズム、予測分析機能の実装</li>
+    </ol>
+    
+    <h4>3.1.5 アーキテクチャ選定の根拠</h4>
+    <p>本アーキテクチャを選定した主な理由は以下の通り：</p>
+    <ul>
+        <li>要件定義書で指定された技術スタック（Java Spring Boot, Thymeleaf, PostgreSQL, Docker）との整合性</li>
+        <li>レイヤードアーキテクチャによる関心の分離と保守性の向上</li>
+        <li>Spring Bootのモジュール構成による機能単位の開発効率化</li>
+        <li>段階的な開発・リリースに対応できる柔軟性</li>
+        <li>シンプルな構成によるコードの理解しやすさと運用管理の容易さ</li>
+    </ul>
+
+    <h3 id="system-modules">3.2 モジュール構成</h3>
+    <div class="container">
+        <div class="image-placeholder">
+            [モジュール構成図]<br>
+            ここにモジュール構成図を挿入
+        </div>
+    </div>
+    <p>SES業務システムは、ドメイン駆動設計（DDD）の考え方に基づき、ビジネスドメインごとに独立したモジュールで構成される。各モジュールは、そのドメイン内での責任を持ち、適切なインターフェースを通じて連携する。</p>
+    
+    <h4>3.2.1 レイヤード・アーキテクチャの特徴</h4>
+    <ul>
+        <li><strong>関心の分離</strong>: 各レイヤーは特定の責務のみを持ち、保守性を向上</li>
+        <li><strong>依存関係の一方向化</strong>: 上位レイヤーから下位レイヤーへの依存のみを許可</li>
+        <li><strong>テスト容易性</strong>: レイヤー単位でのテストが可能</li>
+        <li><strong>コード再利用</strong>: 共通機能の抽出と再利用が容易</li>
+        <li><strong>変更の影響範囲限定</strong>: レイヤー内の変更がシステム全体に波及しない設計</li>
+    </ul>
+    
+    <h4>3.2.2 レイヤー構成</h4>
+    <p>SES業務システムは、以下のレイヤーで構成される：</p>
+    <ul>
+        <li><strong>プレゼンテーション層</strong>: ユーザーインターフェースを担当 (Thymeleaf)</li>
+        <li><strong>アプリケーション層</strong>: ユースケースの実現、トランザクション管理を担当 (Spring MVC, Spring Services)</li>
+        <li><strong>ドメイン層</strong>: ビジネスロジック、ドメインモデルを担当 (Domain Objects, Business Rules)</li>
+        <li><strong>インフラストラクチャ層</strong>: 永続化、外部システム連携を担当 (Spring Data JPA, APIs)</li>
+    </ul>
+    
+    <h4>3.2.3 機能モジュール構成</h4>
+    <p>SES業務システムは、以下の機能モジュールで構成される：</p>
+    <table>
+        <tr>
+            <th>モジュール名</th>
+            <th>機能概要</th>
+            <th>主要コンポーネント</th>
+            <th>データモデル</th>
+        </tr>
+        <tr>
+            <td>案件管理機能</td>
+            <td>
+                <ul>
+                    <li>案件情報の登録・管理</li>
+                    <li>案件検索・フィルタリング</li>
+                    <li>案件ステータス管理</li>
+                    <li>顧客情報管理</li>
+                    <li>案件履歴管理</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li>ProjectController</li>
+                    <li>ProjectService</li>
+                    <li>CustomerService</li>
+                    <li>ProjectRepository</li>
+                </ul>
+            </td>
+            <td>Project, Customer, ProjectStatus, ProjectHistory</td>
+        </tr>
+        <tr>
+            <td>技術者管理機能</td>
+            <td>
+                <ul>
+                    <li>技術者情報の登録・管理</li>
+                    <li>スキル情報管理</li>
+                    <li>稼働状況管理</li>
+                    <li>キャリア管理</li>
+                    <li>評価・パフォーマンス管理</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li>EngineerController</li>
+                    <li>EngineerService</li>
+                    <li>SkillService</li>
+                    <li>EngineerRepository</li>
+                </ul>
+            </td>
+            <td>Engineer, Skill, Assignment, Performance</td>
+        </tr>
+        <tr>
+            <td>マッチング機能</td>
+            <td>
+                <ul>
+                    <li>案件と技術者のマッチング</li>
+                    <li>マッチングアルゴリズム</li>
+                    <li>提案書生成</li>
+                    <li>マッチング履歴管理</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li>MatchingController</li>
+                    <li>MatchingService</li>
+                    <li>ProposalService</li>
+                    <li>MatchingRepository</li>
+                </ul>
+            </td>
+            <td>Matching, MatchingHistory, Proposal</td>
+        </tr>
+        <tr>
+            <td>契約管理機能</td>
+            <td>
+                <ul>
+                    <li>契約書テンプレート管理</li>
+                    <li>契約書生成</li>
+                    <li>電子署名連携</li>
+                    <li>契約管理・更新</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li>ContractController</li>
+                    <li>ContractService</li>
+                    <li>TemplateService</li>
+                    <li>ContractRepository</li>
+                </ul>
+            </td>
+            <td>Contract, ContractTemplate, Signature</td>
+        </tr>
+        <tr>
+            <td>勤怠工数管理機能</td>
+            <td>
+                <ul>
+                    <li>勤怠情報登録</li>
+                    <li>勤怠承認ワークフロー</li>
+                    <li>工数入力・管理</li>
+                    <li>シフト管理</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li>TimesheetController</li>
+                    <li>TimesheetService</li>
+                    <li>ApprovalService</li>
+                    <li>TimesheetRepository</li>
+                </ul>
+            </td>
+            <td>Timesheet, TimeEntry, Approval, WorkSchedule</td>
+        </tr>
+        <tr>
+            <td>請求支払機能</td>
+            <td>
+                <ul>
+                    <li>請求書生成</li>
+                    <li>入金管理</li>
+                    <li>支払管理</li>
+                    <li>税務処理</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li>BillingController</li>
+                    <li>InvoiceService</li>
+                    <li>PaymentService</li>
+                    <li>BillingRepository</li>
+                </ul>
+            </td>
+            <td>Invoice, Payment, BillingCycle, TaxInfo</td>
+        </tr>
+        <tr>
+            <td>レポーティング機能</td>
+            <td>
+                <ul>
+                    <li>各種レポート生成</li>
+                    <li>ダッシュボード</li>
+                    <li>KPI管理</li>
+                    <li>データ分析</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li>ReportController</li>
+                    <li>ReportService</li>
+                    <li>DashboardService</li>
+                    <li>ReportRepository</li>
+                </ul>
+            </td>
+            <td>Report, KPI, Dashboard, ReportTemplate</td>
+        </tr>
+        <tr>
+            <td>認証認可機能</td>
+            <td>
+                <ul>
+                    <li>ユーザー認証</li>
+                    <li>ロール・権限管理</li>
+                    <li>セッション管理</li>
+                    <li>アクセス制御</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li>SecurityConfig</li>
+                    <li>UserDetailsService</li>
+                    <li>AuthorizationService</li>
+                    <li>UserRepository</li>
+                </ul>
+            </td>
+            <td>User, Role, Permission, Session</td>
+        </tr>
+        <tr>
+            <td>通知機能</td>
+            <td>
+                <ul>
+                    <li>メール通知</li>
+                    <li>システム内通知</li>
+                    <li>通知テンプレート管理</li>
+                    <li>通知履歴管理</li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li>NotificationController</li>
+                    <li>EmailService</li>
+                    <li>NotificationService</li>
+                    <li>NotificationRepository</li>
+                </ul>
+            </td>
+            <td>Notification, NotificationTemplate, EmailLog</td>
+        </tr>
+    </table>
+    
+    <h4>3.2.4 モジュール間の連携</h4>
+    <p>モジュール間の連携は以下の方法で実現する：</p>
+    <ul>
+        <li><strong>サービス呼び出し</strong>: 依存性注入（DI）を用いたサービス間の直接呼び出し</li>
+        <li><strong>イベント駆動</strong>: Spring ApplicationEvent を利用したイベント通知</li>
+        <li><strong>共有データベース</strong>: モジュール間で共有するエンティティの適切な設計</li>
+    </ul>
+    
+    <h4>3.2.5 共通コンポーネント</h4>
+    <p>複数のモジュールで共有される共通コンポーネントを提供する：</p>
+    <ul>
+        <li><strong>共通ユーティリティ</strong>: 日付操作、文字列操作、ファイル操作など</li>
+        <li><strong>例外処理</strong>: 一貫した例外階層とハンドリング</li>
+        <li><strong>監査ログ</strong>: 操作履歴の記録と管理</li>
+        <li><strong>設定管理</strong>: システム設定の集中管理</li>
+        <li><strong>国際化</strong>: 多言語対応の仕組み</li>
+    </ul>
+
+    <h3 id="subsystems">3.3 サブシステム構成</h3>
+    <p>SES業務システムは、以下のサブシステムで構成される：</p>
+    <table>
+        <tr>
+            <th>サブシステム名</th>
+            <th>概要</th>
+            <th>関連マイクロサービス</th>
+        </tr>
+        <tr>
+            <td>営業支援サブシステム</td>
+            <td>案件管理、提案書作成、顧客情報管理</td>
+            <td>案件管理サービス</td>
+        </tr>
+        <tr>
+            <td>人材管理サブシステム</td>
+            <td>技術者情報管理、スキル管理、稼働状況管理</td>
+            <td>技術者管理サービス</td>
+        </tr>
+        <tr>
+            <td>マッチングサブシステム</td>
+            <td>案件と技術者のマッチング、提案書作成</td>
+            <td>マッチングサービス</td>
+        </tr>
+        <tr>
+            <td>契約管理サブシステム</td>
+            <td>契約書作成、電子署名、契約情報管理</td>
+            <td>契約管理サービス</td>
+        </tr>
+        <tr>
+            <td>勤怠管理サブシステム</td>
+            <td>勤怠情報登録、承認ワークフロー</td>
+            <td>勤怠工数管理サービス</td>
+        </tr>
+        <tr>
+            <td>請求支払サブシステム</td>
+            <td>請求書生成、入金管理、支払管理</td>
+            <td>請求支払サービス</td>
+        </tr>
+        <tr>
+            <td>経営分析サブシステム</td>
+            <td>各種レポート生成、KPI管理、予測分析</td>
+            <td>レポーティングサービス</td>
+        </tr>
+    </table>
+
+    <h2 id="deployment">4. デプロイメント設計</h2>
+    <p>SES業務システムは、Kubernetesベースのコンテナオーケストレーションプラットフォーム上に展開され、Infrastructure as Code（IaC）の原則に従って管理される。</p>
+    
+    <h3 id="deployment-diagram">4.1 デプロイメント図</h3>
+    <div class="container">
+        <div class="image-placeholder">
+            [デプロイメント図]<br>
+            ここにデプロイメント図を挿入
+        </div>
+    </div>
+    
+    <h4>4.1.1 環境構成</h4>
+    <p>SES業務システムは、以下の環境を用意する：</p>
+    <table>
+        <tr>
+            <th>環境</th>
+            <th>用途</th>
+            <th>インフラ構成</th>
+            <th>データ</th>
+        </tr>
+        <tr>
+            <td><strong>開発環境 (DEV)</strong></td>
+            <td>日常的な開発作業・機能テスト</td>
+            <td>小規模 Kubernetes クラスター<br>（単一アベイラビリティゾーン）</td>
+            <td>開発用データ<br>（本番データのマスキング版）</td>
+        </tr>
+        <tr>
+            <td><strong>テスト環境 (TEST)</strong></td>
+            <td>統合テスト・性能テスト・セキュリティテスト</td>
+            <td>中規模 Kubernetes クラスター<br>（複数アベイラビリティゾーン）</td>
+            <td>テスト用データセット<br>（本番データのサブセット）</td>
+        </tr>
+        <tr>
+            <td><strong>ステージング環境 (STG)</strong></td>
+            <td>本番リリース前の検証・受入テスト</td>
+            <td>本番同等 Kubernetes クラスター<br>（複数アベイラビリティゾーン）</td>
+            <td>本番データのクローン<br>（マスキング処理済み）</td>
+        </tr>
+        <tr>
+            <td><strong>本番環境 (PROD)</strong></td>
+            <td>実サービス提供</td>
+            <td>大規模 Kubernetes クラスター<br>（複数リージョン・アベイラビリティゾーン）</td>
+            <td>本番データ</td>
+        </tr>
+        <tr>
+            <td><strong>災害復旧環境 (DR)</strong></td>
+            <td>災害時のバックアップ運用</td>
+            <td>本番同等 Kubernetes クラスター<br>（別リージョン）</td>
+            <td>本番データのレプリケーション</td>
+        </tr>
+    </table>
+    
+    <h4>4.1.2 Kubernetesクラスター構成</h4>
+    <p>各環境のKubernetesクラスターは、以下の構成で展開される：</p>
+    <table>
+        <tr>
+            <th>コンポーネント</th>
+            <th>構成（本番環境）</th>
+            <th>役割</th>
+        </tr>
+        <tr>
+            <td>マスターノード</td>
+            <td>3台（各AZに1台）</td>
+            <td>Kubernetesコントロールプレーン</td>
+        </tr>
+        <tr>
+            <td>アプリケーションノード</td>
+            <td>9台以上（各AZに3台以上、Auto Scaling）</td>
+            <td>アプリケーションコンテナの実行</td>
+        </tr>
+        <tr>
+            <td>データベースノード</td>
+            <td>6台（各AZに2台）</td>
+            <td>データベースコンテナの実行</td>
+        </tr>
+        <tr>
+            <td>ユーティリティノード</td>
+            <td>3台（各AZに1台）</td>
+            <td>監視・ロギングコンポーネントの実行</td>
+        </tr>
+        <tr>
+            <td>ストレージ</td>
+            <td>分散ストレージシステム（各AZに複製）</td>
+            <td>永続データの保存</td>
+        </tr>
+    </table>
+    
+    <h4>4.1.3 デプロイメントプロセス</h4>
+    <p>SES業務システムは、以下のCI/CDパイプラインに従ってデプロイされる：</p>
+    <ol>
+        <li><strong>コード変更</strong>: 開発者がGitリポジトリに変更をプッシュ</li>
+        <li><strong>ビルド＆テスト</strong>: Jenkins/GitHub Actionsによる自動ビルドとユニットテスト実行</li>
+        <li><strong>コンテナイメージ作成</strong>: Docker イメージのビルドと脆弱性スキャン</li>
+        <li><strong>イメージ登録</strong>: コンテナレジストリへのイメージ登録</li>
+        <li><strong>DEV環境デプロイ</strong>: ArgoCD による開発環境への自動デプロイ</li>
+        <li><strong>統合テスト</strong>: 開発環境での自動統合テスト</li>
+        <li><strong>TEST環境デプロイ</strong>: テスト環境への自動デプロイと各種テスト実行</li>
+        <li><strong>STG環境デプロイ</strong>: ステージング環境への手動承認後のデプロイ</li>
+        <li><strong>受入テスト</strong>: ステージング環境での受入テスト</li>
+        <li><strong>PROD環境デプロイ</strong>: 本番環境への手動承認後のデプロイ</li>
+    </ol>
+    
+    <h3 id="network">4.2 ネットワーク構成</h3>
+    <div class="container">
+        <div class="image-placeholder">
+            [ネットワーク構成図]<br>
+            ここにネットワーク構成図を挿入
+        </div>
+    </div>
+    
+    <h4>4.2.1 VPCとサブネット構成</h4>
+    <p>SES業務システムは、以下のVPC（Virtual Private Cloud）とサブネット構成を採用する：</p>
+    <table>
+        <tr>
+            <th>ネットワーク要素</th>
+            <th>構成</th>
+            <th>目的</th>
+        </tr>
+        <tr>
+            <td><strong>VPC</strong></td>
+            <td>環境ごとに独立したVPC</td>
+            <td>環境間のネットワーク分離</td>
+        </tr>
+        <tr>
+            <td><strong>パブリックサブネット</strong></td>
+            <td>各AZに1つ以上</td>
+            <td>インターネット公開コンポーネント（ロードバランサー等）の配置</td>
+        </tr>
+        <tr>
+            <td><strong>アプリケーションサブネット</strong></td>
+            <td>各AZに1つ以上</td>
+            <td>アプリケーションコンテナの配置</td>
+        </tr>
+        <tr>
+            <td><strong>データベースサブネット</strong></td>
+            <td>各AZに1つ以上</td>
+            <td>データベースサーバーの配置</td>
+        </tr>
+        <tr>
+            <td><strong>管理サブネット</strong></td>
+            <td>各AZに1つ</td>
+            <td>運用管理ツール・踏み台サーバーの配置</td>
+        </tr>
+    </table>
+    
+    <h4>4.2.2 ネットワークセキュリティ</h4>
+    <p>以下のネットワークセキュリティ対策を実施する：</p>
+    <table>
+        <tr>
+            <th>セキュリティ対策</th>
+            <th>実装方法</th>
+            <th>目的</th>
+        </tr>
+        <tr>
+            <td><strong>ファイアウォール</strong></td>
+            <td>セキュリティグループ、ネットワークACL</td>
+            <td>不正アクセスの防止</td>
+        </tr>
+        <tr>
+            <td><strong>WAF</strong></td>
+            <td>Web Application Firewall</td>
+            <td>Webアプリケーション攻撃の防御</td>
+        </tr>
+        <tr>
+            <td><strong>DDoS対策</strong></td>
+            <td>DDoS保護サービス</td>
+            <td>サービス拒否攻撃からの保護</td>
+        </tr>
+        <tr>
+            <td><strong>IPSec VPN</strong></td>
+            <td>サイト間VPN</td>
+            <td>社内ネットワークとの安全な接続</td>
+        </tr>
+        <tr>
+            <td><strong>通信の暗号化</strong></td>
+            <td>TLS 1.3</td>
+            <td>データ通信の盗聴防止</td>
+        </tr>
+        <tr>
+            <td><strong>ネットワーク分離</strong></td>
+            <td>サブネット・セキュリティグループ</td>
+            <td>侵害発生時の影響範囲の限定</td>
+        </tr>
+    </table>
+    
+    <h4>4.2.3 ロードバランシング</h4>
+    <p>トラフィック分散のために以下のロードバランサーを配置する：</p>
+    <ul>
+        <li><strong>外部ロードバランサー</strong>: インターネットからのトラフィックをAPI Gatewayに分散</li>
+        <li><strong>内部ロードバランサー</strong>: サービス間通信の負荷分散</li>
+        <li><strong>データベースロードバランサー</strong>: データベース読み取りトラフィックの分散</li>
+    </ul>
+    
+    <h3 id="server">4.3 サーバー/コンテナ構成</h3>
+    <h4>4.3.1 コンテナ構成</h4>
+    <p>SES業務システムのコンポーネントは、以下のコンテナとして展開される：</p>
+    <table>
+        <tr>
+            <th>コンテナ種別</th>
+            <th>役割</th>
+            <th>構成</th>
+            <th>レプリカ数</th>
+            <th>リソース割り当て</th>
+        </tr>
+        <tr>
+            <td>Webアプリケーションコンテナ</td>
+            <td>Webアプリケーション提供</td>
+            <td>Tomcat + Spring Boot + Thymeleaf</td>
+            <td>2+（Auto Scaling）</td>
+            <td>CPU: 2vCPU<br>Memory: 4GB</td>
+        </tr>
+        <tr>
+            <td>データベースコンテナ</td>
+            <td>データ永続化</td>
+            <td>PostgreSQL</td>
+            <td>マスター1台、レプリカ1台</td>
+            <td>CPU: 4vCPU<br>Memory: 8GB</td>
+        </tr>
+        <tr>
+            <td>バックアップコンテナ</td>
+            <td>データバックアップ</td>
+            <td>PostgreSQL (pgBackRest)</td>
+            <td>1台</td>
+            <td>CPU: 1vCPU<br>Memory: 2GB</td>
+        </tr>
+        <tr>
+            <td>ファイルストレージコンテナ</td>
+            <td>ファイル保存</td>
+            <td>共有ボリューム</td>
+            <td>1台</td>
+            <td>CPU: 1vCPU<br>Memory: 2GB</td>
+        </tr>
+        <tr>
+            <td>CI/CDコンテナ</td>
+            <td>継続的インテグレーション・デプロイ</td>
+            <td>GitHub Actions Runner</td>
+            <td>1台</td>
+            <td>CPU: 2vCPU<br>Memory: 4GB</td>
+        </tr>
+        <tr>
+            <td>監視コンテナ</td>
+            <td>システム監視・ログ収集</td>
+            <td>Prometheus, Grafana</td>
+            <td>1台</td>
+            <td>CPU: 2vCPU<br>Memory: 4GB</td>
+        </tr>
+    </table>
+    
+    <h4>4.3.2 永続化ストレージ</h4>
+    <p>以下の永続化ストレージを使用する：</p>
+    <table>
+        <tr>
+            <th>ストレージ種類</th>
+            <th>用途</th>
+            <th>容量</th>
+            <th>バックアップ方式</th>
+        </tr>
+        <tr>
+            <td>ブロックストレージ</td>
+            <td>データベース、キャッシュ、メッセージキュー</td>
+            <td>2TB～10TB（サービスにより異なる）</td>
+            <td>日次スナップショット + 継続的増分バックアップ</td>
+        </tr>
+        <tr>
+            <td>オブジェクトストレージ</td>
+            <td>ドキュメント、ログ、バックアップデータ</td>
+            <td>50TB+（拡張可能）</td>
+            <td>クロスリージョンレプリケーション</td>
+        </tr>
+        <tr>
+            <td>共有ファイルシステム</td>
+            <td>アプリケーション間で共有するファイル</td>
+            <td>1TB</td>
+            <td>日次バックアップ</td>
+        </tr>
+    </table>
+    
+    <h4>4.3.3 運用管理インフラ</h4>
+    <p>以下の運用管理インフラを構築する：</p>
+    <table>
+        <tr>
+            <th>インフラコンポーネント</th>
+            <th>製品/技術</th>
+            <th>用途</th>
+        </tr>
+        <tr>
+            <td>CI/CDパイプライン</td>
+            <td>Jenkins, ArgoCD</td>
+            <td>継続的インテグレーション・デリバリー</td>
+        </tr>
+        <tr>
+            <td>コンテナレジストリ</td>
+            <td>Docker Registry</td>
+            <td>コンテナイメージの保管・配布</td>
+        </tr>
+        <tr>
+            <td>構成管理</td>
+            <td>Terraform, Helm</td>
+            <td>インフラとアプリケーション構成の管理</td>
+        </tr>
+        <tr>
+            <td>セキュリティスキャン</td>
+            <td>Trivy, SonarQube</td>
+            <td>コードとコンテナの脆弱性スキャン</td>
+        </tr>
+        <tr>
+            <td>監視・アラート</td>
+            <td>Prometheus, Grafana, PagerDuty</td>
+            <td>システム監視と異常検知・通知</td>
+        </tr>
+        <tr>
+            <td>ログ管理</td>
+            <td>Elasticsearch, Logstash, Kibana</td>
+            <td>ログ収集・分析・可視化</td>
+        </tr>
+        <tr>
+            <td>分散トレーシング</td>
+            <td>Jaeger, OpenTelemetry</td>
+            <td>マイクロサービス間通信の追跡</td>
+        </tr>
+    </table>
+
+    <h2 id="security">5. セキュリティ設計</h2>
+    <p>SES業務システムでは、多層防御（Defense in Depth）の考え方に基づき、包括的なセキュリティ対策を実施する。</p>
+    
+    <h3 id="authentication">5.1 認証設計</h3>
+    <h4>5.1.1 認証基本方針</h4>
+    <p>SES業務システムでは、以下の認証方式を採用する：</p>
+    <ul>
+        <li><strong>認証プロトコル</strong>: OAuth2.0 + OpenID Connect</li>
+        <li><strong>認証方式</strong>: ユーザーID/パスワード認証 + 多要素認証（MFA）</li>
+        <li><strong>セッション管理</strong>: JWTトークンによるステートレスセッション</li>
+        <li><strong>アカウントロック</strong>: 5回連続ログイン失敗でアカウントロック（30分）</li>
+    </ul>
+    
+    <h4>5.1.2 パスワードポリシー</h4>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>要件</th>
+            <th>備考</th>
+        </tr>
+        <tr>
+            <td>最小長</td>
+            <td>12文字以上</td>
+            <td>セキュリティ要件に基づく設定</td>
+        </tr>
+        <tr>
+            <td>複雑性</td>
+            <td>大文字・小文字・数字・特殊文字を含む</td>
+            <td>パスワード強度の確保</td>
+        </tr>
+        <tr>
+            <td>有効期限</td>
+            <td>90日</td>
+            <td>定期的な変更を強制</td>
+        </tr>
+        <tr>
+            <td>履歴管理</td>
+            <td>過去12回分のパスワードを再利用不可</td>
+            <td>パスワードの使い回し防止</td>
+        </tr>
+        <tr>
+            <td>初期パスワード</td>
+            <td>システム生成の一時パスワード + 初回ログイン時の変更強制</td>
+            <td>安全な初期設定</td>
+        </tr>
+    </table>
+    
+    <h4>5.1.3 多要素認証（MFA）</h4>
+    <p>以下のユーザーには多要素認証を必須とする：</p>
+    <ul>
+        <li>システム管理者アカウント</li>
+        <li>経営管理者アカウント</li>
+        <li>外部からのアクセスを行うユーザー</li>
+        <li>機密情報にアクセスする権限を持つユーザー</li>
+    </ul>
+    <p>対応する認証要素：</p>
+    <ul>
+        <li>SMSワンタイムパスワード</li>
+        <li>認証アプリケーション（Google Authenticator等）</li>
+        <li>生体認証（スマートフォン連携）</li>
+    </ul>
+    
+    <h4>5.1.4 認証アーキテクチャ</h4>
+    <div class="container">
+        <div class="image-placeholder">
+            [認証フロー図]<br>
+            ここに認証フロー図を挿入
+        </div>
+    </div>
+    <p>認証サービスは独立したマイクロサービスとして実装し、以下の機能を提供する：</p>
+    <ul>
+        <li>集中認証サービス（Single Sign-On）</li>
+        <li>ユーザー管理・アカウントライフサイクル管理</li>
+        <li>トークン発行・検証</li>
+        <li>多要素認証（MFA）</li>
+        <li>アカウントロック管理</li>
+    </ul>
+    
+    <h3 id="authorization">5.2 認可設計</h3>
+    <h4>5.2.1 認可基本方針</h4>
+    <p>SES業務システムでは、以下の認可方式を採用する：</p>
+    <ul>
+        <li><strong>アクセス制御モデル</strong>: RBAC（Role-Based Access Control）+ ABAC（Attribute-Based Access Control）のハイブリッド</li>
+        <li><strong>権限管理</strong>: ロール単位での権限付与、組織階層に基づくアクセス制御</li>
+        <li><strong>API認可</strong>: OAuth2.0のスコープベースの認可 + JWT クレーム</li>
+    </ul>
+    
+    <h4>5.2.2 ロール体系</h4>
+    <table>
+        <tr>
+            <th>ロール区分</th>
+            <th>ロール</th>
+            <th>主な権限</th>
+        </tr>
+        <tr>
+            <td rowspan="2">システム管理者</td>
+            <td>システム管理者（全体）</td>
+            <td>全機能の管理・設定変更</td>
+        </tr>
+        <tr>
+            <td>セキュリティ管理者</td>
+            <td>セキュリティ設定、監査ログ管理</td>
+        </tr>
+        <tr>
+            <td rowspan="3">業務管理者</td>
+            <td>営業管理者</td>
+            <td>案件管理機能の管理、営業データの参照/更新</td>
+        </tr>
+        <tr>
+            <td>人事管理者</td>
+            <td>技術者管理機能の管理、人事データの参照/更新</td>
+        </tr>
+        <tr>
+            <td>経理管理者</td>
+            <td>請求支払機能の管理、経理データの参照/更新</td>
+        </tr>
+        <tr>
+            <td rowspan="4">一般ユーザー</td>
+            <td>営業担当者</td>
+            <td>案件情報の登録/更新、担当案件の参照</td>
+        </tr>
+        <tr>
+            <td>人事担当者</td>
+            <td>技術者情報の登録/更新、担当技術者の参照</td>
+        </tr>
+        <tr>
+            <td>経理担当者</td>
+            <td>請求書の作成、入金情報の登録</td>
+        </tr>
+        <tr>
+            <td>技術者</td>
+            <td>自身の情報参照、スキル情報更新、勤怠登録</td>
+        </tr>
+        <tr>
+            <td>外部ユーザー</td>
+            <td>顧客担当者</td>
+            <td>契約情報の参照、発注情報の確認</td>
+        </tr>
+    </table>
+    
+    <h4>5.2.3 権限制御方式</h4>
+    <p>マイクロサービスごとに以下の権限制御を実装する：</p>
+    <ul>
+        <li><strong>API Gateway レベル</strong>: JWT トークンの検証、スコープベースのアクセス制御</li>
+        <li><strong>サービスレベル</strong>: サービス固有の詳細な権限チェック（組織階層、データオーナーシップなど）</li>
+        <li><strong>データレベル</strong>: クエリ時のフィルタリングによるデータアクセス制御</li>
+    </ul>
+    
+    <h3 id="data-protection">5.3 データ保護</h3>
+    <h4>5.3.1 データ分類</h4>
+    <p>データは以下のように分類し、分類に応じた保護対策を実施する：</p>
+    <table>
+        <tr>
+            <th>分類</th>
+            <th>対象データ例</th>
+            <th>保護要件</th>
+        </tr>
+        <tr>
+            <td>機密情報</td>
+            <td>個人識別情報（氏名・住所・電話番号等）、給与情報、契約金額</td>
+            <td>
+                <ul>
+                    <li>保存時の暗号化必須</li>
+                    <li>アクセスログ記録必須</li>
+                    <li>厳格なアクセス制御</li>
+                    <li>開発・テスト環境への持ち出し禁止（マスキング必須）</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>重要情報</td>
+            <td>案件情報、技術者スキル情報、顧客情報</td>
+            <td>
+                <ul>
+                    <li>保存時の暗号化推奨</li>
+                    <li>ロールベースのアクセス制御</li>
+                    <li>開発・テスト環境では匿名化</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>一般情報</td>
+            <td>公開可能な企業情報、公開求人情報</td>
+            <td>
+                <ul>
+                    <li>通常のアクセス制御</li>
+                    <li>改ざん防止対策</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+    
+    <h4>5.3.2 暗号化対策</h4>
+    <p>SES業務システムでは、以下の暗号化対策を実施する：</p>
+    <table>
+        <tr>
+            <th>対象</th>
+            <th>暗号化方式</th>
+            <th>鍵管理</th>
+        </tr>
+        <tr>
+            <td>通信経路</td>
+            <td>TLS 1.3</td>
+            <td>証明書管理システムによる自動更新</td>
+        </tr>
+        <tr>
+            <td>データベース（透過的暗号化）</td>
+            <td>AES-256</td>
+            <td>HSM（Hardware Security Module）による鍵管理</td>
+        </tr>
+        <tr>
+            <td>個別フィールド暗号化</td>
+            <td>AES-256-GCM</td>
+            <td>アプリケーションレベルでの鍵管理、鍵のローテーション</td>
+        </tr>
+        <tr>
+            <td>バックアップデータ</td>
+            <td>AES-256</td>
+            <td>HSMによる鍵管理、バックアップ専用の暗号化鍵</td>
+        </tr>
+        <tr>
+            <td>ファイルストレージ</td>
+            <td>AES-256</td>
+            <td>ストレージシステムによる鍵管理</td>
+        </tr>
+    </table>
+    
+    <h4>5.3.3 マスキング・匿名化</h4>
+    <p>開発・テスト環境では、以下のデータマスキング・匿名化処理を実施する：</p>
+    <ul>
+        <li><strong>完全マスキング</strong>: 個人識別情報を完全に別の値に置換</li>
+        <li><strong>部分マスキング</strong>: 電話番号の一部を「*」に置換するなど</li>
+        <li><strong>トークン化</strong>: 元の値と関連性のない代替値に置換しつつ、一貫性を維持</li>
+        <li><strong>シャッフリング</strong>: データセット内で値を入れ替え</li>
+        <li><strong>範囲化</strong>: 給与などの数値を範囲で表現</li>
+    </ul>
+    
+    <h4>5.3.4 セキュアコーディング</h4>
+    <p>アプリケーション開発において、以下のセキュアコーディング原則を適用する：</p>
+    <ul>
+        <li>入力値の検証（サーバーサイド）</li>
+        <li>SQLインジェクション対策（パラメータ化クエリの使用）</li>
+        <li>クロスサイトスクリプティング対策（出力エスケープ）</li>
+        <li>セキュアな例外処理（詳細なエラー情報の隠蔽）</li>
+        <li>適切なログ出力（機密情報のマスキング）</li>
+    </ul>
+    
+    <h3 id="audit">5.4 監査・ログ設計</h3>
+    <h4>5.4.1 監査ログ対象</h4>
+    <p>以下の操作・イベントについて監査ログを記録する：</p>
+    <table>
+        <tr>
+            <th>カテゴリ</th>
+            <th>監査対象</th>
+            <th>記録内容</th>
+        </tr>
+        <tr>
+            <td>認証・認可</td>
+            <td>
+                <ul>
+                    <li>ログイン／ログアウト</li>
+                    <li>ログイン失敗</li>
+                    <li>パスワード変更</li>
+                    <li>権限変更</li>
+                </ul>
+            </td>
+            <td>日時、ユーザーID、IPアドレス、操作内容、結果</td>
+        </tr>
+        <tr>
+            <td>データアクセス</td>
+            <td>
+                <ul>
+                    <li>機密情報の参照</li>
+                    <li>データの作成・更新・削除</li>
+                    <li>一括データ出力</li>
+                </ul>
+            </td>
+            <td>日時、ユーザーID、データ種別、操作内容、対象レコードID</td>
+        </tr>
+        <tr>
+            <td>システム管理</td>
+            <td>
+                <ul>
+                    <li>システム設定変更</li>
+                    <li>ユーザー・ロール管理</li>
+                    <li>バッチ処理実行</li>
+                </ul>
+            </td>
+            <td>日時、管理者ID、操作内容、変更前後の値</td>
+        </tr>
+        <tr>
+            <td>システム動作</td>
+            <td>
+                <ul>
+                    <li>アプリケーションエラー</li>
+                    <li>セキュリティ例外</li>
+                    <li>パフォーマンス異常</li>
+                </ul>
+            </td>
+            <td>日時、イベント種別、エラーコード、詳細情報</td>
+        </tr>
+    </table>
+    
+    <h4>5.4.2 ログ管理</h4>
+    <p>監査ログは以下のように管理する：</p>
+    <ul>
+        <li><strong>集中管理</strong>: ELKスタックによる集中ログ管理</li>
+        <li><strong>保存期間</strong>: オンライン保存（3ヶ月）、アーカイブ（5年間）</li>
+        <li><strong>保護対策</strong>: ログの改ざん防止（書き込み専用ストレージ、ハッシュ値による完全性確認）</li>
+        <li><strong>アラート</strong>: 不審な操作検知時のセキュリティアラート</li>
+    </ul>
+    
+    <h3 id="vulnerability">5.5 脆弱性対策</h3>
+    <h4>5.5.1 脆弱性管理プロセス</h4>
+    <p>以下の脆弱性管理プロセスを確立する：</p>
+    <ol>
+        <li><strong>脆弱性情報の収集</strong>: セキュリティ情報配信サービス、脆弱性データベースからの情報収集</li>
+        <li><strong>脆弱性評価</strong>: 影響範囲の特定、リスク評価、対応優先度の決定</li>
+        <li><strong>対策の実施</strong>: パッチ適用、設定変更、回避策の実装</li>
+        <li><strong>検証</strong>: 対策後の有効性確認</li>
+        <li><strong>報告</strong>: 対応状況の報告・記録</li>
+    </ol>
+    
+    <h4>5.5.2 セキュリティテスト</h4>
+    <p>以下のセキュリティテストを定期的に実施する：</p>
+    <table>
+        <tr>
+            <th>テスト種別</th>
+            <th>実施頻度</th>
+            <th>対象範囲</th>
+        </tr>
+        <tr>
+            <td>静的アプリケーションセキュリティテスト (SAST)</td>
+            <td>CI/CDパイプライン内で毎回</td>
+            <td>アプリケーションコード</td>
+        </tr>
+        <tr>
+            <td>動的アプリケーションセキュリティテスト (DAST)</td>
+            <td>月次</td>
+            <td>稼働中のアプリケーション</td>
+        </tr>
+        <tr>
+            <td>ソフトウェア構成分析 (SCA)</td>
+            <td>CI/CDパイプライン内で毎回</td>
+            <td>使用ライブラリ・依存関係</td>
+        </tr>
+        <tr>
+            <td>コンテナ脆弱性スキャン</td>
+            <td>イメージビルド時＋週次</td>
+            <td>コンテナイメージ</td>
+        </tr>
+        <tr>
+            <td>ペネトレーションテスト</td>
+            <td>半年毎＋重大な変更時</td>
+            <td>システム全体</td>
+        </tr>
+    </table>
+    
+    <h3 id="incident">5.6 インシデント対応</h3>
+    <p>セキュリティインシデント発生時は、以下の対応プロセスに従う：</p>
+    <ol>
+        <li><strong>検知・通報</strong>: 監視システムによる自動検知または利用者からの報告</li>
+        <li><strong>評価・分類</strong>: インシデントの重大度・種類の評価、対応優先度の決定</li>
+        <li><strong>初動対応</strong>: 被害拡大防止のための応急措置（影響範囲の特定・分離）</li>
+        <li><strong>調査・解析</strong>: 原因調査、攻撃経路・手法の特定、被害範囲の確定</li>
+        <li><strong>復旧</strong>: 被害システムの復旧、対策の実施</li>
+        <li><strong>報告・再発防止</strong>: 関係者への報告、再発防止策の策定・実施</li>
+    </ol>
+    
+    <h4>5.6.1 インシデント対応体制</h4>
+    <p>セキュリティインシデント対応のため、以下の体制を整備する：</p>
+    <ul>
+        <li><strong>セキュリティ対応チーム</strong>: インシデント対応の中核を担当</li>
+        <li><strong>技術対応チーム</strong>: システム調査・復旧を担当</li>
+        <li><strong>対外対応チーム</strong>: 顧客・監督官庁等への報告を担当</li>
+        <li><strong>経営層</strong>: 重大インシデント時の意思決定を担当</li>
+    </ul>
+
+    <h2 id="performance">6. 性能設計</h2>
+    <h3 id="response-time">6.1 レスポンスタイム</h3>
+    <p>SES業務システムのレスポンスタイム目標は以下の通り：</p>
+    <table>
+        <tr>
+            <th>操作種別</th>
+            <th>目標レスポンスタイム</th>
+            <th>最大許容値</th>
+        </tr>
+        <tr>
+            <td>画面表示（初期表示）</td>
+            <td>1.0秒以内</td>
+            <td>3.0秒</td>
+        </tr>
+        <tr>
+            <td>画面遷移</td>
+            <td>0.5秒以内</td>
+            <td>2.0秒</td>
+        </tr>
+        <tr>
+            <td>検索処理（通常）</td>
+            <td>1.0秒以内</td>
+            <td>3.0秒</td>
+        </tr>
+        <tr>
+            <td>検索処理（複雑条件）</td>
+            <td>3.0秒以内</td>
+            <td>10.0秒</td>
+        </tr>
+        <tr>
+            <td>データ更新処理</td>
+            <td>1.0秒以内</td>
+            <td>3.0秒</td>
+        </tr>
+        <tr>
+            <td>レポート生成</td>
+            <td>5.0秒以内</td>
+            <td>30.0秒</td>
+        </tr>
+        <tr>
+            <td>バッチ処理</td>
+            <td>-</td>
+            <td>指定期間内に完了</td>
+        </tr>
+    </table>
+
+    <h3 id="throughput">6.2 スループット</h3>
+    <p>SES業務システムのスループット目標は以下の通り：</p>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>想定値</th>
+            <th>最大値</th>
+        </tr>
+        <tr>
+            <td>同時接続ユーザー数</td>
+            <td>200ユーザー</td>
+            <td>500ユーザー</td>
+        </tr>
+        <tr>
+            <td>トランザクション数（ピーク時）</td>
+            <td>100TPS</td>
+            <td>300TPS</td>
+        </tr>
+        <tr>
+            <td>データ処理量（日次）</td>
+            <td>10GB</td>
+            <td>50GB</td>
+        </tr>
+    </table>
+
+    <h3 id="scaling">6.3 スケーリング方針</h3>
+    <p>SES業務システムでは、以下のスケーリング方針を採用する：</p>
+    <ul>
+        <li><strong>水平スケーリング</strong>: Webアプリケーション層とAPIサービス層は、負荷に応じて水平スケーリングする設計とする</li>
+        <li><strong>垂直スケーリング</strong>: データベース層は、負荷に応じて垂直スケーリングを基本とし、必要に応じてシャーディングを検討する</li>
+        <li><strong>スケーリングトリガー</strong>: CPU使用率70%、メモリ使用率80%をスケールアウトのトリガーとする</li>
+        <li><strong>オートスケーリング</strong>: クラウドプラットフォームのオートスケーリング機能を利用し、負荷に応じて自動的にスケールする</li>
+    </ul>
+
+    <h2 id="availability">7. 可用性設計</h2>
+    <h3 id="redundancy">7.1 冗長構成</h3>
+    <p>SES業務システムでは、以下の冗長構成を採用する：</p>
+    <ul>
+        <li><strong>マルチAZ構成</strong>: 異なるアベイラビリティゾーンにシステムコンポーネントを配置</li>
+        <li><strong>ロードバランサー冗長化</strong>: 複数のロードバランサーを配置し、単一障害点を排除</li>
+        <li><strong>アプリケーションサーバー冗長化</strong>: 各サービスを複数インスタンスで運用</li>
+        <li><strong>データベース冗長化</strong>: マスター/スレーブ構成によるデータベースの冗長化</li>
+    </ul>
+
+    <h3 id="failover">7.2 フェイルオーバー</h3>
+    <p>SES業務システムでは、以下のフェイルオーバー設計を採用する：</p>
+    <ul>
+        <li><strong>データベースフェイルオーバー</strong>: 自動フェイルオーバーによるマスター切り替え（目標RTO: 60秒）</li>
+        <li><strong>サービスフェイルオーバー</strong>: ヘルスチェックによる障害検知と自動フェイルオーバー</li>
+        <li><strong>サーキットブレーカー</strong>: マイクロサービス間の呼び出しにサーキットブレーカーパターンを適用</li>
+        <li><strong>グレースフルデグラデーション</strong>: 一部サービス障害時の縮退運転モード</li>
+    </ul>
+
+    <h3 id="disaster-recovery">7.3 災害対策</h3>
+    <p>SES業務システムでは、以下の災害対策を実施する：</p>
+    <ul>
+        <li><strong>データバックアップ</strong>: 日次フルバックアップ、時間単位の増分バックアップ</li>
+        <li><strong>バックアップサイト</strong>: 遠隔地バックアップサイトの準備</li>
+        <li><strong>リカバリ計画</strong>: 災害時復旧計画（DRP）の策定と定期的な訓練</li>
+        <li><strong>RTO/RPO</strong>: RTO（目標復旧時間）: 4時間以内、RPO（目標復旧時点）: 1時間以内</li>
+    </ul>
+
+    <h2 id="backup">8. バックアップ設計</h2>
+    <p>SES業務システムでは、以下のバックアップ設計を採用する：</p>
+    <table>
+        <tr>
+            <th>バックアップ種別</th>
+            <th>対象</th>
+            <th>頻度</th>
+            <th>保管期間</th>
+            <th>方式</th>
+        </tr>
+        <tr>
+            <td>フルバックアップ</td>
+            <td>データベース全体</td>
+            <td>日次（深夜）</td>
+            <td>30日間</td>
+            <td>オンラインバックアップ</td>
+        </tr>
+        <tr>
+            <td>増分バックアップ</td>
+            <td>データベース変更分</td>
+            <td>1時間毎</td>
+            <td>7日間</td>
+            <td>トランザクションログ</td>
+        </tr>
+        <tr>
+            <td>ファイルバックアップ</td>
+            <td>アップロードファイル</td>
+            <td>日次</td>
+            <td>30日間</td>
+            <td>差分バックアップ</td>
+        </tr>
+        <tr>
+            <td>構成バックアップ</td>
+            <td>システム構成情報</td>
+            <td>構成変更時</td>
+            <td>変更履歴5世代</td>
+            <td>構成管理ツール</td>
+        </tr>
+        <tr>
+            <td>アーカイブ</td>
+            <td>重要データ</td>
+            <td>月次</td>
+            <td>7年間</td>
+            <td>コールドストレージ</td>
+        </tr>
+    </table>
+
+    <h2 id="batch">9. バッチ処理設計</h2>
+    <p class="todo">TODO: バッチ処理設計の詳細を記述する。</p>
+
+    <h2 id="authority">10. 権限設計</h2>
+    <p class="todo">TODO: 権限設計の詳細を記述する。</p>
+
+    <h2 id="error">11. エラー処理設計</h2>
+    <p class="todo">TODO: エラー処理設計の詳細を記述する。</p>
+
+    <h2 id="logging">12. ログ設計</h2>
+    <p class="todo">TODO: ログ設計の詳細を記述する。</p>
+
+    <h2 id="monitoring">13. 監視設計</h2>
+    <p class="todo">TODO: 監視設計の詳細を記述する。</p>
+
+    <h2 id="migration">14. 移行設計</h2>
+    <p class="todo">TODO: 移行設計の詳細を記述する。</p>
+
+    <h2 id="appendix">15. 付録</h2>
+    <p class="todo">TODO: 必要に応じて付録情報を追加する。</p>
+
+    <footer>
+        <p>© 2025 SES業務システム プロジェクト</p>
+    </footer>
+</body>
+</html>

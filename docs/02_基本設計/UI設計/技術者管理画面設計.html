@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 技術者管理画面設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .mockup {
+            font-family: monospace;
+            white-space: pre;
+            background-color: #f8f8f8;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>SES業務システム 技術者管理画面設計</h1>
+
+    <h2>ENG-001: 技術者一覧画面</h2>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>ENG-001</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>技術者一覧</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>全技術者の一覧表示・検索・フィルタリングを行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>人事担当者、営業担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CMN-002: ダッシュボード</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>ENG-003: 技術者詳細、ENG-002: 技術者登録</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [技術者一覧画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>画面構成要素</h3>
+    <h4>1. 検索・フィルター部分</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>eng_list_001</td>
+            <td>検索ボックス</td>
+            <td>テキスト入力</td>
+            <td>技術者名、技術者ID、スキルなどでのフリーワード検索</td>
+        </tr>
+        <tr>
+            <td>eng_list_002</td>
+            <td>稼働状況</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>稼働状況によるフィルタリング（稼働中、待機中、予約済み、休職中など）</td>
+        </tr>
+        <tr>
+            <td>eng_list_003</td>
+            <td>スキル</td>
+            <td>マルチセレクト</td>
+            <td>スキルによるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>eng_list_004</td>
+            <td>経験年数</td>
+            <td>レンジスライダー</td>
+            <td>経験年数範囲によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>eng_list_005</td>
+            <td>所属区分</td>
+            <td>セレクトボックス</td>
+            <td>所属区分によるフィルタリング（社員、協力会社など）</td>
+        </tr>
+        <tr>
+            <td>eng_list_006</td>
+            <td>最終更新日</td>
+            <td>日付範囲選択</td>
+            <td>プロフィール更新日によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>eng_list_007</td>
+            <td>検索ボタン</td>
+            <td>ボタン</td>
+            <td>検索条件を適用して結果を表示</td>
+        </tr>
+        <tr>
+            <td>eng_list_008</td>
+            <td>クリアボタン</td>
+            <td>ボタン</td>
+            <td>検索条件をクリア</td>
+        </tr>
+    </table>
+
+    <h4>2. 一覧表示部分</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>eng_list_009</td>
+            <td>技術者一覧テーブル</td>
+            <td>テーブル</td>
+            <td>検索条件に合致する技術者の一覧</td>
+        </tr>
+        <tr>
+            <td>eng_list_010</td>
+            <td>技術者ID</td>
+            <td>テキスト（リンク）</td>
+            <td>システム内部で管理される技術者の一意識別子。クリックで詳細画面へ</td>
+        </tr>
+        <tr>
+            <td>eng_list_011</td>
+            <td>氏名</td>
+            <td>テキスト（リンク）</td>
+            <td>技術者の氏名。クリックで詳細画面へ</td>
+        </tr>
+        <tr>
+            <td>eng_list_012</td>
+            <td>所属区分</td>
+            <td>テキスト</td>
+            <td>技術者の所属区分（社員、協力会社など）</td>
+        </tr>
+        <tr>
+            <td>eng_list_013</td>
+            <td>稼働状況</td>
+            <td>ラベル（色分け表示）</td>
+            <td>技術者の現在の稼働状況</td>
+        </tr>
+        <tr>
+            <td>eng_list_014</td>
+            <td>主要スキル</td>
+            <td>タグリスト</td>
+            <td>技術者の主要スキル（最大5つ）</td>
+        </tr>
+        <tr>
+            <td>eng_list_015</td>
+            <td>経験年数</td>
+            <td>数値</td>
+            <td>技術者の経験年数</td>
+        </tr>
+        <tr>
+            <td>eng_list_016</td>
+            <td>対応可能日</td>
+            <td>日付</td>
+            <td>案件にアサイン可能となる日付</td>
+        </tr>
+        <tr>
+            <td>eng_list_017</td>
+            <td>アクションボタン</td>
+            <td>ボタングループ</td>
+            <td>詳細表示、スキルシート、マッチング検索などの操作ボタン</td>
+        </tr>
+        <tr>
+            <td>eng_list_018</td>
+            <td>ページネーション</td>
+            <td>ページ制御</td>
+            <td>複数ページにわたる結果のナビゲーション</td>
+        </tr>
+    </table>
+
+    <h4>3. 操作ボタン</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>eng_list_019</td>
+            <td>新規技術者登録ボタン</td>
+            <td>プライマリーボタン</td>
+            <td>新規技術者登録画面への遷移</td>
+        </tr>
+        <tr>
+            <td>eng_list_020</td>
+            <td>CSVエクスポートボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>表示中の技術者一覧をCSV形式でエクスポート</td>
+        </tr>
+        <tr>
+            <td>eng_list_021</td>
+            <td>CSVインポートボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>CSV形式の技術者情報をインポート</td>
+        </tr>
+    </table>
+
+    <h3>画面動作仕様</h3>
+    <ol>
+        <li>画面初期表示時は、デフォルトですべての技術者を表示する</li>
+        <li>検索条件を指定して検索ボタンをクリックすると、条件に合致する技術者が一覧表示される</li>
+        <li>一覧の技術者ID・氏名をクリックすると、該当の技術者詳細画面（ENG-003）に遷移する</li>
+        <li>アクションボタンの「詳細」をクリックすると、該当の技術者詳細画面（ENG-003）に遷移する</li>
+        <li>アクションボタンの「スキルシート」をクリックすると、該当の技術者のスキルシート管理画面（ENG-004）に遷移する</li>
+        <li>アクションボタンの「マッチング」をクリックすると、該当技術者とのマッチング検索画面（MTH-001）に遷移する</li>
+        <li>「新規技術者登録」ボタンをクリックすると、技術者登録画面（ENG-002）に遷移する</li>
+        <li>「CSVエクスポート」ボタンをクリックすると、現在の検索結果がCSVファイルとしてダウンロードされる</li>
+        <li>「CSVインポート」ボタンをクリックすると、CSVインポート用のモーダルダイアログが表示される</li>
+        <li>ページネーションを使用して、複数ページにわたる検索結果をナビゲートできる</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> ユーザーの権限レベルによって、表示される操作ボタンや実行可能な操作が異なります。</p>
+        <ul>
+            <li>人事担当者：全技術者の閲覧・編集が可能</li>
+            <li>営業担当者：全技術者の閲覧のみ可能、編集は不可</li>
+        </ul>
+    </div>
+
+    <h3>Thymeleafテンプレート実装例</h3>
+    <div class="mockup">
+&lt;!DOCTYPE html&gt;
+&lt;html xmlns:th="http://www.thymeleaf.org"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;技術者一覧 - SES業務システム&lt;/title&gt;
+    &lt;link rel="stylesheet" th:href="@{/css/main.css}"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;!-- ヘッダー部分（共通コンポーネント） --&gt;
+    &lt;header th:replace="fragments/header :: header"&gt;&lt;/header&gt;
+    
+    &lt;div class="main-content"&gt;
+        &lt;div class="page-header"&gt;
+            &lt;h1&gt;技術者一覧&lt;/h1&gt;
+            &lt;div class="actions"&gt;
+                &lt;a th:if="${@authService.hasRole('ROLE_HR')}" 
+                   th:href="@{/engineers/create}" class="btn btn-primary"&gt;
+                   &lt;i class="icon-plus"&gt;&lt;/i&gt; 新規技術者登録
+                &lt;/a&gt;
+                &lt;button id="exportCsvBtn" class="btn btn-secondary"&gt;
+                    &lt;i class="icon-download"&gt;&lt;/i&gt; CSVエクスポート
+                &lt;/button&gt;
+                &lt;button th:if="${@authService.hasRole('ROLE_HR')}" 
+                        id="importCsvBtn" class="btn btn-secondary"&gt;
+                    &lt;i class="icon-upload"&gt;&lt;/i&gt; CSVインポート
+                &lt;/button&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+        
+        &lt;!-- 検索・フィルター部分 --&gt;
+        &lt;div class="search-panel"&gt;
+            &lt;form th:action="@{/engineers}" method="get" id="searchForm"&gt;
+                &lt;div class="search-row"&gt;
+                    &lt;div class="form-group"&gt;
+                        &lt;label for="keyword"&gt;キーワード&lt;/label&gt;
+                        &lt;input type="text" id="keyword" name="keyword" th:value="${param.keyword}" 
+                               placeholder="氏名、スキル、備考など"&gt;
+                    &lt;/div&gt;
+                    
+                    &lt;div class="form-group"&gt;
+                        &lt;label for="workStatus"&gt;稼働状況&lt;/label&gt;
+                        &lt;select id="workStatus" name="workStatus" multiple&gt;
+                            &lt;option value="AVAILABLE" th:selected="${#lists.contains(param.workStatus, 'AVAILABLE')}"&gt;待機中&lt;/option&gt;
+                            &lt;option value="WORKING" th:selected="${#lists.contains(param.workStatus, 'WORKING')}"&gt;稼働中&lt;/option&gt;
+                            &lt;option value="RESERVED" th:selected="${#lists.contains(param.workStatus, 'RESERVED')}"&gt;予約済&lt;/option&gt;
+                            &lt;option value="ON_LEAVE" th:selected="${#lists.contains(param.workStatus, 'ON_LEAVE')}"&gt;休職中&lt;/option&gt;
+                        &lt;/select&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                &lt;div class="search-row"&gt;
+                    &lt;div class="form-group"&gt;
+                        &lt;label for="skills"&gt;スキル&lt;/label&gt;
+                        &lt;select id="skills" name="skills" multiple&gt;
+                            &lt;option th:each="skill : ${skillCategories}" 
+                                    th:value="${skill.id}" 
+                                    th:text="${skill.name}"
+                                    th:selected="${#lists.contains(param.skills, skill.id)}"&gt;スキル名&lt;/option&gt;
+                        &lt;/select&gt;
+                    &lt;/div&gt;
+                    
+                    &lt;div class="form-group"&gt;
+                        &lt;label for="employmentType"&gt;所属区分&lt;/label&gt;
+                        &lt;select id="employmentType" name="employmentType"&gt;
+                            &lt;option value=""&gt;すべて&lt;/option&gt;
+                            &lt;option value="EMPLOYEE" th:selected="${param.employmentType == 'EMPLOYEE'}"&gt;社員&lt;/option&gt;
+                            &lt;option value="PARTNER" th:selected="${param.employmentType == 'PARTNER'}"&gt;協力会社&lt;/option&gt;
+                            &lt;option value="CONTRACTOR" th:selected="${param.employmentType == 'CONTRACTOR'}"&gt;個人事業主&lt;/option&gt;
+                        &lt;/select&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                &lt;div class="search-row"&gt;
+                    &lt;div class="form-group range-slider"&gt;
+                        &lt;label for="experienceYears"&gt;経験年数&lt;/label&gt;
+                        &lt;div class="slider-container"&gt;
+                            &lt;input type="range" id="minExperience" name="minExperience" 
+                                   min="0" max="20" step="1" th:value="${param.minExperience ?: 0}"&gt;
+                            &lt;span class="range-separator"&gt;～&lt;/span&gt;
+                            &lt;input type="range" id="maxExperience" name="maxExperience" 
+                                   min="0" max="20" step="1" th:value="${param.maxExperience ?: 20}"&gt;
+                        &lt;/div&gt;
+                        &lt;div class="range-values"&gt;
+                            &lt;span id="minExperienceValue" th:text="${param.minExperience ?: 0}"&gt;0&lt;/span&gt;年
+                            &lt;span class="range-separator"&gt;～&lt;/span&gt;
+                            &lt;span id="maxExperienceValue" th:text="${param.maxExperience ?: 20}"&gt;20&lt;/span&gt;年
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                    
+                    &lt;div class="form-group date-range"&gt;
+                        &lt;label&gt;最終更新日&lt;/label&gt;
+                        &lt;div class="date-inputs"&gt;
+                            &lt;input type="date" id="updatedFrom" name="updatedFrom" th:value="${param.updatedFrom}"&gt;
+                            &lt;span class="date-separator"&gt;～&lt;/span&gt;
+                            &lt;input type="date" id="updatedTo" name="updatedTo" th:value="${param.updatedTo}"&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                &lt;div class="search-buttons"&gt;
+                    &lt;button type="submit" class="btn btn-search"&gt;検索&lt;/button&gt;
+                    &lt;button type="button" id="clearBtn" class="btn btn-outline"&gt;クリア&lt;/button&gt;
+                    &lt;a href="#" id="advancedSearchToggle" class="advanced-search-link"&gt;詳細検索 &lt;i class="icon-chevron-down"&gt;&lt;/i&gt;&lt;/a&gt;
+                &lt;/div&gt;
+                
+                &lt;div id="advancedSearchFields" class="advanced-search-fields" style="display: none;"&gt;
+                    &lt;!-- 詳細検索項目（必要に応じて拡張） --&gt;
+                &lt;/div&gt;
+            &lt;/form&gt;
+        &lt;/div&gt;
+        
+        &lt;!-- 技術者一覧テーブル --&gt;
+        &lt;div class="table-responsive"&gt;
+            &lt;table class="data-table engineers-table"&gt;
+                &lt;thead&gt;
+                    &lt;tr&gt;
+                        &lt;th&gt;技術者ID&lt;/th&gt;
+                        &lt;th&gt;氏名&lt;/th&gt;
+                        &lt;th&gt;所属区分&lt;/th&gt;
+                        &lt;th&gt;稼働状況&lt;/th&gt;
+                        &lt;th&gt;主要スキル&lt;/th&gt;
+                        &lt;th&gt;経験年数&lt;/th&gt;
+                        &lt;th&gt;対応可能日&lt;/th&gt;
+                        &lt;th&gt;アクション&lt;/th&gt;
+                    &lt;/tr&gt;
+                &lt;/thead&gt;
+                &lt;tbody&gt;
+                    &lt;tr th:if="${engineers.empty}"&gt;
+                        &lt;td colspan="8" class="no-data"&gt;該当する技術者がありません&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr th:each="engineer : ${engineers}" th:id="'engineer-' + ${engineer.id}"&gt;
+                        &lt;td&gt;&lt;a th:href="@{/engineers/{id}(id=${engineer.id})}" th:text="${engineer.engineerCode}"&gt;E00001&lt;/a&gt;&lt;/td&gt;
+                        &lt;td&gt;&lt;a th:href="@{/engineers/{id}(id=${engineer.id})}" th:text="${engineer.name}"&gt;技術者名&lt;/a&gt;&lt;/td&gt;
+                        &lt;td th:text="${@engineerUtil.getEmploymentTypeLabel(engineer.employmentType)}"&gt;社員&lt;/td&gt;
+                        &lt;td&gt;
+                            &lt;span class="status-badge" th:classappend="${'status-' + engineer.workStatus.toLowerCase()}"
+                                  th:text="${@engineerUtil.getWorkStatusLabel(engineer.workStatus)}"&gt;稼働状況&lt;/span&gt;
+                        &lt;/td&gt;
+                        &lt;td&gt;
+                            &lt;div class="skill-tags"&gt;
+                                &lt;span class="skill-tag" th:each="skill, iterStat : ${engineer.mainSkills}" 
+                                      th:if="${iterStat.index &lt; 5}" th:text="${skill.name}"&gt;Java&lt;/span&gt;
+                                &lt;span class="more-skills" th:if="${engineer.mainSkills.size() &gt; 5}" 
+                                      th:text="${'+' + (engineer.mainSkills.size() - 5)}"&gt;+3&lt;/span&gt;
+                            &lt;/div&gt;
+                        &lt;/td&gt;
+                        &lt;td th:text="${engineer.yearsOfExperience + '年'}"&gt;5年&lt;/td&gt;
+                        &lt;td th:text="${engineer.availableFrom != null ? #temporals.format(engineer.availableFrom, 'yyyy/MM/dd') : '未定'}"&gt;
+                            2025/06/01
+                        &lt;/td&gt;
+                        &lt;td class="actions"&gt;
+                            &lt;div class="btn-group"&gt;
+                                &lt;a th:href="@{/engineers/{id}(id=${engineer.id})}" class="btn btn-sm btn-icon" title="詳細"&gt;
+                                    &lt;i class="icon-eye"&gt;&lt;/i&gt;
+                                &lt;/a&gt;
+                                &lt;a th:href="@{/engineers/{id}/skillsheet(id=${engineer.id})}" class="btn btn-sm btn-icon" title="スキルシート"&gt;
+                                    &lt;i class="icon-document"&gt;&lt;/i&gt;
+                                &lt;/a&gt;
+                                &lt;a th:href="@{/matching/search(engineerId=${engineer.id})}" class="btn btn-sm btn-icon" title="マッチング"&gt;
+                                    &lt;i class="icon-search-project"&gt;&lt;/i&gt;
+                                &lt;/a&gt;
+                            &lt;/div&gt;
+                        &lt;/td&gt;
+                    &lt;/tr&gt;
+                &lt;/tbody&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;
+        
+        &lt;!-- ページネーション --&gt;
+        &lt;div th:if="${!engineers.empty}" class="pagination-container"&gt;
+            &lt;nav aria-label="ページナビゲーション"&gt;
+                &lt;ul class="pagination" th:with="
+                     totalPages=${engineers.totalPages},
+                     currentPage=${engineers.number + 1}"&gt;
+                    &lt;li class="page-item" th:classappend="${currentPage == 1} ? 'disabled' : ''"&gt;
+                        &lt;a class="page-link" th:href="@{/engineers(page=1, size=${engineers.size}, keyword=${param.keyword}, workStatus=${param.workStatus}, skills=${param.skills}, employmentType=${param.employmentType}, minExperience=${param.minExperience}, maxExperience=${param.maxExperience}, updatedFrom=${param.updatedFrom}, updatedTo=${param.updatedTo})}"&gt;&lt;&lt;&lt;/a&gt;
+                    &lt;/li&gt;
+                    &lt;li class="page-item" th:classappend="${currentPage == 1} ? 'disabled' : ''"&gt;
+                        &lt;a class="page-link" th:href="@{/engineers(page=${currentPage - 1}, size=${engineers.size}, keyword=${param.keyword}, workStatus=${param.workStatus}, skills=${param.skills}, employmentType=${param.employmentType}, minExperience=${param.minExperience}, maxExperience=${param.maxExperience}, updatedFrom=${param.updatedFrom}, updatedTo=${param.updatedTo})}"&gt;&lt;&lt;/a&gt;
+                    &lt;/li&gt;
+                    &lt;li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
+                        th:if="${i &gt;= currentPage - 2 and i &lt;= currentPage + 2}"
+                        th:classappend="${i == currentPage} ? 'active' : ''"&gt;
+                        &lt;a class="page-link" th:href="@{/engineers(page=${i}, size=${engineers.size}, keyword=${param.keyword}, workStatus=${param.workStatus}, skills=${param.skills}, employmentType=${param.employmentType}, minExperience=${param.minExperience}, maxExperience=${param.maxExperience}, updatedFrom=${param.updatedFrom}, updatedTo=${param.updatedTo})}"
+                           th:text="${i}"&gt;1&lt;/a&gt;
+                    &lt;/li&gt;
+                    &lt;li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled' : ''"&gt;
+                        &lt;a class="page-link" th:href="@{/engineers(page=${currentPage + 1}, size=${engineers.size}, keyword=${param.keyword}, workStatus=${param.workStatus}, skills=${param.skills}, employmentType=${param.employmentType}, minExperience=${param.minExperience}, maxExperience=${param.maxExperience}, updatedFrom=${param.updatedFrom}, updatedTo=${param.updatedTo})}"&gt;&gt;&lt;/a&gt;
+                    &lt;/li&gt;
+                    &lt;li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled' : ''"&gt;
+                        &lt;a class="page-link" th:href="@{/engineers(page=${totalPages}, size=${engineers.size}, keyword=${param.keyword}, workStatus=${param.workStatus}, skills=${param.skills}, employmentType=${param.employmentType}, minExperience=${param.minExperience}, maxExperience=${param.maxExperience}, updatedFrom=${param.updatedFrom}, updatedTo=${param.updatedTo})}"&gt;&gt;&gt;&lt;/a&gt;
+                    &lt;/li&gt;
+                &lt;/ul&gt;
+                
+                &lt;div class="pagination-info"&gt;
+                    &lt;span th:text="${engineers.numberOfElements + ' 件表示中（全 ' + engineers.totalElements + ' 件）'}"&gt;
+                        10 件表示中（全 100 件）
+                    &lt;/span&gt;
+                    &lt;select id="pageSizeSelect" name="size" class="form-control form-control-sm"&gt;
+                        &lt;option value="10" th:selected="${engineers.size == 10}"&gt;10件&lt;/option&gt;
+                        &lt;option value="25" th:selected="${engineers.size == 25}"&gt;25件&lt;/option&gt;
+                        &lt;option value="50" th:selected="${engineers.size == 50}"&gt;50件&lt;/option&gt;
+                        &lt;option value="100" th:selected="${engineers.size == 100}"&gt;100件&lt;/option&gt;
+                    &lt;/select&gt;
+                &lt;/div&gt;
+            &lt;/nav&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    
+    &lt;!-- CSVインポート用モーダル --&gt;
+    &lt;div class="modal fade" id="importCsvModal" tabindex="-1" role="dialog" aria-labelledby="importCsvModalLabel" aria-hidden="true"&gt;
+        &lt;div class="modal-dialog" role="document"&gt;
+            &lt;div class="modal-content"&gt;
+                &lt;div class="modal-header"&gt;
+                    &lt;h5 class="modal-title" id="importCsvModalLabel"&gt;技術者情報 CSVインポート&lt;/h5&gt;
+                    &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+                        &lt;span aria-hidden="true"&gt;&times;&lt;/span&gt;
+                    &lt;/button&gt;
+                &lt;/div&gt;
+                &lt;form th:action="@{/engineers/import}" method="post" enctype="multipart/form-data"&gt;
+                    &lt;div class="modal-body"&gt;
+                        &lt;div class="form-group"&gt;
+                            &lt;label for="csvFile"&gt;CSVファイル選択&lt;/label&gt;
+                            &lt;input type="file" class="form-control-file" id="csvFile" name="file" accept=".csv" required&gt;
+                        &lt;/div&gt;
+                        &lt;div class="form-group"&gt;
+                            &lt;div class="form-check"&gt;
+                                &lt;input class="form-check-input" type="checkbox" id="updateExisting" name="updateExisting"&gt;
+                                &lt;label class="form-check-label" for="updateExisting"&gt;
+                                    既存データを更新する
+                                &lt;/label&gt;
+                            &lt;/div&gt;
+                        &lt;/div&gt;
+                        &lt;div class="csv-template"&gt;
+                            &lt;a th:href="@{/templates/engineers_import_template.csv}" download&gt;
+                                CSVテンプレートをダウンロード
+                            &lt;/a&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;div class="modal-footer"&gt;
+                        &lt;button type="button" class="btn btn-secondary" data-dismiss="modal"&gt;キャンセル&lt;/button&gt;
+                        &lt;button type="submit" class="btn btn-primary"&gt;インポート&lt;/button&gt;
+                    &lt;/div&gt;
+                &lt;/form&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    
+    &lt;!-- フッター部分（共通コンポーネント） --&gt;
+    &lt;footer th:replace="fragments/footer :: footer"&gt;&lt;/footer&gt;
+    
+    &lt;script th:src="@{/js/engineers-list.js}"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+    </div>
+    
+    <h2>ENG-002: 技術者登録画面</h2>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>ENG-002</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>技術者登録</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>新規技術者情報を登録する画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>人事担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>ENG-001: 技術者一覧</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>ENG-003: 技術者詳細（登録成功時）、ENG-001: 技術者一覧（キャンセル時）</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [技術者登録画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>画面項目定義</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>eng_reg_001</td>
+            <td>氏名</td>
+            <td>テキスト入力</td>
+            <td>100文字以内</td>
+            <td>◯</td>
+            <td>技術者の氏名</td>
+        </tr>
+        <tr>
+            <td>eng_reg_002</td>
+            <td>氏名（カナ）</td>
+            <td>テキスト入力</td>
+            <td>100文字以内、カタカナのみ</td>
+            <td>◯</td>
+            <td>技術者の氏名（カタカナ）</td>
+        </tr>
+        <tr>
+            <td>eng_reg_003</td>
+            <td>所属区分</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>技術者の所属区分（社員、協力会社など）</td>
+        </tr>
+        <tr>
+            <td>eng_reg_004</td>
+            <td>所属会社</td>
+            <td>テキスト入力</td>
+            <td>100文字以内</td>
+            <td>△</td>
+            <td>協力会社の場合に入力</td>
+        </tr>
+        <tr>
+            <td>eng_reg_005</td>
+            <td>メールアドレス</td>
+            <td>テキスト入力</td>
+            <td>有効なメールアドレス形式</td>
+            <td>◯</td>
+            <td>連絡用メールアドレス</td>
+        </tr>
+        <tr>
+            <td>eng_reg_006</td>
+            <td>電話番号</td>
+            <td>テキスト入力</td>
+            <td>有効な電話番号形式</td>
+            <td>◯</td>
+            <td>連絡用電話番号</td>
+        </tr>
+        <tr>
+            <td>eng_reg_007</td>
+            <td>生年月日</td>
+            <td>日付選択</td>
+            <td>有効な日付</td>
+            <td>◯</td>
+            <td>技術者の生年月日</td>
+        </tr>
+        <tr>
+            <td>eng_reg_008</td>
+            <td>性別</td>
+            <td>ラジオボタン</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>技術者の性別</td>
+        </tr>
+        <tr>
+            <td>eng_reg_009</td>
+            <td>稼働状況</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>現在の稼働状況</td>
+        </tr>
+        <tr>
+            <td>eng_reg_010</td>
+            <td>対応可能日</td>
+            <td>日付選択</td>
+            <td>有効な日付</td>
+            <td>△</td>
+            <td>案件にアサイン可能となる日付</td>
+        </tr>
+        <tr>
+            <td>eng_reg_011</td>
+            <td>経験年数</td>
+            <td>数値入力</td>
+            <td>整数（0〜50）</td>
+            <td>◯</td>
+            <td>IT業界での経験年数</td>
+        </tr>
+        <tr>
+            <td>eng_reg_012</td>
+            <td>希望単価（下限）</td>
+            <td>数値入力</td>
+            <td>整数（0〜999999）</td>
+            <td>◯</td>
+            <td>希望する単価の下限</td>
+        </tr>
+        <tr>
+            <td>eng_reg_013</td>
+            <td>希望単価（上限）</td>
+            <td>数値入力</td>
+            <td>整数（下限以上、999999以下）</td>
+            <td>◯</td>
+            <td>希望する単価の上限</td>
+        </tr>
+        <tr>
+            <td>eng_reg_014</td>
+            <td>最寄り駅</td>
+            <td>テキスト入力</td>
+            <td>100文字以内</td>
+            <td>◯</td>
+            <td>居住地の最寄り駅</td>
+        </tr>
+        <tr>
+            <td>eng_reg_015</td>
+            <td>稼働可能エリア</td>
+            <td>チェックボックスグループ</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>稼働可能な地域</td>
+        </tr>
+        <tr>
+            <td>eng_reg_016</td>
+            <td>リモート対応</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>リモート勤務の可否</td>
+        </tr>
+        <tr>
+            <td>eng_reg_017</td>
+            <td>技術スキル</td>
+            <td>マルチセレクト</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>保有する技術スキル</td>
+        </tr>
+        <tr>
+            <td>eng_reg_018</td>
+            <td>資格</td>
+            <td>マルチセレクト</td>
+            <td>-</td>
+            <td>×</td>
+            <td>保有する資格</td>
+        </tr>
+        <tr>
+            <td>eng_reg_019</td>
+            <td>自己PR</td>
+            <td>テキストエリア</td>
+            <td>1000文字以内</td>
+            <td>×</td>
+            <td>技術者の自己PR</td>
+        </tr>
+        <tr>
+            <td>eng_reg_020</td>
+            <td>備考</td>
+            <td>テキストエリア</td>
+            <td>1000文字以内</td>
+            <td>×</td>
+            <td>その他の補足情報</td>
+        </tr>
+        <tr>
+            <td>eng_reg_021</td>
+            <td>登録ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>技術者情報の登録を実行</td>
+        </tr>
+        <tr>
+            <td>eng_reg_022</td>
+            <td>キャンセルボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>入力をキャンセルして前画面に戻る</td>
+        </tr>
+    </table>
+
+    <h3>画面動作仕様</h3>
+    <ol>
+        <li>必須項目が入力されているかをバリデーションチェックする
+            <ul>
+                <li>未入力の必須項目がある場合はエラーメッセージを表示</li>
+                <li>入力形式や値の範囲が不正な場合はエラーメッセージを表示</li>
+            </ul>
+        </li>
+        <li>所属区分で「社員」以外を選択した場合、所属会社の入力欄を必須として表示する</li>
+        <li>稼働状況で「稼働中」を選択した場合、対応可能日の入力欄は非表示とする</li>
+        <li>希望単価の下限が上限を超える値に設定された場合、エラーメッセージを表示する</li>
+        <li>「登録」ボタンをクリックした場合
+            <ul>
+                <li>入力内容のバリデーションを行い、問題がなければ技術者情報を登録する</li>
+                <li>登録成功時は技術者詳細画面（ENG-003）に遷移する</li>
+                <li>登録失敗時はエラーメッセージを表示し、入力内容を保持したままの状態で再表示する</li>
+            </ul>
+        </li>
+        <li>「キャンセル」ボタンをクリックした場合
+            <ul>
+                <li>入力内容を破棄して技術者一覧画面（ENG-001）に戻る</li>
+                <li>入力内容がある場合は確認ダイアログを表示し、ユーザーの意思を確認する</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>ENG-003: 技術者詳細画面</h2>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>ENG-003</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>技術者詳細</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>技術者の詳細情報表示・編集を行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>人事担当者、本人</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>ENG-001: 技術者一覧、ENG-002: 技術者登録</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>ENG-001: 技術者一覧、ENG-004: スキルシート管理、MTH-001: マッチング検索</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [技術者詳細画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>画面モード</h3>
+    <p>この画面は以下の2つのモードを持ちます：</p>
+    <ol>
+        <li><strong>表示モード</strong>: 技術者の詳細情報を参照するためのモード（デフォルト）</li>
+        <li><strong>編集モード</strong>: 技術者の詳細情報を編集するためのモード（人事担当者または本人のみ）</li>
+    </ol>
+
+    <h3>タブ構成</h3>
+    <p>技術者詳細画面は以下のタブで構成されます：</p>
+    <ol>
+        <li><strong>基本情報</strong>: 技術者の基本的な情報（氏名、連絡先、状況など）</li>
+        <li><strong>スキル情報</strong>: 技術スキル、資格、経験など</li>
+        <li><strong>稼働履歴</strong>: 過去の案件履歴</li>
+        <li><strong>マッチング履歴</strong>: 過去のマッチング履歴</li>
+    </ol>
+
+    <h3>主要な機能</h3>
+    <ul>
+        <li>技術者の基本情報の表示・編集</li>
+        <li>技術者のスキル情報の表示・編集</li>
+        <li>稼働状況の変更</li>
+        <li>スキルシート管理画面への遷移</li>
+        <li>過去の稼働履歴・案件履歴の表示</li>
+        <li>マッチング検索の実行</li>
+    </ul>
+
+    <h3>画面動作仕様</h3>
+    <ol>
+        <li>画面初期表示時は、表示モードで基本情報タブが選択された状態で表示</li>
+        <li>各タブをクリックすると、対応する情報が表示されるようタブ切り替えが行われる</li>
+        <li>「編集」ボタンをクリックすると編集モードに切り替わる（権限のある場合のみ表示）</li>
+        <li>編集モードでの「保存」ボタンクリック時
+            <ul>
+                <li>入力内容のバリデーションを行い、問題がなければ技術者情報を更新する</li>
+                <li>更新成功時は表示モードに戻り、更新された情報が表示される</li>
+                <li>更新失敗時はエラーメッセージを表示し、入力内容を保持したままの状態で再表示する</li>
+            </ul>
+        </li>
+        <li>「キャンセル」ボタンをクリックすると、編集内容を破棄して表示モードに戻る</li>
+        <li>「スキルシート」ボタンをクリックすると、スキルシート管理画面（ENG-004）に遷移する</li>
+        <li>「マッチング検索」ボタンをクリックすると、この技術者の条件でマッチング検索画面（MTH-001）に遷移する</li>
+        <li>「一覧に戻る」ボタンをクリックすると、技術者一覧画面（ENG-001）に戻る</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> 編集モードへの切り替えボタンは、編集権限を持つユーザー（人事担当者または本人）にのみ表示されます。</p>
+    </div>
+
+    <h2>ENG-004: スキルシート管理画面</h2>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>ENG-004</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>スキルシート管理</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>技術者のスキルシート作成・編集・出力を行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>人事担当者、本人</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>ENG-003: 技術者詳細</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>ENG-003: 技術者詳細</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [スキルシート管理画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>主要な機能</h3>
+    <ul>
+        <li>スキルシートのテンプレート選択</li>
+        <li>スキルシートのプレビュー表示</li>
+        <li>スキルシートの内容編集</li>
+        <li>スキルシートのPDF/Word形式での出力</li>
+    </ul>
+
+    <h3>画面動作仕様</h3>
+    <ol>
+        <li>画面初期表示時は、デフォルトのテンプレートでスキルシートのプレビューを表示</li>
+        <li>テンプレート選択ドロップダウンから別のテンプレートを選択すると、選択したテンプレートに応じたプレビューが表示される</li>
+        <li>「編集」ボタンをクリックすると編集モードに切り替わり、スキルシートの内容を編集できるようになる</li>
+        <li>編集モードでの「保存」ボタンクリック時
+            <ul>
+                <li>入力内容のバリデーションを行い、問題がなければスキルシート情報を更新する</li>
+                <li>更新成功時は表示モードに戻り、更新された情報でプレビューが表示される</li>
+                <li>更新失敗時はエラーメッセージを表示し、入力内容を保持したままの状態で再表示する</li>
+            </ul>
+        </li>
+        <li>「PDFエクスポート」ボタンをクリックすると、現在のプレビュー内容がPDF形式でダウンロードされる</li>
+        <li>「Wordエクスポート」ボタンをクリックすると、現在のプレビュー内容がWord形式でダウンロードされる</li>
+        <li>「戻る」ボタンをクリックすると、技術者詳細画面（ENG-003）に戻る</li>
+    </ol>
+
+    <h2>ENG-005: 稼働状況管理画面</h2>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>ENG-005</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>稼働状況管理</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>技術者の稼働状況をカレンダー形式で管理する画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>人事担当者、営業担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>ENG-001: 技術者一覧</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>ENG-001: 技術者一覧</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [稼働状況管理画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>主要な機能</h3>
+    <ul>
+        <li>稼働状況のカレンダー表示（月次・週次・日次）</li>
+        <li>技術者のフィルタリング（所属、スキル、稼働状況など）</li>
+        <li>稼働状況の更新（案件アサイン、予約など）</li>
+        <li>稼働予測レポートの表示</li>
+    </ul>
+
+    <h3>画面動作仕様</h3>
+    <ol>
+        <li>画面初期表示時は、現在の月のカレンダーで全技術者の稼働状況を表示</li>
+        <li>カレンダービューの切り替えボタン（月次・週次・日次）で表示形式を変更</li>
+        <li>期間選択で表示するカレンダーの期間を変更</li>
+        <li>技術者フィルタで表示する技術者を絞り込み</li>
+        <li>カレンダー内の各セルをクリックすると、対応する日付の稼働詳細情報を表示</li>
+        <li>稼働状況を変更する場合、対象の日付/技術者をクリックして詳細ダイアログを表示
+            <ul>
+                <li>案件へのアサイン、予約、休暇などのステータスを設定</li>
+                <li>関連する案件・顧客情報を選択</li>
+                <li>備考情報を入力</li>
+                <li>設定を保存すると、カレンダー表示に反映される</li>
+            </ul>
+        </li>
+        <li>「稼働予測レポート」ボタンをクリックすると、選択期間の稼働予測情報がレポート形式で表示される</li>
+        <li>「一覧に戻る」ボタンをクリックすると、技術者一覧画面（ENG-001）に戻る</li>
+    </ol>
+
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

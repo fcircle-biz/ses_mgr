@@ -1,0 +1,1310 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 契約管理画面設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .mockup {
+            font-family: monospace;
+            white-space: pre;
+            background-color: #f8f8f8;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>SES業務システム 契約管理画面設計</h1>
+
+    <h2>CNT-001: 契約一覧画面</h2>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>CNT-001</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>契約一覧</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>全契約の一覧表示・検索・フィルタリングを行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>営業担当者、経理担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CMN-002: ダッシュボード</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>CNT-003: 契約詳細、CNT-002: 契約作成</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [契約一覧画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>画面構成要素</h3>
+    <h4>1. 検索・フィルター部分</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>cnt_list_001</td>
+            <td>検索ボックス</td>
+            <td>テキスト入力</td>
+            <td>契約名、契約ID、顧客名などでのフリーワード検索</td>
+        </tr>
+        <tr>
+            <td>cnt_list_002</td>
+            <td>契約種別</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>契約種別によるフィルタリング（業務委託、派遣、請負など）</td>
+        </tr>
+        <tr>
+            <td>cnt_list_003</td>
+            <td>契約ステータス</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>契約ステータスによるフィルタリング（下書き、承認待ち、締結済み、終了など）</td>
+        </tr>
+        <tr>
+            <td>cnt_list_004</td>
+            <td>契約期間（開始）</td>
+            <td>日付範囲選択</td>
+            <td>契約開始日によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>cnt_list_005</td>
+            <td>契約期間（終了）</td>
+            <td>日付範囲選択</td>
+            <td>契約終了日によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>cnt_list_006</td>
+            <td>顧客名</td>
+            <td>セレクトボックス</td>
+            <td>顧客名によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>cnt_list_007</td>
+            <td>担当者</td>
+            <td>セレクトボックス</td>
+            <td>担当者によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>cnt_list_008</td>
+            <td>検索ボタン</td>
+            <td>ボタン</td>
+            <td>検索条件を適用して結果を表示</td>
+        </tr>
+        <tr>
+            <td>cnt_list_009</td>
+            <td>クリアボタン</td>
+            <td>ボタン</td>
+            <td>検索条件をクリア</td>
+        </tr>
+    </table>
+
+    <h4>2. 一覧表示部分</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>cnt_list_010</td>
+            <td>契約一覧テーブル</td>
+            <td>テーブル</td>
+            <td>検索条件に合致する契約の一覧</td>
+        </tr>
+        <tr>
+            <td>cnt_list_011</td>
+            <td>契約ID</td>
+            <td>テキスト（リンク）</td>
+            <td>システム内部で管理される契約の一意識別子。クリックで詳細画面へ</td>
+        </tr>
+        <tr>
+            <td>cnt_list_012</td>
+            <td>契約名</td>
+            <td>テキスト（リンク）</td>
+            <td>契約の名称。クリックで詳細画面へ</td>
+        </tr>
+        <tr>
+            <td>cnt_list_013</td>
+            <td>契約種別</td>
+            <td>テキスト</td>
+            <td>契約の種別（業務委託、派遣、請負など）</td>
+        </tr>
+        <tr>
+            <td>cnt_list_014</td>
+            <td>契約ステータス</td>
+            <td>ラベル（色分け表示）</td>
+            <td>契約の現在のステータス</td>
+        </tr>
+        <tr>
+            <td>cnt_list_015</td>
+            <td>顧客名</td>
+            <td>テキスト</td>
+            <td>契約の相手先となる顧客企業名</td>
+        </tr>
+        <tr>
+            <td>cnt_list_016</td>
+            <td>契約期間</td>
+            <td>テキスト</td>
+            <td>契約の開始日～終了日</td>
+        </tr>
+        <tr>
+            <td>cnt_list_017</td>
+            <td>契約金額</td>
+            <td>数値（¥フォーマット）</td>
+            <td>契約の総額または月額</td>
+        </tr>
+        <tr>
+            <td>cnt_list_018</td>
+            <td>担当者</td>
+            <td>テキスト</td>
+            <td>契約の担当者名</td>
+        </tr>
+        <tr>
+            <td>cnt_list_019</td>
+            <td>最終更新日</td>
+            <td>日時</td>
+            <td>契約情報の最終更新日時</td>
+        </tr>
+        <tr>
+            <td>cnt_list_020</td>
+            <td>アクションボタン</td>
+            <td>ボタングループ</td>
+            <td>詳細表示、編集、PDF表示などの操作ボタン</td>
+        </tr>
+        <tr>
+            <td>cnt_list_021</td>
+            <td>ページネーション</td>
+            <td>ページ制御</td>
+            <td>複数ページにわたる結果のナビゲーション</td>
+        </tr>
+    </table>
+
+    <h4>3. 操作ボタン</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>cnt_list_022</td>
+            <td>新規契約作成ボタン</td>
+            <td>プライマリーボタン</td>
+            <td>新規契約作成画面への遷移</td>
+        </tr>
+        <tr>
+            <td>cnt_list_023</td>
+            <td>CSVエクスポートボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>表示中の契約一覧をCSV形式でエクスポート</td>
+        </tr>
+        <tr>
+            <td>cnt_list_024</td>
+            <td>CSVインポートボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>CSV形式の契約情報をインポート</td>
+        </tr>
+    </table>
+
+    <h3>画面動作仕様</h3>
+    <ol>
+        <li>画面初期表示時は、デフォルトですべての有効な契約を表示する</li>
+        <li>検索条件を指定して検索ボタンをクリックすると、条件に合致する契約が一覧表示される</li>
+        <li>一覧の契約ID・契約名をクリックすると、該当の契約詳細画面（CNT-003）に遷移する</li>
+        <li>アクションボタンの「詳細」をクリックすると、該当の契約詳細画面（CNT-003）に遷移する</li>
+        <li>アクションボタンの「編集」をクリックすると、該当の契約を編集モードで開く</li>
+        <li>アクションボタンの「PDF」をクリックすると、該当の契約書をPDF形式で表示（CNT-004）</li>
+        <li>「新規契約作成」ボタンをクリックすると、契約作成画面（CNT-002）に遷移する</li>
+        <li>「CSVエクスポート」ボタンをクリックすると、現在の検索結果がCSVファイルとしてダウンロードされる</li>
+        <li>「CSVインポート」ボタンをクリックすると、CSVインポート用のモーダルダイアログが表示される</li>
+        <li>ページネーションを使用して、複数ページにわたる検索結果をナビゲートできる</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> ユーザーの権限レベルによって、表示される操作ボタンや実行可能な操作が異なります。</p>
+        <ul>
+            <li>営業担当者：契約の作成・編集が可能</li>
+            <li>経理担当者：契約の閲覧のみ可能、編集は不可</li>
+        </ul>
+    </div>
+
+    <h3>Thymeleafテンプレート実装例</h3>
+    <div class="mockup">
+&lt;!DOCTYPE html&gt;
+&lt;html xmlns:th="http://www.thymeleaf.org"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;契約一覧 - SES業務システム&lt;/title&gt;
+    &lt;link rel="stylesheet" th:href="@{/css/main.css}"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;!-- ヘッダー部分（共通コンポーネント） --&gt;
+    &lt;header th:replace="fragments/header :: header"&gt;&lt;/header&gt;
+    
+    &lt;div class="main-content"&gt;
+        &lt;div class="page-header"&gt;
+            &lt;h1&gt;契約一覧&lt;/h1&gt;
+            &lt;div class="actions"&gt;
+                &lt;a th:if="${@authService.hasRole('ROLE_SALES')}" 
+                   th:href="@{/contracts/create}" class="btn btn-primary"&gt;
+                   &lt;i class="icon-plus"&gt;&lt;/i&gt; 新規契約作成
+                &lt;/a&gt;
+                &lt;button id="exportCsvBtn" class="btn btn-secondary"&gt;
+                    &lt;i class="icon-download"&gt;&lt;/i&gt; CSVエクスポート
+                &lt;/button&gt;
+                &lt;button th:if="${@authService.hasRole('ROLE_SALES')}" 
+                        id="importCsvBtn" class="btn btn-secondary"&gt;
+                    &lt;i class="icon-upload"&gt;&lt;/i&gt; CSVインポート
+                &lt;/button&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+        
+        &lt;!-- 検索・フィルター部分 --&gt;
+        &lt;div class="search-panel"&gt;
+            &lt;form th:action="@{/contracts}" method="get" id="searchForm"&gt;
+                &lt;div class="search-row"&gt;
+                    &lt;div class="form-group"&gt;
+                        &lt;label for="keyword"&gt;キーワード&lt;/label&gt;
+                        &lt;input type="text" id="keyword" name="keyword" th:value="${param.keyword}" 
+                               placeholder="契約名、顧客名など"&gt;
+                    &lt;/div&gt;
+                    
+                    &lt;div class="form-group"&gt;
+                        &lt;label for="contractType"&gt;契約種別&lt;/label&gt;
+                        &lt;select id="contractType" name="contractType" multiple&gt;
+                            &lt;option value="OUTSOURCING" th:selected="${#lists.contains(param.contractType, 'OUTSOURCING')}"&gt;業務委託&lt;/option&gt;
+                            &lt;option value="DISPATCH" th:selected="${#lists.contains(param.contractType, 'DISPATCH')}"&gt;派遣&lt;/option&gt;
+                            &lt;option value="CONTRACT" th:selected="${#lists.contains(param.contractType, 'CONTRACT')}"&gt;請負&lt;/option&gt;
+                            &lt;option value="SUBCONTRACT" th:selected="${#lists.contains(param.contractType, 'SUBCONTRACT')}"&gt;再委託&lt;/option&gt;
+                            &lt;option value="OTHER" th:selected="${#lists.contains(param.contractType, 'OTHER')}"&gt;その他&lt;/option&gt;
+                        &lt;/select&gt;
+                    &lt;/div&gt;
+                    
+                    &lt;div class="form-group"&gt;
+                        &lt;label for="status"&gt;契約ステータス&lt;/label&gt;
+                        &lt;select id="status" name="status" multiple&gt;
+                            &lt;option value="DRAFT" th:selected="${#lists.contains(param.status, 'DRAFT')}"&gt;下書き&lt;/option&gt;
+                            &lt;option value="PENDING_APPROVAL" th:selected="${#lists.contains(param.status, 'PENDING_APPROVAL')}"&gt;承認待ち&lt;/option&gt;
+                            &lt;option value="APPROVED" th:selected="${#lists.contains(param.status, 'APPROVED')}"&gt;承認済み&lt;/option&gt;
+                            &lt;option value="PENDING_SIGNATURE" th:selected="${#lists.contains(param.status, 'PENDING_SIGNATURE')}"&gt;署名待ち&lt;/option&gt;
+                            &lt;option value="SIGNED" th:selected="${#lists.contains(param.status, 'SIGNED')}"&gt;締結済み&lt;/option&gt;
+                            &lt;option value="ACTIVE" th:selected="${#lists.contains(param.status, 'ACTIVE')}"&gt;有効&lt;/option&gt;
+                            &lt;option value="EXPIRED" th:selected="${#lists.contains(param.status, 'EXPIRED')}"&gt;期間満了&lt;/option&gt;
+                            &lt;option value="TERMINATED" th:selected="${#lists.contains(param.status, 'TERMINATED')}"&gt;解約&lt;/option&gt;
+                        &lt;/select&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                &lt;div class="search-row"&gt;
+                    &lt;div class="form-group date-range"&gt;
+                        &lt;label&gt;契約開始日&lt;/label&gt;
+                        &lt;div class="date-inputs"&gt;
+                            &lt;input type="date" id="startDateFrom" name="startDateFrom" th:value="${param.startDateFrom}"&gt;
+                            &lt;span class="date-separator"&gt;～&lt;/span&gt;
+                            &lt;input type="date" id="startDateTo" name="startDateTo" th:value="${param.startDateTo}"&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                    
+                    &lt;div class="form-group date-range"&gt;
+                        &lt;label&gt;契約終了日&lt;/label&gt;
+                        &lt;div class="date-inputs"&gt;
+                            &lt;input type="date" id="endDateFrom" name="endDateFrom" th:value="${param.endDateFrom}"&gt;
+                            &lt;span class="date-separator"&gt;～&lt;/span&gt;
+                            &lt;input type="date" id="endDateTo" name="endDateTo" th:value="${param.endDateTo}"&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                &lt;div class="search-row"&gt;
+                    &lt;div class="form-group"&gt;
+                        &lt;label for="clientId"&gt;顧客名&lt;/label&gt;
+                        &lt;select id="clientId" name="clientId"&gt;
+                            &lt;option value=""&gt;すべて&lt;/option&gt;
+                            &lt;option th:each="client : ${clients}" 
+                                    th:value="${client.id}" 
+                                    th:text="${client.name}"
+                                    th:selected="${param.clientId == client.id}"&gt;顧客名&lt;/option&gt;
+                        &lt;/select&gt;
+                    &lt;/div&gt;
+                    
+                    &lt;div class="form-group"&gt;
+                        &lt;label for="salesPersonId"&gt;担当者&lt;/label&gt;
+                        &lt;select id="salesPersonId" name="salesPersonId"&gt;
+                            &lt;option value=""&gt;すべて&lt;/option&gt;
+                            &lt;option th:each="salesPerson : ${salesPersons}" 
+                                    th:value="${salesPerson.id}" 
+                                    th:text="${salesPerson.name}"
+                                    th:selected="${param.salesPersonId == salesPerson.id}"&gt;担当者名&lt;/option&gt;
+                        &lt;/select&gt;
+                    &lt;/div&gt;
+                &lt;/div&gt;
+                
+                &lt;div class="search-buttons"&gt;
+                    &lt;button type="submit" class="btn btn-search"&gt;検索&lt;/button&gt;
+                    &lt;button type="button" id="clearBtn" class="btn btn-outline"&gt;クリア&lt;/button&gt;
+                    &lt;a href="#" id="advancedSearchToggle" class="advanced-search-link"&gt;詳細検索 &lt;i class="icon-chevron-down"&gt;&lt;/i&gt;&lt;/a&gt;
+                &lt;/div&gt;
+                
+                &lt;div id="advancedSearchFields" class="advanced-search-fields" style="display: none;"&gt;
+                    &lt;!-- 詳細検索項目（必要に応じて拡張） --&gt;
+                &lt;/div&gt;
+            &lt;/form&gt;
+        &lt;/div&gt;
+        
+        &lt;!-- 契約一覧テーブル --&gt;
+        &lt;div class="table-responsive"&gt;
+            &lt;table class="data-table contracts-table"&gt;
+                &lt;thead&gt;
+                    &lt;tr&gt;
+                        &lt;th&gt;契約ID&lt;/th&gt;
+                        &lt;th&gt;契約名&lt;/th&gt;
+                        &lt;th&gt;契約種別&lt;/th&gt;
+                        &lt;th&gt;ステータス&lt;/th&gt;
+                        &lt;th&gt;顧客名&lt;/th&gt;
+                        &lt;th&gt;契約期間&lt;/th&gt;
+                        &lt;th&gt;契約金額&lt;/th&gt;
+                        &lt;th&gt;担当者&lt;/th&gt;
+                        &lt;th&gt;最終更新日&lt;/th&gt;
+                        &lt;th&gt;アクション&lt;/th&gt;
+                    &lt;/tr&gt;
+                &lt;/thead&gt;
+                &lt;tbody&gt;
+                    &lt;tr th:if="${contracts.empty}"&gt;
+                        &lt;td colspan="10" class="no-data"&gt;該当する契約がありません&lt;/td&gt;
+                    &lt;/tr&gt;
+                    &lt;tr th:each="contract : ${contracts}" th:id="'contract-' + ${contract.id}"&gt;
+                        &lt;td&gt;&lt;a th:href="@{/contracts/{id}(id=${contract.id})}" th:text="${contract.contractCode}"&gt;C00001&lt;/a&gt;&lt;/td&gt;
+                        &lt;td&gt;&lt;a th:href="@{/contracts/{id}(id=${contract.id})}" th:text="${contract.name}"&gt;契約名&lt;/a&gt;&lt;/td&gt;
+                        &lt;td th:text="${@contractUtil.getContractTypeLabel(contract.contractType)}"&gt;業務委託&lt;/td&gt;
+                        &lt;td&gt;
+                            &lt;span class="status-badge" th:classappend="${'status-' + contract.status.toLowerCase()}"
+                                  th:text="${@contractUtil.getStatusLabel(contract.status)}"&gt;ステータス&lt;/span&gt;
+                        &lt;/td&gt;
+                        &lt;td th:text="${contract.client.name}"&gt;株式会社ABC&lt;/td&gt;
+                        &lt;td&gt;
+                            &lt;span th:text="${#temporals.format(contract.startDate, 'yyyy/MM/dd')}"&gt;2025/06/01&lt;/span&gt;
+                            &lt;span class="date-separator"&gt;～&lt;/span&gt;
+                            &lt;span th:text="${contract.endDate != null ? #temporals.format(contract.endDate, 'yyyy/MM/dd') : '未定'}"&gt;2026/05/31&lt;/span&gt;
+                        &lt;/td&gt;
+                        &lt;td th:text="${#numbers.formatCurrency(contract.amount)}"&gt;¥800,000&lt;/td&gt;
+                        &lt;td th:text="${contract.salesPerson.name}"&gt;担当者名&lt;/td&gt;
+                        &lt;td th:text="${#temporals.format(contract.updatedAt, 'yyyy/MM/dd HH:mm')}"&gt;2025/05/10 14:30&lt;/td&gt;
+                        &lt;td class="actions"&gt;
+                            &lt;div class="btn-group"&gt;
+                                &lt;a th:href="@{/contracts/{id}(id=${contract.id})}" class="btn btn-sm btn-icon" title="詳細"&gt;
+                                    &lt;i class="icon-eye"&gt;&lt;/i&gt;
+                                &lt;/a&gt;
+                                &lt;a th:if="${@authService.hasRole('ROLE_SALES')}" 
+                                   th:href="@{/contracts/{id}/edit(id=${contract.id})}" 
+                                   class="btn btn-sm btn-icon" 
+                                   title="編集"
+                                   th:classappend="${contract.status == 'SIGNED' || contract.status == 'ACTIVE' || contract.status == 'EXPIRED' || contract.status == 'TERMINATED'} ? 'disabled' : ''"&gt;
+                                    &lt;i class="icon-edit"&gt;&lt;/i&gt;
+                                &lt;/a&gt;
+                                &lt;a th:href="@{/contracts/{id}/preview(id=${contract.id})}" class="btn btn-sm btn-icon" title="PDF表示"&gt;
+                                    &lt;i class="icon-document"&gt;&lt;/i&gt;
+                                &lt;/a&gt;
+                            &lt;/div&gt;
+                        &lt;/td&gt;
+                    &lt;/tr&gt;
+                &lt;/tbody&gt;
+            &lt;/table&gt;
+        &lt;/div&gt;
+        
+        &lt;!-- ページネーション --&gt;
+        &lt;div th:if="${!contracts.empty}" class="pagination-container"&gt;
+            &lt;nav aria-label="ページナビゲーション"&gt;
+                &lt;ul class="pagination" th:with="
+                     totalPages=${contracts.totalPages},
+                     currentPage=${contracts.number + 1}"&gt;
+                    &lt;li class="page-item" th:classappend="${currentPage == 1} ? 'disabled' : ''"&gt;
+                        &lt;a class="page-link" th:href="@{/contracts(page=1, size=${contracts.size}, keyword=${param.keyword}, contractType=${param.contractType}, status=${param.status}, startDateFrom=${param.startDateFrom}, startDateTo=${param.startDateTo}, endDateFrom=${param.endDateFrom}, endDateTo=${param.endDateTo}, clientId=${param.clientId}, salesPersonId=${param.salesPersonId})}"&gt;&lt;&lt;&lt;/a&gt;
+                    &lt;/li&gt;
+                    &lt;li class="page-item" th:classappend="${currentPage == 1} ? 'disabled' : ''"&gt;
+                        &lt;a class="page-link" th:href="@{/contracts(page=${currentPage - 1}, size=${contracts.size}, keyword=${param.keyword}, contractType=${param.contractType}, status=${param.status}, startDateFrom=${param.startDateFrom}, startDateTo=${param.startDateTo}, endDateFrom=${param.endDateFrom}, endDateTo=${param.endDateTo}, clientId=${param.clientId}, salesPersonId=${param.salesPersonId})}"&gt;&lt;&lt;/a&gt;
+                    &lt;/li&gt;
+                    &lt;li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
+                        th:if="${i &gt;= currentPage - 2 and i &lt;= currentPage + 2}"
+                        th:classappend="${i == currentPage} ? 'active' : ''"&gt;
+                        &lt;a class="page-link" th:href="@{/contracts(page=${i}, size=${contracts.size}, keyword=${param.keyword}, contractType=${param.contractType}, status=${param.status}, startDateFrom=${param.startDateFrom}, startDateTo=${param.startDateTo}, endDateFrom=${param.endDateFrom}, endDateTo=${param.endDateTo}, clientId=${param.clientId}, salesPersonId=${param.salesPersonId})}"
+                           th:text="${i}"&gt;1&lt;/a&gt;
+                    &lt;/li&gt;
+                    &lt;li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled' : ''"&gt;
+                        &lt;a class="page-link" th:href="@{/contracts(page=${currentPage + 1}, size=${contracts.size}, keyword=${param.keyword}, contractType=${param.contractType}, status=${param.status}, startDateFrom=${param.startDateFrom}, startDateTo=${param.startDateTo}, endDateFrom=${param.endDateFrom}, endDateTo=${param.endDateTo}, clientId=${param.clientId}, salesPersonId=${param.salesPersonId})}"&gt;&gt;&lt;/a&gt;
+                    &lt;/li&gt;
+                    &lt;li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled' : ''"&gt;
+                        &lt;a class="page-link" th:href="@{/contracts(page=${totalPages}, size=${contracts.size}, keyword=${param.keyword}, contractType=${param.contractType}, status=${param.status}, startDateFrom=${param.startDateFrom}, startDateTo=${param.startDateTo}, endDateFrom=${param.endDateFrom}, endDateTo=${param.endDateTo}, clientId=${param.clientId}, salesPersonId=${param.salesPersonId})}"&gt;&gt;&gt;&lt;/a&gt;
+                    &lt;/li&gt;
+                &lt;/ul&gt;
+                
+                &lt;div class="pagination-info"&gt;
+                    &lt;span th:text="${contracts.numberOfElements + ' 件表示中（全 ' + contracts.totalElements + ' 件）'}"&gt;
+                        10 件表示中（全 100 件）
+                    &lt;/span&gt;
+                    &lt;select id="pageSizeSelect" name="size" class="form-control form-control-sm"&gt;
+                        &lt;option value="10" th:selected="${contracts.size == 10}"&gt;10件&lt;/option&gt;
+                        &lt;option value="25" th:selected="${contracts.size == 25}"&gt;25件&lt;/option&gt;
+                        &lt;option value="50" th:selected="${contracts.size == 50}"&gt;50件&lt;/option&gt;
+                        &lt;option value="100" th:selected="${contracts.size == 100}"&gt;100件&lt;/option&gt;
+                    &lt;/select&gt;
+                &lt;/div&gt;
+            &lt;/nav&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    
+    &lt;!-- CSVインポート用モーダル --&gt;
+    &lt;div class="modal fade" id="importCsvModal" tabindex="-1" role="dialog" aria-labelledby="importCsvModalLabel" aria-hidden="true"&gt;
+        &lt;div class="modal-dialog" role="document"&gt;
+            &lt;div class="modal-content"&gt;
+                &lt;div class="modal-header"&gt;
+                    &lt;h5 class="modal-title" id="importCsvModalLabel"&gt;契約情報 CSVインポート&lt;/h5&gt;
+                    &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
+                        &lt;span aria-hidden="true"&gt;&times;&lt;/span&gt;
+                    &lt;/button&gt;
+                &lt;/div&gt;
+                &lt;form th:action="@{/contracts/import}" method="post" enctype="multipart/form-data"&gt;
+                    &lt;div class="modal-body"&gt;
+                        &lt;div class="form-group"&gt;
+                            &lt;label for="csvFile"&gt;CSVファイル選択&lt;/label&gt;
+                            &lt;input type="file" class="form-control-file" id="csvFile" name="file" accept=".csv" required&gt;
+                        &lt;/div&gt;
+                        &lt;div class="form-group"&gt;
+                            &lt;div class="form-check"&gt;
+                                &lt;input class="form-check-input" type="checkbox" id="updateExisting" name="updateExisting"&gt;
+                                &lt;label class="form-check-label" for="updateExisting"&gt;
+                                    既存データを更新する
+                                &lt;/label&gt;
+                            &lt;/div&gt;
+                        &lt;/div&gt;
+                        &lt;div class="csv-template"&gt;
+                            &lt;a th:href="@{/templates/contracts_import_template.csv}" download&gt;
+                                CSVテンプレートをダウンロード
+                            &lt;/a&gt;
+                        &lt;/div&gt;
+                    &lt;/div&gt;
+                    &lt;div class="modal-footer"&gt;
+                        &lt;button type="button" class="btn btn-secondary" data-dismiss="modal"&gt;キャンセル&lt;/button&gt;
+                        &lt;button type="submit" class="btn btn-primary"&gt;インポート&lt;/button&gt;
+                    &lt;/div&gt;
+                &lt;/form&gt;
+            &lt;/div&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;
+    
+    &lt;!-- フッター部分（共通コンポーネント） --&gt;
+    &lt;footer th:replace="fragments/footer :: footer"&gt;&lt;/footer&gt;
+    
+    &lt;script th:src="@{/js/contracts-list.js}"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+    </div>
+
+    <h2>CNT-002: 契約作成画面</h2>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>CNT-002</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>契約作成</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>新規契約情報を作成する画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>営業担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CNT-001: 契約一覧</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>CNT-003: 契約詳細（作成成功時）、CNT-004: 契約書プレビュー（プレビュー時）、CNT-001: 契約一覧（キャンセル時）</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [契約作成画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>画面項目定義</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>cnt_create_001</td>
+            <td>契約テンプレート</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>使用する契約書テンプレートを選択</td>
+        </tr>
+        <tr>
+            <td>cnt_create_002</td>
+            <td>契約名</td>
+            <td>テキスト入力</td>
+            <td>100文字以内</td>
+            <td>◯</td>
+            <td>契約の名称</td>
+        </tr>
+        <tr>
+            <td>cnt_create_003</td>
+            <td>契約種別</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>契約の種別（業務委託、派遣、請負など）</td>
+        </tr>
+        <tr>
+            <td>cnt_create_004</td>
+            <td>顧客選択</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>契約先の顧客を選択</td>
+        </tr>
+        <tr>
+            <td>cnt_create_005</td>
+            <td>顧客担当者</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>顧客側の担当者を選択</td>
+        </tr>
+        <tr>
+            <td>cnt_create_006</td>
+            <td>自社担当者</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>自社側の担当者を選択</td>
+        </tr>
+        <tr>
+            <td>cnt_create_007</td>
+            <td>契約開始日</td>
+            <td>日付選択</td>
+            <td>有効な日付</td>
+            <td>◯</td>
+            <td>契約期間の開始日</td>
+        </tr>
+        <tr>
+            <td>cnt_create_008</td>
+            <td>契約終了日</td>
+            <td>日付選択</td>
+            <td>開始日より後の日付</td>
+            <td>△</td>
+            <td>契約期間の終了日（自動更新の場合は省略可）</td>
+        </tr>
+        <tr>
+            <td>cnt_create_009</td>
+            <td>自動更新</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>×</td>
+            <td>契約の自動更新の有無</td>
+        </tr>
+        <tr>
+            <td>cnt_create_010</td>
+            <td>更新通知日数</td>
+            <td>数値入力</td>
+            <td>1〜365の整数</td>
+            <td>△</td>
+            <td>自動更新時の更新通知を行う日数（終了日の何日前に通知するか）</td>
+        </tr>
+        <tr>
+            <td>cnt_create_011</td>
+            <td>契約金額</td>
+            <td>数値入力</td>
+            <td>0以上の整数</td>
+            <td>◯</td>
+            <td>契約の金額</td>
+        </tr>
+        <tr>
+            <td>cnt_create_012</td>
+            <td>金額単位</td>
+            <td>ラジオボタン</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>金額の単位（月額、総額など）</td>
+        </tr>
+        <tr>
+            <td>cnt_create_013</td>
+            <td>税区分</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>税金の区分（税込、税抜など）</td>
+        </tr>
+        <tr>
+            <td>cnt_create_014</td>
+            <td>支払条件</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>支払いの条件（翌月末払い、締め日払いなど）</td>
+        </tr>
+        <tr>
+            <td>cnt_create_015</td>
+            <td>支払日</td>
+            <td>数値入力</td>
+            <td>1〜31の整数</td>
+            <td>△</td>
+            <td>締め日払いの場合の支払日</td>
+        </tr>
+        <tr>
+            <td>cnt_create_016</td>
+            <td>特記事項</td>
+            <td>テキストエリア</td>
+            <td>1000文字以内</td>
+            <td>×</td>
+            <td>契約に関する特記事項</td>
+        </tr>
+        <tr>
+            <td>cnt_create_017</td>
+            <td>電子署名使用</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>×</td>
+            <td>電子署名を使用するかどうか</td>
+        </tr>
+        <tr>
+            <td>cnt_create_018</td>
+            <td>添付ファイル</td>
+            <td>ファイル選択</td>
+            <td>合計20MB以内</td>
+            <td>×</td>
+            <td>契約に添付するファイル</td>
+        </tr>
+        <tr>
+            <td>cnt_create_019</td>
+            <td>保存ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>契約情報を下書き保存</td>
+        </tr>
+        <tr>
+            <td>cnt_create_020</td>
+            <td>プレビューボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>契約書のプレビュー表示</td>
+        </tr>
+        <tr>
+            <td>cnt_create_021</td>
+            <td>承認依頼ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>契約の承認依頼を送信</td>
+        </tr>
+        <tr>
+            <td>cnt_create_022</td>
+            <td>キャンセルボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>入力をキャンセルして前画面に戻る</td>
+        </tr>
+    </table>
+
+    <h3>画面動作仕様</h3>
+    <ol>
+        <li>必須項目が入力されているかをバリデーションチェックする
+            <ul>
+                <li>未入力の必須項目がある場合はエラーメッセージを表示</li>
+                <li>入力形式や値の範囲が不正な場合はエラーメッセージを表示</li>
+            </ul>
+        </li>
+        <li>契約テンプレートを選択すると、選択したテンプレートに応じた入力項目が表示される</li>
+        <li>自動更新チェックボックスがオンの場合、契約終了日は任意入力となり、更新通知日数が必須となる</li>
+        <li>支払条件で「締め日払い」を選択した場合、支払日の入力が必須となる</li>
+        <li>「保存」ボタンをクリックした場合
+            <ul>
+                <li>入力内容のバリデーションを行い、問題がなければ契約情報を下書き保存</li>
+                <li>保存成功時は契約詳細画面（CNT-003）に遷移する</li>
+                <li>保存失敗時はエラーメッセージを表示し、入力内容を保持したままの状態で再表示する</li>
+            </ul>
+        </li>
+        <li>「プレビュー」ボタンをクリックした場合
+            <ul>
+                <li>入力内容のバリデーションを行い、問題がなければ契約書プレビュー画面（CNT-004）に遷移する</li>
+                <li>バリデーションエラーがある場合は、エラーメッセージを表示</li>
+            </ul>
+        </li>
+        <li>「承認依頼」ボタンをクリックした場合
+            <ul>
+                <li>入力内容のバリデーションを行い、問題がなければ契約情報を保存し、承認者に承認依頼を送信</li>
+                <li>承認依頼成功時は契約詳細画面（CNT-003）に遷移し、承認待ちステータスが表示される</li>
+                <li>承認依頼失敗時はエラーメッセージを表示</li>
+            </ul>
+        </li>
+        <li>「キャンセル」ボタンをクリックした場合
+            <ul>
+                <li>入力内容を破棄して契約一覧画面（CNT-001）に戻る</li>
+                <li>入力内容がある場合は確認ダイアログを表示し、ユーザーの意思を確認する</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>CNT-003: 契約詳細画面</h2>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>CNT-003</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>契約詳細</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>契約の詳細情報表示・編集を行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>営業担当者、経理担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CNT-001: 契約一覧、CNT-002: 契約作成</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>CNT-001: 契約一覧、CNT-004: 契約書プレビュー、CNT-005: 電子署名管理</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [契約詳細画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>画面モード</h3>
+    <p>この画面は以下の2つのモードを持ちます：</p>
+    <ol>
+        <li><strong>表示モード</strong>: 契約の詳細情報を参照するためのモード（デフォルト）</li>
+        <li><strong>編集モード</strong>: 契約の詳細情報を編集するためのモード（営業担当者のみ、かつ特定のステータスの契約のみ）</li>
+    </ol>
+
+    <h3>タブ構成</h3>
+    <p>契約詳細画面は以下のタブで構成されます：</p>
+    <ol>
+        <li><strong>基本情報</strong>: 契約の基本的な情報（契約名、期間、金額など）</li>
+        <li><strong>契約内容</strong>: 契約の詳細な条件や規定</li>
+        <li><strong>署名情報</strong>: 電子署名の状況や履歴</li>
+        <li><strong>関連ドキュメント</strong>: 契約に関連する添付資料や文書</li>
+        <li><strong>変更履歴</strong>: 契約情報の変更履歴</li>
+    </ol>
+
+    <h3>主要な機能</h3>
+    <ul>
+        <li>契約の基本情報の表示・編集</li>
+        <li>契約書のプレビュー表示</li>
+        <li>電子署名の依頼・状況確認</li>
+        <li>契約のステータス変更</li>
+        <li>添付資料の表示・追加</li>
+        <li>変更履歴の表示</li>
+    </ul>
+
+    <h3>画面動作仕様</h3>
+    <ol>
+        <li>画面初期表示時は、表示モードで基本情報タブが選択された状態で表示</li>
+        <li>各タブをクリックすると、対応する情報が表示されるようタブ切り替えが行われる</li>
+        <li>「編集」ボタンをクリックすると編集モードに切り替わる（権限のある場合のみ表示）</li>
+        <li>編集モードでの「保存」ボタンクリック時
+            <ul>
+                <li>入力内容のバリデーションを行い、問題がなければ契約情報を更新する</li>
+                <li>更新成功時は表示モードに戻り、更新された情報が表示される</li>
+                <li>更新失敗時はエラーメッセージを表示し、入力内容を保持したままの状態で再表示する</li>
+            </ul>
+        </li>
+        <li>「キャンセル」ボタンをクリックすると、編集内容を破棄して表示モードに戻る</li>
+        <li>「プレビュー」ボタンをクリックすると、契約書プレビュー画面（CNT-004）に遷移する</li>
+        <li>「署名依頼」ボタンをクリックすると、契約の署名依頼を送信する
+            <ul>
+                <li>署名依頼成功時は署名情報タブに切り替わり、署名待ちステータスが表示される</li>
+                <li>署名依頼失敗時はエラーメッセージを表示</li>
+            </ul>
+        </li>
+        <li>「署名状況」ボタンをクリックすると、電子署名管理画面（CNT-005）に遷移する</li>
+        <li>「一覧に戻る」ボタンをクリックすると、契約一覧画面（CNT-001）に戻る</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> 編集モードへの切り替えボタンは、編集権限を持つユーザー（営業担当者）にのみ表示され、かつ特定のステータス（下書き、承認待ち）の契約にのみ有効です。締結済みや有効状態の契約は編集できません。</p>
+    </div>
+
+    <h2>CNT-004: 契約書プレビュー画面</h2>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>CNT-004</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>契約書プレビュー</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>生成された契約書のプレビュー表示・編集を行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>営業担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CNT-002: 契約作成、CNT-003: 契約詳細</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>CNT-003: 契約詳細</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [契約書プレビュー画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>主要な機能</h3>
+    <ul>
+        <li>契約書のPDFプレビュー表示</li>
+        <li>契約書内容の編集（テキスト置換、条項の追加・削除）</li>
+        <li>契約書のエクスポート（PDF、Word形式）</li>
+        <li>契約書の印刷</li>
+    </ul>
+
+    <h3>画面動作仕様</h3>
+    <ol>
+        <li>画面初期表示時は、契約情報から生成されたPDF契約書がプレビュー表示される</li>
+        <li>編集モードを選択すると、契約書のテキスト内容を編集できるようになる</li>
+        <li>「PDFダウンロード」ボタンをクリックすると、現在表示中の契約書がPDF形式でダウンロードされる</li>
+        <li>「Wordダウンロード」ボタンをクリックすると、現在表示中の契約書がWord形式でダウンロードされる</li>
+        <li>「印刷」ボタンをクリックすると、現在表示中の契約書が印刷ダイアログを表示して印刷できる</li>
+        <li>「保存して戻る」ボタンをクリックすると、編集内容が保存され契約詳細画面（CNT-003）に戻る</li>
+        <li>「戻る」ボタンをクリックすると、編集内容を保存せずに契約詳細画面（CNT-003）に戻る
+            <ul>
+                <li>編集内容がある場合は確認ダイアログを表示</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>CNT-005: 電子署名管理画面</h2>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>CNT-005</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>電子署名管理</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>電子署名の状況管理・履歴確認を行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>営業担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CNT-003: 契約詳細</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>CNT-003: 契約詳細</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [電子署名管理画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>主要な機能</h3>
+    <ul>
+        <li>署名依頼の送信</li>
+        <li>署名状況の管理・確認</li>
+        <li>署名履歴の表示</li>
+        <li>署名の再依頼・キャンセル</li>
+        <li>署名済み文書の取得</li>
+    </ul>
+
+    <h3>画面動作仕様</h3>
+    <ol>
+        <li>画面初期表示時は、選択した契約の電子署名状況と履歴が表示される</li>
+        <li>「署名依頼」ボタンをクリックすると、署名依頼先のメールアドレスを入力するダイアログが表示される</li>
+        <li>署名依頼を送信すると、署名依頼メールが指定したアドレスに送信され、状況が「署名待ち」に更新される</li>
+        <li>「再依頼」ボタンをクリックすると、同じ署名者に対して署名依頼メールを再送信する</li>
+        <li>「キャンセル」ボタンをクリックすると、署名依頼をキャンセルする
+            <ul>
+                <li>確認ダイアログを表示してユーザーの意思を確認</li>
+                <li>キャンセル成功時は状況が「キャンセル済み」に更新される</li>
+            </ul>
+        </li>
+        <li>「署名済み文書ダウンロード」ボタンをクリックすると、すべての署名が完了した契約書をPDF形式でダウンロードする</li>
+        <li>「署名ログ表示」ボタンをクリックすると、詳細な署名処理ログを表示するモーダルダイアログが表示される</li>
+        <li>「戻る」ボタンをクリックすると、契約詳細画面（CNT-003）に戻る</li>
+    </ol>
+
+    <h2>CNT-006: 契約テンプレート管理画面</h2>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>CNT-006</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>契約テンプレート管理</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>契約書テンプレートの管理・編集を行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>営業管理者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CNT-001: 契約一覧</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>CNT-001: 契約一覧</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [契約テンプレート管理画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>画面構成要素</h3>
+    <h4>1. テンプレート一覧部分</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_001</td>
+            <td>テンプレート一覧</td>
+            <td>リスト表示</td>
+            <td>利用可能な契約テンプレートの一覧</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_002</td>
+            <td>テンプレート名</td>
+            <td>テキスト（リンク）</td>
+            <td>テンプレートの名称。クリックで詳細表示</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_003</td>
+            <td>契約種別</td>
+            <td>テキスト</td>
+            <td>テンプレートの対応する契約種別</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_004</td>
+            <td>説明</td>
+            <td>テキスト</td>
+            <td>テンプレートの簡単な説明</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_005</td>
+            <td>最終更新日</td>
+            <td>日時</td>
+            <td>テンプレート情報の最終更新日時</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_006</td>
+            <td>状態</td>
+            <td>ラベル</td>
+            <td>テンプレートの状態（有効/無効）</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_007</td>
+            <td>アクションボタン</td>
+            <td>ボタングループ</td>
+            <td>編集、複製、削除などの操作ボタン</td>
+        </tr>
+    </table>
+
+    <h4>2. テンプレート詳細・編集部分</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_008</td>
+            <td>テンプレート名</td>
+            <td>テキスト入力</td>
+            <td>テンプレートの名称</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_009</td>
+            <td>契約種別</td>
+            <td>セレクトボックス</td>
+            <td>テンプレートの対応する契約種別</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_010</td>
+            <td>説明</td>
+            <td>テキストエリア</td>
+            <td>テンプレートの説明文</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_011</td>
+            <td>状態</td>
+            <td>ラジオボタン</td>
+            <td>テンプレートの状態（有効/無効）</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_012</td>
+            <td>テンプレート内容</td>
+            <td>リッチテキストエディタ</td>
+            <td>テンプレートの文書内容</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_013</td>
+            <td>入力項目定義</td>
+            <td>テーブル編集</td>
+            <td>テンプレートで使用する入力項目の定義</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_014</td>
+            <td>保存ボタン</td>
+            <td>ボタン</td>
+            <td>テンプレート情報を保存</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_015</td>
+            <td>プレビューボタン</td>
+            <td>ボタン</td>
+            <td>テンプレートのプレビュー表示</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_016</td>
+            <td>キャンセルボタン</td>
+            <td>ボタン</td>
+            <td>編集をキャンセル</td>
+        </tr>
+    </table>
+
+    <h3>画面動作仕様</h3>
+    <ol>
+        <li>画面初期表示時は、利用可能なすべてのテンプレートが一覧表示される</li>
+        <li>テンプレート名をクリックすると、そのテンプレートの詳細情報が表示される</li>
+        <li>アクションボタンの「編集」をクリックすると、テンプレート編集モードになる</li>
+        <li>アクションボタンの「複製」をクリックすると、現在のテンプレートを複製して新規テンプレートを作成する</li>
+        <li>アクションボタンの「削除」をクリックすると、テンプレートを削除する
+            <ul>
+                <li>確認ダイアログを表示してユーザーの意思を確認</li>
+                <li>使用中のテンプレートは削除できない</li>
+            </ul>
+        </li>
+        <li>「新規テンプレート作成」ボタンをクリックすると、新規テンプレート作成モードになる</li>
+        <li>編集モードでの「保存」ボタンクリック時
+            <ul>
+                <li>入力内容のバリデーションを行い、問題がなければテンプレート情報を保存</li>
+                <li>保存成功時は表示モードに戻り、更新された情報が表示される</li>
+                <li>保存失敗時はエラーメッセージを表示</li>
+            </ul>
+        </li>
+        <li>「プレビュー」ボタンをクリックすると、テンプレートのプレビューがモーダルウィンドウで表示される</li>
+        <li>「キャンセル」ボタンをクリックすると、編集内容を破棄して表示モードに戻る</li>
+        <li>「一覧に戻る」ボタンをクリックすると、契約一覧画面（CNT-001）に戻る</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> この画面は営業管理者権限を持つユーザーのみアクセス可能です。テンプレートの編集は、システム全体の契約作成に影響するため、十分注意して行ってください。</p>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

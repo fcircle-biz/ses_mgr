@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 画面一覧</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>SES業務システム 画面一覧</h1>
+
+    <h2>1. 共通画面</h2>
+    <table>
+        <tr>
+            <th>画面ID</th>
+            <th>画面名</th>
+            <th>概要</th>
+            <th>対象ユーザー</th>
+            <th>備考</th>
+        </tr>
+        <tr>
+            <td>CMN-001</td>
+            <td>ログイン画面</td>
+            <td>システムへのログイン認証を行う</td>
+            <td>全ユーザー</td>
+            <td>ID/パスワード認証、多要素認証対応</td>
+        </tr>
+        <tr>
+            <td>CMN-002</td>
+            <td>ダッシュボード</td>
+            <td>ユーザーごとのホーム画面・通知一覧</td>
+            <td>全ユーザー</td>
+            <td>ユーザーロールに応じたダッシュボード表示</td>
+        </tr>
+        <tr>
+            <td>CMN-003</td>
+            <td>メニュー</td>
+            <td>グローバルナビゲーションメニュー</td>
+            <td>全ユーザー</td>
+            <td>ユーザーロールに応じたメニュー表示</td>
+        </tr>
+        <tr>
+            <td>CMN-004</td>
+            <td>ユーザープロフィール</td>
+            <td>ユーザー情報の参照・更新</td>
+            <td>全ユーザー</td>
+            <td>パスワード変更機能を含む</td>
+        </tr>
+        <tr>
+            <td>CMN-005</td>
+            <td>通知一覧</td>
+            <td>システム通知・アラートの一覧表示</td>
+            <td>全ユーザー</td>
+            <td>既読/未読管理機能</td>
+        </tr>
+    </table>
+
+    <h2>2. 案件管理</h2>
+    <table>
+        <tr>
+            <th>画面ID</th>
+            <th>画面名</th>
+            <th>概要</th>
+            <th>対象ユーザー</th>
+            <th>備考</th>
+        </tr>
+        <tr>
+            <td>PRJ-001</td>
+            <td>案件一覧</td>
+            <td>全案件の一覧表示・検索・フィルタリング</td>
+            <td>営業担当者、営業管理者、経営層</td>
+            <td>ステータス別表示、検索機能</td>
+        </tr>
+        <tr>
+            <td>PRJ-002</td>
+            <td>案件登録</td>
+            <td>新規案件情報の登録</td>
+            <td>営業担当者、営業管理者</td>
+            <td>案件基本情報、要件、条件入力</td>
+        </tr>
+        <tr>
+            <td>PRJ-003</td>
+            <td>案件詳細</td>
+            <td>案件の詳細情報表示・編集</td>
+            <td>営業担当者、営業管理者、経営層</td>
+            <td>案件履歴、進捗状況表示</td>
+        </tr>
+        <tr>
+            <td>PRJ-004</td>
+            <td>顧客一覧</td>
+            <td>顧客企業の一覧表示・検索</td>
+            <td>営業担当者、営業管理者</td>
+            <td>顧客情報の管理</td>
+        </tr>
+        <tr>
+            <td>PRJ-005</td>
+            <td>顧客登録</td>
+            <td>新規顧客情報の登録</td>
+            <td>営業担当者、営業管理者</td>
+            <td>顧客基本情報入力</td>
+        </tr>
+        <tr>
+            <td>PRJ-006</td>
+            <td>顧客詳細</td>
+            <td>顧客の詳細情報表示・編集</td>
+            <td>営業担当者、営業管理者</td>
+            <td>取引履歴、担当者情報表示</td>
+        </tr>
+    </table>
+
+    <h2>3. 技術者管理</h2>
+    <table>
+        <tr>
+            <th>画面ID</th>
+            <th>画面名</th>
+            <th>概要</th>
+            <th>対象ユーザー</th>
+            <th>備考</th>
+        </tr>
+        <tr>
+            <td>ENG-001</td>
+            <td>技術者一覧</td>
+            <td>全技術者の一覧表示・検索・フィルタリング</td>
+            <td>人事担当者、営業担当者</td>
+            <td>スキル別、稼働状況別表示</td>
+        </tr>
+        <tr>
+            <td>ENG-002</td>
+            <td>技術者登録</td>
+            <td>新規技術者情報の登録</td>
+            <td>人事担当者</td>
+            <td>基本情報、スキル情報入力</td>
+        </tr>
+        <tr>
+            <td>ENG-003</td>
+            <td>技術者詳細</td>
+            <td>技術者の詳細情報表示・編集</td>
+            <td>人事担当者、本人</td>
+            <td>スキル、経歴、評価情報表示</td>
+        </tr>
+        <tr>
+            <td>ENG-004</td>
+            <td>スキルシート管理</td>
+            <td>技術者のスキルシート作成・編集</td>
+            <td>人事担当者、本人</td>
+            <td>PDF/Word形式出力機能</td>
+        </tr>
+        <tr>
+            <td>ENG-005</td>
+            <td>稼働状況管理</td>
+            <td>技術者の稼働状況の管理</td>
+            <td>人事担当者、営業担当者</td>
+            <td>稼働状況のカレンダー表示</td>
+        </tr>
+    </table>
+
+    <h2>4. マッチング機能</h2>
+    <table>
+        <tr>
+            <th>画面ID</th>
+            <th>画面名</th>
+            <th>概要</th>
+            <th>対象ユーザー</th>
+            <th>備考</th>
+        </tr>
+        <tr>
+            <td>MTH-001</td>
+            <td>マッチング検索</td>
+            <td>案件と技術者のマッチング検索</td>
+            <td>営業担当者、人事担当者</td>
+            <td>検索条件指定、結果一覧表示</td>
+        </tr>
+        <tr>
+            <td>MTH-002</td>
+            <td>マッチング詳細</td>
+            <td>マッチング結果の詳細表示</td>
+            <td>営業担当者、人事担当者</td>
+            <td>マッチングスコア、レーダーチャート表示</td>
+        </tr>
+        <tr>
+            <td>MTH-003</td>
+            <td>提案管理</td>
+            <td>技術者の提案状況管理</td>
+            <td>営業担当者</td>
+            <td>提案履歴、ステータス管理</td>
+        </tr>
+        <tr>
+            <td>MTH-004</td>
+            <td>提案書作成</td>
+            <td>顧客への提案書作成</td>
+            <td>営業担当者</td>
+            <td>テンプレートベースの提案書生成</td>
+        </tr>
+    </table>
+
+    <h2>5. 契約管理</h2>
+    <table>
+        <tr>
+            <th>画面ID</th>
+            <th>画面名</th>
+            <th>概要</th>
+            <th>対象ユーザー</th>
+            <th>備考</th>
+        </tr>
+        <tr>
+            <td>CNT-001</td>
+            <td>契約一覧</td>
+            <td>全契約の一覧表示・検索・フィルタリング</td>
+            <td>営業担当者、経理担当者</td>
+            <td>契約種別・ステータス別表示</td>
+        </tr>
+        <tr>
+            <td>CNT-002</td>
+            <td>契約作成</td>
+            <td>新規契約の作成</td>
+            <td>営業担当者</td>
+            <td>契約種別選択、条件入力</td>
+        </tr>
+        <tr>
+            <td>CNT-003</td>
+            <td>契約詳細</td>
+            <td>契約の詳細情報表示・編集</td>
+            <td>営業担当者、経理担当者</td>
+            <td>契約内容、履歴表示</td>
+        </tr>
+        <tr>
+            <td>CNT-004</td>
+            <td>契約書プレビュー</td>
+            <td>生成された契約書のプレビュー</td>
+            <td>営業担当者</td>
+            <td>PDF表示、編集機能</td>
+        </tr>
+        <tr>
+            <td>CNT-005</td>
+            <td>電子署名管理</td>
+            <td>電子署名の状況管理</td>
+            <td>営業担当者</td>
+            <td>署名依頼、状況確認</td>
+        </tr>
+        <tr>
+            <td>CNT-006</td>
+            <td>契約テンプレート管理</td>
+            <td>契約書テンプレートの管理</td>
+            <td>営業管理者</td>
+            <td>テンプレート登録・編集</td>
+        </tr>
+    </table>
+
+    <h2>6. 勤怠・工数管理</h2>
+    <table>
+        <tr>
+            <th>画面ID</th>
+            <th>画面名</th>
+            <th>概要</th>
+            <th>対象ユーザー</th>
+            <th>備考</th>
+        </tr>
+        <tr>
+            <td>TMS-001</td>
+            <td>勤怠入力</td>
+            <td>日次の勤怠情報入力</td>
+            <td>技術者</td>
+            <td>カレンダー表示、モバイル対応</td>
+        </tr>
+        <tr>
+            <td>TMS-002</td>
+            <td>工数入力</td>
+            <td>工数情報の入力</td>
+            <td>技術者</td>
+            <td>プロジェクト別工数入力</td>
+        </tr>
+        <tr>
+            <td>TMS-003</td>
+            <td>勤怠管理</td>
+            <td>部下・メンバーの勤怠情報管理</td>
+            <td>PM/現場責任者、人事担当者</td>
+            <td>一括承認、差し戻し機能</td>
+        </tr>
+        <tr>
+            <td>TMS-004</td>
+            <td>工数承認</td>
+            <td>工数情報の承認処理</td>
+            <td>PM/現場責任者、営業担当者</td>
+            <td>承認フロー管理</td>
+        </tr>
+        <tr>
+            <td>TMS-005</td>
+            <td>勤怠集計</td>
+            <td>勤怠情報の集計・分析</td>
+            <td>人事担当者、経理担当者</td>
+            <td>期間別、部門別集計</td>
+        </tr>
+        <tr>
+            <td>TMS-006</td>
+            <td>工数集計</td>
+            <td>工数情報の集計・分析</td>
+            <td>PM/現場責任者、経理担当者</td>
+            <td>プロジェクト別集計</td>
+        </tr>
+    </table>
+
+    <h2>7. 請求・支払管理</h2>
+    <table>
+        <tr>
+            <th>画面ID</th>
+            <th>画面名</th>
+            <th>概要</th>
+            <th>対象ユーザー</th>
+            <th>備考</th>
+        </tr>
+        <tr>
+            <td>BIL-001</td>
+            <td>請求一覧</td>
+            <td>請求情報の一覧表示・検索</td>
+            <td>経理担当者</td>
+            <td>ステータス別表示、フィルタリング</td>
+        </tr>
+        <tr>
+            <td>BIL-002</td>
+            <td>請求書作成</td>
+            <td>請求書の新規作成</td>
+            <td>経理担当者</td>
+            <td>工数データ連携、自動計算</td>
+        </tr>
+        <tr>
+            <td>BIL-003</td>
+            <td>請求書詳細</td>
+            <td>請求書の詳細表示・編集</td>
+            <td>経理担当者</td>
+            <td>請求内容、履歴表示</td>
+        </tr>
+        <tr>
+            <td>BIL-004</td>
+            <td>請求書プレビュー</td>
+            <td>生成された請求書のプレビュー</td>
+            <td>経理担当者</td>
+            <td>PDF表示、編集機能</td>
+        </tr>
+        <tr>
+            <td>BIL-005</td>
+            <td>入金管理</td>
+            <td>入金状況の管理</td>
+            <td>経理担当者</td>
+            <td>入金登録、未入金管理</td>
+        </tr>
+        <tr>
+            <td>BIL-006</td>
+            <td>支払一覧</td>
+            <td>支払情報の一覧表示・検索</td>
+            <td>経理担当者</td>
+            <td>ステータス別表示、フィルタリング</td>
+        </tr>
+        <tr>
+            <td>BIL-007</td>
+            <td>支払登録</td>
+            <td>新規支払情報の登録</td>
+            <td>経理担当者</td>
+            <td>工数データ連携、自動計算</td>
+        </tr>
+        <tr>
+            <td>BIL-008</td>
+            <td>支払詳細</td>
+            <td>支払情報の詳細表示・編集</td>
+            <td>経理担当者</td>
+            <td>支払内容、履歴表示</td>
+        </tr>
+    </table>
+
+    <h2>8. レポーティング</h2>
+    <table>
+        <tr>
+            <th>画面ID</th>
+            <th>画面名</th>
+            <th>概要</th>
+            <th>対象ユーザー</th>
+            <th>備考</th>
+        </tr>
+        <tr>
+            <td>RPT-001</td>
+            <td>KPIダッシュボード</td>
+            <td>主要KPI指標のダッシュボード表示</td>
+            <td>経営層、部門管理者</td>
+            <td>グラフ・チャート表示、リアルタイム更新</td>
+        </tr>
+        <tr>
+            <td>RPT-002</td>
+            <td>売上レポート</td>
+            <td>売上状況のレポート</td>
+            <td>経営層、営業管理者</td>
+            <td>期間・顧客・部門別集計</td>
+        </tr>
+        <tr>
+            <td>RPT-003</td>
+            <td>粗利レポート</td>
+            <td>粗利状況のレポート</td>
+            <td>経営層、営業管理者</td>
+            <td>期間・顧客・部門別集計</td>
+        </tr>
+        <tr>
+            <td>RPT-004</td>
+            <td>稼働率レポート</td>
+            <td>技術者稼働率のレポート</td>
+            <td>経営層、人事管理者</td>
+            <td>期間・部門別集計</td>
+        </tr>
+        <tr>
+            <td>RPT-005</td>
+            <td>予測分析</td>
+            <td>売上・稼働の予測分析</td>
+            <td>経営層</td>
+            <td>トレンド分析、シミュレーション</td>
+        </tr>
+        <tr>
+            <td>RPT-006</td>
+            <td>レポート作成</td>
+            <td>カスタムレポートの作成</td>
+            <td>経営層、部門管理者</td>
+            <td>条件指定、出力形式選択</td>
+        </tr>
+    </table>
+
+    <h2>9. システム管理</h2>
+    <table>
+        <tr>
+            <th>画面ID</th>
+            <th>画面名</th>
+            <th>概要</th>
+            <th>対象ユーザー</th>
+            <th>備考</th>
+        </tr>
+        <tr>
+            <td>ADM-001</td>
+            <td>ユーザー管理</td>
+            <td>システムユーザーの管理</td>
+            <td>システム管理者</td>
+            <td>ユーザー登録・編集・無効化</td>
+        </tr>
+        <tr>
+            <td>ADM-002</td>
+            <td>ロール管理</td>
+            <td>ユーザーロールの管理</td>
+            <td>システム管理者</td>
+            <td>ロール定義、権限設定</td>
+        </tr>
+        <tr>
+            <td>ADM-003</td>
+            <td>マスタ管理</td>
+            <td>システムマスタデータの管理</td>
+            <td>システム管理者</td>
+            <td>各種マスタデータのメンテナンス</td>
+        </tr>
+        <tr>
+            <td>ADM-004</td>
+            <td>ログ管理</td>
+            <td>システムログの閲覧・検索</td>
+            <td>システム管理者</td>
+            <td>操作ログ、エラーログ表示</td>
+        </tr>
+        <tr>
+            <td>ADM-005</td>
+            <td>バッチ管理</td>
+            <td>バッチ処理の管理</td>
+            <td>システム管理者</td>
+            <td>バッチ実行、スケジュール設定</td>
+        </tr>
+    </table>
+
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>
