@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 請求書プレビュー画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+        .toolbar {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            gap: 10px;
+        }
+        .template-selector {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../請求支払管理画面設計.html">請求・支払管理画面設計</a></li>
+            <li><a href="BIL-003_請求書詳細画面.html">請求書詳細</a></li>
+            <li class="active">請求書プレビュー</li>
+        </ul>
+    </nav>
+
+    <h1>BIL-004: 請求書プレビュー画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>BIL-004</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>請求書プレビュー</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>生成された請求書のプレビュー表示画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>経理担当者、管理者、営業担当者、経営層</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>BIL-002: 請求書作成、BIL-003: 請求書詳細</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>BIL-003: 請求書詳細</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="toolbar">
+        <div class="toolbar-left">
+            <select class="template-selector">
+                <option value="standard">標準テンプレート</option>
+                <option value="simple">シンプルテンプレート</option>
+                <option value="detailed">詳細テンプレート</option>
+                <option value="custom">カスタムテンプレート</option>
+            </select>
+            <span>ページ: 1/1</span>
+        </div>
+        <div class="toolbar-right">
+            <button>印刷</button>
+            <button>PDFダウンロード</button>
+            <button>メール送信</button>
+            <button>詳細に戻る</button>
+        </div>
+    </div>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [請求書のプレビュー表示]
+            <br><br>
+            請求書テンプレートに基づいた実際の請求書のプレビューが表示されます。
+            <br><br>
+            会社ロゴ、請求書番号、請求日、支払期限、顧客情報、請求明細、
+            <br>
+            金額情報（小計、消費税、合計）、振込先情報、備考などが含まれます。
+        </div>
+    </div>
+
+    <h2>画面構成要素</h2>
+    <h3>1. ツールバー部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>bil_preview_001</td>
+            <td>テンプレート選択</td>
+            <td>セレクトボックス</td>
+            <td>表示する請求書テンプレートを選択</td>
+        </tr>
+        <tr>
+            <td>bil_preview_002</td>
+            <td>ページ表示</td>
+            <td>テキスト表示</td>
+            <td>現在表示しているページと総ページ数</td>
+        </tr>
+        <tr>
+            <td>bil_preview_003</td>
+            <td>ズームアウト</td>
+            <td>ボタン</td>
+            <td>表示を縮小</td>
+        </tr>
+        <tr>
+            <td>bil_preview_004</td>
+            <td>ズームイン</td>
+            <td>ボタン</td>
+            <td>表示を拡大</td>
+        </tr>
+        <tr>
+            <td>bil_preview_005</td>
+            <td>印刷ボタン</td>
+            <td>ボタン</td>
+            <td>請求書を印刷</td>
+        </tr>
+        <tr>
+            <td>bil_preview_006</td>
+            <td>PDFダウンロードボタン</td>
+            <td>ボタン</td>
+            <td>請求書をPDFとしてダウンロード</td>
+        </tr>
+        <tr>
+            <td>bil_preview_007</td>
+            <td>メール送信ボタン</td>
+            <td>ボタン</td>
+            <td>請求書をメールで送信</td>
+        </tr>
+        <tr>
+            <td>bil_preview_008</td>
+            <td>詳細に戻るボタン</td>
+            <td>ボタン</td>
+            <td>請求書詳細画面に戻る</td>
+        </tr>
+    </table>
+
+    <h3>2. プレビュー表示部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>bil_preview_009</td>
+            <td>プレビュー表示領域</td>
+            <td>コンテンツ表示</td>
+            <td>選択されたテンプレートに基づく実際の請求書の表示</td>
+        </tr>
+        <tr>
+            <td>bil_preview_010</td>
+            <td>会社ロゴ</td>
+            <td>画像表示</td>
+            <td>自社の会社ロゴ</td>
+        </tr>
+        <tr>
+            <td>bil_preview_011</td>
+            <td>会社情報</td>
+            <td>テキスト表示</td>
+            <td>自社の会社名、住所、連絡先など</td>
+        </tr>
+        <tr>
+            <td>bil_preview_012</td>
+            <td>請求書タイトル</td>
+            <td>テキスト表示</td>
+            <td>「請求書」というタイトル</td>
+        </tr>
+        <tr>
+            <td>bil_preview_013</td>
+            <td>請求番号</td>
+            <td>テキスト表示</td>
+            <td>請求書の番号</td>
+        </tr>
+        <tr>
+            <td>bil_preview_014</td>
+            <td>請求日</td>
+            <td>日付表示</td>
+            <td>請求書の発行日</td>
+        </tr>
+        <tr>
+            <td>bil_preview_015</td>
+            <td>支払期限日</td>
+            <td>日付表示</td>
+            <td>支払の期限日</td>
+        </tr>
+        <tr>
+            <td>bil_preview_016</td>
+            <td>請求先情報</td>
+            <td>テキスト表示</td>
+            <td>顧客の会社名、住所、担当者名など</td>
+        </tr>
+        <tr>
+            <td>bil_preview_017</td>
+            <td>請求明細テーブル</td>
+            <td>テーブル表示</td>
+            <td>請求項目の詳細一覧</td>
+        </tr>
+        <tr>
+            <td>bil_preview_018</td>
+            <td>小計金額</td>
+            <td>金額表示</td>
+            <td>税抜きの合計金額</td>
+        </tr>
+        <tr>
+            <td>bil_preview_019</td>
+            <td>消費税額</td>
+            <td>金額表示</td>
+            <td>消費税の金額</td>
+        </tr>
+        <tr>
+            <td>bil_preview_020</td>
+            <td>合計金額</td>
+            <td>金額表示</td>
+            <td>税込みの合計金額</td>
+        </tr>
+        <tr>
+            <td>bil_preview_021</td>
+            <td>振込先情報</td>
+            <td>テキスト表示</td>
+            <td>銀行名、支店名、口座種別、口座番号、口座名義</td>
+        </tr>
+        <tr>
+            <td>bil_preview_022</td>
+            <td>備考</td>
+            <td>テキスト表示</td>
+            <td>請求に関する備考や注意事項</td>
+        </tr>
+        <tr>
+            <td>bil_preview_023</td>
+            <td>捺印欄</td>
+            <td>画像/空白領域</td>
+            <td>捺印または署名のための領域</td>
+        </tr>
+        <tr>
+            <td>bil_preview_024</td>
+            <td>フッター情報</td>
+            <td>テキスト表示</td>
+            <td>会社の連絡先や登録情報など</td>
+        </tr>
+    </table>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、選択された請求書の情報が標準テンプレートで表示される</li>
+        <li>「テンプレート選択」ドロップダウンから別のテンプレートを選択すると、同じ請求書情報が選択されたテンプレートで再表示される</li>
+        <li>ズームイン・ズームアウトボタンで表示の拡大・縮小が可能</li>
+        <li>請求書が複数ページある場合、ページ切り替えで別ページを表示可能</li>
+        <li>「印刷」ボタンをクリックすると、ブラウザの印刷ダイアログが表示される</li>
+        <li>「PDFダウンロード」ボタンをクリックすると、現在表示中のテンプレートの請求書がPDFファイルとしてダウンロードされる</li>
+        <li>「メール送信」ボタンをクリックすると、メール送信ダイアログが表示され、送信先や件名などを入力して送信可能</li>
+        <li>「詳細に戻る」ボタンをクリックすると、請求書詳細画面（BIL-003）に戻る</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意事項：</strong></p>
+        <ul>
+            <li>プレビュー画面で表示される内容は実際に出力される請求書と完全に同一となります。</li>
+            <li>テンプレートによって、表示項目や表示レイアウトが異なる場合があります。</li>
+            <li>PDFダウンロード時は、現在選択中のテンプレートでファイルが生成されます。</li>
+            <li>印刷設定はブラウザの印刷機能を使用するため、実際の表示と若干異なる場合があります。</li>
+            <li>メール送信時は、PDF添付ファイルとして送信されます。</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

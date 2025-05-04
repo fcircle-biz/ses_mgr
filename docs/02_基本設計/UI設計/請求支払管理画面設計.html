@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 請求・支払管理画面設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .mockup {
+            font-family: monospace;
+            white-space: pre;
+            background-color: #f8f8f8;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 20px 0;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        .screen-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .screen-list li {
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .screen-list a {
+            display: block;
+            padding: 15px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            background-color: #f8f9fa;
+            transition: background-color 0.2s;
+        }
+        .screen-list a:hover {
+            background-color: #e9ecef;
+        }
+        .screen-list .screen-id {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+        .screen-list .screen-desc {
+            display: block;
+            color: #666;
+            font-weight: normal;
+            margin-top: 8px;
+            padding-left: 5px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>SES業務システム 請求・支払管理画面設計</h1>
+
+    <h2>画面一覧</h2>
+    <p>請求・支払管理機能では、以下の画面を提供します。各画面の詳細設計は、リンク先のドキュメントを参照してください。</p>
+    
+    <ul class="screen-list">
+        <li>
+            <a href="画面/請求支払管理/BIL-001_請求一覧画面.html">
+                <span class="screen-id">BIL-001</span> 請求一覧画面
+                <span class="screen-desc">顧客に対する請求情報の一覧表示・検索・フィルタリングを行う画面</span>
+            </a>
+        </li>
+        <li>
+            <a href="画面/請求支払管理/BIL-002_請求書作成画面.html">
+                <span class="screen-id">BIL-002</span> 請求書作成画面
+                <span class="screen-desc">新規請求書情報を作成する画面（工数データと連携、自動計算）</span>
+            </a>
+        </li>
+        <li>
+            <a href="画面/請求支払管理/BIL-003_請求書詳細画面.html">
+                <span class="screen-id">BIL-003</span> 請求書詳細画面
+                <span class="screen-desc">請求書の詳細情報表示・編集を行う画面</span>
+            </a>
+        </li>
+        <li>
+            <a href="画面/請求支払管理/BIL-004_請求書プレビュー画面.html">
+                <span class="screen-id">BIL-004</span> 請求書プレビュー画面
+                <span class="screen-desc">生成された請求書のプレビュー表示画面</span>
+            </a>
+        </li>
+        <li>
+            <a href="画面/請求支払管理/BIL-005_入金管理画面.html">
+                <span class="screen-id">BIL-005</span> 入金管理画面
+                <span class="screen-desc">請求に対する入金状況の管理画面</span>
+            </a>
+        </li>
+        <li>
+            <a href="画面/請求支払管理/BIL-006_支払一覧画面.html">
+                <span class="screen-id">BIL-006</span> 支払一覧画面
+                <span class="screen-desc">パートナーや技術者への支払情報の一覧表示・検索・フィルタリングを行う画面</span>
+            </a>
+        </li>
+        <li>
+            <a href="画面/請求支払管理/BIL-007_支払登録画面.html">
+                <span class="screen-id">BIL-007</span> 支払登録画面
+                <span class="screen-desc">新規支払情報を登録する画面</span>
+            </a>
+        </li>
+        <li>
+            <a href="画面/請求支払管理/BIL-008_支払詳細画面.html">
+                <span class="screen-id">BIL-008</span> 支払詳細画面
+                <span class="screen-desc">支払情報の詳細表示・編集を行う画面</span>
+            </a>
+        </li>
+    </ul>
+
+    <h2>画面遷移図</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [請求・支払管理機能の画面遷移図]
+        </div>
+    </div>
+
+    <h2>機能概要</h2>
+    <table>
+        <tr>
+            <th>機能</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>請求一覧</td>
+            <td>顧客に対する請求情報の一覧表示・検索・フィルタリング機能</td>
+        </tr>
+        <tr>
+            <td>請求書作成</td>
+            <td>新規請求書情報の作成機能（工数データと連携、自動計算）</td>
+        </tr>
+        <tr>
+            <td>請求書詳細</td>
+            <td>請求書の詳細情報表示・編集機能</td>
+        </tr>
+        <tr>
+            <td>請求書プレビュー</td>
+            <td>生成された請求書のプレビュー表示機能</td>
+        </tr>
+        <tr>
+            <td>入金管理</td>
+            <td>請求に対する入金状況の管理機能</td>
+        </tr>
+        <tr>
+            <td>支払一覧</td>
+            <td>パートナーや技術者への支払情報の一覧表示・検索・フィルタリング機能</td>
+        </tr>
+        <tr>
+            <td>支払登録</td>
+            <td>新規支払情報の登録機能</td>
+        </tr>
+        <tr>
+            <td>支払詳細</td>
+            <td>支払情報の詳細表示・編集機能</td>
+        </tr>
+        <tr>
+            <td>支払承認フロー</td>
+            <td>支払情報の承認ワークフロー機能</td>
+        </tr>
+    </table>
+
+    <div class="note">
+        <p><strong>注意：</strong> ユーザーの権限レベルによって、表示される操作ボタンや実行可能な操作が異なります。</p>
+        <ul>
+            <li>一般ユーザー：担当する請求・支払の閲覧のみ可能</li>
+            <li>経理担当者：全ての請求・支払の閲覧・編集が可能</li>
+            <li>管理者：全ての請求・支払の閲覧・編集・承認が可能</li>
+            <li>経営層：全ての請求・支払の閲覧が可能だが、編集は不可</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

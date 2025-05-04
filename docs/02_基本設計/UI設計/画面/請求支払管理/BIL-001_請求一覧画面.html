@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 請求一覧画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../請求支払管理画面設計.html">請求・支払管理画面設計</a></li>
+            <li class="active">請求一覧画面</li>
+        </ul>
+    </nav>
+
+    <h1>BIL-001: 請求一覧画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>BIL-001</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>請求一覧</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>顧客に対する請求情報の一覧表示・検索・フィルタリングを行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>経理担当者、管理者、営業担当者、経営層</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CMN-002: ダッシュボード</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>BIL-002: 請求書作成、BIL-003: 請求書詳細、BIL-005: 入金管理</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [請求一覧画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>画面構成要素</h2>
+    <h3>1. 検索・フィルター部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>bil_list_001</td>
+            <td>検索ボックス</td>
+            <td>テキスト入力</td>
+            <td>請求番号、顧客名などでのフリーワード検索</td>
+        </tr>
+        <tr>
+            <td>bil_list_002</td>
+            <td>請求年月</td>
+            <td>年月選択</td>
+            <td>請求対象年月によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>bil_list_003</td>
+            <td>請求ステータス</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>請求ステータスによるフィルタリング（作成中、確認中、承認済、請求済、キャンセル、破棄）</td>
+        </tr>
+        <tr>
+            <td>bil_list_004</td>
+            <td>入金ステータス</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>入金ステータスによるフィルタリング（未入金、一部入金、入金済、遅延、不足、過剰）</td>
+        </tr>
+        <tr>
+            <td>bil_list_005</td>
+            <td>顧客</td>
+            <td>セレクトボックス</td>
+            <td>顧客企業によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>bil_list_006</td>
+            <td>請求日範囲</td>
+            <td>日付範囲選択</td>
+            <td>請求日の範囲によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>bil_list_007</td>
+            <td>支払期限日範囲</td>
+            <td>日付範囲選択</td>
+            <td>支払期限日の範囲によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>bil_list_008</td>
+            <td>担当者</td>
+            <td>セレクトボックス</td>
+            <td>作成担当者によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>bil_list_009</td>
+            <td>検索ボタン</td>
+            <td>ボタン</td>
+            <td>検索条件を適用して結果を表示</td>
+        </tr>
+        <tr>
+            <td>bil_list_010</td>
+            <td>クリアボタン</td>
+            <td>ボタン</td>
+            <td>検索条件をクリア</td>
+        </tr>
+    </table>
+
+    <h3>2. 一覧表示部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>bil_list_011</td>
+            <td>請求一覧テーブル</td>
+            <td>テーブル</td>
+            <td>検索条件に合致する請求の一覧</td>
+        </tr>
+        <tr>
+            <td>bil_list_012</td>
+            <td>請求番号</td>
+            <td>テキスト（リンク）</td>
+            <td>請求を識別する番号。クリックで詳細画面へ</td>
+        </tr>
+        <tr>
+            <td>bil_list_013</td>
+            <td>顧客名</td>
+            <td>テキスト</td>
+            <td>請求先の顧客企業名</td>
+        </tr>
+        <tr>
+            <td>bil_list_014</td>
+            <td>請求年月</td>
+            <td>年月</td>
+            <td>請求対象の年月</td>
+        </tr>
+        <tr>
+            <td>bil_list_015</td>
+            <td>請求日</td>
+            <td>日付</td>
+            <td>請求書の発行日</td>
+        </tr>
+        <tr>
+            <td>bil_list_016</td>
+            <td>支払期限日</td>
+            <td>日付</td>
+            <td>支払期限日</td>
+        </tr>
+        <tr>
+            <td>bil_list_017</td>
+            <td>税抜金額</td>
+            <td>金額</td>
+            <td>請求金額（税抜）</td>
+        </tr>
+        <tr>
+            <td>bil_list_018</td>
+            <td>消費税</td>
+            <td>金額</td>
+            <td>消費税額</td>
+        </tr>
+        <tr>
+            <td>bil_list_019</td>
+            <td>合計金額</td>
+            <td>金額</td>
+            <td>請求金額（税込）</td>
+        </tr>
+        <tr>
+            <td>bil_list_020</td>
+            <td>請求ステータス</td>
+            <td>ラベル（色分け表示）</td>
+            <td>請求の現在のステータス</td>
+        </tr>
+        <tr>
+            <td>bil_list_021</td>
+            <td>入金ステータス</td>
+            <td>ラベル（色分け表示）</td>
+            <td>請求に対する入金状況</td>
+        </tr>
+        <tr>
+            <td>bil_list_022</td>
+            <td>入金日</td>
+            <td>日付</td>
+            <td>入金があった日付</td>
+        </tr>
+        <tr>
+            <td>bil_list_023</td>
+            <td>案件名</td>
+            <td>テキスト</td>
+            <td>請求対象の案件名</td>
+        </tr>
+        <tr>
+            <td>bil_list_024</td>
+            <td>アクションボタン</td>
+            <td>ボタングループ</td>
+            <td>詳細表示、編集、プレビュー、入金登録などの操作ボタン</td>
+        </tr>
+        <tr>
+            <td>bil_list_025</td>
+            <td>ページネーション</td>
+            <td>ページ制御</td>
+            <td>複数ページにわたる結果のナビゲーション</td>
+        </tr>
+    </table>
+
+    <h3>3. 操作ボタン</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>bil_list_026</td>
+            <td>新規請求書作成ボタン</td>
+            <td>プライマリーボタン</td>
+            <td>新規請求書作成画面への遷移</td>
+        </tr>
+        <tr>
+            <td>bil_list_027</td>
+            <td>一括印刷ボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>選択した請求書の一括印刷</td>
+        </tr>
+        <tr>
+            <td>bil_list_028</td>
+            <td>一括ダウンロードボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>選択した請求書のPDFファイル一括ダウンロード</td>
+        </tr>
+        <tr>
+            <td>bil_list_029</td>
+            <td>CSVエクスポートボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>表示中の請求一覧をCSV形式でエクスポート</td>
+        </tr>
+    </table>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、現在の年月（もしくは直近の処理月）の請求データを表示する</li>
+        <li>検索条件を指定して検索ボタンをクリックすると、条件に合致する請求が一覧表示される</li>
+        <li>請求番号をクリックすると、該当の請求書詳細画面（BIL-003）に遷移する</li>
+        <li>アクションボタンの「詳細」をクリックすると、該当の請求書詳細画面（BIL-003）に遷移する</li>
+        <li>アクションボタンの「編集」をクリックすると、該当の請求書の編集モードで詳細画面に遷移する</li>
+        <li>アクションボタンの「プレビュー」をクリックすると、請求書プレビュー画面（BIL-004）に遷移する</li>
+        <li>アクションボタンの「入金登録」をクリックすると、入金管理画面（BIL-005）に遷移する</li>
+        <li>「新規請求書作成」ボタンをクリックすると、請求書作成画面（BIL-002）に遷移する</li>
+        <li>請求ステータスと入金ステータスは色分けされたラベルで表示される:
+            <ul>
+                <li>請求ステータス「作成中」: グレー</li>
+                <li>請求ステータス「確認中」: 黄色</li>
+                <li>請求ステータス「承認済」: 青色</li>
+                <li>請求ステータス「請求済」: 緑色</li>
+                <li>請求ステータス「キャンセル」: 赤色</li>
+                <li>請求ステータス「破棄」: 暗い赤色</li>
+                <li>入金ステータス「未入金」: 赤色</li>
+                <li>入金ステータス「一部入金」: 橙色</li>
+                <li>入金ステータス「入金済」: 緑色</li>
+                <li>入金ステータス「遅延」: 濃い赤色</li>
+                <li>入金ステータス「不足」: 赤色</li>
+                <li>入金ステータス「過剰」: 紫色</li>
+            </ul>
+        </li>
+        <li>「一括印刷」ボタンをクリックすると、チェックを入れた請求書を一括で印刷用PDFとして生成する</li>
+        <li>「一括ダウンロード」ボタンをクリックすると、チェックを入れた請求書のPDFファイルをまとめてダウンロードする</li>
+        <li>「CSVエクスポート」ボタンをクリックすると、現在の検索結果がCSVファイルとしてダウンロードされる</li>
+        <li>ページネーションを使用して、複数ページにわたる検索結果をナビゲートできる</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> ユーザーの権限レベルによって、表示される操作ボタンや実行可能な操作が異なります。</p>
+        <ul>
+            <li>一般ユーザー：担当する請求の閲覧のみ可能</li>
+            <li>経理担当者：全ての請求の閲覧・編集が可能</li>
+            <li>管理者：全ての請求の閲覧・編集・承認が可能</li>
+            <li>経営層：全ての請求の閲覧が可能だが、編集は不可</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

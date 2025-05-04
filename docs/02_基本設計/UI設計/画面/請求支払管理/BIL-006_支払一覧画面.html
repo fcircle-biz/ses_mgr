@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 支払一覧画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../請求支払管理画面設計.html">請求・支払管理画面設計</a></li>
+            <li class="active">支払一覧画面</li>
+        </ul>
+    </nav>
+
+    <h1>BIL-006: 支払一覧画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>BIL-006</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>支払一覧</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>パートナーや技術者への支払情報の一覧表示・検索・フィルタリングを行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>経理担当者、管理者、経営層</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CMN-002: ダッシュボード</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>BIL-007: 支払登録画面、BIL-008: 支払詳細画面</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [支払一覧画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>画面構成要素</h2>
+    <h3>1. 検索・フィルター部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>bil_paylist_001</td>
+            <td>検索ボックス</td>
+            <td>テキスト入力</td>
+            <td>支払番号、会社名、技術者名などでのフリーワード検索</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_002</td>
+            <td>支払年月</td>
+            <td>年月選択</td>
+            <td>支払対象年月によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_003</td>
+            <td>支払ステータス</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>支払ステータスによるフィルタリング（作成中、確認中、承認済、支払済、キャンセル）</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_004</td>
+            <td>支払先タイプ</td>
+            <td>セレクトボックス</td>
+            <td>支払先タイプによるフィルタリング（パートナー会社、技術者）</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_005</td>
+            <td>支払先</td>
+            <td>セレクトボックス</td>
+            <td>支払先の会社または技術者によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_006</td>
+            <td>案件</td>
+            <td>セレクトボックス</td>
+            <td>案件によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_007</td>
+            <td>支払日範囲</td>
+            <td>日付範囲選択</td>
+            <td>支払日の範囲によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_008</td>
+            <td>金額範囲</td>
+            <td>金額範囲入力</td>
+            <td>支払金額の範囲によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_009</td>
+            <td>担当者</td>
+            <td>セレクトボックス</td>
+            <td>作成担当者によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_010</td>
+            <td>検索ボタン</td>
+            <td>ボタン</td>
+            <td>検索条件を適用して結果を表示</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_011</td>
+            <td>クリアボタン</td>
+            <td>ボタン</td>
+            <td>検索条件をクリア</td>
+        </tr>
+    </table>
+
+    <h3>2. 一覧表示部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>bil_paylist_012</td>
+            <td>支払一覧テーブル</td>
+            <td>テーブル</td>
+            <td>検索条件に合致する支払の一覧</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_013</td>
+            <td>支払番号</td>
+            <td>テキスト（リンク）</td>
+            <td>支払を識別する番号。クリックで詳細画面へ</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_014</td>
+            <td>支払先タイプ</td>
+            <td>テキスト</td>
+            <td>支払先のタイプ（パートナー会社/技術者）</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_015</td>
+            <td>支払先名</td>
+            <td>テキスト</td>
+            <td>支払先の会社名または技術者名</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_016</td>
+            <td>支払年月</td>
+            <td>年月</td>
+            <td>支払対象の年月</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_017</td>
+            <td>発行日</td>
+            <td>日付</td>
+            <td>支払書類の発行日</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_018</td>
+            <td>支払日</td>
+            <td>日付</td>
+            <td>実際の支払予定日</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_019</td>
+            <td>税抜金額</td>
+            <td>金額</td>
+            <td>支払金額（税抜）</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_020</td>
+            <td>消費税</td>
+            <td>金額</td>
+            <td>消費税額</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_021</td>
+            <td>合計金額</td>
+            <td>金額</td>
+            <td>支払金額（税込）</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_022</td>
+            <td>支払ステータス</td>
+            <td>ラベル（色分け表示）</td>
+            <td>支払の現在のステータス</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_023</td>
+            <td>承認状況</td>
+            <td>ラベル</td>
+            <td>承認ワークフローの現在の状況</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_024</td>
+            <td>案件名</td>
+            <td>テキスト</td>
+            <td>関連する案件の名称</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_025</td>
+            <td>アクションボタン</td>
+            <td>ボタングループ</td>
+            <td>詳細表示、編集、承認、支払実行などの操作ボタン</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_026</td>
+            <td>ページネーション</td>
+            <td>ページ制御</td>
+            <td>複数ページにわたる結果のナビゲーション</td>
+        </tr>
+    </table>
+
+    <h3>3. 操作ボタン</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>bil_paylist_027</td>
+            <td>新規支払登録ボタン</td>
+            <td>プライマリーボタン</td>
+            <td>新規支払登録画面への遷移</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_028</td>
+            <td>一括印刷ボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>選択した支払書類の一括印刷</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_029</td>
+            <td>一括承認ボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>選択した支払の一括承認</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_030</td>
+            <td>一括支払ボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>選択した支払の一括支払処理</td>
+        </tr>
+        <tr>
+            <td>bil_paylist_031</td>
+            <td>CSVエクスポートボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>表示中の支払一覧をCSV形式でエクスポート</td>
+        </tr>
+    </table>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、現在の年月（もしくは直近の処理月）の支払データを表示する</li>
+        <li>検索条件を指定して検索ボタンをクリックすると、条件に合致する支払が一覧表示される</li>
+        <li>支払番号をクリックすると、該当の支払詳細画面（BIL-008）に遷移する</li>
+        <li>アクションボタンの「詳細」をクリックすると、該当の支払詳細画面（BIL-008）に遷移する</li>
+        <li>アクションボタンの「編集」をクリックすると、該当の支払の編集モードで詳細画面に遷移する</li>
+        <li>アクションボタンの「承認」をクリックすると、支払の承認ダイアログが表示される</li>
+        <li>アクションボタンの「支払実行」をクリックすると、支払実行の確認ダイアログが表示される</li>
+        <li>「新規支払登録」ボタンをクリックすると、支払登録画面（BIL-007）に遷移する</li>
+        <li>支払ステータスは色分けされたラベルで表示される:
+            <ul>
+                <li>支払ステータス「作成中」: グレー</li>
+                <li>支払ステータス「確認中」: 黄色</li>
+                <li>支払ステータス「承認済」: 青色</li>
+                <li>支払ステータス「支払済」: 緑色</li>
+                <li>支払ステータス「キャンセル」: 赤色</li>
+            </ul>
+        </li>
+        <li>「一括印刷」ボタンをクリックすると、チェックを入れた支払書類を一括で印刷用PDFとして生成する</li>
+        <li>「一括承認」ボタンをクリックすると、チェックを入れた支払を一括で承認するための確認ダイアログが表示される</li>
+        <li>「一括支払」ボタンをクリックすると、チェックを入れた支払を一括で支払実行するための確認ダイアログが表示される</li>
+        <li>「CSVエクスポート」ボタンをクリックすると、現在の検索結果がCSVファイルとしてダウンロードされる</li>
+        <li>ページネーションを使用して、複数ページにわたる検索結果をナビゲートできる</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> ユーザーの権限レベルによって、表示される操作ボタンや実行可能な操作が異なります。</p>
+        <ul>
+            <li>経理担当者：全ての支払の閲覧・編集・登録が可能だが、承認は不可</li>
+            <li>管理者：全ての支払の閲覧・編集・登録・承認が可能</li>
+            <li>経営層：全ての支払の閲覧が可能だが、編集・登録・承認は不可</li>
+        </ul>
+        <p>支払承認については、設定された承認フローに従って処理されます。一括承認は自身の承認ステップに該当する支払のみに適用されます。</p>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>
