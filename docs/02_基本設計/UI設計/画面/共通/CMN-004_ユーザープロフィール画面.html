@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム ユーザープロフィール画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../共通画面設計.html">共通画面設計</a></li>
+            <li class="active">ユーザープロフィール画面</li>
+        </ul>
+    </nav>
+
+    <h1>CMN-004: ユーザープロフィール画面</h1>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>CMN-004</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>ユーザープロフィール画面</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>ユーザー自身のプロフィール情報を参照・更新するための画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>認証済みのすべてのユーザー</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CMN-002: ダッシュボード、CMN-003: メニュー</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>各メニュー画面</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [ユーザープロフィール画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>画面項目定義</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>profile-001</td>
+            <td>プロフィール画像</td>
+            <td>画像</td>
+            <td>5MB以下、JPG/PNG形式</td>
+            <td>-</td>
+            <td>ユーザーのプロフィール画像。デフォルトアイコンがある</td>
+        </tr>
+        <tr>
+            <td>profile-002</td>
+            <td>ユーザーID</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ログイン用ユーザーID（変更不可）</td>
+        </tr>
+        <tr>
+            <td>profile-003</td>
+            <td>氏名</td>
+            <td>テキスト入力</td>
+            <td>最大50文字</td>
+            <td>◯</td>
+            <td>ユーザーの氏名</td>
+        </tr>
+        <tr>
+            <td>profile-004</td>
+            <td>氏名（カナ）</td>
+            <td>テキスト入力</td>
+            <td>全角カナ、最大50文字</td>
+            <td>◯</td>
+            <td>ユーザーの氏名（カナ）</td>
+        </tr>
+        <tr>
+            <td>profile-005</td>
+            <td>部署</td>
+            <td>テキスト入力</td>
+            <td>最大50文字</td>
+            <td>△</td>
+            <td>所属部署名</td>
+        </tr>
+        <tr>
+            <td>profile-006</td>
+            <td>役職</td>
+            <td>テキスト入力</td>
+            <td>最大30文字</td>
+            <td>△</td>
+            <td>ユーザーの役職</td>
+        </tr>
+        <tr>
+            <td>profile-007</td>
+            <td>メールアドレス</td>
+            <td>テキスト入力</td>
+            <td>メールアドレス形式</td>
+            <td>◯</td>
+            <td>連絡先メールアドレス</td>
+        </tr>
+        <tr>
+            <td>profile-008</td>
+            <td>電話番号</td>
+            <td>テキスト入力</td>
+            <td>数字、ハイフン可、最大15文字</td>
+            <td>△</td>
+            <td>連絡先電話番号</td>
+        </tr>
+        <tr>
+            <td>profile-009</td>
+            <td>言語設定</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>インターフェース言語設定（日本語/英語）</td>
+        </tr>
+        <tr>
+            <td>profile-010</td>
+            <td>タイムゾーン</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>ユーザーのタイムゾーン設定</td>
+        </tr>
+        <tr>
+            <td>profile-011</td>
+            <td>パスワード変更</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>パスワード変更セクションの表示切替</td>
+        </tr>
+        <tr>
+            <td>profile-012</td>
+            <td>現在のパスワード</td>
+            <td>パスワード入力</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>現在のパスワード（確認用）</td>
+        </tr>
+        <tr>
+            <td>profile-013</td>
+            <td>新しいパスワード</td>
+            <td>パスワード入力</td>
+            <td>半角英数記号、12〜30文字</td>
+            <td>◯</td>
+            <td>新しいパスワード</td>
+        </tr>
+        <tr>
+            <td>profile-014</td>
+            <td>新しいパスワード（確認）</td>
+            <td>パスワード入力</td>
+            <td>半角英数記号、12〜30文字</td>
+            <td>◯</td>
+            <td>新しいパスワード（確認用）</td>
+        </tr>
+        <tr>
+            <td>profile-015</td>
+            <td>多要素認証設定</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>多要素認証の有効/無効設定</td>
+        </tr>
+        <tr>
+            <td>profile-016</td>
+            <td>保存ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>プロフィール情報を保存する</td>
+        </tr>
+        <tr>
+            <td>profile-017</td>
+            <td>キャンセルボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>変更をキャンセルする</td>
+        </tr>
+    </table>
+
+    <h3>画面動作仕様</h3>
+    <ol>
+        <li>ページ初期表示時
+            <ul>
+                <li>ログインユーザーのプロフィール情報を取得して表示する</li>
+                <li>パスワード変更セクションは初期状態で非表示</li>
+            </ul>
+        </li>
+        <li>プロフィール画像の更新
+            <ul>
+                <li>プロフィール画像をクリックすると画像アップロードダイアログが表示される</li>
+                <li>新しい画像をアップロードするとプレビューが表示される</li>
+            </ul>
+        </li>
+        <li>パスワード変更
+            <ul>
+                <li>「パスワード変更」ボタンをクリックすると、パスワード変更セクションが表示される</li>
+                <li>現在のパスワード、新しいパスワード、確認用パスワードを入力する</li>
+                <li>新しいパスワードと確認用パスワードが一致しない場合はエラーメッセージを表示</li>
+                <li>現在のパスワードが誤っている場合はエラーメッセージを表示</li>
+            </ul>
+        </li>
+        <li>多要素認証設定
+            <ul>
+                <li>チェックボックスで多要素認証を有効/無効にできる</li>
+                <li>初めて有効化する場合は、QRコードとリカバリーコードが表示される</li>
+                <li>無効化する場合は、確認ダイアログが表示される</li>
+            </ul>
+        </li>
+        <li>保存ボタンクリック時
+            <ul>
+                <li>入力値のバリデーションを行う</li>
+                <li>必須項目が未入力の場合はエラーメッセージを表示</li>
+                <li>入力形式が不正な場合はエラーメッセージを表示</li>
+                <li>すべての検証が成功した場合、プロフィール情報を更新する</li>
+                <li>更新完了後、完了メッセージを表示する</li>
+            </ul>
+        </li>
+        <li>キャンセルボタンクリック時
+            <ul>
+                <li>変更内容を破棄し、元の値に戻す</li>
+                <li>変更内容がある場合は確認ダイアログを表示する</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>特記事項</h3>
+    <ul>
+        <li>プロフィール情報の一部は組織管理者によって管理される場合があり、その場合はユーザーによる変更ができない項目が存在する</li>
+        <li>多要素認証を初めて有効化した際のリカバリーコードは必ずユーザーに保存を促す通知を表示する</li>
+        <li>パスワード変更が成功した場合、セキュリティ強化のため再ログインを要求する</li>
+        <li>メールアドレスを変更した場合、新しいメールアドレスに確認メールを送信し検証するプロセスを実装する</li>
+    </ul>
+
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

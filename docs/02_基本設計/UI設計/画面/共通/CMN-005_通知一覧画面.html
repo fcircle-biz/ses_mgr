@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 通知一覧画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../共通画面設計.html">共通画面設計</a></li>
+            <li class="active">通知一覧画面</li>
+        </ul>
+    </nav>
+
+    <h1>CMN-005: 通知一覧画面</h1>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>CMN-005</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>通知一覧画面</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>ユーザー宛てのシステム通知・アラートを一覧表示し、既読/未読管理を行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>認証済みのすべてのユーザー</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CMN-002: ダッシュボード、CMN-003: メニュー</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>通知内容に応じた関連画面、または各メニュー画面</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [通知一覧画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>画面項目定義</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>notify-001</td>
+            <td>通知タブ</td>
+            <td>タブ</td>
+            <td>-</td>
+            <td>-</td>
+            <td>すべて/未読/種類別など通知を絞り込むためのタブ</td>
+        </tr>
+        <tr>
+            <td>notify-002</td>
+            <td>検索ボックス</td>
+            <td>テキスト入力</td>
+            <td>最大100文字</td>
+            <td>-</td>
+            <td>通知内容を検索するためのテキストボックス</td>
+        </tr>
+        <tr>
+            <td>notify-003</td>
+            <td>日付範囲選択</td>
+            <td>日付範囲選択</td>
+            <td>-</td>
+            <td>-</td>
+            <td>特定期間の通知を絞り込むための日付範囲選択</td>
+        </tr>
+        <tr>
+            <td>notify-004</td>
+            <td>すべて既読にするボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>表示されているすべての通知を既読にするボタン</td>
+        </tr>
+        <tr>
+            <td>notify-005</td>
+            <td>通知一覧テーブル</td>
+            <td>テーブル</td>
+            <td>-</td>
+            <td>-</td>
+            <td>通知の一覧を表示するテーブル</td>
+        </tr>
+        <tr>
+            <td>notify-006</td>
+            <td>通知アイコン</td>
+            <td>アイコン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>通知の種類を示すアイコン（重要、タスク、情報など）</td>
+        </tr>
+        <tr>
+            <td>notify-007</td>
+            <td>通知タイトル</td>
+            <td>テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>通知のタイトル</td>
+        </tr>
+        <tr>
+            <td>notify-008</td>
+            <td>通知内容プレビュー</td>
+            <td>テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>通知内容の簡易表示（先頭100文字程度）</td>
+        </tr>
+        <tr>
+            <td>notify-009</td>
+            <td>通知日時</td>
+            <td>テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>通知が発生した日時</td>
+        </tr>
+        <tr>
+            <td>notify-010</td>
+            <td>既読/未読アイコン</td>
+            <td>アイコン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>通知の既読/未読状態を示すアイコン</td>
+        </tr>
+        <tr>
+            <td>notify-011</td>
+            <td>アクションボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>通知に対して実行できるアクション（削除、既読/未読切替など）</td>
+        </tr>
+        <tr>
+            <td>notify-012</td>
+            <td>通知詳細モーダル</td>
+            <td>モーダルウィンドウ</td>
+            <td>-</td>
+            <td>-</td>
+            <td>通知の詳細内容を表示するモーダルウィンドウ</td>
+        </tr>
+        <tr>
+            <td>notify-013</td>
+            <td>通知設定リンク</td>
+            <td>リンク</td>
+            <td>-</td>
+            <td>-</td>
+            <td>通知設定画面へのリンク</td>
+        </tr>
+        <tr>
+            <td>notify-014</td>
+            <td>ページネーション</td>
+            <td>ページネーション</td>
+            <td>-</td>
+            <td>-</td>
+            <td>通知一覧のページ切り替え</td>
+        </tr>
+        <tr>
+            <td>notify-015</td>
+            <td>表示件数選択</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>1ページあたりの表示件数を選択（10/20/50/100件）</td>
+        </tr>
+    </table>
+
+    <h3>画面動作仕様</h3>
+    <ol>
+        <li>ページ初期表示時
+            <ul>
+                <li>ログインユーザー宛ての通知を新しい順に表示する</li>
+                <li>デフォルトですべての通知（既読/未読）を表示</li>
+                <li>1ページあたり20件の通知を表示</li>
+            </ul>
+        </li>
+        <li>タブ切り替え
+            <ul>
+                <li>「すべて」タブ：すべての通知を表示</li>
+                <li>「未読」タブ：未読の通知のみ表示</li>
+                <li>「重要」タブ：重要度が高い通知のみ表示</li>
+                <li>「タスク」タブ：アクションが必要な通知のみ表示</li>
+                <li>「システム」タブ：システムからの通知のみ表示</li>
+            </ul>
+        </li>
+        <li>検索機能
+            <ul>
+                <li>検索ボックスに入力した文字列を含む通知をフィルタリング表示</li>
+                <li>タイトルと内容の両方を検索対象とする</li>
+            </ul>
+        </li>
+        <li>日付範囲選択
+            <ul>
+                <li>開始日と終了日を指定して、期間内の通知のみを表示</li>
+                <li>「今日」「昨日」「過去7日」「過去30日」などのプリセット選択も可能</li>
+            </ul>
+        </li>
+        <li>すべて既読にする
+            <ul>
+                <li>「すべて既読にする」ボタンをクリックすると、現在表示されている未読通知がすべて既読になる</li>
+                <li>実行前に確認ダイアログを表示</li>
+            </ul>
+        </li>
+        <li>通知クリック時
+            <ul>
+                <li>通知をクリックすると詳細モーダルが表示される</li>
+                <li>未読の通知は自動的に既読状態に変更される</li>
+                <li>関連リンクがある場合は、モーダル内にリンクを表示</li>
+            </ul>
+        </li>
+        <li>既読/未読切り替え
+            <ul>
+                <li>アクションボタンから個別の通知の既読/未読状態を切り替え可能</li>
+            </ul>
+        </li>
+        <li>通知削除
+            <ul>
+                <li>アクションボタンから個別の通知を削除可能</li>
+                <li>削除前に確認ダイアログを表示</li>
+                <li>削除は論理削除として扱い、「削除済み」タブから確認可能</li>
+            </ul>
+        </li>
+        <li>通知設定
+            <ul>
+                <li>通知設定リンクをクリックすると、通知設定画面に遷移</li>
+                <li>通知の種類ごとに受信設定（メール、システム内通知など）を変更可能</li>
+            </ul>
+        </li>
+        <li>リアルタイム更新
+            <ul>
+                <li>新しい通知があった場合、ページをリロードせずにリアルタイムで通知を表示</li>
+                <li>未読の通知がある場合は、ヘッダー部分のアイコンにカウンターを表示</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>特記事項</h3>
+    <ul>
+        <li>通知は最大90日間保持され、それ以降は自動的にアーカイブされる</li>
+        <li>アーカイブされた通知は「アーカイブ」タブから確認可能</li>
+        <li>重要度の高い通知は赤色のアイコンで表示し、視認性を高める</li>
+        <li>アクションが必要な通知には対応期限を表示し、期限が近づくと警告表示を行う</li>
+        <li>通知詳細モーダルからは直接関連画面へ遷移可能とし、ワークフローの効率化を図る</li>
+        <li>モバイル表示時は一覧をカード形式に切り替え、操作性を向上させる</li>
+    </ul>
+
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>
