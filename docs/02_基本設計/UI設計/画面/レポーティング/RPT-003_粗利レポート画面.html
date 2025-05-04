@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム 粗利レポート画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -121,6 +123,45 @@
             padding: 8px 12px;
             color: #6c757d;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -166,10 +207,10 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [粗利レポート画面のワイヤーフレーム]
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="profit-report-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
     <h2>画面構成要素</h2>
@@ -502,30 +543,33 @@
     </ol>
 
     <div class="note">
-        <p><strong>注意事項：</strong></p>
-        <ul>
-            <li>粗利レポートは特に機密性の高い情報を含むため、閲覧権限が厳格に制限される:
-                <ul>
-                    <li>経営層・管理者: 全社データの閲覧が可能</li>
-                    <li>部門管理者: 自部門のデータのみ閲覧可能</li>
-                    <li>一般ユーザー: 原則として閲覧不可（特別な権限付与が必要）</li>
-                </ul>
-            </li>
-            <li>粗利計算は以下の定義に基づく:
-                <ul>
-                    <li>粗利 = 売上 - コスト（技術者単価、外注費など）</li>
-                    <li>粗利率 = 粗利 ÷ 売上 × 100%</li>
-                </ul>
-            </li>
-            <li>粗利データは請求ベースと契約ベースの2種類の集計方法を提供する（会計処理の違いに対応）</li>
-            <li>比較期間を有効にすると、前年同期とのパーセント差分が色分け表示される（増加: 緑、減少: 赤）</li>
-            <li>過去データのエクスポートや共有を行う際には、操作ログが記録される</li>
-        </ul>
+        <p><strong>注意事項：</strong> 粗利レポートは特に機密性の高い情報を含むため、閲覧権限が厳格に制限されます。経営層・管理者は全社データの閲覧が可能、部門管理者は自部門のデータのみ閲覧可能、一般ユーザーは原則として閲覧不可（特別な権限付与が必要）です。粗利計算は、粗利 = 売上 - コスト（技術者単価、外注費など）、粗利率 = 粗利 ÷ 売上 × 100% の定義に基づきます。粗利データは請求ベースと契約ベースの2種類の集計方法を提供しています（会計処理の違いに対応）。比較期間を有効にすると、前年同期とのパーセント差分が色分け表示されます（増加: 緑、減少: 赤）。過去データのエクスポートや共有を行う際には、操作ログが記録されます。</p>
     </div>
 
     <div class="footer">
         <p>作成日: 2025年5月4日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('profit-report-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '800px',
+                mockups: [
+                    {
+                        name: '粗利レポート',
+                        path: 'mockups/RPT-003.html',
+                        description: '期間・顧客・部門別の粗利状況をレポートおよびグラフで表示する画面です。ユーザーは期間や表示単位、対象部門や顧客などを選択して条件に合わせたレポートを生成できます。粗利データは時系列グラフや円グラフで視覚的に表示され、粗利率に応じた色分け表示も行われます。売上・コスト・粗利の詳細データはテーブル形式で確認でき、各種エクスポート機能も備えています。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>

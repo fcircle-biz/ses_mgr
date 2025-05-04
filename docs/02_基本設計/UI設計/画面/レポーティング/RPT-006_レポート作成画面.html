@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム レポート作成画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -121,6 +123,45 @@
             padding: 8px 12px;
             color: #6c757d;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -166,10 +207,10 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [レポート作成画面のワイヤーフレーム]
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="report-creation-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
     <h2>画面構成要素</h2>
@@ -691,27 +732,33 @@
     </ol>
 
     <div class="note">
-        <p><strong>注意事項：</strong></p>
-        <ul>
-            <li>ユーザーの権限レベルによって、使用できるレポート機能や閲覧可能なデータが異なる:
-                <ul>
-                    <li>経営層・管理者: 全データへのアクセス、全機能の使用が可能</li>
-                    <li>部門管理者: 自部門のデータに関する機能のみ利用可能</li>
-                    <li>一般ユーザー: 担当する案件・顧客のデータのみアクセス可能</li>
-                </ul>
-            </li>
-            <li>複雑なレポートや大量データを含むレポートは、生成に時間がかかる場合がある（処理中はプログレスインジケータを表示）</li>
-            <li>定期的なスケジュール実行を設定する場合は、システム管理者の承認が必要となる場合がある</li>
-            <li>テンプレートの保存は管理者権限を持つユーザーのみが実行可能</li>
-            <li>機密データを含むレポートのメール送信や共有は、社内セキュリティポリシーに従って行う必要がある</li>
-            <li>レポートの出力形式によって、表示される内容や機能に制限がある場合がある（例: CSVではグラフが含まれない）</li>
-            <li>ブラウザの互換性に注意: 一部の高度なグラフ機能は最新ブラウザでのみ正常に動作する</li>
-        </ul>
+        <p><strong>注意事項：</strong> ユーザーの権限レベルによって、使用できるレポート機能や閲覧可能なデータが異なります。経営層・管理者は全データへのアクセスと全機能の使用が可能、部門管理者は自部門のデータに関する機能のみ利用可能、一般ユーザーは担当する案件・顧客のデータのみアクセス可能です。複雑なレポートや大量データを含むレポートは、生成に時間がかかる場合があります（処理中はプログレスインジケータを表示）。定期的なスケジュール実行を設定する場合は、システム管理者の承認が必要となる場合があります。テンプレートの保存は管理者権限を持つユーザーのみが実行可能です。機密データを含むレポートのメール送信や共有は、社内セキュリティポリシーに従って行う必要があります。レポートの出力形式によって、表示される内容や機能に制限がある場合があります（例: CSVではグラフが含まれない）。ブラウザの互換性に注意が必要です。一部の高度なグラフ機能は最新ブラウザでのみ正常に動作します。</p>
     </div>
 
     <div class="footer">
         <p>作成日: 2025年5月4日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('report-creation-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '800px',
+                mockups: [
+                    {
+                        name: 'レポート作成',
+                        path: 'mockups/RPT-006.html',
+                        description: 'ユーザーが自由に条件を指定して、カスタムレポートを作成・エクスポートできる画面です。テンプレートの使用や保存済みレポートの呼び出しも可能で、データの選択・フィルタリング、グループ化、ソート、グラフ設定など豊富なカスタマイズオプションを備えています。レポートのプレビュー機能があり、PDF、Excel、CSVなど様々な形式でエクスポートできます。定期実行やメール送信機能も提供しています。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>

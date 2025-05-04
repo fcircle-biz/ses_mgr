@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム 売上レポート画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -121,6 +123,45 @@
             padding: 8px 12px;
             color: #6c757d;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -166,10 +207,10 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [売上レポート画面のワイヤーフレーム]
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="sales-report-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
     <h2>画面構成要素</h2>
@@ -458,25 +499,33 @@
     </ol>
 
     <div class="note">
-        <p><strong>注意事項：</strong></p>
-        <ul>
-            <li>ユーザーの権限レベルによって、表示されるデータ範囲や操作可能な機能が異なる:
-                <ul>
-                    <li>経営層・管理者: 全社データの閲覧が可能</li>
-                    <li>部門管理者: 自部門のデータのみ閲覧可能</li>
-                    <li>一般ユーザー: 担当案件・顧客のデータのみ閲覧可能</li>
-                </ul>
-            </li>
-            <li>売上データは請求ベースと契約ベースの2種類の集計方法を提供する（会計処理の違いに対応）</li>
-            <li>大量データ処理時には、パフォーマンスを考慮した非同期処理とプログレスインジケータを表示する</li>
-            <li>比較期間を有効にすると、前年同期とのパーセント差分が色分け表示される（増加: 緑、減少: 赤）</li>
-            <li>過去5年分のデータが参照可能だが、それ以前のデータは別途アーカイブから取得する必要がある</li>
-        </ul>
+        <p><strong>注意事項：</strong> ユーザーの権限レベルによって、表示されるデータ範囲や操作可能な機能が異なります。経営層・管理者は全社データの閲覧が可能、部門管理者は自部門のデータのみ閲覧可能、一般ユーザーは担当案件・顧客のデータのみ閲覧可能です。売上データは請求ベースと契約ベースの2種類の集計方法を提供しています（会計処理の違いに対応）。大量データ処理時には、パフォーマンスを考慮した非同期処理とプログレスインジケータを表示します。比較期間を有効にすると、前年同期とのパーセント差分が色分け表示されます（増加: 緑、減少: 赤）。過去5年分のデータが参照可能ですが、それ以前のデータは別途アーカイブから取得する必要があります。</p>
     </div>
 
     <div class="footer">
         <p>作成日: 2025年5月4日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('sales-report-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '800px',
+                mockups: [
+                    {
+                        name: '売上レポート',
+                        path: 'mockups/RPT-002.html',
+                        description: '期間・顧客・部門別の売上状況をレポートおよびグラフで表示する画面です。ユーザーは期間や表示単位、対象部門や顧客などを選択して条件に合わせたレポートを生成できます。売上データは時系列グラフや円グラフで視覚的に表示され、詳細なデータはテーブル形式で確認できます。各種エクスポート機能も備えています。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>

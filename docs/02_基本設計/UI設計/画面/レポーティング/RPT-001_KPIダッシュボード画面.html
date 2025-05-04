@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム KPIダッシュボード画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -121,6 +123,45 @@
             padding: 8px 12px;
             color: #6c757d;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -166,10 +207,10 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [KPIダッシュボード画面のワイヤーフレーム]
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="kpi-dashboard-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
     <h2>画面構成要素</h2>
@@ -358,54 +399,43 @@
         <li>画面初期表示時は、当月のデータを全社レベルで表示する</li>
         <li>表示期間を変更し、表示更新ボタンをクリックすると、選択した期間のデータでダッシュボードが更新される</li>
         <li>カスタム期間を選択した場合は、開始日と終了日の入力が必須となる</li>
-        <li>各KPIカードには、以下の情報が表示される:
-            <ul>
-                <li>当期の実績値（合計または平均）</li>
-                <li>前期比の増減率（%、上昇/下降を色で区別）</li>
-                <li>目標に対する達成率（%、ゲージ表示）</li>
-            </ul>
-        </li>
+        <li>各KPIカードには、当期の実績値（合計または平均）、前期比の増減率（%、上昇/下降を色で区別）、目標に対する達成率（%、ゲージ表示）が表示される</li>
         <li>グラフエリアの各グラフは、マウスオーバーで詳細データのツールチップが表示される</li>
         <li>グラフエリアの各グラフは、クリックで該当する詳細レポート画面へ遷移する</li>
-        <li>レイアウト設定ボタンをクリックすると、ダッシュボードのカスタマイズが可能なモーダルが表示される:
-            <ul>
-                <li>表示するKPI・グラフの選択</li>
-                <li>KPI・グラフの表示順序の変更</li>
-                <li>グラフの種類変更（棒/折れ線/エリアなど）</li>
-                <li>グラフの色設定</li>
-            </ul>
-        </li>
+        <li>レイアウト設定ボタンをクリックすると、ダッシュボードのカスタマイズが可能なモーダルが表示される。表示するKPI・グラフの選択、KPI・グラフの表示順序の変更、グラフの種類変更（棒/折れ線/エリアなど）、グラフの色設定などが可能</li>
         <li>KPI目標設定ボタン（管理者権限のみ表示）をクリックすると、各KPIの目標値を設定するモーダルが表示される</li>
         <li>ダッシュボード共有ボタンをクリックすると、現在表示中のダッシュボードをPDFまたは画像としてエクスポート、または指定ユーザーへメール送信するオプションが表示される</li>
-        <li>アラート表示エリアには、以下のような警告が表示される:
-            <ul>
-                <li>前月比で10%以上の売上減少</li>
-                <li>目標稼働率を5%以上下回っている</li>
-                <li>待機人数が基準値を超えている</li>
-                <li>特定顧客への依存度が高い（売上構成比が30%以上など）</li>
-            </ul>
-        </li>
+        <li>アラート表示エリアには、前月比で10%以上の売上減少、目標稼働率を5%以上下回っている、待機人数が基準値を超えている、特定顧客への依存度が高い（売上構成比が30%以上など）といった警告が表示される</li>
     </ol>
 
     <div class="note">
-        <p><strong>注意事項：</strong></p>
-        <ul>
-            <li>ユーザーの権限レベルによって、表示されるデータ範囲や操作可能な機能が異なる:
-                <ul>
-                    <li>経営層・管理者: 全社データの閲覧と全ての機能が利用可能</li>
-                    <li>部門管理者: 自部門のデータのみ閲覧可能</li>
-                    <li>一般ユーザー: 担当案件・顧客のデータのみ閲覧可能、カスタマイズ機能は制限される</li>
-                </ul>
-            </li>
-            <li>データ更新頻度: 基本的には日次更新だが、リアルタイム性の高いKPI（稼働状況など）は、より高頻度で更新される</li>
-            <li>大量データの表示処理では、パフォーマンスを考慮し、適切なデータサマリーと遅延読み込み（Lazy Loading）を実装する</li>
-            <li>モバイル端末での表示時は、レスポンシブデザインにより重要KPIを優先表示する</li>
-        </ul>
+        <p><strong>注意事項：</strong> ユーザーの権限レベルによって、表示されるデータ範囲や操作可能な機能が異なります。経営層・管理者は全社データの閲覧と全ての機能が利用可能、部門管理者は自部門のデータのみ閲覧可能、一般ユーザーは担当案件・顧客のデータのみ閲覧可能でカスタマイズ機能は制限されます。データ更新頻度は基本的には日次更新ですが、リアルタイム性の高いKPI（稼働状況など）は、より高頻度で更新されます。大量データの表示処理では、パフォーマンスを考慮し、適切なデータサマリーと遅延読み込み（Lazy Loading）を実装します。モバイル端末での表示時は、レスポンシブデザインにより重要KPIを優先表示します。</p>
     </div>
 
     <div class="footer">
         <p>作成日: 2025年5月4日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('kpi-dashboard-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '800px',
+                mockups: [
+                    {
+                        name: 'KPIダッシュボード',
+                        path: 'mockups/RPT-001.html',
+                        description: '主要KPI指標をグラフィカルに一覧表示するダッシュボード画面です。売上、利益、稼働率などの重要指標をカード形式で表示し、各種グラフで時系列や構成比を可視化します。ユーザーはフィルターや設定により、表示内容をカスタマイズできます。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>

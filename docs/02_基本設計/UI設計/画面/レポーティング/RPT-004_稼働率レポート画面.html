@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム 稼働率レポート画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -121,6 +123,45 @@
             padding: 8px 12px;
             color: #6c757d;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -166,10 +207,10 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [稼働率レポート画面のワイヤーフレーム]
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="utilization-report-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
     <h2>画面構成要素</h2>
@@ -518,25 +559,33 @@
     </ol>
 
     <div class="note">
-        <p><strong>注意事項：</strong></p>
-        <ul>
-            <li>ユーザーの権限レベルによって、表示される情報の範囲が異なる:
-                <ul>
-                    <li>経営層・管理者: 全社データの閲覧が可能</li>
-                    <li>部門管理者: 自部門のデータのみ閲覧可能</li>
-                    <li>人事担当者: 人事関連の情報を含め閲覧可能</li>
-                </ul>
-            </li>
-            <li>稼働率の目標値は部門ごとに設定され、その達成状況が視覚的に表示される</li>
-            <li>待機技術者の個人情報は、閲覧権限のあるユーザーにのみ表示される</li>
-            <li>技術者のスキルや経験に応じた分析が可能だが、個人のパフォーマンス評価には使用しないことを原則とする</li>
-            <li>稼働率データは日次で更新され、勤怠登録システムと連携して自動計算される</li>
-        </ul>
+        <p><strong>注意事項：</strong> ユーザーの権限レベルによって、表示される情報の範囲が異なります。経営層・管理者は全社データの閲覧が可能、部門管理者は自部門のデータのみ閲覧可能、人事担当者は人事関連の情報を含め閲覧可能です。稼働率の目標値は部門ごとに設定され、その達成状況が視覚的に表示されます。待機技術者の個人情報は、閲覧権限のあるユーザーにのみ表示されます。技術者のスキルや経験に応じた分析が可能ですが、個人のパフォーマンス評価には使用しないことを原則とします。稼働率データは日次で更新され、勤怠登録システムと連携して自動計算されます。</p>
     </div>
 
     <div class="footer">
         <p>作成日: 2025年5月4日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('utilization-report-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '800px',
+                mockups: [
+                    {
+                        name: '稼働率レポート',
+                        path: 'mockups/RPT-004.html',
+                        description: '技術者の稼働率に関する情報をレポートおよびグラフで表示する画面です。ユーザーは期間や部門、スキルカテゴリなどの条件で稼働率データをフィルタリングできます。稼働率データは時系列グラフや部門別・スキル別グラフで可視化され、稼働率の達成度に応じて色分け表示されます。待機中の技術者リストも確認でき、待機期間に応じた警告表示も行われます。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>

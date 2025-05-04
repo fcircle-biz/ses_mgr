@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム 予測分析画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -121,6 +123,45 @@
             padding: 8px 12px;
             color: #6c757d;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -166,10 +207,10 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [予測分析画面のワイヤーフレーム]
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="prediction-analysis-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
     <h2>画面構成要素</h2>
@@ -508,27 +549,33 @@
     </ol>
 
     <div class="note">
-        <p><strong>注意事項：</strong></p>
-        <ul>
-            <li>予測機能は意思決定支援ツールであり、その精度には限界があることを理解して使用すること</li>
-            <li>予測結果は過去データのパターンに基づくものであり、予期せぬ外部要因の影響は考慮されていない場合がある</li>
-            <li>予測の信頼度は予測期間が長くなるほど低下する傾向があるため、長期予測は参考程度に留めること</li>
-            <li>シナリオ分析では極端な変数設定を避け、現実的な範囲内で設定すること</li>
-            <li>ユーザーの権限レベルによって、使用できる予測機能の範囲が異なる:
-                <ul>
-                    <li>経営層・上級管理者: 全ての予測機能（長期予測、複雑なシナリオ分析など）が利用可能</li>
-                    <li>部門管理者: 自部門のデータに関する基本的な予測機能のみ利用可能</li>
-                    <li>一般ユーザー: 原則として利用不可（特別な権限付与が必要）</li>
-                </ul>
-            </li>
-            <li>予測処理は計算負荷が高いため、複雑な分析を実行する場合は処理に時間がかかる場合がある</li>
-            <li>予測結果の解釈には専門知識が必要なため、必要に応じて経営分析の専門家に相談することを推奨</li>
-        </ul>
+        <p><strong>注意事項：</strong> 予測機能は意思決定支援ツールであり、その精度には限界があることを理解して使用してください。予測結果は過去データのパターンに基づくものであり、予期せぬ外部要因の影響は考慮されていない場合があります。予測の信頼度は予測期間が長くなるほど低下する傾向があるため、長期予測は参考程度に留めてください。シナリオ分析では極端な変数設定を避け、現実的な範囲内で設定してください。ユーザーの権限レベルによって、使用できる予測機能の範囲が異なります（経営層・上級管理者は全ての予測機能が利用可能、部門管理者は自部門のデータに関する基本的な予測機能のみ利用可能、一般ユーザーは原則として利用不可）。予測処理は計算負荷が高いため、複雑な分析を実行する場合は処理に時間がかかる場合があります。予測結果の解釈には専門知識が必要なため、必要に応じて経営分析の専門家に相談することを推奨します。</p>
     </div>
 
     <div class="footer">
         <p>作成日: 2025年5月4日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('prediction-analysis-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '800px',
+                mockups: [
+                    {
+                        name: '予測分析',
+                        path: 'mockups/RPT-005.html',
+                        description: '過去のデータに基づいて将来の売上・稼働等を予測するトレンド分析および「what-if」シミュレーションを行う画面です。ユーザーは分析対象や予測期間、分析範囲などを設定して予測分析を実行できます。予測結果は信頼区間付きの折れ線グラフで表示され、異なるシナリオの比較分析も可能です。予測結果に影響を与える要因の分析や感度分析も行え、各種フォーマットでのエクスポート機能も備えています。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>
