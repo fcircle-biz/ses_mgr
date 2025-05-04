@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム - 売上レポート</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        /* ステータスバッジのスタイル */
+        .badge-draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .badge-proposal {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .badge-active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .badge-contracted {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .badge-completed {
+            background-color: #d3d3d3;
+            color: #444;
+        }
+        .badge-cancelled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* 売上レポート用カスタムスタイル */
+        .chart-container {
+            position: relative;
+            height: 350px;
+            width: 100%;
+        }
+        .summary-card {
+            border-left: 4px solid #0d6efd;
+        }
+        .summary-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .summary-label {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .trend-up {
+            color: #198754;
+        }
+        .trend-down {
+            color: #dc3545;
+        }
+        .trend-neutral {
+            color: #6c757d;
+        }
+        .tab-content {
+            padding-top: 20px;
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        .chart-legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .chart-legend-color {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            border-radius: 3px;
+        }
+        .export-dropdown .dropdown-item i {
+            width: 20px;
+            text-align: center;
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            レポーティング
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">KPIダッシュボード</a></li>
+                            <li><a class="dropdown-item active" href="#">売上レポート</a></li>
+                            <li><a class="dropdown-item" href="#">粗利レポート</a></li>
+                            <li><a class="dropdown-item" href="#">稼働率レポート</a></li>
+                            <li><a class="dropdown-item" href="#">予測分析</a></li>
+                            <li><a class="dropdown-item" href="#">レポート作成</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">YT</div>
+                            <span>山田太郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">レポーティング</a></li>
+                <li class="breadcrumb-item active" aria-current="page">売上レポート</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">売上レポート</h2>
+            <div>
+                <div class="btn-group export-dropdown me-2">
+                    <button type="button" class="btn btn-outline-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        エクスポート
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-excel"></i> Excel形式</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-filetype-csv"></i> CSV形式</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-pdf"></i> PDF形式</a></li>
+                    </ul>
+                </div>
+                <div class="btn-group me-2">
+                    <button class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="共有">
+                        <i class="bi bi-share"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary" data-bs-toggle="tooltip" title="印刷">
+                        <i class="bi bi-printer"></i>
+                    </button>
+                </div>
+                <a href="#" class="btn btn-primary">カスタムレポート作成</a>
+            </div>
+        </div>
+
+        <!-- 検索・フィルター部分 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">レポート条件設定</h5>
+            </div>
+            <div class="card-body">
+                <form id="reportFilterForm">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="periodType" class="form-label">集計期間</label>
+                            <select id="periodType" class="form-select">
+                                <option value="monthly" selected>月次</option>
+                                <option value="quarterly">四半期</option>
+                                <option value="yearly">年次</option>
+                                <option value="custom">カスタム</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3" id="monthSelectDiv">
+                            <label for="targetMonth" class="form-label">対象年月</label>
+                            <input type="month" id="targetMonth" class="form-control" value="2025-05">
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3 d-none" id="quarterSelectDiv">
+                            <label for="targetQuarter" class="form-label">対象四半期</label>
+                            <select id="targetQuarter" class="form-select">
+                                <option value="2025-Q1">2025年Q1 (1-3月)</option>
+                                <option value="2025-Q2" selected>2025年Q2 (4-6月)</option>
+                                <option value="2025-Q3">2025年Q3 (7-9月)</option>
+                                <option value="2025-Q4">2025年Q4 (10-12月)</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3 d-none" id="yearSelectDiv">
+                            <label for="targetYear" class="form-label">対象年度</label>
+                            <select id="targetYear" class="form-select">
+                                <option value="2023">2023年度</option>
+                                <option value="2024">2024年度</option>
+                                <option value="2025" selected>2025年度</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3 d-none" id="customDateStartDiv">
+                            <label for="customDateStart" class="form-label">開始日</label>
+                            <input type="date" id="customDateStart" class="form-control">
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3 d-none" id="customDateEndDiv">
+                            <label for="customDateEnd" class="form-label">終了日</label>
+                            <input type="date" id="customDateEnd" class="form-control">
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="customer" class="form-label">顧客</label>
+                            <select id="customer" class="form-select">
+                                <option value="all" selected>全顧客</option>
+                                <option value="A">A社</option>
+                                <option value="B">B社</option>
+                                <option value="C">C社</option>
+                                <option value="D">D社</option>
+                                <option value="others">その他</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="department" class="form-label">部門</label>
+                            <select id="department" class="form-select">
+                                <option value="all" selected>全部門</option>
+                                <option value="techA">技術部A</option>
+                                <option value="techB">技術部B</option>
+                                <option value="techC">技術部C</option>
+                                <option value="consul">コンサルティング部</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label class="form-label">集計方法</label>
+                            <div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="calculationMethod" id="billingBase" value="billing" checked>
+                                    <label class="form-check-label" for="billingBase">請求ベース</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="calculationMethod" id="contractBase" value="contract">
+                                    <label class="form-check-label" for="contractBase">契約ベース</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="displayUnit" class="form-label">表示単位</label>
+                            <select id="displayUnit" class="form-select">
+                                <option value="yen">円</option>
+                                <option value="thousand" selected>千円</option>
+                                <option value="million">百万円</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3 d-flex align-items-end">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="compareLastYear" checked>
+                                <label class="form-check-label" for="compareLastYear">
+                                    前年同期と比較する
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3 d-flex align-items-end justify-content-end">
+                            <button type="button" id="generateReportBtn" class="btn btn-primary">
+                                <i class="bi bi-graph-up me-2"></i>レポート生成
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- サマリー情報 -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card summary-card h-100">
+                    <div class="card-body">
+                        <div class="summary-label">期間内総売上</div>
+                        <div class="summary-value mb-2">127,500千円</div>
+                        <div class="text-end">
+                            <span class="trend-up"><i class="bi bi-arrow-up"></i> 12.3%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card summary-card h-100">
+                    <div class="card-body">
+                        <div class="summary-label">平均月次売上</div>
+                        <div class="summary-value mb-2">42,500千円</div>
+                        <div class="text-end">
+                            <span class="trend-up"><i class="bi bi-arrow-up"></i> 8.7%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card summary-card h-100">
+                    <div class="card-body">
+                        <div class="summary-label">最高月売上</div>
+                        <div class="summary-value mb-2">48,200千円</div>
+                        <div class="text-end">
+                            <span class="text-muted">2025年5月</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card summary-card h-100">
+                    <div class="card-body">
+                        <div class="summary-label">最低月売上</div>
+                        <div class="summary-value mb-2">37,800千円</div>
+                        <div class="text-end">
+                            <span class="text-muted">2025年4月</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- グラフ表示エリア -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="graphTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="revenue-trend-tab" data-bs-toggle="tab" data-bs-target="#revenue-trend" type="button" role="tab" aria-selected="true">売上推移</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="year-comparison-tab" data-bs-toggle="tab" data-bs-target="#year-comparison" type="button" role="tab" aria-selected="false">前年比較</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="customer-distribution-tab" data-bs-toggle="tab" data-bs-target="#customer-distribution" type="button" role="tab" aria-selected="false">顧客別構成</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="department-distribution-tab" data-bs-toggle="tab" data-bs-target="#department-distribution" type="button" role="tab" aria-selected="false">部門別構成</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="graphTabContent">
+                    <!-- 売上推移グラフ -->
+                    <div class="tab-pane fade show active" id="revenue-trend" role="tabpanel" aria-labelledby="revenue-trend-tab">
+                        <div class="d-flex justify-content-end mb-3">
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary active" data-chart-type="bar">
+                                    <i class="bi bi-bar-chart"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" data-chart-type="line">
+                                    <i class="bi bi-graph-up"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" data-chart-type="area">
+                                    <i class="bi bi-area-chart"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="revenueChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- 前年比較グラフ -->
+                    <div class="tab-pane fade" id="year-comparison" role="tabpanel" aria-labelledby="year-comparison-tab">
+                        <div class="d-flex justify-content-end mb-3">
+                            <div class="btn-group btn-group-sm">
+                                <button type="button" class="btn btn-outline-secondary active" data-chart-type="bar">
+                                    <i class="bi bi-bar-chart"></i>
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" data-chart-type="line">
+                                    <i class="bi bi-graph-up"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="yearComparisonChart"></canvas>
+                        </div>
+                    </div>
+                    <!-- 顧客別構成グラフ -->
+                    <div class="tab-pane fade" id="customer-distribution" role="tabpanel" aria-labelledby="customer-distribution-tab">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="chart-container">
+                                    <canvas id="customerDistributionChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <h6 class="mb-3">顧客別売上構成比</h6>
+                                <div class="chart-legend">
+                                    <div class="chart-legend-item">
+                                        <div class="chart-legend-color" style="background-color: rgba(255, 99, 132, 0.7);"></div>
+                                        <div>A社 (35%)</div>
+                                    </div>
+                                    <div class="chart-legend-item">
+                                        <div class="chart-legend-color" style="background-color: rgba(54, 162, 235, 0.7);"></div>
+                                        <div>B社 (25%)</div>
+                                    </div>
+                                    <div class="chart-legend-item">
+                                        <div class="chart-legend-color" style="background-color: rgba(255, 206, 86, 0.7);"></div>
+                                        <div>C社 (15%)</div>
+                                    </div>
+                                    <div class="chart-legend-item">
+                                        <div class="chart-legend-color" style="background-color: rgba(75, 192, 192, 0.7);"></div>
+                                        <div>D社 (10%)</div>
+                                    </div>
+                                    <div class="chart-legend-item">
+                                        <div class="chart-legend-color" style="background-color: rgba(153, 102, 255, 0.7);"></div>
+                                        <div>その他 (15%)</div>
+                                    </div>
+                                </div>
+                                <div class="alert alert-warning mt-4">
+                                    <i class="bi bi-exclamation-triangle me-2"></i>
+                                    <small>A社への売上依存度が35%と高くなっています。取引先の分散化を検討してください。</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- 部門別構成グラフ -->
+                    <div class="tab-pane fade" id="department-distribution" role="tabpanel" aria-labelledby="department-distribution-tab">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="chart-container">
+                                    <canvas id="departmentDistributionChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <h6 class="mb-3">部門別売上構成比</h6>
+                                <div class="chart-legend">
+                                    <div class="chart-legend-item">
+                                        <div class="chart-legend-color" style="background-color: rgba(54, 162, 235, 0.7);"></div>
+                                        <div>技術部A (40%)</div>
+                                    </div>
+                                    <div class="chart-legend-item">
+                                        <div class="chart-legend-color" style="background-color: rgba(255, 206, 86, 0.7);"></div>
+                                        <div>技術部B (30%)</div>
+                                    </div>
+                                    <div class="chart-legend-item">
+                                        <div class="chart-legend-color" style="background-color: rgba(75, 192, 192, 0.7);"></div>
+                                        <div>技術部C (20%)</div>
+                                    </div>
+                                    <div class="chart-legend-item">
+                                        <div class="chart-legend-color" style="background-color: rgba(153, 102, 255, 0.7);"></div>
+                                        <div>コンサルティング部 (10%)</div>
+                                    </div>
+                                </div>
+                                <div class="alert alert-info mt-4">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    <small>コンサルティング部の売上比率が成長しています。前年比 +3.5%</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- データ表示エリア -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs" id="dataTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="revenue-timeline-tab" data-bs-toggle="tab" data-bs-target="#revenue-timeline" type="button" role="tab" aria-selected="true">売上推移</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="customer-revenue-tab" data-bs-toggle="tab" data-bs-target="#customer-revenue" type="button" role="tab" aria-selected="false">顧客別売上</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="department-revenue-tab" data-bs-toggle="tab" data-bs-target="#department-revenue" type="button" role="tab" aria-selected="false">部門別売上</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="project-revenue-tab" data-bs-toggle="tab" data-bs-target="#project-revenue" type="button" role="tab" aria-selected="false">案件別売上</button>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="tab-content" id="dataTabContent">
+                    <!-- 売上推移テーブル -->
+                    <div class="tab-pane fade show active" id="revenue-timeline" role="tabpanel" aria-labelledby="revenue-timeline-tab">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>期間</th>
+                                        <th class="text-end">売上額（千円）</th>
+                                        <th class="text-end">前年同期（千円）</th>
+                                        <th class="text-end">前年比</th>
+                                        <th class="text-end">構成比</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>2025年4月</td>
+                                        <td class="text-end">37,800</td>
+                                        <td class="text-end">35,200</td>
+                                        <td class="text-end trend-up">+7.4%</td>
+                                        <td class="text-end">29.6%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025年5月</td>
+                                        <td class="text-end">48,200</td>
+                                        <td class="text-end">42,400</td>
+                                        <td class="text-end trend-up">+13.7%</td>
+                                        <td class="text-end">37.8%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025年6月（予測）</td>
+                                        <td class="text-end">41,500</td>
+                                        <td class="text-end">38,200</td>
+                                        <td class="text-end trend-up">+8.6%</td>
+                                        <td class="text-end">32.6%</td>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <td><strong>合計</strong></td>
+                                        <td class="text-end"><strong>127,500</strong></td>
+                                        <td class="text-end"><strong>115,800</strong></td>
+                                        <td class="text-end trend-up"><strong>+10.1%</strong></td>
+                                        <td class="text-end"><strong>100.0%</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- 顧客別売上テーブル -->
+                    <div class="tab-pane fade" id="customer-revenue" role="tabpanel" aria-labelledby="customer-revenue-tab">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>顧客名</th>
+                                        <th class="text-end">売上額（千円）</th>
+                                        <th class="text-end">前年同期（千円）</th>
+                                        <th class="text-end">前年比</th>
+                                        <th class="text-end">構成比</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>A社</td>
+                                        <td class="text-end">44,625</td>
+                                        <td class="text-end">36,400</td>
+                                        <td class="text-end trend-up">+22.6%</td>
+                                        <td class="text-end">35.0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>B社</td>
+                                        <td class="text-end">31,875</td>
+                                        <td class="text-end">29,500</td>
+                                        <td class="text-end trend-up">+8.1%</td>
+                                        <td class="text-end">25.0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>C社</td>
+                                        <td class="text-end">19,125</td>
+                                        <td class="text-end">21,200</td>
+                                        <td class="text-end trend-down">-9.8%</td>
+                                        <td class="text-end">15.0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>D社</td>
+                                        <td class="text-end">12,750</td>
+                                        <td class="text-end">11,500</td>
+                                        <td class="text-end trend-up">+10.9%</td>
+                                        <td class="text-end">10.0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>その他</td>
+                                        <td class="text-end">19,125</td>
+                                        <td class="text-end">17,200</td>
+                                        <td class="text-end trend-up">+11.2%</td>
+                                        <td class="text-end">15.0%</td>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <td><strong>合計</strong></td>
+                                        <td class="text-end"><strong>127,500</strong></td>
+                                        <td class="text-end"><strong>115,800</strong></td>
+                                        <td class="text-end trend-up"><strong>+10.1%</strong></td>
+                                        <td class="text-end"><strong>100.0%</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- 部門別売上テーブル -->
+                    <div class="tab-pane fade" id="department-revenue" role="tabpanel" aria-labelledby="department-revenue-tab">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>部門</th>
+                                        <th class="text-end">売上額（千円）</th>
+                                        <th class="text-end">前年同期（千円）</th>
+                                        <th class="text-end">前年比</th>
+                                        <th class="text-end">構成比</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>技術部A</td>
+                                        <td class="text-end">51,000</td>
+                                        <td class="text-end">47,400</td>
+                                        <td class="text-end trend-up">+7.6%</td>
+                                        <td class="text-end">40.0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>技術部B</td>
+                                        <td class="text-end">38,250</td>
+                                        <td class="text-end">35,900</td>
+                                        <td class="text-end trend-up">+6.5%</td>
+                                        <td class="text-end">30.0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>技術部C</td>
+                                        <td class="text-end">25,500</td>
+                                        <td class="text-end">24,700</td>
+                                        <td class="text-end trend-up">+3.2%</td>
+                                        <td class="text-end">20.0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>コンサルティング部</td>
+                                        <td class="text-end">12,750</td>
+                                        <td class="text-end">7,800</td>
+                                        <td class="text-end trend-up">+63.5%</td>
+                                        <td class="text-end">10.0%</td>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <td><strong>合計</strong></td>
+                                        <td class="text-end"><strong>127,500</strong></td>
+                                        <td class="text-end"><strong>115,800</strong></td>
+                                        <td class="text-end trend-up"><strong>+10.1%</strong></td>
+                                        <td class="text-end"><strong>100.0%</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <!-- 案件別売上テーブル -->
+                    <div class="tab-pane fade" id="project-revenue" role="tabpanel" aria-labelledby="project-revenue-tab">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>案件ID</th>
+                                        <th>案件名</th>
+                                        <th>顧客</th>
+                                        <th>担当部門</th>
+                                        <th class="text-end">売上額（千円）</th>
+                                        <th class="text-end">構成比</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>PRJ-2025-042</td>
+                                        <td>A社基幹システム刷新</td>
+                                        <td>A社</td>
+                                        <td>技術部A</td>
+                                        <td class="text-end">18,200</td>
+                                        <td class="text-end">14.3%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>PRJ-2025-033</td>
+                                        <td>B社クラウド移行</td>
+                                        <td>B社</td>
+                                        <td>技術部B</td>
+                                        <td class="text-end">15,400</td>
+                                        <td class="text-end">12.1%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>PRJ-2025-051</td>
+                                        <td>A社モバイルアプリ開発</td>
+                                        <td>A社</td>
+                                        <td>技術部C</td>
+                                        <td class="text-end">12,800</td>
+                                        <td class="text-end">10.0%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>PRJ-2025-038</td>
+                                        <td>D社データ分析基盤構築</td>
+                                        <td>D社</td>
+                                        <td>コンサルティング部</td>
+                                        <td class="text-end">10,400</td>
+                                        <td class="text-end">8.2%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>PRJ-2025-027</td>
+                                        <td>C社業務システム保守</td>
+                                        <td>C社</td>
+                                        <td>技術部A</td>
+                                        <td class="text-end">9,700</td>
+                                        <td class="text-end">7.6%</td>
+                                    </tr>
+                                    <tr>
+                                        <td colspan="4" class="text-center">その他案件</td>
+                                        <td class="text-end">61,000</td>
+                                        <td class="text-end">47.8%</td>
+                                    </tr>
+                                    <tr class="table-primary">
+                                        <td colspan="4" class="text-end"><strong>合計</strong></td>
+                                        <td class="text-end"><strong>127,500</strong></td>
+                                        <td class="text-end"><strong>100.0%</strong></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <nav aria-label="ページネーション" class="mt-3">
+                            <ul class="pagination justify-content-center">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">前へ</a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                                <li class="page-item"><a class="page-link" href="#">3</a></li>
+                                <li class="page-item">
+                                    <a class="page-link" href="#">次へ</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- レポート切替・関連リンク -->
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">関連レポート</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-cash-stack me-2"></i>
+                                    同条件で粗利レポートを表示
+                                </div>
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-people me-2"></i>
+                                    同期間の稼働率レポートを表示
+                                </div>
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-graph-up-arrow me-2"></i>
+                                    売上予測分析を表示
+                                </div>
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">カスタムレポート</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>より詳細な分析や特定の視点からのレポートが必要な場合は、カスタムレポート機能をご利用ください。</p>
+                        <a href="#" class="btn btn-primary">
+                            <i class="bi bi-sliders me-2"></i>カスタムレポート作成
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+    
+    <!-- カスタムJavaScript -->
+    <script>
+        // 集計期間の切り替え処理
+        document.getElementById('periodType').addEventListener('change', function() {
+            const monthSelectDiv = document.getElementById('monthSelectDiv');
+            const quarterSelectDiv = document.getElementById('quarterSelectDiv');
+            const yearSelectDiv = document.getElementById('yearSelectDiv');
+            const customDateStartDiv = document.getElementById('customDateStartDiv');
+            const customDateEndDiv = document.getElementById('customDateEndDiv');
+            
+            // 全ての期間選択エリアを一旦非表示に
+            monthSelectDiv.classList.add('d-none');
+            quarterSelectDiv.classList.add('d-none');
+            yearSelectDiv.classList.add('d-none');
+            customDateStartDiv.classList.add('d-none');
+            customDateEndDiv.classList.add('d-none');
+            
+            // 選択された集計期間に応じて必要な入力欄を表示
+            switch(this.value) {
+                case 'monthly':
+                    monthSelectDiv.classList.remove('d-none');
+                    break;
+                case 'quarterly':
+                    quarterSelectDiv.classList.remove('d-none');
+                    break;
+                case 'yearly':
+                    yearSelectDiv.classList.remove('d-none');
+                    break;
+                case 'custom':
+                    customDateStartDiv.classList.remove('d-none');
+                    customDateEndDiv.classList.remove('d-none');
+                    break;
+            }
+        });
+
+        // ツールチップの初期化
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // 月別データ
+        const months = ['4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月', '1月', '2月', '3月'];
+        
+        // 売上推移グラフ
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        const revenueChart = new Chart(revenueCtx, {
+            type: 'bar',
+            data: {
+                labels: ['4月', '5月', '6月'],
+                datasets: [{
+                    label: '当期売上',
+                    data: [37.8, 48.2, 41.5],
+                    backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: '百万円'
+                        }
+                    }
+                }
+            }
+        });
+
+        // 前年比較グラフ
+        const yearComparisonCtx = document.getElementById('yearComparisonChart').getContext('2d');
+        const yearComparisonChart = new Chart(yearComparisonCtx, {
+            type: 'bar',
+            data: {
+                labels: ['4月', '5月', '6月', '四半期合計'],
+                datasets: [{
+                    label: '当期',
+                    data: [37.8, 48.2, 41.5, 127.5],
+                    backgroundColor: 'rgba(54, 162, 235, 0.7)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: '前年同期',
+                    data: [35.2, 42.4, 38.2, 115.8],
+                    backgroundColor: 'rgba(211, 211, 211, 0.7)',
+                    borderColor: 'rgba(211, 211, 211, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        title: {
+                            display: true,
+                            text: '百万円'
+                        }
+                    }
+                }
+            }
+        });
+
+        // 顧客別売上構成グラフ
+        const customerDistributionCtx = document.getElementById('customerDistributionChart').getContext('2d');
+        const customerDistributionChart = new Chart(customerDistributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['A社', 'B社', 'C社', 'D社', 'その他'],
+                datasets: [{
+                    data: [35, 25, 15, 10, 15],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.7)',
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // 部門別売上構成グラフ
+        const departmentDistributionCtx = document.getElementById('departmentDistributionChart').getContext('2d');
+        const departmentDistributionChart = new Chart(departmentDistributionCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['技術部A', '技術部B', '技術部C', 'コンサルティング部'],
+                datasets: [{
+                    data: [40, 30, 20, 10],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.7)',
+                        'rgba(255, 206, 86, 0.7)',
+                        'rgba(75, 192, 192, 0.7)',
+                        'rgba(153, 102, 255, 0.7)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                }
+            }
+        });
+
+        // グラフタイプ切替ボタンの処理
+        document.querySelectorAll('[data-chart-type]').forEach(button => {
+            button.addEventListener('click', function() {
+                const chartType = this.getAttribute('data-chart-type');
+                const parentTab = this.closest('.tab-pane');
+                let chart;
+                
+                // アクティブなボタンのスタイルを更新
+                this.closest('.btn-group').querySelectorAll('.btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // 対象のグラフを特定
+                if (parentTab.id === 'revenue-trend') {
+                    chart = revenueChart;
+                } else if (parentTab.id === 'year-comparison') {
+                    chart = yearComparisonChart;
+                }
+                
+                if (chart) {
+                    // グラフタイプによる更新
+                    if (chartType === 'bar') {
+                        chart.config.type = 'bar';
+                    } else if (chartType === 'line') {
+                        chart.config.type = 'line';
+                        chart.data.datasets.forEach(dataset => {
+                            dataset.fill = false;
+                            dataset.tension = 0.1;
+                        });
+                    } else if (chartType === 'area') {
+                        chart.config.type = 'line';
+                        chart.data.datasets.forEach(dataset => {
+                            dataset.fill = true;
+                            dataset.tension = 0.4;
+                        });
+                    }
+                    chart.update();
+                }
+            });
+        });
+
+        // レポート生成ボタンのクリックイベント
+        document.getElementById('generateReportBtn').addEventListener('click', function() {
+            // 実際にはAJAXリクエストが発生するところだが、モックアップでは省略
+            alert('選択された条件でレポートを生成します。実際の実装では、これはAJAXリクエストとなります。');
+        });
+    </script>
+</body>
+</html>
