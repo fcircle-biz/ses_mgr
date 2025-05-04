@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム マッチング機能画面設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .screen-card {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background-color: #fff;
+            overflow: hidden;
+        }
+        .screen-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .screen-card-header {
+            padding: 12px 15px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #ddd;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .screen-card-header .screen-id {
+            color: #3498db;
+            font-family: monospace;
+        }
+        .screen-card-body {
+            padding: 15px;
+        }
+        .screen-card-body p {
+            margin: 0;
+            color: #666;
+        }
+        .screen-card a {
+            display: block;
+            text-decoration: none;
+            color: inherit;
+        }
+        .screen-card a:hover {
+            text-decoration: none;
+        }
+        .screen-flow {
+            margin: 30px 0;
+            position: relative;
+        }
+        .screen-flow::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background-color: #e0e0e0;
+            z-index: -1;
+        }
+        .screen-flow-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+        }
+        .screen-flow-item {
+            flex: 0 0 auto;
+            text-align: center;
+            margin-bottom: 20px;
+            position: relative;
+            background: white;
+            padding: 0 10px;
+        }
+        .screen-flow-icon {
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+            border-radius: 50%;
+            background-color: #3498db;
+            color: white;
+            margin: 0 auto 10px;
+            font-weight: bold;
+        }
+        .screen-flow-item p {
+            margin: 5px 0;
+            font-size: 14px;
+        }
+        .screen-flow-arrow {
+            font-size: 24px;
+            color: #3498db;
+            margin: 0 10px;
+            align-self: center;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>SES業務システム マッチング機能画面設計</h1>
+    
+    <h2>画面一覧</h2>
+    <table>
+        <tr>
+            <th>画面ID</th>
+            <th>画面名</th>
+            <th>概要</th>
+            <th>対象ユーザー</th>
+            <th>リンク</th>
+        </tr>
+        <tr>
+            <td>MTH-001</td>
+            <td>マッチング検索</td>
+            <td>案件または技術者を起点に、条件指定してマッチング検索を行う画面</td>
+            <td>営業担当者、人事担当者</td>
+            <td><a href="画面/マッチング機能/MTH-001_マッチング検索画面.html">詳細</a></td>
+        </tr>
+        <tr>
+            <td>MTH-002</td>
+            <td>マッチング詳細</td>
+            <td>マッチング結果の詳細表示、スコア表示、比較情報などを表示する画面</td>
+            <td>営業担当者、人事担当者</td>
+            <td><a href="画面/マッチング機能/MTH-002_マッチング詳細画面.html">詳細</a></td>
+        </tr>
+        <tr>
+            <td>MTH-003</td>
+            <td>提案管理</td>
+            <td>技術者の提案状況管理、ステータス変更、履歴表示などを行う画面</td>
+            <td>営業担当者</td>
+            <td><a href="画面/マッチング機能/MTH-003_提案管理画面.html">詳細</a></td>
+        </tr>
+        <tr>
+            <td>MTH-004</td>
+            <td>提案書作成</td>
+            <td>顧客への提案書の作成、スキルシートの選択、カスタマイズなどを行う画面</td>
+            <td>営業担当者</td>
+            <td><a href="画面/マッチング機能/MTH-004_提案書作成画面.html">詳細</a></td>
+        </tr>
+    </table>
+
+    <h2>画面遷移図</h2>
+    <div>
+        <img src="../../../assets/img/matching_flow.png" alt="マッチング機能 画面遷移図" style="max-width: 100%; height: auto;">
+        <p style="text-align: center; font-style: italic; color: #666;">※画面遷移図は作成中です。</p>
+    </div>
+
+    <h2>主要画面プレビュー</h2>
+    <div class="screen-cards">
+        <div class="row">
+            <div class="screen-card">
+                <a href="画面/マッチング機能/MTH-001_マッチング検索画面.html">
+                    <div class="screen-card-header">
+                        <span>マッチング検索</span>
+                        <span class="screen-id">MTH-001</span>
+                    </div>
+                    <div class="screen-card-body">
+                        <p>案件または技術者を起点に、条件指定してマッチング検索を行う画面</p>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="screen-card">
+                <a href="画面/マッチング機能/MTH-002_マッチング詳細画面.html">
+                    <div class="screen-card-header">
+                        <span>マッチング詳細</span>
+                        <span class="screen-id">MTH-002</span>
+                    </div>
+                    <div class="screen-card-body">
+                        <p>マッチング結果の詳細表示、スコア表示、比較情報などを表示する画面</p>
+                    </div>
+                </a>
+            </div>
+            
+            <div class="screen-card">
+                <a href="画面/マッチング機能/MTH-003_提案管理画面.html">
+                    <div class="screen-card-header">
+                        <span>提案管理</span>
+                        <span class="screen-id">MTH-003</span>
+                    </div>
+                    <div class="screen-card-body">
+                        <p>技術者の提案状況管理、ステータス変更、履歴表示などを行う画面</p>
+                    </div>
+                </a>
+            </div>
+
+            <div class="screen-card">
+                <a href="画面/マッチング機能/MTH-004_提案書作成画面.html">
+                    <div class="screen-card-header">
+                        <span>提案書作成</span>
+                        <span class="screen-id">MTH-004</span>
+                    </div>
+                    <div class="screen-card-body">
+                        <p>顧客への提案書の作成、スキルシートの選択、カスタマイズなどを行う画面</p>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <h2>基本的な処理フロー</h2>
+    <h3>案件からマッチング検索・提案までのフロー</h3>
+    <div class="screen-flow">
+        <div class="screen-flow-container">
+            <div class="screen-flow-item">
+                <div class="screen-flow-icon">1</div>
+                <p><a href="画面/マッチング機能/MTH-001_マッチング検索画面.html">マッチング検索</a></p>
+                <p>案件を起点に検索</p>
+            </div>
+            <div class="screen-flow-arrow">→</div>
+            <div class="screen-flow-item">
+                <div class="screen-flow-icon">2</div>
+                <p><a href="画面/マッチング機能/MTH-002_マッチング詳細画面.html">マッチング詳細</a></p>
+                <p>マッチング詳細の確認</p>
+            </div>
+            <div class="screen-flow-arrow">→</div>
+            <div class="screen-flow-item">
+                <div class="screen-flow-icon">3</div>
+                <p><a href="画面/マッチング機能/MTH-003_提案管理画面.html">提案管理</a></p>
+                <p>提案状況の管理</p>
+            </div>
+            <div class="screen-flow-arrow">→</div>
+            <div class="screen-flow-item">
+                <div class="screen-flow-icon">4</div>
+                <p><a href="画面/マッチング機能/MTH-004_提案書作成画面.html">提案書作成</a></p>
+                <p>提案書の作成・送付</p>
+            </div>
+        </div>
+    </div>
+
+    <h3>技術者からマッチング検索・提案までのフロー</h3>
+    <div class="screen-flow">
+        <div class="screen-flow-container">
+            <div class="screen-flow-item">
+                <div class="screen-flow-icon">1</div>
+                <p><a href="画面/マッチング機能/MTH-001_マッチング検索画面.html">マッチング検索</a></p>
+                <p>技術者を起点に検索</p>
+            </div>
+            <div class="screen-flow-arrow">→</div>
+            <div class="screen-flow-item">
+                <div class="screen-flow-icon">2</div>
+                <p><a href="画面/マッチング機能/MTH-002_マッチング詳細画面.html">マッチング詳細</a></p>
+                <p>マッチング詳細の確認</p>
+            </div>
+            <div class="screen-flow-arrow">→</div>
+            <div class="screen-flow-item">
+                <div class="screen-flow-icon">3</div>
+                <p><a href="画面/マッチング機能/MTH-003_提案管理画面.html">提案管理</a></p>
+                <p>提案情報の登録</p>
+            </div>
+            <div class="screen-flow-arrow">→</div>
+            <div class="screen-flow-item">
+                <div class="screen-flow-icon">4</div>
+                <p><a href="画面/マッチング機能/MTH-004_提案書作成画面.html">提案書作成</a></p>
+                <p>提案書の作成・送付</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

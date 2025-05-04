@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム マッチング詳細画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../マッチング機能画面設計.html">マッチング機能画面設計</a></li>
+            <li class="active">マッチング詳細画面</li>
+        </ul>
+    </nav>
+
+    <h1>MTH-002: マッチング詳細画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>MTH-002</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>マッチング詳細</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>マッチング結果の詳細表示、スコア表示、比較情報などを表示する画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>営業担当者、人事担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>MTH-001: マッチング検索</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>MTH-003: 提案管理、PRJ-003: 案件詳細、ENG-003: 技術者詳細</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [マッチング詳細画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>画面構成要素</h2>
+    <h3>1. マッチング概要部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_detail_001</td>
+            <td>マッチングID</td>
+            <td>テキスト（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>システム内部で管理されるマッチングの一意識別子</td>
+        </tr>
+        <tr>
+            <td>mth_detail_002</td>
+            <td>マッチングタイプ</td>
+            <td>テキスト（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>「案件-技術者」または「技術者-案件」のマッチングタイプ</td>
+        </tr>
+        <tr>
+            <td>mth_detail_003</td>
+            <td>検索条件サマリー</td>
+            <td>テキスト（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>マッチング検索時の検索条件のサマリー</td>
+        </tr>
+        <tr>
+            <td>mth_detail_004</td>
+            <td>マッチング実行日時</td>
+            <td>テキスト（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>マッチング検索が実行された日時</td>
+        </tr>
+        <tr>
+            <td>mth_detail_005</td>
+            <td>結果一覧へ戻るボタン</td>
+            <td>リンクボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>マッチング検索結果一覧へ戻る</td>
+        </tr>
+    </table>
+
+    <h3>2. マッチングスコア表示部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_detail_006</td>
+            <td>総合マッチングスコア</td>
+            <td>スコア表示（グラフィカル）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>0-100の範囲で示される総合的なマッチング度合い</td>
+        </tr>
+        <tr>
+            <td>mth_detail_007</td>
+            <td>スキルマッチスコア</td>
+            <td>スコア表示（グラフィカル）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>スキル要件に関するマッチング度合い</td>
+        </tr>
+        <tr>
+            <td>mth_detail_008</td>
+            <td>経験マッチスコア</td>
+            <td>スコア表示（グラフィカル）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>経験要件に関するマッチング度合い</td>
+        </tr>
+        <tr>
+            <td>mth_detail_009</td>
+            <td>単価マッチスコア</td>
+            <td>スコア表示（グラフィカル）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>単価要件に関するマッチング度合い</td>
+        </tr>
+        <tr>
+            <td>mth_detail_010</td>
+            <td>稼働時期マッチスコア</td>
+            <td>スコア表示（グラフィカル）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>稼働開始時期に関するマッチング度合い</td>
+        </tr>
+        <tr>
+            <td>mth_detail_011</td>
+            <td>その他条件マッチスコア</td>
+            <td>スコア表示（グラフィカル）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>その他の条件に関するマッチング度合い</td>
+        </tr>
+    </table>
+
+    <h3>3. 案件情報部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_detail_012</td>
+            <td>案件ID</td>
+            <td>テキスト（リンク）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件の一意識別子。クリックで案件詳細画面（PRJ-003）へ遷移</td>
+        </tr>
+        <tr>
+            <td>mth_detail_013</td>
+            <td>案件名</td>
+            <td>テキスト（リンク）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件の名称。クリックで案件詳細画面（PRJ-003）へ遷移</td>
+        </tr>
+        <tr>
+            <td>mth_detail_014</td>
+            <td>取引先企業</td>
+            <td>テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件の取引先企業名</td>
+        </tr>
+        <tr>
+            <td>mth_detail_015</td>
+            <td>案件ステータス</td>
+            <td>ラベル（色分け表示）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件の現在のステータス</td>
+        </tr>
+        <tr>
+            <td>mth_detail_016</td>
+            <td>希望スキル</td>
+            <td>タグリスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件が要求するスキル一覧</td>
+        </tr>
+        <tr>
+            <td>mth_detail_017</td>
+            <td>必須スキル</td>
+            <td>タグリスト（強調表示）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件が必須とするスキル一覧</td>
+        </tr>
+        <tr>
+            <td>mth_detail_018</td>
+            <td>希望経験年数</td>
+            <td>テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件が要求する経験年数</td>
+        </tr>
+        <tr>
+            <td>mth_detail_019</td>
+            <td>想定単価</td>
+            <td>テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件の想定単価</td>
+        </tr>
+        <tr>
+            <td>mth_detail_020</td>
+            <td>勤務地</td>
+            <td>テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件の勤務地</td>
+        </tr>
+        <tr>
+            <td>mth_detail_021</td>
+            <td>稼働開始日</td>
+            <td>テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件の稼働開始予定日</td>
+        </tr>
+    </table>
+
+    <h3>4. 技術者情報部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_detail_022</td>
+            <td>技術者ID</td>
+            <td>テキスト（リンク）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>技術者の一意識別子。クリックで技術者詳細画面（ENG-003）へ遷移</td>
+        </tr>
+        <tr>
+            <td>mth_detail_023</td>
+            <td>技術者名</td>
+            <td>テキスト（リンク）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>技術者の氏名。クリックで技術者詳細画面（ENG-003）へ遷移</td>
+        </tr>
+        <tr>
+            <td>mth_detail_024</td>
+            <td>所属区分</td>
+            <td>テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>技術者の所属区分（社員、協力会社など）</td>
+        </tr>
+        <tr>
+            <td>mth_detail_025</td>
+            <td>稼働状況</td>
+            <td>ラベル（色分け表示）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>技術者の現在の稼働状況</td>
+        </tr>
+        <tr>
+            <td>mth_detail_026</td>
+            <td>保有スキル</td>
+            <td>タグリスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>技術者が保有するスキル一覧</td>
+        </tr>
+        <tr>
+            <td>mth_detail_027</td>
+            <td>経験年数</td>
+            <td>テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>技術者の経験年数</td>
+        </tr>
+        <tr>
+            <td>mth_detail_028</td>
+            <td>希望単価</td>
+            <td>テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>技術者の希望単価</td>
+        </tr>
+        <tr>
+            <td>mth_detail_029</td>
+            <td>希望勤務地</td>
+            <td>テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>技術者の希望勤務地</td>
+        </tr>
+        <tr>
+            <td>mth_detail_030</td>
+            <td>稼働可能日</td>
+            <td>テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>技術者の稼働開始可能日</td>
+        </tr>
+    </table>
+
+    <h3>5. 要件比較部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_detail_031</td>
+            <td>スキル要件比較</td>
+            <td>比較表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件の要求スキルと技術者の保有スキルの比較表示</td>
+        </tr>
+        <tr>
+            <td>mth_detail_032</td>
+            <td>経験要件比較</td>
+            <td>比較表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件の要求経験と技術者の経験の比較表示</td>
+        </tr>
+        <tr>
+            <td>mth_detail_033</td>
+            <td>単価要件比較</td>
+            <td>比較表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件の想定単価と技術者の希望単価の比較表示</td>
+        </tr>
+        <tr>
+            <td>mth_detail_034</td>
+            <td>勤務地要件比較</td>
+            <td>比較表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件の勤務地と技術者の希望勤務地の比較表示</td>
+        </tr>
+        <tr>
+            <td>mth_detail_035</td>
+            <td>稼働時期要件比較</td>
+            <td>比較表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件の稼働開始日と技術者の稼働可能日の比較表示</td>
+        </tr>
+    </table>
+
+    <h3>6. 操作ボタン部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_detail_036</td>
+            <td>提案登録ボタン</td>
+            <td>プライマリーボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案管理画面（MTH-003）へ遷移し、提案情報を登録</td>
+        </tr>
+        <tr>
+            <td>mth_detail_037</td>
+            <td>スキルシート表示ボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>技術者のスキルシート管理画面（ENG-004）へ遷移</td>
+        </tr>
+        <tr>
+            <td>mth_detail_038</td>
+            <td>マッチング結果保存ボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>現在のマッチング結果をPDFまたはExcel形式で保存</td>
+        </tr>
+        <tr>
+            <td>mth_detail_039</td>
+            <td>案件詳細ボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件詳細画面（PRJ-003）へ遷移</td>
+        </tr>
+        <tr>
+            <td>mth_detail_040</td>
+            <td>技術者詳細ボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>技術者詳細画面（ENG-003）へ遷移</td>
+        </tr>
+        <tr>
+            <td>mth_detail_041</td>
+            <td>次のマッチング結果ボタン</td>
+            <td>ナビゲーションボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索結果リスト内の次のマッチング結果を表示</td>
+        </tr>
+        <tr>
+            <td>mth_detail_042</td>
+            <td>前のマッチング結果ボタン</td>
+            <td>ナビゲーションボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索結果リスト内の前のマッチング結果を表示</td>
+        </tr>
+    </table>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、マッチング検索結果から選択されたマッチングの詳細情報を表示する</li>
+        <li>「案件ID」「案件名」をクリックすると、該当の案件詳細画面（PRJ-003）に遷移する</li>
+        <li>「技術者ID」「技術者名」をクリックすると、該当の技術者詳細画面（ENG-003）に遷移する</li>
+        <li>「提案登録ボタン」をクリックすると、提案管理画面（MTH-003）に遷移し、現在のマッチング情報が引き継がれる</li>
+        <li>「スキルシート表示ボタン」をクリックすると、該当技術者のスキルシート管理画面（ENG-004）に遷移する</li>
+        <li>「マッチング結果保存ボタン」をクリックすると、保存形式を選択するポップアップが表示され、選択した形式でダウンロードされる</li>
+        <li>「次のマッチング結果ボタン」「前のマッチング結果ボタン」をクリックすると、検索結果リスト内の別のマッチング結果に切り替わる</li>
+        <li>「結果一覧へ戻るボタン」をクリックすると、マッチング検索画面（MTH-001）の検索結果表示部分に戻る</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> マッチングスコアの詳細と比較情報は、マッチングアルゴリズムの設定によって異なります。</p>
+        <ul>
+            <li>要件比較部分では、要件を満たしている項目は緑色、部分的に満たしている項目は黄色、満たしていない項目は赤色で表示されます</li>
+            <li>総合マッチングスコアが一定値（例：70点）以上の場合のみ「提案登録ボタン」が有効になります</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

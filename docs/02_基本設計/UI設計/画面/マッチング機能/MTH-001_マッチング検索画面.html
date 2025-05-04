@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム マッチング検索画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../マッチング機能画面設計.html">マッチング機能画面設計</a></li>
+            <li class="active">マッチング検索画面</li>
+        </ul>
+    </nav>
+
+    <h1>MTH-001: マッチング検索画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>MTH-001</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>マッチング検索</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>案件または技術者を起点に、条件指定してマッチング検索を行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>営業担当者、人事担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CMN-002: ダッシュボード、PRJ-003: 案件詳細、ENG-003: 技術者詳細</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>MTH-002: マッチング詳細</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [マッチング検索画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>画面構成要素</h2>
+    <h3>1. 検索モード選択部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_search_001</td>
+            <td>検索モード選択</td>
+            <td>タブメニュー</td>
+            <td>-</td>
+            <td>○</td>
+            <td>「案件起点検索」または「技術者起点検索」を選択するタブ</td>
+        </tr>
+    </table>
+
+    <h3>2. 案件起点検索条件部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_search_002</td>
+            <td>案件選択</td>
+            <td>検索コンボボックス</td>
+            <td>-</td>
+            <td>○</td>
+            <td>マッチング対象となる案件を選択（前画面から遷移時には自動選択）</td>
+        </tr>
+        <tr>
+            <td>mth_search_003</td>
+            <td>案件条件自動反映</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ONの場合、選択された案件の条件を自動的に検索条件に反映する</td>
+        </tr>
+        <tr>
+            <td>mth_search_004</td>
+            <td>案件概要</td>
+            <td>テキスト（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>選択された案件の概要情報</td>
+        </tr>
+        <tr>
+            <td>mth_search_005</td>
+            <td>技術者稼働状況</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>対象とする技術者の稼働状況（稼働中、待機中、予約済みなど）</td>
+        </tr>
+        <tr>
+            <td>mth_search_006</td>
+            <td>スキルセット</td>
+            <td>マルチセレクト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>必要スキルの選択（案件条件自動反映ONの場合は案件のスキル要件が反映される）</td>
+        </tr>
+        <tr>
+            <td>mth_search_007</td>
+            <td>経験年数</td>
+            <td>レンジスライダー</td>
+            <td>0～50年</td>
+            <td>-</td>
+            <td>必要経験年数の範囲</td>
+        </tr>
+        <tr>
+            <td>mth_search_008</td>
+            <td>稼働可能日</td>
+            <td>日付選択</td>
+            <td>-</td>
+            <td>-</td>
+            <td>稼働開始可能日の指定</td>
+        </tr>
+        <tr>
+            <td>mth_search_009</td>
+            <td>所属区分</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>対象とする技術者の所属区分（自社社員、協力会社など）</td>
+        </tr>
+        <tr>
+            <td>mth_search_010</td>
+            <td>単価レンジ</td>
+            <td>レンジスライダー</td>
+            <td>-</td>
+            <td>-</td>
+            <td>想定単価のレンジ</td>
+        </tr>
+    </table>
+
+    <h3>3. 技術者起点検索条件部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_search_011</td>
+            <td>技術者選択</td>
+            <td>検索コンボボックス</td>
+            <td>-</td>
+            <td>○</td>
+            <td>マッチング対象となる技術者を選択（前画面から遷移時には自動選択）</td>
+        </tr>
+        <tr>
+            <td>mth_search_012</td>
+            <td>技術者条件自動反映</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ONの場合、選択された技術者のスキル情報を自動的に検索条件に反映する</td>
+        </tr>
+        <tr>
+            <td>mth_search_013</td>
+            <td>技術者概要</td>
+            <td>テキスト（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>選択された技術者の概要情報</td>
+        </tr>
+        <tr>
+            <td>mth_search_014</td>
+            <td>案件ステータス</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>対象とする案件のステータス（募集中、選考中など）</td>
+        </tr>
+        <tr>
+            <td>mth_search_015</td>
+            <td>求めるスキル</td>
+            <td>マルチセレクト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>必要スキルの選択（技術者条件自動反映ONの場合は技術者のスキルが反映される）</td>
+        </tr>
+        <tr>
+            <td>mth_search_016</td>
+            <td>希望単価レンジ</td>
+            <td>レンジスライダー</td>
+            <td>-</td>
+            <td>-</td>
+            <td>希望単価のレンジ</td>
+        </tr>
+        <tr>
+            <td>mth_search_017</td>
+            <td>勤務地域</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>希望勤務地域</td>
+        </tr>
+        <tr>
+            <td>mth_search_018</td>
+            <td>プロジェクト種別</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>対象とするプロジェクト種別（新規開発、保守運用など）</td>
+        </tr>
+    </table>
+
+    <h3>4. 共通検索操作部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_search_019</td>
+            <td>アルゴリズム選択</td>
+            <td>ラジオボタン</td>
+            <td>-</td>
+            <td>○</td>
+            <td>マッチングアルゴリズムの選択（「基本マッチング」「詳細マッチング」「AIレコメンド」）</td>
+        </tr>
+        <tr>
+            <td>mth_search_020</td>
+            <td>重み付け設定</td>
+            <td>スライダーグループ</td>
+            <td>-</td>
+            <td>-</td>
+            <td>各マッチング要素（スキル、経験、単価など）の重み付けを調整</td>
+        </tr>
+        <tr>
+            <td>mth_search_021</td>
+            <td>検索ボタン</td>
+            <td>プライマリーボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索条件を適用してマッチング検索を実行</td>
+        </tr>
+        <tr>
+            <td>mth_search_022</td>
+            <td>条件クリアボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索条件をクリア</td>
+        </tr>
+        <tr>
+            <td>mth_search_023</td>
+            <td>条件保存ボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索条件をテンプレートとして保存</td>
+        </tr>
+    </table>
+
+    <h3>5. 検索結果プレビュー部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_search_024</td>
+            <td>検索結果件数</td>
+            <td>テキスト（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>マッチング検索結果の総件数</td>
+        </tr>
+        <tr>
+            <td>mth_search_025</td>
+            <td>マッチング結果リスト</td>
+            <td>テーブル</td>
+            <td>-</td>
+            <td>-</td>
+            <td>マッチング検索結果のプレビュー表示（上位5件程度）</td>
+        </tr>
+        <tr>
+            <td>mth_search_026</td>
+            <td>マッチングスコア</td>
+            <td>プログレスバー</td>
+            <td>-</td>
+            <td>-</td>
+            <td>マッチング度合いをスコアとして視覚的に表示</td>
+        </tr>
+        <tr>
+            <td>mth_search_027</td>
+            <td>詳細表示ボタン</td>
+            <td>リンクボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>選択したマッチング結果の詳細画面へ遷移</td>
+        </tr>
+        <tr>
+            <td>mth_search_028</td>
+            <td>結果一括表示ボタン</td>
+            <td>プライマリーボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>すべてのマッチング結果詳細画面へ遷移</td>
+        </tr>
+    </table>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、画面遷移元によって以下のように動作する：
+            <ul>
+                <li>ダッシュボードからの遷移：空の検索フォームを表示</li>
+                <li>案件詳細からの遷移：「案件起点検索」タブを選択し、該当案件を自動選択</li>
+                <li>技術者詳細からの遷移：「技術者起点検索」タブを選択し、該当技術者を自動選択</li>
+            </ul>
+        </li>
+        <li>「案件起点検索」タブと「技術者起点検索」タブの切り替えにより、表示される検索条件フォームが切り替わる</li>
+        <li>案件/技術者選択後、「条件自動反映」チェックボックスがONの場合は、各検索条件に自動的に対象の情報が設定される</li>
+        <li>「アルゴリズム選択」で「詳細マッチング」または「AIレコメンド」を選択すると、「重み付け設定」パネルが表示される</li>
+        <li>「検索ボタン」クリック時、入力された検索条件に基づきマッチング検索を実行し、結果プレビュー部分に表示する</li>
+        <li>検索結果の各行の「詳細表示ボタン」をクリックすると、該当のマッチングの詳細画面（MTH-002）に遷移する</li>
+        <li>「結果一括表示ボタン」をクリックすると、全マッチング結果を表示するマッチング詳細画面（MTH-002）に遷移する</li>
+        <li>「条件保存ボタン」をクリックすると、現在の検索条件に名前を付けて保存するモーダルダイアログが表示される</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> マッチングアルゴリズムの選択と重み付け設定によって検索結果が大きく変わる可能性があります。</p>
+        <ul>
+            <li>基本マッチング：スキルと経験年数を主体とした基本的なマッチング</li>
+            <li>詳細マッチング：より多くの要素を考慮した詳細なマッチング（重み付け調整可能）</li>
+            <li>AIレコメンド：過去の成約データなどを学習したAIによるレコメンデーション</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

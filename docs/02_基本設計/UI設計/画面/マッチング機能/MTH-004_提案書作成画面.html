@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 提案書作成画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../マッチング機能画面設計.html">マッチング機能画面設計</a></li>
+            <li class="active">提案書作成画面</li>
+        </ul>
+    </nav>
+
+    <h1>MTH-004: 提案書作成画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>MTH-004</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>提案書作成</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>顧客への提案書の作成、スキルシートの選択、カスタマイズなどを行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>営業担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>MTH-003: 提案管理</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>提案書プレビュー（PDF表示）</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [提案書作成画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>画面構成要素</h2>
+    <h3>1. 提案情報概要部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_doc_001</td>
+            <td>提案ID</td>
+            <td>テキスト（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>システム内部で管理される提案の一意識別子</td>
+        </tr>
+        <tr>
+            <td>mth_doc_002</td>
+            <td>提案名</td>
+            <td>テキスト（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案管理画面で入力された提案名</td>
+        </tr>
+        <tr>
+            <td>mth_doc_003</td>
+            <td>案件名</td>
+            <td>テキスト（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案対象の案件名</td>
+        </tr>
+        <tr>
+            <td>mth_doc_004</td>
+            <td>技術者名</td>
+            <td>テキスト（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案対象の技術者名</td>
+        </tr>
+        <tr>
+            <td>mth_doc_005</td>
+            <td>提案先企業</td>
+            <td>テキスト（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案先の企業名</td>
+        </tr>
+        <tr>
+            <td>mth_doc_006</td>
+            <td>提案先担当者</td>
+            <td>テキスト（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案先の担当者名</td>
+        </tr>
+    </table>
+
+    <h3>2. 提案書テンプレート選択部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_doc_007</td>
+            <td>テンプレート選択</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>○</td>
+            <td>使用する提案書テンプレートの選択</td>
+        </tr>
+        <tr>
+            <td>mth_doc_008</td>
+            <td>テンプレートプレビュー</td>
+            <td>イメージ表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>選択したテンプレートの縮小表示</td>
+        </tr>
+        <tr>
+            <td>mth_doc_009</td>
+            <td>自社ロゴ表示</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>自社のロゴを提案書に表示するかどうか</td>
+        </tr>
+        <tr>
+            <td>mth_doc_010</td>
+            <td>表紙有無</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案書に表紙をつけるかどうか</td>
+        </tr>
+        <tr>
+            <td>mth_doc_011</td>
+            <td>目次有無</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案書に目次をつけるかどうか</td>
+        </tr>
+    </table>
+
+    <h3>3. 提案書ヘッダー情報部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_doc_012</td>
+            <td>提案書タイトル</td>
+            <td>テキスト入力</td>
+            <td>最大100文字</td>
+            <td>○</td>
+            <td>提案書のタイトル</td>
+        </tr>
+        <tr>
+            <td>mth_doc_013</td>
+            <td>提案書サブタイトル</td>
+            <td>テキスト入力</td>
+            <td>最大100文字</td>
+            <td>-</td>
+            <td>提案書のサブタイトル</td>
+        </tr>
+        <tr>
+            <td>mth_doc_014</td>
+            <td>発行日</td>
+            <td>日付入力</td>
+            <td>-</td>
+            <td>○</td>
+            <td>提案書の発行日</td>
+        </tr>
+        <tr>
+            <td>mth_doc_015</td>
+            <td>発行番号</td>
+            <td>テキスト入力</td>
+            <td>最大30文字</td>
+            <td>-</td>
+            <td>提案書の発行番号（自動採番）</td>
+        </tr>
+        <tr>
+            <td>mth_doc_016</td>
+            <td>提案先企業名</td>
+            <td>テキスト入力</td>
+            <td>最大100文字</td>
+            <td>○</td>
+            <td>提案書に記載する提案先企業名</td>
+        </tr>
+        <tr>
+            <td>mth_doc_017</td>
+            <td>提案先敬称</td>
+            <td>テキスト入力</td>
+            <td>最大10文字</td>
+            <td>○</td>
+            <td>提案先の敬称（例：御中、様）</td>
+        </tr>
+        <tr>
+            <td>mth_doc_018</td>
+            <td>自社企業名</td>
+            <td>テキスト入力</td>
+            <td>最大100文字</td>
+            <td>○</td>
+            <td>提案書に記載する自社企業名</td>
+        </tr>
+        <tr>
+            <td>mth_doc_019</td>
+            <td>担当者名</td>
+            <td>テキスト入力</td>
+            <td>最大50文字</td>
+            <td>○</td>
+            <td>提案書に記載する自社担当者名</td>
+        </tr>
+        <tr>
+            <td>mth_doc_020</td>
+            <td>連絡先</td>
+            <td>テキスト入力</td>
+            <td>最大100文字</td>
+            <td>○</td>
+            <td>提案書に記載する連絡先情報</td>
+        </tr>
+    </table>
+
+    <h3>4. 技術者情報および条件部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_doc_021</td>
+            <td>スキルシート選択</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>○</td>
+            <td>添付するスキルシートのバージョン選択</td>
+        </tr>
+        <tr>
+            <td>mth_doc_022</td>
+            <td>スキルシートプレビュー</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>選択したスキルシートをプレビュー表示するボタン</td>
+        </tr>
+        <tr>
+            <td>mth_doc_023</td>
+            <td>スキルシート編集</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>選択したスキルシートを編集するボタン</td>
+        </tr>
+        <tr>
+            <td>mth_doc_024</td>
+            <td>技術者名（提案書記載用）</td>
+            <td>テキスト入力</td>
+            <td>最大50文字</td>
+            <td>○</td>
+            <td>提案書に記載する技術者名（匿名化可能）</td>
+        </tr>
+        <tr>
+            <td>mth_doc_025</td>
+            <td>スキル概要</td>
+            <td>テキストエリア</td>
+            <td>最大1000文字</td>
+            <td>○</td>
+            <td>提案書に記載する技術者のスキル概要</td>
+        </tr>
+        <tr>
+            <td>mth_doc_026</td>
+            <td>経験アピールポイント</td>
+            <td>テキストエリア</td>
+            <td>最大1000文字</td>
+            <td>-</td>
+            <td>提案書に記載する技術者の経験アピールポイント</td>
+        </tr>
+        <tr>
+            <td>mth_doc_027</td>
+            <td>提案単価</td>
+            <td>数値入力</td>
+            <td>1～9,999,999</td>
+            <td>○</td>
+            <td>提案書に記載する提案単価</td>
+        </tr>
+        <tr>
+            <td>mth_doc_028</td>
+            <td>通貨単位</td>
+            <td>テキスト入力</td>
+            <td>最大10文字</td>
+            <td>○</td>
+            <td>提案単価の通貨単位（例：円、万円）</td>
+        </tr>
+        <tr>
+            <td>mth_doc_029</td>
+            <td>提案開始日</td>
+            <td>日付入力</td>
+            <td>-</td>
+            <td>○</td>
+            <td>提案書に記載する稼働開始予定日</td>
+        </tr>
+        <tr>
+            <td>mth_doc_030</td>
+            <td>提案期間</td>
+            <td>テキスト入力</td>
+            <td>最大50文字</td>
+            <td>○</td>
+            <td>提案書に記載する稼働予定期間</td>
+        </tr>
+    </table>
+
+    <h3>5. 提案内容カスタマイズ部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_doc_031</td>
+            <td>提案概要</td>
+            <td>テキストエリア（リッチテキスト）</td>
+            <td>最大2000文字</td>
+            <td>○</td>
+            <td>提案書に記載する提案の概要説明</td>
+        </tr>
+        <tr>
+            <td>mth_doc_032</td>
+            <td>提案項目リスト</td>
+            <td>リスト表示・編集</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案書の項目構成を編集するリスト</td>
+        </tr>
+        <tr>
+            <td>mth_doc_033</td>
+            <td>項目追加ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案項目に新しい項目を追加するボタン</td>
+        </tr>
+        <tr>
+            <td>mth_doc_034</td>
+            <td>項目削除ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案項目から項目を削除するボタン</td>
+        </tr>
+        <tr>
+            <td>mth_doc_035</td>
+            <td>項目順序変更</td>
+            <td>ドラッグ＆ドロップ</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案項目の表示順序を変更する機能</td>
+        </tr>
+        <tr>
+            <td>mth_doc_036</td>
+            <td>実績アピール</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>自社の実績をアピールする項目を含めるかどうか</td>
+        </tr>
+        <tr>
+            <td>mth_doc_037</td>
+            <td>特記事項</td>
+            <td>テキストエリア</td>
+            <td>最大1000文字</td>
+            <td>-</td>
+            <td>提案書に記載する特記事項</td>
+        </tr>
+    </table>
+
+    <h3>6. 操作ボタン部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>mth_doc_038</td>
+            <td>プレビューボタン</td>
+            <td>プライマリーボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案書のプレビューを表示</td>
+        </tr>
+        <tr>
+            <td>mth_doc_039</td>
+            <td>PDF保存ボタン</td>
+            <td>プライマリーボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案書をPDF形式で保存</td>
+        </tr>
+        <tr>
+            <td>mth_doc_040</td>
+            <td>メール送信ボタン</td>
+            <td>プライマリーボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案書をメールに添付して送信</td>
+        </tr>
+        <tr>
+            <td>mth_doc_041</td>
+            <td>下書き保存ボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案書の内容を下書きとして保存</td>
+        </tr>
+        <tr>
+            <td>mth_doc_042</td>
+            <td>提案管理に戻るボタン</td>
+            <td>リンクボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提案管理画面（MTH-003）に戻る</td>
+        </tr>
+    </table>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、提案管理画面（MTH-003）の情報を基に、提案情報概要部分が自動入力される</li>
+        <li>「テンプレート選択」で提案書テンプレートを選択すると、「テンプレートプレビュー」が更新される</li>
+        <li>「スキルシート選択」でスキルシートのバージョンを選択し、「スキルシートプレビュー」ボタンでプレビュー表示する</li>
+        <li>「スキルシート編集」ボタンをクリックすると、選択したスキルシートを編集する画面（ENG-004）が別ウィンドウで開く</li>
+        <li>提案書の内容を入力後、「プレビューボタン」をクリックすると、別ウィンドウで提案書のプレビューが表示される</li>
+        <li>「PDF保存ボタン」をクリックすると、提案書がPDF形式で生成され、ダウンロードされる</li>
+        <li>「メール送信ボタン」をクリックすると、メール送信用のダイアログが表示され、提案書を添付したメールを作成できる</li>
+        <li>「下書き保存ボタン」をクリックすると、現在の入力内容が保存され、同じ画面に留まる</li>
+        <li>「提案管理に戻るボタン」をクリックすると、提案管理画面（MTH-003）に戻る</li>
+        <li>「提案項目リスト」で項目を選択すると、その項目の詳細内容を編集するパネルが表示される</li>
+        <li>「項目追加ボタン」をクリックすると、新しい提案項目を追加するためのダイアログが表示される</li>
+        <li>「項目削除ボタン」をクリックすると、選択した提案項目が削除される</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> 提案書の内容は顧客に送付される公式文書となるため、以下の点に注意してください。</p>
+        <ul>
+            <li>技術者の個人情報を匿名化する必要がある場合は、「技術者名（提案書記載用）」で匿名化した名前を設定できます</li>
+            <li>提案書には必ず「スキルシート」が添付されるため、適切なバージョンを選択し、内容を確認してください</li>
+            <li>提案書の生成・表示には数秒～数十秒かかる場合があります</li>
+            <li>提案書を送信する前に必ずプレビューで内容を確認してください</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>
