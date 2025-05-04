@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム 提案管理画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -121,6 +123,45 @@
             padding: 8px 12px;
             color: #6c757d;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -166,10 +207,10 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [提案管理画面のワイヤーフレーム]
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="proposal-management-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
     <h2>画面構成要素</h2>
@@ -510,17 +551,33 @@
     </ol>
 
     <div class="note">
-        <p><strong>注意：</strong> 提案情報は案件・技術者の稼働状況など、関連情報と整合性を保つ必要があります。</p>
-        <ul>
-            <li>技術者の稼働状況が「稼働中」「予約済み」の場合、提案ステータスが「採用」に変更できないようにする制約があります</li>
-            <li>案件ステータスが「成約済み」の場合、新規提案ができないようにする制約があります</li>
-            <li>提案ステータスが「採用」に変更された場合、技術者の稼働状況を「予約済み」に自動変更します</li>
-        </ul>
+        <p><strong>注意：</strong> 提案情報は案件・技術者の稼働状況など、関連情報と整合性を保つ必要があります。技術者の稼働状況が「稼働中」「予約済み」の場合、提案ステータスが「採用」に変更できないようにする制約があります。案件ステータスが「成約済み」の場合、新規提案ができないようにする制約があります。提案ステータスが「採用」に変更された場合、技術者の稼働状況を「予約済み」に自動変更します。</p>
     </div>
 
     <div class="footer">
         <p>作成日: 2025年5月5日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('proposal-management-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '800px',
+                mockups: [
+                    {
+                        name: '提案管理',
+                        path: 'mockups/MTH-003.html',
+                        description: '技術者の提案状況管理、ステータス変更、履歴表示などを行う画面です。案件情報、技術者情報、提案内容を総合的に管理し、提案書作成への連携機能も備えています。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム 提案書作成画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -121,6 +123,45 @@
             padding: 8px 12px;
             color: #6c757d;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -166,10 +207,10 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [提案書作成画面のワイヤーフレーム]
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="proposal-document-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
     <h2>画面構成要素</h2>
@@ -598,18 +639,33 @@
     </ol>
 
     <div class="note">
-        <p><strong>注意：</strong> 提案書の内容は顧客に送付される公式文書となるため、以下の点に注意してください。</p>
-        <ul>
-            <li>技術者の個人情報を匿名化する必要がある場合は、「技術者名（提案書記載用）」で匿名化した名前を設定できます</li>
-            <li>提案書には必ず「スキルシート」が添付されるため、適切なバージョンを選択し、内容を確認してください</li>
-            <li>提案書の生成・表示には数秒～数十秒かかる場合があります</li>
-            <li>提案書を送信する前に必ずプレビューで内容を確認してください</li>
-        </ul>
+        <p><strong>注意：</strong> 提案書の内容は顧客に送付される公式文書となるため、以下の点に注意してください。技術者の個人情報を匿名化する必要がある場合は、「技術者名（提案書記載用）」で匿名化した名前を設定できます。提案書には必ず「スキルシート」が添付されるため、適切なバージョンを選択し、内容を確認してください。提案書の生成・表示には数秒～数十秒かかる場合があります。提案書を送信する前に必ずプレビューで内容を確認してください。</p>
     </div>
 
     <div class="footer">
         <p>作成日: 2025年5月5日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('proposal-document-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '800px',
+                mockups: [
+                    {
+                        name: '提案書作成',
+                        path: 'mockups/MTH-004.html',
+                        description: '顧客への提案書の作成、スキルシートの選択、カスタマイズなどを行う画面です。提案内容のカスタマイズやプレビュー、PDF保存、メール送信などの機能を提供します。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>

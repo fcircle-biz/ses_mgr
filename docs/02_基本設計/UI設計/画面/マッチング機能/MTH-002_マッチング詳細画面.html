@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム マッチング詳細画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -121,6 +123,45 @@
             padding: 8px 12px;
             color: #6c757d;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -166,10 +207,10 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [マッチング詳細画面のワイヤーフレーム]
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="matching-detail-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
     <h2>画面構成要素</h2>
@@ -594,16 +635,33 @@
     </ol>
 
     <div class="note">
-        <p><strong>注意：</strong> マッチングスコアの詳細と比較情報は、マッチングアルゴリズムの設定によって異なります。</p>
-        <ul>
-            <li>要件比較部分では、要件を満たしている項目は緑色、部分的に満たしている項目は黄色、満たしていない項目は赤色で表示されます</li>
-            <li>総合マッチングスコアが一定値（例：70点）以上の場合のみ「提案登録ボタン」が有効になります</li>
-        </ul>
+        <p><strong>注意：</strong> マッチングスコアの詳細と比較情報は、マッチングアルゴリズムの設定によって異なります。要件比較部分では、要件を満たしている項目は緑色、部分的に満たしている項目は黄色、満たしていない項目は赤色で表示されます。総合マッチングスコアが一定値（例：70点）以上の場合のみ「提案登録ボタン」が有効になります。</p>
     </div>
 
     <div class="footer">
         <p>作成日: 2025年5月5日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('matching-detail-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '800px',
+                mockups: [
+                    {
+                        name: 'マッチング詳細',
+                        path: 'mockups/MTH-002.html',
+                        description: 'マッチング結果の詳細表示、スコア表示、比較情報などを表示する画面です。案件情報と技術者情報の対応関係、マッチング度合いをグラフィカルに表示し、提案管理への連携も可能です。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>
