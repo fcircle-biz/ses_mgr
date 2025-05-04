@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勤怠管理画面 | 勤怠・工数管理</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 30px;
+        }
+        h1 {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            margin-bottom: 30px;
+        }
+        .section {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .screen-info {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .screen-info div {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 10px;
+        }
+        .screen-info .label {
+            font-weight: bold;
+            color: #7f8c8d;
+            margin-right: 8px;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f5f5f5;
+            margin-bottom: 20px;
+        }
+        .wireframe p {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        a {
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+            color: #2980b9;
+        }
+        .notes {
+            background-color: #fff9e6;
+            border-left: 4px solid #f1c40f;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .notes h3 {
+            color: #f39c12;
+            margin-top: 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .req-label {
+            display: inline-block;
+            padding: 2px 6px;
+            margin-left: 5px;
+            font-size: 0.7em;
+            border-radius: 3px;
+            vertical-align: middle;
+        }
+        .required {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .optional {
+            background-color: #95a5a6;
+            color: white;
+        }
+        .status-label {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .status-pending {
+            background-color: #f39c12;
+            color: white;
+        }
+        .status-approved {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .status-rejected {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .status-draft {
+            background-color: #95a5a6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>勤怠管理画面</h1>
+
+    <div class="section">
+        <h2>画面概要</h2>
+        <div class="screen-info">
+            <div><span class="label">画面ID:</span> TMS-003</div>
+            <div><span class="label">画面名:</span> 勤怠管理画面</div>
+            <div><span class="label">対象ユーザー:</span> プロジェクトマネージャー、管理者</div>
+            <div><span class="label">前画面:</span> ダッシュボード、メニュー画面</div>
+            <div><span class="label">次画面:</span> 勤怠詳細画面、勤怠承認画面</div>
+        </div>
+        <p>
+            勤怠管理画面は、管理者やプロジェクトマネージャーが部下や部門メンバーの勤怠状況を一覧で確認し、管理するための画面です。
+            月次の勤怠データのステータス確認、承認待ちデータの処理、異常値の検出など、勤怠データの管理業務を効率的に行うことができます。
+            また、個人別の勤怠詳細データの閲覧や、勤怠データに関する各種指標の確認も可能です。
+        </p>
+    </div>
+
+    <div class="section">
+        <h2>画面レイアウト</h2>
+        <div class="wireframe">
+            <p>[勤怠管理画面のワイヤーフレーム表示位置]</p>
+            <p>検索・フィルタリング条件部分、勤怠サマリー、勤怠一覧テーブル、一括操作ボタン類から構成される画面</p>
+        </div>
+        <p>
+            画面は主に以下の3つのエリアで構成されます：
+        </p>
+        <ol>
+            <li><strong>検索・フィルタリング部分</strong>：年月選択、部門・プロジェクト選択、ステータスフィルターなど</li>
+            <li><strong>勤怠サマリー部分</strong>：該当月の勤怠集計情報（人数、提出率、承認率など）</li>
+            <li><strong>勤怠一覧テーブル</strong>：技術者別の勤怠データ一覧（ステータス、勤務日数、稼働時間などを表示）</li>
+        </ol>
+    </div>
+
+    <div class="section">
+        <h2>画面項目定義</h2>
+        
+        <h3>1. 検索・フィルタリング部分</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>項目ID</th>
+                    <th>項目名</th>
+                    <th>種類</th>
+                    <th>入力制限</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>F01</td>
+                    <td>年月選択</td>
+                    <td>ドロップダウン</td>
+                    <td>過去12ヶ月～当月</td>
+                    <td><span class="req-label required">必須</span></td>
+                    <td>表示する勤怠データの年月を選択</td>
+                </tr>
+                <tr>
+                    <td>F02</td>
+                    <td>部門選択</td>
+                    <td>ドロップダウン</td>
+                    <td>-</td>
+                    <td><span class="req-label optional">任意</span></td>
+                    <td>特定部門の技術者に絞り込み（複数選択可）</td>
+                </tr>
+                <tr>
+                    <td>F03</td>
+                    <td>プロジェクト選択</td>
+                    <td>ドロップダウン</td>
+                    <td>-</td>
+                    <td><span class="req-label optional">任意</span></td>
+                    <td>特定案件のメンバーに絞り込み（複数選択可）</td>
+                </tr>
+                <tr>
+                    <td>F04</td>
+                    <td>ステータスフィルタ</td>
+                    <td>チェックボックス群</td>
+                    <td>-</td>
+                    <td><span class="req-label optional">任意</span></td>
+                    <td>特定のステータスの勤怠データに絞り込み</td>
+                </tr>
+                <tr>
+                    <td>F05</td>
+                    <td>キーワード検索</td>
+                    <td>テキスト入力</td>
+                    <td>50文字以内</td>
+                    <td><span class="req-label optional">任意</span></td>
+                    <td>氏名やIDで検索</td>
+                </tr>
+                <tr>
+                    <td>F06</td>
+                    <td>検索ボタン</td>
+                    <td>ボタン</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>検索条件に基づいて一覧を更新</td>
+                </tr>
+                <tr>
+                    <td>F07</td>
+                    <td>クリアボタン</td>
+                    <td>ボタン</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>検索条件をクリア</td>
+                </tr>
+                <tr>
+                    <td>F08</td>
+                    <td>異常値のみ表示</td>
+                    <td>チェックボックス</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>残業超過や未入力など異常値を持つデータのみ表示</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>2. 勤怠サマリー部分</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>項目ID</th>
+                    <th>項目名</th>
+                    <th>種類</th>
+                    <th>入力制限</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>S01</td>
+                    <td>対象人数</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>検索条件に該当する技術者の総数</td>
+                </tr>
+                <tr>
+                    <td>S02</td>
+                    <td>提出率</td>
+                    <td>プログレスバー+テキスト</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>提出済み勤怠データの割合</td>
+                </tr>
+                <tr>
+                    <td>S03</td>
+                    <td>承認率</td>
+                    <td>プログレスバー+テキスト</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>承認済み勤怠データの割合</td>
+                </tr>
+                <tr>
+                    <td>S04</td>
+                    <td>平均稼働時間</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>技術者一人あたりの平均稼働時間</td>
+                </tr>
+                <tr>
+                    <td>S05</td>
+                    <td>平均残業時間</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>技術者一人あたりの平均残業時間</td>
+                </tr>
+                <tr>
+                    <td>S06</td>
+                    <td>有給取得率</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>有給休暇の取得率</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>3. 勤怠一覧テーブル</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>項目ID</th>
+                    <th>項目名</th>
+                    <th>種類</th>
+                    <th>入力制限</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>T01</td>
+                    <td>選択チェックボックス</td>
+                    <td>チェックボックス</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>一括操作のための選択用チェックボックス</td>
+                </tr>
+                <tr>
+                    <td>T02</td>
+                    <td>技術者ID</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>技術者の識別ID</td>
+                </tr>
+                <tr>
+                    <td>T03</td>
+                    <td>氏名</td>
+                    <td>テキスト表示（リンク）</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>技術者氏名（クリックで詳細画面へ）</td>
+                </tr>
+                <tr>
+                    <td>T04</td>
+                    <td>所属部門</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>技術者の所属部門名</td>
+                </tr>
+                <tr>
+                    <td>T05</td>
+                    <td>主担当案件</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>主な稼働案件名</td>
+                </tr>
+                <tr>
+                    <td>T06</td>
+                    <td>ステータス</td>
+                    <td>ステータスラベル</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>勤怠データの状態（作成中/提出済/承認済/差戻/確定）</td>
+                </tr>
+                <tr>
+                    <td>T07</td>
+                    <td>出勤日数</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>当月の出勤日数</td>
+                </tr>
+                <tr>
+                    <td>T08</td>
+                    <td>欠勤日数</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>当月の欠勤日数</td>
+                </tr>
+                <tr>
+                    <td>T09</td>
+                    <td>有給休暇日数</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>当月の有給休暇取得日数</td>
+                </tr>
+                <tr>
+                    <td>T10</td>
+                    <td>総稼働時間</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>当月の総稼働時間</td>
+                </tr>
+                <tr>
+                    <td>T11</td>
+                    <td>残業時間</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>当月の総残業時間</td>
+                </tr>
+                <tr>
+                    <td>T12</td>
+                    <td>深夜勤務時間</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>当月の深夜勤務時間</td>
+                </tr>
+                <tr>
+                    <td>T13</td>
+                    <td>休日勤務時間</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>当月の休日勤務時間</td>
+                </tr>
+                <tr>
+                    <td>T14</td>
+                    <td>提出日</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>勤怠データの提出日（提出済の場合）</td>
+                </tr>
+                <tr>
+                    <td>T15</td>
+                    <td>操作ボタン群</td>
+                    <td>ボタングループ</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>詳細表示、承認、差戻などの操作ボタン</td>
+                </tr>
+                <tr>
+                    <td>T16</td>
+                    <td>警告アイコン</td>
+                    <td>アイコン</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>残業超過や未入力など問題がある場合に表示</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>4. 一括操作部分</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>項目ID</th>
+                    <th>項目名</th>
+                    <th>種類</th>
+                    <th>入力制限</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>B01</td>
+                    <td>一括承認ボタン</td>
+                    <td>ボタン</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>選択した勤怠データを一括承認</td>
+                </tr>
+                <tr>
+                    <td>B02</td>
+                    <td>一括差戻ボタン</td>
+                    <td>ボタン</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>選択した勤怠データを一括差戻</td>
+                </tr>
+                <tr>
+                    <td>B03</td>
+                    <td>未提出リマインド送信</td>
+                    <td>ボタン</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>未提出者にリマインドメールを送信</td>
+                </tr>
+                <tr>
+                    <td>B04</td>
+                    <td>勤怠データエクスポート</td>
+                    <td>ボタン</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>表示中の勤怠データをCSV/Excelでエクスポート</td>
+                </tr>
+                <tr>
+                    <td>B05</td>
+                    <td>帳票出力</td>
+                    <td>ボタン</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>勤怠データを帳票形式で出力</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>画面動作仕様</h2>
+
+        <h3>1. 初期表示</h3>
+        <ul>
+            <li>初期表示時は当月の勤怠データを表示</li>
+            <li>ログインユーザーの権限に応じて閲覧可能な技術者の勤怠データのみを表示</li>
+            <li>管理者：全社員データを閲覧可能</li>
+            <li>部門マネージャー：配下部門の社員データを閲覧可能</li>
+            <li>プロジェクトマネージャー：担当プロジェクトのメンバーデータを閲覧可能</li>
+            <li>勤怠データはステータス順にソート（未提出 → 提出済 → 差戻 → 承認済 → 確定）</li>
+        </ul>
+
+        <h3>2. 検索・フィルタリング</h3>
+        <ul>
+            <li>年月を変更すると、該当月の勤怠データを再読込</li>
+            <li>部門またはプロジェクトを選択すると、該当する技術者の勤怠データにフィルタリング</li>
+            <li>ステータスフィルタを選択すると、該当するステータスの勤怠データにフィルタリング</li>
+            <li>キーワード検索は技術者名、技術者ID、案件名などに対して部分一致検索</li>
+            <li>「異常値のみ表示」にチェックを入れると、以下の条件に該当するデータのみを表示</li>
+            <ul>
+                <li>月の半分以上が未入力の勤怠データ</li>
+                <li>法定超過残業（45時間/月超）がある勤怠データ</li>
+                <li>深夜勤務や休日勤務が規定値を超える勤怠データ</li>
+                <li>未提出または差戻状態で締め日を過ぎている勤怠データ</li>
+            </ul>
+        </ul>
+
+        <h3>3. 勤怠データ操作</h3>
+        <ul>
+            <li>技術者氏名をクリックすると、その技術者の勤怠詳細画面に遷移</li>
+            <li>操作ボタン群から「詳細」をクリックすると、勤怠データの詳細画面に遷移</li>
+            <li>操作ボタン群から「承認」をクリックすると、承認確認ダイアログを表示</li>
+            <li>操作ボタン群から「差戻」をクリックすると、差戻理由入力ダイアログを表示</li>
+            <li>操作ボタン群から「編集」をクリックすると、管理者権限による勤怠データ編集画面に遷移</li>
+        </ul>
+
+        <h3>4. 一括操作</h3>
+        <ul>
+            <li>一括操作を行う技術者を選択チェックボックスで選択</li>
+            <li>「一括承認」ボタンをクリックすると、選択した提出済みの勤怠データを一括で承認処理</li>
+            <li>「一括差戻」ボタンをクリックすると、差戻理由入力ダイアログを表示し、入力後に一括で差戻処理</li>
+            <li>「未提出リマインド送信」ボタンをクリックすると、未提出者にリマインドメールを送信</li>
+            <li>「勤怠データエクスポート」ボタンをクリックすると、表示中のデータをCSV/Excel形式でダウンロード</li>
+            <li>「帳票出力」ボタンをクリックすると、勤怠帳票の出力フォーマット選択ダイアログを表示</li>
+        </ul>
+
+        <h3>5. テーブル操作</h3>
+        <ul>
+            <li>テーブルヘッダーをクリックすると、該当列でソート（昇順/降順切替）</li>
+            <li>表示件数を選択して、1ページあたりの表示数を変更可能</li>
+            <li>ページネーションにより、大量データも管理可能</li>
+        </ul>
+        
+        <h3>6. 異常値の表示</h3>
+        <ul>
+            <li>残業時間が45時間を超える場合、該当セルを赤色で強調表示</li>
+            <li>未入力日数が多い場合、警告アイコンを表示</li>
+            <li>締め日を過ぎても未提出・未承認の場合、警告アイコンを表示</li>
+        </ul>
+    </div>
+
+    <div class="notes">
+        <h3>特記事項・注意点</h3>
+        <ul>
+            <li>勤怠データの一括承認は、内容を十分確認した上で行うこと</li>
+            <li>承認権限は組織階層やプロジェクト設定に基づいて管理され、承認可能な対象のみ操作ボタンが有効化される</li>
+            <li>月次締め処理後は、原則として勤怠データの修正は不可（特別な権限が必要）</li>
+            <li>残業時間や深夜勤務に関する法定基準値を超えるデータは常に警告表示し、適切な対応を促す</li>
+            <li>個人情報保護の観点から、エクスポートされるデータへのアクセス権限を適切に管理する必要がある</li>
+            <li>大量データ処理時のパフォーマンスを考慮し、初期表示データ量の制限や非同期読み込みを実装</li>
+        </ul>
+    </div>
+
+    <div class="nav-links">
+        <a href="TMS-002_工数入力画面.html">← 前の画面：工数入力画面</a>
+        <a href="TMS-004_工数承認画面.html">次の画面：工数承認画面 →</a>
+    </div>
+
+    <footer>
+        <p>SES業務システム 勤怠・工数管理 画面設計書 | 最終更新日: 2025年5月4日</p>
+    </footer>
+</body>
+</html>

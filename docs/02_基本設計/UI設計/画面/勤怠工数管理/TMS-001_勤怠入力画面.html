@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勤怠入力画面 | 勤怠・工数管理</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 30px;
+        }
+        h1 {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            margin-bottom: 30px;
+        }
+        .section {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .screen-info {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .screen-info div {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 10px;
+        }
+        .screen-info .label {
+            font-weight: bold;
+            color: #7f8c8d;
+            margin-right: 8px;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f5f5f5;
+            margin-bottom: 20px;
+        }
+        .wireframe p {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        a {
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+            color: #2980b9;
+        }
+        .notes {
+            background-color: #fff9e6;
+            border-left: 4px solid #f1c40f;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .notes h3 {
+            color: #f39c12;
+            margin-top: 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .req-label {
+            display: inline-block;
+            padding: 2px 6px;
+            margin-left: 5px;
+            font-size: 0.7em;
+            border-radius: 3px;
+            vertical-align: middle;
+        }
+        .required {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .optional {
+            background-color: #95a5a6;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>勤怠入力画面</h1>
+
+    <div class="section">
+        <h2>画面概要</h2>
+        <div class="screen-info">
+            <div><span class="label">画面ID:</span> TMS-001</div>
+            <div><span class="label">画面名:</span> 勤怠入力画面</div>
+            <div><span class="label">対象ユーザー:</span> 技術者</div>
+            <div><span class="label">前画面:</span> ダッシュボード、カレンダー画面</div>
+            <div><span class="label">次画面:</span> 工数入力画面（TMS-002）</div>
+        </div>
+        <p>
+            勤怠入力画面は、技術者が日々の勤務状況（出勤・退勤時間、休憩時間、勤務場所など）を記録するための画面です。
+            カレンダーUI上で日付を選択し、その日の勤怠情報を入力します。また、一定期間の勤怠状況をまとめて確認することも可能です。
+            この画面で入力されたデータは、勤怠管理および工数管理の基礎データとなります。
+        </p>
+    </div>
+
+    <div class="section">
+        <h2>画面レイアウト</h2>
+        <div class="wireframe">
+            <p>[勤怠入力画面のワイヤーフレーム表示位置]</p>
+            <p>カレンダー表示部分（月表示）、日次勤怠入力フォーム、勤怠サマリー表示部分から構成される画面</p>
+        </div>
+        <p>
+            画面は主に以下の3つのエリアで構成されます：
+        </p>
+        <ol>
+            <li><strong>ヘッダー部分</strong>：年月選択、月切替ボタン、勤怠状況サマリー表示</li>
+            <li><strong>カレンダー部分</strong>：月単位のカレンダー表示、日ごとの勤怠状況を色分け表示</li>
+            <li><strong>勤怠入力フォーム</strong>：選択した日付の詳細な勤怠情報を入力するフォーム</li>
+        </ol>
+    </div>
+
+    <div class="section">
+        <h2>画面項目定義</h2>
+        <h3>1. ヘッダー部分</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>項目ID</th>
+                    <th>項目名</th>
+                    <th>種類</th>
+                    <th>入力制限</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>H01</td>
+                    <td>年月選択</td>
+                    <td>ドロップダウン</td>
+                    <td>過去6ヶ月～将来1ヶ月</td>
+                    <td><span class="req-label required">必須</span></td>
+                    <td>表示する年月を選択</td>
+                </tr>
+                <tr>
+                    <td>H02</td>
+                    <td>前月ボタン</td>
+                    <td>ボタン</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>前月のカレンダーを表示</td>
+                </tr>
+                <tr>
+                    <td>H03</td>
+                    <td>翌月ボタン</td>
+                    <td>ボタン</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>翌月のカレンダーを表示</td>
+                </tr>
+                <tr>
+                    <td>H04</td>
+                    <td>当月サマリー</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>当月の出勤日数/予定日数、総労働時間、残業時間の表示</td>
+                </tr>
+                <tr>
+                    <td>H05</td>
+                    <td>月次勤怠提出ボタン</td>
+                    <td>ボタン</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>当月の勤怠データを提出する</td>
+                </tr>
+                <tr>
+                    <td>H06</td>
+                    <td>ステータス表示</td>
+                    <td>アイコン+テキスト</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>月次勤怠データの状態（作成中/提出済/承認済など）</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>2. カレンダー部分</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>項目ID</th>
+                    <th>項目名</th>
+                    <th>種類</th>
+                    <th>入力制限</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>C01</td>
+                    <td>曜日ヘッダー</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>日～土の曜日表示</td>
+                </tr>
+                <tr>
+                    <td>C02</td>
+                    <td>日付セル</td>
+                    <td>クリック可能要素</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>各日付を表示、クリックで詳細入力</td>
+                </tr>
+                <tr>
+                    <td>C03</td>
+                    <td>勤怠状況アイコン</td>
+                    <td>アイコン表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>出勤/休暇/欠勤などの状況をアイコンで表示</td>
+                </tr>
+                <tr>
+                    <td>C04</td>
+                    <td>勤務時間表示</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>各日の労働時間を簡易表示</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <h3>3. 勤怠入力フォーム</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>項目ID</th>
+                    <th>項目名</th>
+                    <th>種類</th>
+                    <th>入力制限</th>
+                    <th>必須</th>
+                    <th>説明</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>F01</td>
+                    <td>日付表示</td>
+                    <td>テキスト表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>選択された日付と曜日を表示</td>
+                </tr>
+                <tr>
+                    <td>F02</td>
+                    <td>勤怠区分</td>
+                    <td>ラジオボタン</td>
+                    <td>出勤/欠勤/有給休暇/半休/特別休暇/リモート勤務</td>
+                    <td><span class="req-label required">必須</span></td>
+                    <td>勤怠の種類を選択</td>
+                </tr>
+                <tr>
+                    <td>F03</td>
+                    <td>開始時間</td>
+                    <td>時刻入力</td>
+                    <td>HH:MM形式</td>
+                    <td><span class="req-label optional">任意</span></td>
+                    <td>勤務開始時刻（勤怠区分が出勤/リモート勤務の場合に表示）</td>
+                </tr>
+                <tr>
+                    <td>F04</td>
+                    <td>終了時間</td>
+                    <td>時刻入力</td>
+                    <td>HH:MM形式</td>
+                    <td><span class="req-label optional">任意</span></td>
+                    <td>勤務終了時刻（勤怠区分が出勤/リモート勤務の場合に表示）</td>
+                </tr>
+                <tr>
+                    <td>F05</td>
+                    <td>休憩時間</td>
+                    <td>数値入力</td>
+                    <td>0.0～9.9時間、0.1単位</td>
+                    <td><span class="req-label required">必須</span></td>
+                    <td>休憩した時間の合計（勤怠区分が出勤/リモート勤務の場合に表示）</td>
+                </tr>
+                <tr>
+                    <td>F06</td>
+                    <td>勤務場所区分</td>
+                    <td>セレクトボックス</td>
+                    <td>客先/社内/リモート/その他</td>
+                    <td><span class="req-label required">必須</span></td>
+                    <td>勤務を行った場所の種類（勤怠区分が出勤/リモート勤務の場合に表示）</td>
+                </tr>
+                <tr>
+                    <td>F07</td>
+                    <td>勤務場所詳細</td>
+                    <td>テキスト入力</td>
+                    <td>100文字以内</td>
+                    <td><span class="req-label optional">任意</span></td>
+                    <td>勤務場所の具体的な名称や住所（勤怠区分が出勤の場合に表示）</td>
+                </tr>
+                <tr>
+                    <td>F08</td>
+                    <td>実働時間</td>
+                    <td>計算表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>開始時間～終了時間から休憩時間を引いた時間（自動計算）</td>
+                </tr>
+                <tr>
+                    <td>F09</td>
+                    <td>残業時間</td>
+                    <td>計算表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>実働時間から規定労働時間を引いた時間（自動計算）</td>
+                </tr>
+                <tr>
+                    <td>F10</td>
+                    <td>深夜勤務時間</td>
+                    <td>計算表示</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>22:00～翌5:00の間に働いた時間（自動計算）</td>
+                </tr>
+                <tr>
+                    <td>F11</td>
+                    <td>備考</td>
+                    <td>テキストエリア</td>
+                    <td>200文字以内</td>
+                    <td><span class="req-label optional">任意</span></td>
+                    <td>勤怠に関する特記事項</td>
+                </tr>
+                <tr>
+                    <td>F12</td>
+                    <td>保存ボタン</td>
+                    <td>ボタン</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>入力内容を保存する</td>
+                </tr>
+                <tr>
+                    <td>F13</td>
+                    <td>工数入力へボタン</td>
+                    <td>ボタン</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>該当日の工数入力画面へ遷移</td>
+                </tr>
+                <tr>
+                    <td>F14</td>
+                    <td>キャンセルボタン</td>
+                    <td>ボタン</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>入力内容をリセットする</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>画面動作仕様</h2>
+
+        <h3>1. 初期表示</h3>
+        <ul>
+            <li>初期表示時は現在の年月のカレンダーを表示</li>
+            <li>既に勤怠データが入力されている日付は、カレンダー上でステータスに応じた色分け表示</li>
+            <li>休日・祝日は背景色を変えて表示（休日：薄い赤、祝日：薄いオレンジなど）</li>
+            <li>勤怠入力フォームは非表示</li>
+        </ul>
+
+        <h3>2. 日付選択時</h3>
+        <ul>
+            <li>カレンダー上の日付をクリックすると、その日付が選択状態になり、下部に勤怠入力フォームを表示</li>
+            <li>既に入力済みのデータがある場合は、それをフォームに読み込む</li>
+            <li>選択された日付が休日・祝日の場合は、その旨を表示</li>
+            <li>選択された日が未来の日付の場合、入力可能だが、「未来の勤怠データを入力しています」という警告を表示</li>
+        </ul>
+
+        <h3>3. 勤怠区分変更時</h3>
+        <ul>
+            <li>「出勤」または「リモート勤務」を選択した場合：開始時間、終了時間、休憩時間、勤務場所区分の入力欄を有効化</li>
+            <li>「欠勤」「有給休暇」「特別休暇」を選択した場合：開始・終了時間等の入力欄を無効化し、日当たりの規定時間を自動入力</li>
+            <li>「半休」を選択した場合：半日分の規定時間を自動入力し、午前/午後の選択肢を表示</li>
+        </ul>
+
+        <h3>4. 時間入力時</h3>
+        <ul>
+            <li>開始時間と終了時間が入力されると、休憩時間を考慮して実働時間を自動計算</li>
+            <li>実働時間が規定時間（例：8時間）を超える場合、超過分を残業時間として自動計算</li>
+            <li>22:00～翌5:00の間に働いた時間がある場合、その時間を深夜勤務時間として自動計算</li>
+            <li>実働時間が異常に長い場合（例：16時間以上）、警告メッセージを表示</li>
+        </ul>
+
+        <h3>5. 保存時</h3>
+        <ul>
+            <li>必須項目が未入力の場合、エラーメッセージを表示して保存を中止</li>
+            <li>入力内容に問題がなければ、データを保存し、成功メッセージを表示</li>
+            <li>保存後、カレンダー表示を更新して、入力済み日付の表示を変更</li>
+            <li>月次サマリー情報も更新</li>
+        </ul>
+
+        <h3>6. 月次勤怠提出時</h3>
+        <ul>
+            <li>月次勤怠提出ボタンをクリックすると、確認ダイアログを表示</li>
+            <li>確認後、月次勤怠データのステータスを「提出済」に変更</li>
+            <li>提出後は、承認されるまで当月のデータ編集を制限（編集には特別権限が必要）</li>
+        </ul>
+    </div>
+
+    <div class="notes">
+        <h3>特記事項・注意点</h3>
+        <ul>
+            <li>勤怠データは日付ごとに保存され、月単位で集計・管理される</li>
+            <li>過去の承認済みデータは原則として編集不可（修正が必要な場合は管理者による操作が必要）</li>
+            <li>工数入力へボタンで、当日の工数入力画面に遷移する際、勤怠情報が先に保存されていることが前提</li>
+            <li>リマインダー機能により、未入力の勤怠データがある場合、ログイン時に通知</li>
+            <li>モバイル対応により、スマートフォンからの入力も可能</li>
+            <li>プロジェクト別の勤務設定（標準勤務時間など）に応じて、残業時間の計算ルールが変わる場合がある</li>
+        </ul>
+    </div>
+
+    <div class="nav-links">
+        <a href="../../勤怠工数管理画面設計.html">← 勤怠・工数管理画面一覧へ</a>
+        <a href="TMS-002_工数入力画面.html">次の画面：工数入力画面 →</a>
+    </div>
+
+    <footer>
+        <p>SES業務システム 勤怠・工数管理 画面設計書 | 最終更新日: 2025年5月4日</p>
+    </footer>
+</body>
+</html>

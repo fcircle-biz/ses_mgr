@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勤怠・工数管理 画面設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1, h2, h3, h4 {
+            color: #2c3e50;
+            margin-top: 30px;
+        }
+        h1 {
+            text-align: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            margin-bottom: 30px;
+        }
+        .screen-section {
+            background-color: white;
+            border-radius: 5px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .screen-info {
+            display: flex;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .screen-info div {
+            margin-right: 30px;
+            margin-bottom: 10px;
+        }
+        .screen-info .label {
+            font-weight: bold;
+            color: #7f8c8d;
+            margin-right: 8px;
+        }
+        .screen-list {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .screen-list li {
+            margin-bottom: 12px;
+            border-left: 4px solid #3498db;
+            padding-left: 15px;
+            transition: all 0.3s ease;
+        }
+        .screen-list li:hover {
+            background-color: #f5f9ff;
+            transform: translateX(5px);
+        }
+        .screen-id {
+            display: inline-block;
+            width: 100px;
+            font-family: monospace;
+            color: #2980b9;
+        }
+        a {
+            text-decoration: none;
+            color: #3498db;
+            font-weight: bold;
+        }
+        a:hover {
+            text-decoration: underline;
+            color: #2980b9;
+        }
+        .description {
+            color: #555;
+            margin-top: 5px;
+        }
+        .nav-links {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .target-users {
+            background-color: #eaf7ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .target-users h3 {
+            margin-top: 0;
+            color: #3498db;
+        }
+        .target-users ul {
+            list-style-type: square;
+            padding-left: 20px;
+        }
+        .workflow-section {
+            margin: 30px 0;
+        }
+        .workflow-diagram {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f5f5f5;
+            margin-bottom: 20px;
+        }
+        .workflow-diagram p {
+            color: #7f8c8d;
+            font-style: italic;
+        }
+        .notes {
+            background-color: #fff9e6;
+            border-left: 4px solid #f1c40f;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .notes h3 {
+            color: #f39c12;
+            margin-top: 0;
+        }
+        .section-title {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .section-icon {
+            font-size: 24px;
+            margin-right: 10px;
+            color: #3498db;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>勤怠・工数管理システム 画面設計</h1>
+
+    <div class="target-users">
+        <h3>対象ユーザー</h3>
+        <ul>
+            <li><strong>技術者</strong>：日次の勤怠記録、工数入力を行うユーザー</li>
+            <li><strong>プロジェクトマネージャー</strong>：チームメンバーの勤怠・工数を確認・承認するユーザー</li>
+            <li><strong>管理者</strong>：全社の勤怠・工数データを管理・集計するユーザー</li>
+            <li><strong>経理担当者</strong>：請求・支払業務のために工数データを参照するユーザー</li>
+        </ul>
+    </div>
+
+    <div class="workflow-section">
+        <h2>業務フロー概要</h2>
+        <div class="workflow-diagram">
+            <p>技術者による勤怠入力 → 工数入力 → PMによる承認 → 集計・分析 → 請求・支払業務連携</p>
+        </div>
+        <p>勤怠・工数管理システムは、技術者の日々の勤務状況と案件ごとの作業工数を正確に記録・管理し、適切な承認フローを経て、請求・支払業務に必要なデータを提供します。また、集計・分析機能により、リソース配分の最適化やプロジェクト収益性の向上に貢献します。</p>
+    </div>
+
+    <div class="screen-section">
+        <div class="section-title">
+            <span class="section-icon">📱</span>
+            <h2>画面一覧</h2>
+        </div>
+        <ul class="screen-list">
+            <li>
+                <span class="screen-id">TMS-001</span>
+                <a href="画面/勤怠工数管理/TMS-001_勤怠入力画面.html">勤怠入力画面</a>
+                <div class="description">日次の勤務開始・終了時間、休憩時間、勤務場所などを入力する画面</div>
+            </li>
+            <li>
+                <span class="screen-id">TMS-002</span>
+                <a href="画面/勤怠工数管理/TMS-002_工数入力画面.html">工数入力画面</a>
+                <div class="description">案件・タスクごとの作業時間を記録する画面</div>
+            </li>
+            <li>
+                <span class="screen-id">TMS-003</span>
+                <a href="画面/勤怠工数管理/TMS-003_勤怠管理画面.html">勤怠管理画面</a>
+                <div class="description">管理者・PMが部下やチームメンバーの勤怠状況を確認・管理する画面</div>
+            </li>
+            <li>
+                <span class="screen-id">TMS-004</span>
+                <a href="画面/勤怠工数管理/TMS-004_工数承認画面.html">工数承認画面</a>
+                <div class="description">提出された工数データを確認・承認する画面</div>
+            </li>
+            <li>
+                <span class="screen-id">TMS-005</span>
+                <a href="画面/勤怠工数管理/TMS-005_勤怠集計画面.html">勤怠集計画面</a>
+                <div class="description">個人・部門・全社レベルでの勤怠データを集計・分析する画面</div>
+            </li>
+            <li>
+                <span class="screen-id">TMS-006</span>
+                <a href="画面/勤怠工数管理/TMS-006_工数集計画面.html">工数集計画面</a>
+                <div class="description">案件・プロジェクト・タスク種別などの軸で工数データを集計・分析する画面</div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="notes">
+        <h3>実装上の注意点</h3>
+        <ul>
+            <li>勤怠データと工数データの整合性を常に確保すること（工数の合計は実働時間を超えない）</li>
+            <li>カレンダーと連携し、祝日・休日を自動的に判定すること</li>
+            <li>月次データの締め日・承認期限を設定可能にすること</li>
+            <li>承認フローは組織構造やプロジェクト体制に合わせて柔軟に設定できること</li>
+            <li>請求・支払システムとの連携を考慮したデータ出力機能を実装すること</li>
+            <li>モバイル対応により、外出先からの勤怠入力を可能にすること</li>
+        </ul>
+    </div>
+
+    <div class="nav-links">
+        <a href="../共通画面設計.html">← 共通画面設計へ戻る</a>
+        <a href="../../index.html">ドキュメント一覧へ戻る</a>
+        <a href="../請求支払画面設計.html">請求・支払画面設計へ →</a>
+    </div>
+
+    <footer>
+        <p>SES業務システム 勤怠・工数管理 画面設計書 | 最終更新日: 2025年5月4日</p>
+    </footer>
+</body>
+</html>
