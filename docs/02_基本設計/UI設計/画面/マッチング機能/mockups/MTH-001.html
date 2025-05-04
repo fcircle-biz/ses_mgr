@@ -12,10 +12,68 @@
         body {
             background-color: #f8f9fa;
         }
-        .system-header {
-            margin-bottom: 30px;
-            border-bottom: 1px solid #e5e5e5;
+        .navbar-brand {
+            font-weight: 600;
         }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        .badge-draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .badge-proposal {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .badge-active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .badge-contracted {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .badge-completed {
+            background-color: #d3d3d3;
+            color: #444;
+        }
+        .badge-cancelled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* マッチング検索画面のカスタムスタイル */
         .search-panel {
             background-color: #f8f9fa;
             border-radius: 8px;
@@ -178,104 +236,216 @@
             font-size: 0.7rem;
             color: #6c757d;
         }
+        .saved-search-card {
+            transition: all 0.2s ease;
+        }
+        .saved-search-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="system-header d-flex justify-content-between align-items-center pb-3 mb-4">
-            <h1 class="fs-4">SES業務システム</h1>
-            <div class="d-flex align-items-center">
-                <div class="dropdown me-3">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bell"></i>
-                        <span class="badge bg-danger">3</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
-                        <li><a class="dropdown-item" href="#">未読通知 (3)</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">新しい案件が登録されました</a></li>
-                        <li><a class="dropdown-item" href="#">スキルシート更新依頼があります</a></li>
-                        <li><a class="dropdown-item" href="#">マッチング候補が見つかりました</a></li>
-                    </ul>
-                </div>
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        営業 太郎 様
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="#">プロフィール</a></li>
-                        <li><a class="dropdown-item" href="#">設定</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">ログアウト</a></li>
-                    </ul>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                            <li><a class="dropdown-item" href="#">案件検索</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">技術者登録</a></li>
+                            <li><a class="dropdown-item" href="#">スキルシート管理</a></li>
+                            <li><a class="dropdown-item" href="#">稼働状況管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            マッチング
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item active" href="#">マッチング検索</a></li>
+                            <li><a class="dropdown-item" href="#">提案管理</a></li>
+                            <li><a class="dropdown-item" href="#">提案書作成</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">勤怠工数管理</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">請求支払管理</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown me-3">
+                        <a href="#" class="btn btn-outline-secondary position-relative" id="notificationDropdown" data-bs-toggle="dropdown">
+                            <i class="bi bi-bell"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                3
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                            <li><a class="dropdown-item fw-bold" href="#">未読通知 (3)</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">新しい案件が登録されました</a></li>
+                            <li><a class="dropdown-item" href="#">スキルシート更新依頼があります</a></li>
+                            <li><a class="dropdown-item" href="#">マッチング候補が見つかりました</a></li>
+                        </ul>
+                    </div>
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">営</div>
+                            <span>営業 太郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-        </header>
-        
-        <div class="row mb-4">
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">マッチング</a></li>
+                <li class="breadcrumb-item active" aria-current="page">マッチング検索</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">マッチング検索</h2>
+            <div>
+                <button class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-arrow-left me-1"></i>ダッシュボードに戻る
+                </button>
+                <button class="btn btn-outline-primary me-2">
+                    <i class="bi bi-floppy me-1"></i>検索条件を保存
+                </button>
+                <button class="btn btn-primary">
+                    <i class="bi bi-search me-1"></i>検索実行
+                </button>
+            </div>
+        </div>
+
+        <!-- メインコンテンツエリア -->
+        <div class="row">
+            <!-- サイドバー（保存済み検索条件など） -->
             <div class="col-md-3">
-                <div class="list-group mb-4">
-                    <a href="#" class="list-group-item list-group-item-action">ダッシュボード</a>
-                    <a href="#" class="list-group-item list-group-item-action">案件管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">技術者管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">契約管理</a>
-                    <a href="#" class="list-group-item list-group-item-action active">マッチング</a>
-                    <a href="#" class="list-group-item list-group-item-action">勤怠工数管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">請求支払管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">レポーティング</a>
-                    <a href="#" class="list-group-item list-group-item-action">システム管理</a>
-                </div>
-                
                 <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h2 class="fs-5 mb-0">マッチング機能</h2>
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">保存済み検索条件</h5>
                     </div>
-                    <div class="list-group list-group-flush">
-                        <a href="#" class="list-group-item list-group-item-action active">
-                            <i class="bi bi-search me-2"></i> マッチング検索
-                        </a>
-                        <a href="#" class="list-group-item list-group-item-action">
-                            <i class="bi bi-list-check me-2"></i> 提案管理
-                        </a>
-                        <a href="#" class="list-group-item list-group-item-action">
-                            <i class="bi bi-file-earmark-text me-2"></i> 提案書作成
-                        </a>
-                        <a href="#" class="list-group-item list-group-item-action">
-                            <i class="bi bi-graph-up me-2"></i> マッチング統計
-                        </a>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <a href="#" class="list-group-item list-group-item-action p-3 saved-search-card">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">フロントエンド案件</h6>
+                                        <p class="text-muted small mb-0">案件起点 / 最終使用: 3日前</p>
+                                    </div>
+                                    <i class="bi bi-arrow-right-circle text-primary"></i>
+                                </div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action p-3 saved-search-card">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">待機中Java技術者</h6>
+                                        <p class="text-muted small mb-0">技術者起点 / 最終使用: 1週間前</p>
+                                    </div>
+                                    <i class="bi bi-arrow-right-circle text-primary"></i>
+                                </div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action p-3 saved-search-card">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">AWS案件</h6>
+                                        <p class="text-muted small mb-0">案件起点 / 最終使用: 2週間前</p>
+                                    </div>
+                                    <i class="bi bi-arrow-right-circle text-primary"></i>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <button class="btn btn-sm btn-outline-primary w-100">
+                            <i class="bi bi-folder me-1"></i>全ての保存条件を表示
+                        </button>
                     </div>
                 </div>
-                
+
                 <div class="card">
                     <div class="card-header">
-                        <h2 class="fs-5 mb-0">保存済み検索条件</h2>
+                        <h5 class="card-title mb-0">最近の検索履歴</h5>
                     </div>
-                    <div class="list-group list-group-flush">
-                        <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            <div>
-                                <div>フロントエンド案件</div>
-                                <small class="text-muted">案件起点 / 最終使用: 3日前</small>
-                            </div>
-                            <i class="bi bi-arrow-right-circle"></i>
-                        </a>
-                        <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            <div>
-                                <div>待機中Java技術者</div>
-                                <small class="text-muted">技術者起点 / 最終使用: 1週間前</small>
-                            </div>
-                            <i class="bi bi-arrow-right-circle"></i>
-                        </a>
-                        <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                            <div>
-                                <div>AWS案件</div>
-                                <small class="text-muted">案件起点 / 最終使用: 2週間前</small>
-                            </div>
-                            <i class="bi bi-arrow-right-circle"></i>
-                        </a>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <a href="#" class="list-group-item list-group-item-action p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">React + TypeScript</h6>
+                                        <p class="text-muted small mb-0">5時間前</p>
+                                    </div>
+                                    <i class="bi bi-clock-history text-secondary"></i>
+                                </div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">待機中PM</h6>
+                                        <p class="text-muted small mb-0">昨日</p>
+                                    </div>
+                                    <i class="bi bi-clock-history text-secondary"></i>
+                                </div>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="mb-1">インフラエンジニア</h6>
+                                        <p class="text-muted small mb-0">3日前</p>
+                                    </div>
+                                    <i class="bi bi-clock-history text-secondary"></i>
+                                </div>
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
-            
+
+            <!-- メインコンテンツ（検索条件と結果） -->
             <div class="col-md-9">
                 <div class="card mb-4">
                     <div class="card-header bg-white">
@@ -754,9 +924,12 @@
             </div>
         </div>
     </div>
-    
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    
+    <!-- カスタムJavaScript -->
     <script>
         // マッチングアルゴリズムの選択処理
         document.addEventListener('DOMContentLoaded', function() {

@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム - レポート作成</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome (for extra icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        /* ステータスバッジのスタイル */
+        .badge-draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .badge-proposal {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .badge-active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .badge-contracted {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .badge-completed {
+            background-color: #d3d3d3;
+            color: #444;
+        }
+        .badge-cancelled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* レポート作成用カスタムスタイル */
+        .report-builder {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .available-fields {
+            min-height: 200px;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            background-color: #fff;
+        }
+        .selected-fields {
+            min-height: 200px;
+            border: 1px solid #20c997;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            background-color: #f8fffc;
+        }
+        .field-item {
+            padding: 6px 12px;
+            margin-bottom: 4px;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            cursor: grab;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .field-item:hover {
+            background-color: #e9ecef;
+        }
+        .field-item .field-controls {
+            opacity: 0.5;
+        }
+        .field-item:hover .field-controls {
+            opacity: 1;
+        }
+        .field-item.selected-field {
+            background-color: #d1f0ea;
+            border-color: #20c997;
+        }
+        .filter-condition {
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-left: 3px solid #20c997;
+        }
+        .filter-row {
+            margin-bottom: 10px;
+        }
+        .preview-container {
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            background-color: #fff;
+            padding: 1rem;
+            min-height: 400px;
+            overflow: auto;
+        }
+        .graph-settings {
+            background-color: #f9f9ff;
+            border: 1px solid #e2e1ff;
+            border-radius: 0.25rem;
+            padding: 15px;
+        }
+        .schedule-settings {
+            background-color: #fff9f0;
+            border: 1px solid #ffe5c0;
+            border-radius: 0.25rem;
+            padding: 15px;
+        }
+        .template-item {
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            border-left: 3px solid #0d6efd;
+        }
+        .nav-wizard .nav-item {
+            position: relative;
+        }
+        .nav-wizard .nav-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: -10px;
+            transform: translateY(-50%);
+            width: 20px;
+            height: 1px;
+            background-color: #dee2e6;
+        }
+        .preview-toolbar {
+            padding: 8px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            レポーティング
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">KPIダッシュボード</a></li>
+                            <li><a class="dropdown-item" href="#">売上レポート</a></li>
+                            <li><a class="dropdown-item" href="#">粗利レポート</a></li>
+                            <li><a class="dropdown-item" href="#">稼働率レポート</a></li>
+                            <li><a class="dropdown-item" href="#">予測分析</a></li>
+                            <li><a class="dropdown-item active" href="#">レポート作成</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">YT</div>
+                            <span>山田太郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">レポーティング</a></li>
+                <li class="breadcrumb-item active" aria-current="page">レポート作成</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">レポート作成</h2>
+            <div>
+                <button id="previewBtn" class="btn btn-outline-success me-2">
+                    <i class="bi bi-eye me-1"></i> プレビュー
+                </button>
+                <button id="generateBtn" class="btn btn-success">
+                    <i class="bi bi-file-earmark-check me-1"></i> レポート生成
+                </button>
+            </div>
+        </div>
+        
+        <!-- レポート作成ウィザード -->
+        <ul class="nav nav-tabs nav-wizard mb-4">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#basicTab">
+                    <i class="bi bi-1-circle me-1"></i> 基本設定
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#dataTab">
+                    <i class="bi bi-2-circle me-1"></i> データソース
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#layoutTab">
+                    <i class="bi bi-3-circle me-1"></i> レイアウト
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#outputTab">
+                    <i class="bi bi-4-circle me-1"></i> 出力設定
+                </a>
+            </li>
+        </ul>
+
+        <!-- レポート作成タブコンテンツ -->
+        <div class="tab-content">
+            <!-- 基本設定タブ -->
+            <div class="tab-pane fade show active" id="basicTab">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">レポートの基本情報</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="reportType" class="form-label">レポートタイプ</label>
+                                <select id="reportType" class="form-select">
+                                    <option value="blank" selected>空白から作成</option>
+                                    <option value="template">テンプレート使用</option>
+                                    <option value="saved">保存済みレポート</option>
+                                </select>
+                            </div>
+                            <div class="col-md-8 d-none" id="templateSelectDiv">
+                                <label for="templateSelect" class="form-label">テンプレート選択</label>
+                                <select id="templateSelect" class="form-select">
+                                    <option value="">-- テンプレートを選択 --</option>
+                                    <option value="template1">月次売上レポート</option>
+                                    <option value="template2">四半期粗利レポート</option>
+                                    <option value="template3">技術者稼働状況レポート</option>
+                                    <option value="template4">案件状況サマリー</option>
+                                </select>
+                            </div>
+                            <div class="col-md-8 d-none" id="savedReportDiv">
+                                <label for="savedReportSelect" class="form-label">保存済みレポート選択</label>
+                                <select id="savedReportSelect" class="form-select">
+                                    <option value="">-- 保存済みレポートを選択 --</option>
+                                    <option value="report1">2025年4月売上レポート</option>
+                                    <option value="report2">技術部A売上推移（2025年Q1）</option>
+                                    <option value="report3">顧客別売上構成比（2025年）</option>
+                                    <option value="report4">技術者別稼働状況（2025年5月）</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <label for="reportName" class="form-label">レポート名 <span class="text-danger">*</span></label>
+                                <input type="text" id="reportName" class="form-control" placeholder="例: 2025年5月 部門別売上レポート" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="reportCreator" class="form-label">作成者</label>
+                                <input type="text" id="reportCreator" class="form-control" value="山田太郎" readonly>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="reportDescription" class="form-label">レポート説明</label>
+                            <textarea id="reportDescription" class="form-control" rows="3" placeholder="レポートの目的や用途、注意点などを記載してください"></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary">
+                        <i class="bi bi-arrow-clockwise me-1"></i> クリア
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="document.querySelector('[href=\'#dataTab\']').click()">
+                        次へ <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- データソースタブ -->
+            <div class="tab-pane fade" id="dataTab">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">データソース設定</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-4 mb-3">
+                                <label for="dataCategory" class="form-label">データカテゴリ <span class="text-danger">*</span></label>
+                                <select id="dataCategory" class="form-select" required>
+                                    <option value="">-- カテゴリを選択 --</option>
+                                    <option value="sales" selected>売上</option>
+                                    <option value="profit">粗利</option>
+                                    <option value="utilization">稼働率</option>
+                                    <option value="projects">案件</option>
+                                    <option value="engineers">技術者</option>
+                                    <option value="customers">顧客</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="periodType" class="form-label">対象期間タイプ <span class="text-danger">*</span></label>
+                                <select id="periodType" class="form-select" required>
+                                    <option value="fixed">固定期間</option>
+                                    <option value="relative" selected>相対期間</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3 d-none" id="fixedPeriodDiv">
+                                <div class="row">
+                                    <div class="col">
+                                        <label for="startDate" class="form-label">開始日</label>
+                                        <input type="date" id="startDate" class="form-control">
+                                    </div>
+                                    <div class="col">
+                                        <label for="endDate" class="form-label">終了日</label>
+                                        <input type="date" id="endDate" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3" id="relativePeriodDiv">
+                                <label for="relativePeriod" class="form-label">相対期間</label>
+                                <select id="relativePeriod" class="form-select">
+                                    <option value="current_month" selected>当月</option>
+                                    <option value="last_month">先月</option>
+                                    <option value="last_3months">過去3ヶ月</option>
+                                    <option value="last_6months">過去6ヶ月</option>
+                                    <option value="current_quarter">当四半期</option>
+                                    <option value="current_year">当年</option>
+                                    <option value="last_year">前年</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-4 mb-3">
+                                <label for="aggregationUnit" class="form-label">集計単位 <span class="text-danger">*</span></label>
+                                <select id="aggregationUnit" class="form-select" required>
+                                    <option value="daily">日次</option>
+                                    <option value="weekly">週次</option>
+                                    <option value="monthly" selected>月次</option>
+                                    <option value="quarterly">四半期</option>
+                                    <option value="yearly">年次</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="departmentSelect" class="form-label">部門</label>
+                                <select id="departmentSelect" class="form-select" multiple>
+                                    <option value="all" selected>全部門</option>
+                                    <option value="techA">技術部A</option>
+                                    <option value="techB">技術部B</option>
+                                    <option value="techC">技術部C</option>
+                                    <option value="consul">コンサルティング部</option>
+                                </select>
+                                <div class="form-text">複数選択可（Ctrlキーを押しながら選択）</div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="customerSelect" class="form-label">顧客</label>
+                                <select id="customerSelect" class="form-select" multiple>
+                                    <option value="all" selected>全顧客</option>
+                                    <option value="A">A社</option>
+                                    <option value="B">B社</option>
+                                    <option value="C">C社</option>
+                                    <option value="D">D社</option>
+                                    <option value="other">その他</option>
+                                </select>
+                                <div class="form-text">複数選択可（Ctrlキーを押しながら選択）</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">追加フィルター条件</label>
+                            <div id="filterConditionsContainer">
+                                <div class="filter-condition">
+                                    <div class="row filter-row">
+                                        <div class="col-md-4">
+                                            <select class="form-select filter-field">
+                                                <option value="project_status">案件ステータス</option>
+                                                <option value="contract_type">契約タイプ</option>
+                                                <option value="unit_price">単価</option>
+                                                <option value="skill">保有スキル</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <select class="form-select filter-operator">
+                                                <option value="eq">等しい</option>
+                                                <option value="neq">等しくない</option>
+                                                <option value="gt">より大きい</option>
+                                                <option value="lt">より小さい</option>
+                                                <option value="contains">含む</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="text" class="form-control filter-value" placeholder="値">
+                                        </div>
+                                        <div class="col-md-1">
+                                            <button type="button" class="btn btn-outline-danger btn-sm remove-filter">
+                                                <i class="bi bi-x"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-2">
+                                <button type="button" class="btn btn-outline-success btn-sm" id="addFilterBtn">
+                                    <i class="bi bi-plus-circle me-1"></i> フィルター追加
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" onclick="document.querySelector('[href=\'#basicTab\']').click()">
+                        <i class="bi bi-arrow-left"></i> 戻る
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="document.querySelector('[href=\'#layoutTab\']').click()">
+                        次へ <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- レイアウトタブ -->
+            <div class="tab-pane fade" id="layoutTab">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">レポート構成設定</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <h6>利用可能な項目</h6>
+                                <div class="available-fields">
+                                    <div class="field-item" draggable="true">
+                                        <span>年月</span>
+                                        <div class="field-controls">
+                                            <button class="btn btn-sm btn-link p-0 text-success"><i class="bi bi-plus-circle"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="field-item" draggable="true">
+                                        <span>部門</span>
+                                        <div class="field-controls">
+                                            <button class="btn btn-sm btn-link p-0 text-success"><i class="bi bi-plus-circle"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="field-item" draggable="true">
+                                        <span>顧客</span>
+                                        <div class="field-controls">
+                                            <button class="btn btn-sm btn-link p-0 text-success"><i class="bi bi-plus-circle"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="field-item" draggable="true">
+                                        <span>案件名</span>
+                                        <div class="field-controls">
+                                            <button class="btn btn-sm btn-link p-0 text-success"><i class="bi bi-plus-circle"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="field-item" draggable="true">
+                                        <span>売上</span>
+                                        <div class="field-controls">
+                                            <button class="btn btn-sm btn-link p-0 text-success"><i class="bi bi-plus-circle"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="field-item" draggable="true">
+                                        <span>コスト</span>
+                                        <div class="field-controls">
+                                            <button class="btn btn-sm btn-link p-0 text-success"><i class="bi bi-plus-circle"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="field-item" draggable="true">
+                                        <span>粗利</span>
+                                        <div class="field-controls">
+                                            <button class="btn btn-sm btn-link p-0 text-success"><i class="bi bi-plus-circle"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="field-item" draggable="true">
+                                        <span>粗利率</span>
+                                        <div class="field-controls">
+                                            <button class="btn btn-sm btn-link p-0 text-success"><i class="bi bi-plus-circle"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-7">
+                                <h6>選択された項目</h6>
+                                <div class="selected-fields">
+                                    <div class="field-item selected-field" draggable="true">
+                                        <span>年月</span>
+                                        <div class="field-controls">
+                                            <button class="btn btn-sm btn-link p-0 text-secondary me-2" title="項目設定"><i class="bi bi-gear"></i></button>
+                                            <button class="btn btn-sm btn-link p-0 text-danger" title="削除"><i class="bi bi-x-circle"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="field-item selected-field" draggable="true">
+                                        <span>部門</span>
+                                        <div class="field-controls">
+                                            <button class="btn btn-sm btn-link p-0 text-secondary me-2" title="項目設定"><i class="bi bi-gear"></i></button>
+                                            <button class="btn btn-sm btn-link p-0 text-danger" title="削除"><i class="bi bi-x-circle"></i></button>
+                                        </div>
+                                    </div>
+                                    <div class="field-item selected-field" draggable="true">
+                                        <span>売上</span>
+                                        <div class="field-controls">
+                                            <div class="badge bg-info me-2">合計</div>
+                                            <button class="btn btn-sm btn-link p-0 text-secondary me-2" title="項目設定"><i class="bi bi-gear"></i></button>
+                                            <button class="btn btn-sm btn-link p-0 text-danger" title="削除"><i class="bi bi-x-circle"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mt-4">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="groupByField" class="form-label">グループ化項目</label>
+                                            <select id="groupByField" class="form-select">
+                                                <option value="">グループ化なし</option>
+                                                <option value="year_month" selected>年月</option>
+                                                <option value="department">部門</option>
+                                                <option value="customer">顧客</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="sortField" class="form-label">ソート項目</label>
+                                            <div class="input-group">
+                                                <select id="sortField" class="form-select">
+                                                    <option value="year_month" selected>年月</option>
+                                                    <option value="department">部門</option>
+                                                    <option value="sales">売上</option>
+                                                </select>
+                                                <select class="form-select" style="max-width: 100px;">
+                                                    <option value="asc" selected>昇順</option>
+                                                    <option value="desc">降順</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="showSubtotal" checked>
+                                            <label class="form-check-label" for="showSubtotal">
+                                                グループごとの小計を表示
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="showYearOnYear" checked>
+                                            <label class="form-check-label" for="showYearOnYear">
+                                                前年同期比を表示
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="showGraph" checked>
+                                <label class="form-check-label" for="showGraph">
+                                    グラフを表示
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="graphSettingsContainer" class="graph-settings">
+                            <div class="row mb-3">
+                                <div class="col-md-4 mb-3">
+                                    <label for="graphType" class="form-label">グラフタイプ</label>
+                                    <select id="graphType" class="form-select">
+                                        <option value="bar" selected>棒グラフ</option>
+                                        <option value="line">折れ線グラフ</option>
+                                        <option value="pie">円グラフ</option>
+                                        <option value="combo">複合グラフ</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="xAxisField" class="form-label">X軸項目</label>
+                                    <select id="xAxisField" class="form-select">
+                                        <option value="year_month" selected>年月</option>
+                                        <option value="department">部門</option>
+                                        <option value="customer">顧客</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label for="yAxisField" class="form-label">Y軸項目</label>
+                                    <select id="yAxisField" class="form-select">
+                                        <option value="sales" selected>売上</option>
+                                        <option value="profit">粗利</option>
+                                        <option value="profit_rate">粗利率</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <div class="col-md-6 mb-3">
+                                    <label for="graphTitle" class="form-label">グラフタイトル</label>
+                                    <input type="text" id="graphTitle" class="form-control" value="部門別売上推移">
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="legendPosition" class="form-label">凡例位置</label>
+                                    <select id="legendPosition" class="form-select">
+                                        <option value="top">上</option>
+                                        <option value="right" selected>右</option>
+                                        <option value="bottom">下</option>
+                                        <option value="left">左</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3 mb-3">
+                                    <label for="graphPosition" class="form-label">グラフ位置</label>
+                                    <select id="graphPosition" class="form-select">
+                                        <option value="top" selected>先頭</option>
+                                        <option value="bottom">末尾</option>
+                                        <option value="after_table">テーブルの後</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="showLegend" checked>
+                                        <label class="form-check-label" for="showLegend">
+                                            凡例を表示
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="showDataLabels" checked>
+                                        <label class="form-check-label" for="showDataLabels">
+                                            データラベルを表示
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" onclick="document.querySelector('[href=\'#dataTab\']').click()">
+                        <i class="bi bi-arrow-left"></i> 戻る
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="document.querySelector('[href=\'#outputTab\']').click()">
+                        次へ <i class="bi bi-arrow-right"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 出力設定タブ -->
+            <div class="tab-pane fade" id="outputTab">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">出力設定</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label d-block">出力形式</label>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="formatPDF" checked>
+                                        <label class="form-check-label" for="formatPDF">PDF</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="formatExcel" checked>
+                                        <label class="form-check-label" for="formatExcel">Excel</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="formatCSV">
+                                        <label class="form-check-label" for="formatCSV">CSV</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="checkbox" id="formatHTML">
+                                        <label class="form-check-label" for="formatHTML">HTML</label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="timeZone" class="form-label">タイムゾーン</label>
+                                    <select id="timeZone" class="form-select">
+                                        <option value="system" selected>システム設定に従う (Asia/Tokyo)</option>
+                                        <option value="jst">日本時間 (JST/GMT+9)</option>
+                                        <option value="utc">世界標準時 (UTC)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="saveReport" checked>
+                                    <label class="form-check-label" for="saveReport">
+                                        このレポート設定を保存する
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="saveAsTemplate">
+                                    <label class="form-check-label" for="saveAsTemplate">
+                                        テンプレートとして保存する
+                                    </label>
+                                    <div class="form-text">管理者権限が必要です</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <div class="form-check form-switch mb-3">
+                                <input class="form-check-input" type="checkbox" id="scheduleExecution">
+                                <label class="form-check-label" for="scheduleExecution">
+                                    このレポートを定期的に自動実行する
+                                </label>
+                            </div>
+                            
+                            <div id="scheduleSettingsContainer" class="schedule-settings d-none">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="executionFrequency" class="form-label">実行頻度</label>
+                                        <select id="executionFrequency" class="form-select">
+                                            <option value="daily">日次</option>
+                                            <option value="weekly" selected>週次</option>
+                                            <option value="monthly">月次</option>
+                                            <option value="quarterly">四半期</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="executionDay" class="form-label">実行日</label>
+                                        <select id="executionDay" class="form-select">
+                                            <option value="monday" selected>月曜日</option>
+                                            <option value="tuesday">火曜日</option>
+                                            <option value="wednesday">水曜日</option>
+                                            <option value="thursday">木曜日</option>
+                                            <option value="friday">金曜日</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="executionTime" class="form-label">実行時刻</label>
+                                        <input type="time" id="executionTime" class="form-control" value="07:00">
+                                    </div>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="emailReport">
+                                    <label class="form-check-label" for="emailReport">
+                                        レポートをメールで送信する
+                                    </label>
+                                </div>
+                                <div class="mb-3 d-none" id="emailRecipientsDiv">
+                                    <label for="emailRecipients" class="form-label">送信先（カンマ区切りで複数指定可）</label>
+                                    <textarea id="emailRecipients" class="form-control" rows="2" placeholder="例: yamada@example.com, tanaka@example.com"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle-fill me-2"></i>
+                            このレポートの出力結果は「レポートライブラリ」に保存され、あとから閲覧することができます。
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between">
+                    <button type="button" class="btn btn-outline-secondary" onclick="document.querySelector('[href=\'#layoutTab\']').click()">
+                        <i class="bi bi-arrow-left"></i> 戻る
+                    </button>
+                    <div>
+                        <button type="button" class="btn btn-outline-success me-2" id="previewBtnBottom">
+                            <i class="bi bi-eye me-1"></i> プレビュー
+                        </button>
+                        <button type="button" class="btn btn-success" id="generateBtnBottom">
+                            <i class="bi bi-file-earmark-check me-1"></i> レポート生成
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- レポートプレビューエリア（初期状態では非表示） -->
+        <div class="card d-none" id="previewArea">
+            <div class="preview-toolbar">
+                <div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-2">
+                        <i class="bi bi-download"></i> ダウンロード
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-2">
+                        <i class="bi bi-printer"></i> 印刷
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-share"></i> 共有
+                    </button>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-2">
+                        <i class="bi bi-zoom-in"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary me-2">
+                        <i class="bi bi-zoom-out"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="closePreviewBtn">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="preview-container">
+                <div class="text-center p-5">
+                    <div class="spinner-border text-success mb-3" role="status">
+                        <span class="visually-hidden">プレビュー生成中...</span>
+                    </div>
+                    <p>レポートプレビューを生成中です...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    
+    <!-- カスタムJavaScript -->
+    <script>
+        // レポートタイプの変更時の表示切替
+        document.getElementById('reportType').addEventListener('change', function() {
+            const templateSelectDiv = document.getElementById('templateSelectDiv');
+            const savedReportDiv = document.getElementById('savedReportDiv');
+            
+            templateSelectDiv.classList.add('d-none');
+            savedReportDiv.classList.add('d-none');
+            
+            if (this.value === 'template') {
+                templateSelectDiv.classList.remove('d-none');
+            } else if (this.value === 'saved') {
+                savedReportDiv.classList.remove('d-none');
+            }
+        });
+
+        // 期間タイプの変更時の表示切替
+        document.getElementById('periodType').addEventListener('change', function() {
+            const fixedPeriodDiv = document.getElementById('fixedPeriodDiv');
+            const relativePeriodDiv = document.getElementById('relativePeriodDiv');
+            
+            if (this.value === 'fixed') {
+                fixedPeriodDiv.classList.remove('d-none');
+                relativePeriodDiv.classList.add('d-none');
+            } else {
+                fixedPeriodDiv.classList.add('d-none');
+                relativePeriodDiv.classList.remove('d-none');
+            }
+        });
+
+        // フィルター追加ボタンのクリックイベント
+        document.getElementById('addFilterBtn').addEventListener('click', function() {
+            const filterContainer = document.getElementById('filterConditionsContainer');
+            const newFilter = document.createElement('div');
+            newFilter.className = 'filter-condition';
+            newFilter.innerHTML = `
+                <div class="row filter-row">
+                    <div class="col-md-4">
+                        <select class="form-select filter-field">
+                            <option value="project_status">案件ステータス</option>
+                            <option value="contract_type">契約タイプ</option>
+                            <option value="unit_price">単価</option>
+                            <option value="skill">保有スキル</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select filter-operator">
+                            <option value="eq">等しい</option>
+                            <option value="neq">等しくない</option>
+                            <option value="gt">より大きい</option>
+                            <option value="lt">より小さい</option>
+                            <option value="contains">含む</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <input type="text" class="form-control filter-value" placeholder="値">
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-outline-danger btn-sm remove-filter">
+                            <i class="bi bi-x"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            filterContainer.appendChild(newFilter);
+            
+            // フィルター削除ボタンのイベントリスナーを追加
+            newFilter.querySelector('.remove-filter').addEventListener('click', function() {
+                filterContainer.removeChild(newFilter);
+            });
+        });
+
+        // 既存のフィルター削除ボタンのイベントリスナーを追加
+        document.querySelectorAll('.remove-filter').forEach(button => {
+            button.addEventListener('click', function() {
+                const filterCondition = this.closest('.filter-condition');
+                filterCondition.parentNode.removeChild(filterCondition);
+            });
+        });
+
+        // グラフ表示切替のイベントリスナー
+        document.getElementById('showGraph').addEventListener('change', function() {
+            const graphSettingsContainer = document.getElementById('graphSettingsContainer');
+            if (this.checked) {
+                graphSettingsContainer.classList.remove('d-none');
+            } else {
+                graphSettingsContainer.classList.add('d-none');
+            }
+        });
+
+        // スケジュール実行切替のイベントリスナー
+        document.getElementById('scheduleExecution').addEventListener('change', function() {
+            const scheduleSettingsContainer = document.getElementById('scheduleSettingsContainer');
+            if (this.checked) {
+                scheduleSettingsContainer.classList.remove('d-none');
+            } else {
+                scheduleSettingsContainer.classList.add('d-none');
+            }
+        });
+
+        // メール送信切替のイベントリスナー
+        document.getElementById('emailReport').addEventListener('change', function() {
+            const emailRecipientsDiv = document.getElementById('emailRecipientsDiv');
+            if (this.checked) {
+                emailRecipientsDiv.classList.remove('d-none');
+            } else {
+                emailRecipientsDiv.classList.add('d-none');
+            }
+        });
+
+        // プレビューボタンのクリックイベント
+        document.querySelectorAll('#previewBtn, #previewBtnBottom').forEach(button => {
+            button.addEventListener('click', function() {
+                const previewArea = document.getElementById('previewArea');
+                previewArea.classList.remove('d-none');
+                
+                // 実際の実装では、ここでプレビューデータを取得してプレビューを表示する
+                setTimeout(() => {
+                    // ダミーのプレビューコンテンツを表示（実際の実装では、APIからのレスポンスを表示）
+                    const previewContainer = document.querySelector('.preview-container');
+                    previewContainer.innerHTML = `
+                        <div class="p-3">
+                            <h4 class="text-center mb-4">部門別売上レポート (2025年5月)</h4>
+                            
+                            <div class="mb-4">
+                                <canvas id="previewChart" height="250"></canvas>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>年月</th>
+                                            <th>部門</th>
+                                            <th class="text-end">売上 (千円)</th>
+                                            <th class="text-end">前年同月比</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>2025年5月</td>
+                                            <td>技術部A</td>
+                                            <td class="text-end">48,200</td>
+                                            <td class="text-end trend-up">+13.7%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2025年5月</td>
+                                            <td>技術部B</td>
+                                            <td class="text-end">38,250</td>
+                                            <td class="text-end trend-up">+8.5%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2025年5月</td>
+                                            <td>技術部C</td>
+                                            <td class="text-end">28,400</td>
+                                            <td class="text-end trend-up">+7.2%</td>
+                                        </tr>
+                                        <tr>
+                                            <td>2025年5月</td>
+                                            <td>コンサルティング部</td>
+                                            <td class="text-end">12,650</td>
+                                            <td class="text-end trend-up">+15.3%</td>
+                                        </tr>
+                                        <tr class="table-success">
+                                            <td colspan="2"><strong>合計</strong></td>
+                                            <td class="text-end"><strong>127,500</strong></td>
+                                            <td class="text-end trend-up"><strong>+10.9%</strong></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="text-muted small mt-3">
+                                <p>作成日時: 2025年5月5日 10:30</p>
+                                <p>作成者: 山田太郎</p>
+                            </div>
+                        </div>
+                    `;
+
+                    // プレビューチャートの描画（実際の実装では、適切なグラフライブラリを使用）
+                    setTimeout(() => {
+                        if (typeof Chart !== 'undefined') {
+                            const ctx = document.getElementById('previewChart');
+                            if (ctx) {
+                                new Chart(ctx, {
+                                    type: 'bar',
+                                    data: {
+                                        labels: ['技術部A', '技術部B', '技術部C', 'コンサルティング部'],
+                                        datasets: [{
+                                            label: '2025年5月',
+                                            data: [48200, 38250, 28400, 12650],
+                                            backgroundColor: 'rgba(32, 201, 151, 0.7)',
+                                            borderColor: 'rgba(32, 201, 151, 1)',
+                                            borderWidth: 1
+                                        }]
+                                    },
+                                    options: {
+                                        responsive: true,
+                                        scales: {
+                                            y: {
+                                                beginAtZero: true,
+                                                title: {
+                                                    display: true,
+                                                    text: '売上（千円）'
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                        }
+                    }, 100);
+                }, 1500);
+            });
+        });
+
+        // プレビュー閉じるボタンのクリックイベント
+        document.getElementById('closePreviewBtn').addEventListener('click', function() {
+            const previewArea = document.getElementById('previewArea');
+            previewArea.classList.add('d-none');
+        });
+
+        // レポート生成ボタンのクリックイベント
+        document.querySelectorAll('#generateBtn, #generateBtnBottom').forEach(button => {
+            button.addEventListener('click', function() {
+                // 実際の実装では、ここでレポート生成処理を行い、完了後に成功メッセージを表示する
+                alert('レポートを生成中です。完了後、自動的にダウンロードされます。');
+            });
+        });
+    </script>
+</body>
+</html>

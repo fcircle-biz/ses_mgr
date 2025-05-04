@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム - 予測分析</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.min.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        /* ステータスバッジのスタイル */
+        .badge-draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .badge-proposal {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .badge-active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .badge-contracted {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .badge-completed {
+            background-color: #d3d3d3;
+            color: #444;
+        }
+        .badge-cancelled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* 予測分析用カスタムスタイル */
+        .chart-container {
+            position: relative;
+            height: 400px;
+            width: 100%;
+        }
+        .summary-card {
+            border-left: 4px solid #6610f2;
+        }
+        .summary-value {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .summary-label {
+            font-size: 14px;
+            color: #6c757d;
+        }
+        .trend-up {
+            color: #198754;
+        }
+        .trend-down {
+            color: #dc3545;
+        }
+        .trend-neutral {
+            color: #6c757d;
+        }
+        .tab-content {
+            padding-top: 20px;
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(102, 16, 242, 0.05);
+        }
+        .chart-legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .chart-legend-color {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            border-radius: 3px;
+        }
+        .export-dropdown .dropdown-item i {
+            width: 20px;
+            text-align: center;
+            margin-right: 8px;
+        }
+        .confidence-band {
+            background: rgba(102, 16, 242, 0.1);
+            border-radius: 4px;
+            padding: 2px 6px;
+            font-size: 90%;
+        }
+        .factor-positive {
+            color: #198754;
+        }
+        .factor-negative {
+            color: #dc3545;
+        }
+        .scenario-badge {
+            font-size: 85%;
+            padding: 2px 8px;
+            border-radius: 12px;
+        }
+        .scenario-base {
+            background-color: #f1f3f5;
+            color: #495057;
+        }
+        .scenario-1 {
+            background-color: #cfe2ff;
+            color: #084298;
+        }
+        .scenario-2 {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .scenario-3 {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+        .alert-primary-light {
+            background-color: rgba(102, 16, 242, 0.1);
+            border-color: rgba(102, 16, 242, 0.2);
+        }
+        .prediction-metric {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .prediction-accuracy {
+            display: inline-block;
+            width: 80px;
+            height: 4px;
+            background-color: #e9ecef;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .prediction-accuracy-fill {
+            display: block;
+            height: 100%;
+            background-color: #6610f2;
+        }
+        /* シナリオ変数調整用スライダー */
+        .range-wrap {
+            position: relative;
+            width: 100%;
+        }
+        .range-value {
+            position: absolute;
+            top: -25px;
+        }
+        .slider-flex {
+            display: flex;
+            align-items: center;
+        }
+        .slider-flex .form-range {
+            flex-grow: 1;
+            margin: 0 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            レポーティング
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">KPIダッシュボード</a></li>
+                            <li><a class="dropdown-item" href="#">売上レポート</a></li>
+                            <li><a class="dropdown-item" href="#">粗利レポート</a></li>
+                            <li><a class="dropdown-item" href="#">稼働率レポート</a></li>
+                            <li><a class="dropdown-item active" href="#">予測分析</a></li>
+                            <li><a class="dropdown-item" href="#">レポート作成</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">YT</div>
+                            <span>山田太郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">レポーティング</a></li>
+                <li class="breadcrumb-item active" aria-current="page">予測分析</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">予測分析</h2>
+            <div>
+                <div class="btn-group export-dropdown me-2">
+                    <button type="button" class="btn btn-outline-purple dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" style="color: #6610f2; border-color: #6610f2;">
+                        エクスポート
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-excel"></i> Excel形式</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-filetype-csv"></i> CSV形式</a></li>
+                        <li><a class="dropdown-item" href="#"><i class="bi bi-file-earmark-pdf"></i> PDF形式</a></li>
+                    </ul>
+                </div>
+                <div class="btn-group">
+                    <button class="btn btn-outline-secondary me-2" data-bs-toggle="tooltip" title="共有">
+                        <i class="bi bi-share"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary me-2" data-bs-toggle="tooltip" title="予測履歴">
+                        <i class="bi bi-clock-history"></i>
+                    </button>
+                    <button class="btn" style="background-color: #6610f2; color: white;">
+                        <i class="bi bi-save me-1"></i> 予測を保存
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 分析設定部分 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">分析条件設定</h5>
+            </div>
+            <div class="card-body">
+                <form id="analysisForm">
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="analysisTarget" class="form-label">分析対象</label>
+                            <select id="analysisTarget" class="form-select">
+                                <option value="revenue" selected>売上</option>
+                                <option value="profit">粗利</option>
+                                <option value="utilization">稼働率</option>
+                                <option value="headcount">要員数</option>
+                                <option value="cost">人件費</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="predictionPeriod" class="form-label">予測期間</label>
+                            <select id="predictionPeriod" class="form-select">
+                                <option value="3months">3ヶ月後まで</option>
+                                <option value="6months" selected>6ヶ月後まで</option>
+                                <option value="1year">1年後まで</option>
+                                <option value="2years">2年後まで</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="analysisDataPeriod" class="form-label">トレンド分析期間</label>
+                            <select id="analysisDataPeriod" class="form-select">
+                                <option value="6months">直近6ヶ月</option>
+                                <option value="1year" selected>直近1年</option>
+                                <option value="2years">直近2年</option>
+                                <option value="3years">直近3年</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label for="predictionGranularity" class="form-label">予測粒度</label>
+                            <select id="predictionGranularity" class="form-select">
+                                <option value="daily">日次</option>
+                                <option value="weekly">週次</option>
+                                <option value="monthly" selected>月次</option>
+                                <option value="quarterly">四半期</option>
+                                <option value="yearly">年次</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <label class="form-label d-block">予測範囲</label>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="analysisScope" id="scopeAll" value="all" checked>
+                                <label class="form-check-label" for="scopeAll">全社</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="analysisScope" id="scopeDepartment" value="department">
+                                <label class="form-check-label" for="scopeDepartment">部門別</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3 d-none" id="departmentSelectDiv">
+                            <label for="department" class="form-label">部門</label>
+                            <select id="department" class="form-select" multiple>
+                                <option value="techA">技術部A</option>
+                                <option value="techB">技術部B</option>
+                                <option value="techC">技術部C</option>
+                                <option value="consul">コンサルティング部</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3">
+                            <div class="form-check mt-4">
+                                <input class="form-check-input" type="checkbox" id="scenarioAnalysis">
+                                <label class="form-check-label" for="scenarioAnalysis">
+                                    シナリオ分析を行う
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-6 mb-3 d-flex align-items-end justify-content-end">
+                            <button type="button" id="runAnalysisBtn" class="btn" style="background-color: #6610f2; color: white;">
+                                <i class="bi bi-graph-up-arrow me-2"></i>予測実行
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- シナリオ設定部分（初期状態では非表示） -->
+        <div class="card mb-4 d-none" id="scenarioSettingsCard">
+            <div class="card-header">
+                <h5 class="card-title mb-0">シナリオ設定</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-3">
+                        <label for="scenarioCount" class="form-label">シナリオ数</label>
+                        <select id="scenarioCount" class="form-select">
+                            <option value="1">1</option>
+                            <option value="2" selected>2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                        </select>
+                    </div>
+                    <div class="col-md-9">
+                        <label for="baseScenarioName" class="form-label">基本シナリオ名</label>
+                        <input type="text" id="baseScenarioName" class="form-control" value="ベースライン予測">
+                    </div>
+                </div>
+
+                <div class="scenario-container" id="scenario1Container">
+                    <div class="card mb-3 bg-light">
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="scenario1Name" class="form-label">シナリオ1名</label>
+                                    <input type="text" id="scenario1Name" class="form-control" value="積極成長">
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-12">
+                                    <label class="form-label">変数設定</label>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-3">
+                                    <label for="var1_1" class="form-label">顧客増加率</label>
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="slider-flex">
+                                        <span>-20%</span>
+                                        <input type="range" class="form-range" id="var1_1" min="-20" max="20" step="1" value="10">
+                                        <span>+20%</span>
+                                        <span class="ms-2 badge bg-primary">+10%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-3">
+                                    <label for="var1_2" class="form-label">案件単価変動率</label>
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="slider-flex">
+                                        <span>-20%</span>
+                                        <input type="range" class="form-range" id="var1_2" min="-20" max="20" step="1" value="5">
+                                        <span>+20%</span>
+                                        <span class="ms-2 badge bg-primary">+5%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-3">
+                                    <label for="var1_3" class="form-label">技術者採用数</label>
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="slider-flex">
+                                        <span>-10</span>
+                                        <input type="range" class="form-range" id="var1_3" min="-10" max="30" step="1" value="15">
+                                        <span>+30</span>
+                                        <span class="ms-2 badge bg-primary">+15名</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scenario-container" id="scenario2Container">
+                    <div class="card mb-3 bg-light">
+                        <div class="card-body">
+                            <div class="row mb-3">
+                                <div class="col-md-12">
+                                    <label for="scenario2Name" class="form-label">シナリオ2名</label>
+                                    <input type="text" id="scenario2Name" class="form-control" value="保守的成長">
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-12">
+                                    <label class="form-label">変数設定</label>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-3">
+                                    <label for="var2_1" class="form-label">顧客増加率</label>
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="slider-flex">
+                                        <span>-20%</span>
+                                        <input type="range" class="form-range" id="var2_1" min="-20" max="20" step="1" value="2">
+                                        <span>+20%</span>
+                                        <span class="ms-2 badge bg-primary">+2%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-3">
+                                    <label for="var2_2" class="form-label">案件単価変動率</label>
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="slider-flex">
+                                        <span>-20%</span>
+                                        <input type="range" class="form-range" id="var2_2" min="-20" max="20" step="1" value="0">
+                                        <span>+20%</span>
+                                        <span class="ms-2 badge bg-primary">±0%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-3">
+                                    <label for="var2_3" class="form-label">技術者採用数</label>
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="slider-flex">
+                                        <span>-10</span>
+                                        <input type="range" class="form-range" id="var2_3" min="-10" max="30" step="1" value="5">
+                                        <span>+30</span>
+                                        <span class="ms-2 badge bg-primary">+5名</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="scenario-container d-none" id="scenario3Container">
+                    <!-- シナリオ3設定（必要に応じて表示） -->
+                </div>
+
+                <div class="scenario-container d-none" id="scenario4Container">
+                    <!-- シナリオ4設定（必要に応じて表示） -->
+                </div>
+            </div>
+        </div>
+
+        <!-- 分析結果表示エリア -->
+        <div class="mb-4" id="analysisResultsArea">
+            <div class="alert alert-primary-light d-flex align-items-center" role="alert">
+                <div class="me-3">
+                    <i class="bi bi-info-circle fs-4" style="color: #6610f2;"></i>
+                </div>
+                <div>
+                    予測分析を実行するには、上部の「予測実行」ボタンをクリックしてください。シナリオ分析を行う場合は、「シナリオ分析を行う」チェックボックスをオンにしてください。
+                </div>
+            </div>
+
+            <!-- 分析実行後に表示される結果エリア -->
+            <div class="d-none" id="predictionResultsContainer">
+                <!-- 予測トレンドグラフカード -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">売上予測トレンド</h5>
+                        <div class="btn-group btn-group-sm">
+                            <button type="button" class="btn btn-outline-secondary active" data-chart-type="line">
+                                <i class="bi bi-graph-up"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" data-chart-type="bar">
+                                <i class="bi bi-bar-chart"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="predictionChart"></canvas>
+                        </div>
+                        <div class="mt-3 d-flex justify-content-between">
+                            <div>
+                                <span class="badge rounded-pill confidence-band">
+                                    <i class="bi bi-info-circle me-1"></i>薄い色の領域は95%信頼区間を示しています
+                                </span>
+                            </div>
+                            <div>
+                                <span class="badge bg-secondary">実績データ</span>
+                                <span class="badge" style="background-color: #6610f2;">予測データ</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 予測サマリーと影響要因 -->
+                <div class="row mb-4">
+                    <div class="col-lg-4">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">予測サマリー</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-4">
+                                    <div class="small text-muted mb-1">6ヶ月後の予測売上</div>
+                                    <div class="h3">¥145.2百万円</div>
+                                    <div class="trend-up"><i class="bi bi-arrow-up-right"></i> 現在から +13.8%</div>
+                                </div>
+                                <div class="mb-4">
+                                    <div class="small text-muted mb-1">6ヶ月累計予測売上</div>
+                                    <div class="h3">¥827.4百万円</div>
+                                    <div class="trend-up"><i class="bi bi-arrow-up-right"></i> 前年同期比 +8.2%</div>
+                                </div>
+                                <div>
+                                    <div class="small text-muted mb-1">予測の信頼度</div>
+                                    <div class="h5">高 (92.5%)</div>
+                                    <div class="small text-muted">※6ヶ月以上先の予測は信頼度が低下します</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="card h-100">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">影響要因分析</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-lg-7">
+                                        <div class="chart-container" style="height: 260px;">
+                                            <canvas id="factorChart"></canvas>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-5">
+                                        <h6 class="mb-3">主要影響要因</h6>
+                                        <ul class="list-group list-group-flush">
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <span class="factor-positive"><i class="bi bi-arrow-up-circle"></i></span>
+                                                    大型案件の契約増加
+                                                </div>
+                                                <span class="badge bg-success">+4.2%</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <span class="factor-positive"><i class="bi bi-arrow-up-circle"></i></span>
+                                                    技術者採用の増加
+                                                </div>
+                                                <span class="badge bg-success">+3.5%</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <span class="factor-positive"><i class="bi bi-arrow-up-circle"></i></span>
+                                                    既存顧客の単価上昇
+                                                </div>
+                                                <span class="badge bg-success">+2.1%</span>
+                                            </li>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <span class="factor-negative"><i class="bi bi-arrow-down-circle"></i></span>
+                                                    季節変動要因
+                                                </div>
+                                                <span class="badge bg-danger">-1.5%</span>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <h6>予測モデル精度指標</h6>
+                                    <div class="row">
+                                        <div class="col-lg-3 col-md-6">
+                                            <div class="prediction-metric">
+                                                決定係数 (R²): 0.92
+                                                <div class="prediction-accuracy">
+                                                    <span class="prediction-accuracy-fill" style="width: 92%"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 col-md-6">
+                                            <div class="prediction-metric">
+                                                RMSE: 3.48
+                                                <div class="prediction-accuracy">
+                                                    <span class="prediction-accuracy-fill" style="width: 88%"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 col-md-6">
+                                            <div class="prediction-metric">
+                                                MAE: 2.75
+                                                <div class="prediction-accuracy">
+                                                    <span class="prediction-accuracy-fill" style="width: 90%"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3 col-md-6">
+                                            <div class="prediction-metric">
+                                                MAPE: 2.15%
+                                                <div class="prediction-accuracy">
+                                                    <span class="prediction-accuracy-fill" style="width: 95%"></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 予測詳細データテーブル -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">予測詳細データ</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-bordered table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>期間</th>
+                                        <th class="text-end">予測売上（百万円）</th>
+                                        <th class="text-end">95%信頼区間下限</th>
+                                        <th class="text-end">95%信頼区間上限</th>
+                                        <th class="text-end">前月比</th>
+                                        <th class="text-end">前年同月比</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>2025年6月</td>
+                                        <td class="text-end">132.8</td>
+                                        <td class="text-end">129.3</td>
+                                        <td class="text-end">136.2</td>
+                                        <td class="text-end trend-up">+2.2%</td>
+                                        <td class="text-end trend-up">+8.4%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025年7月</td>
+                                        <td class="text-end">135.4</td>
+                                        <td class="text-end">130.8</td>
+                                        <td class="text-end">140.1</td>
+                                        <td class="text-end trend-up">+2.0%</td>
+                                        <td class="text-end trend-up">+7.9%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025年8月</td>
+                                        <td class="text-end">138.2</td>
+                                        <td class="text-end">132.1</td>
+                                        <td class="text-end">144.3</td>
+                                        <td class="text-end trend-up">+2.1%</td>
+                                        <td class="text-end trend-up">+9.1%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025年9月</td>
+                                        <td class="text-end">140.6</td>
+                                        <td class="text-end">133.5</td>
+                                        <td class="text-end">147.7</td>
+                                        <td class="text-end trend-up">+1.7%</td>
+                                        <td class="text-end trend-up">+8.5%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025年10月</td>
+                                        <td class="text-end">142.9</td>
+                                        <td class="text-end">134.2</td>
+                                        <td class="text-end">151.6</td>
+                                        <td class="text-end trend-up">+1.6%</td>
+                                        <td class="text-end trend-up">+7.8%</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2025年11月</td>
+                                        <td class="text-end">145.2</td>
+                                        <td class="text-end">135.1</td>
+                                        <td class="text-end">155.3</td>
+                                        <td class="text-end trend-up">+1.6%</td>
+                                        <td class="text-end trend-up">+6.9%</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- シナリオ分析結果（シナリオ分析を選択した場合のみ表示） -->
+                <div class="d-none" id="scenarioAnalysisResultsContainer">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">シナリオ分析</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container mb-4">
+                                <canvas id="scenarioComparisonChart"></canvas>
+                            </div>
+                            <div class="mb-4">
+                                <h6>シナリオ比較</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th>シナリオ</th>
+                                                <th class="text-end">6ヶ月後の予測売上</th>
+                                                <th class="text-end">6ヶ月累計予測売上</th>
+                                                <th class="text-end">ベースラインからの変化</th>
+                                                <th class="text-end">前年同期からの変化</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <span class="scenario-badge scenario-base">ベースライン予測</span>
+                                                </td>
+                                                <td class="text-end">145.2百万円</td>
+                                                <td class="text-end">827.4百万円</td>
+                                                <td class="text-end">-</td>
+                                                <td class="text-end trend-up">+8.2%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <span class="scenario-badge scenario-1">積極成長</span>
+                                                </td>
+                                                <td class="text-end">162.5百万円</td>
+                                                <td class="text-end">908.2百万円</td>
+                                                <td class="text-end trend-up">+9.8%</td>
+                                                <td class="text-end trend-up">+18.8%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <span class="scenario-badge scenario-2">保守的成長</span>
+                                                </td>
+                                                <td class="text-end">148.6百万円</td>
+                                                <td class="text-end">842.1百万円</td>
+                                                <td class="text-end trend-up">+1.8%</td>
+                                                <td class="text-end trend-up">+10.1%</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <h6>シナリオインパクト分析</h6>
+                                    <div class="chart-container" style="height: 300px;">
+                                        <canvas id="scenarioImpactChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <h6>感度分析</h6>
+                                    <div class="chart-container" style="height: 300px;">
+                                        <canvas id="sensitivityChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 変数調整モーダル -->
+    <div class="modal fade" id="variableAdjustmentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">予測モデル変数調整</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        このモードは上級ユーザー向けです。変数の調整は予測結果に大きな影響を与える可能性があります。
+                    </div>
+                    <!-- 詳細な変数調整UI -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary">適用</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+    
+    <!-- カスタムJavaScript -->
+    <script>
+        // ツールチップの初期化
+        const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // 部門選択の表示切替
+        document.querySelectorAll('input[name="analysisScope"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const departmentSelectDiv = document.getElementById('departmentSelectDiv');
+                if (this.value === 'department') {
+                    departmentSelectDiv.classList.remove('d-none');
+                } else {
+                    departmentSelectDiv.classList.add('d-none');
+                }
+            });
+        });
+
+        // シナリオ分析の表示切替
+        document.getElementById('scenarioAnalysis').addEventListener('change', function() {
+            const scenarioSettingsCard = document.getElementById('scenarioSettingsCard');
+            if (this.checked) {
+                scenarioSettingsCard.classList.remove('d-none');
+            } else {
+                scenarioSettingsCard.classList.add('d-none');
+            }
+        });
+
+        // シナリオ数変更時の表示切替
+        document.getElementById('scenarioCount').addEventListener('change', function() {
+            const count = parseInt(this.value);
+            for (let i = 1; i <= 4; i++) {
+                const container = document.getElementById(`scenario${i}Container`);
+                if (i <= count) {
+                    container.classList.remove('d-none');
+                } else {
+                    container.classList.add('d-none');
+                }
+            }
+        });
+
+        // 予測実行ボタンクリック時
+        document.getElementById('runAnalysisBtn').addEventListener('click', function() {
+            // ロード中アニメーション表示などの処理
+            setTimeout(() => {
+                // 結果エリアを表示
+                document.getElementById('predictionResultsContainer').classList.remove('d-none');
+                
+                // シナリオ分析が有効なら、その結果も表示
+                if (document.getElementById('scenarioAnalysis').checked) {
+                    document.getElementById('scenarioAnalysisResultsContainer').classList.remove('d-none');
+                } else {
+                    document.getElementById('scenarioAnalysisResultsContainer').classList.add('d-none');
+                }
+                
+                // グラフの初期化・更新
+                initCharts();
+            }, 1000);
+        });
+
+        // 変数スライダーの値表示更新
+        document.querySelectorAll('.form-range').forEach(slider => {
+            slider.addEventListener('input', function() {
+                const valueDisplay = this.parentElement.querySelector('.badge');
+                let prefix = this.value >= 0 ? '+' : '';
+                
+                // ID名から適切な単位を判断
+                if (this.id.includes('_3')) { // 技術者採用数
+                    valueDisplay.textContent = `${prefix}${this.value}名`;
+                } else { // その他のパーセント値
+                    valueDisplay.textContent = `${prefix}${this.value}%`;
+                }
+            });
+        });
+
+        // グラフ初期化関数
+        function initCharts() {
+            // 予測トレンドグラフ
+            const predictionCtx = document.getElementById('predictionChart').getContext('2d');
+            const predictionChart = new Chart(predictionCtx, {
+                type: 'line',
+                data: {
+                    labels: ['2024/12', '2025/1', '2025/2', '2025/3', '2025/4', '2025/5', '2025/6', '2025/7', '2025/8', '2025/9', '2025/10', '2025/11'],
+                    datasets: [
+                        {
+                            label: '実績',
+                            data: [115.8, 118.2, 121.5, 124.3, 127.5, 130.0, null, null, null, null, null, null],
+                            borderColor: '#6c757d',
+                            backgroundColor: '#6c757d',
+                            borderWidth: 3,
+                            pointRadius: 4,
+                            fill: false
+                        },
+                        {
+                            label: '予測',
+                            data: [null, null, null, null, null, 130.0, 132.8, 135.4, 138.2, 140.6, 142.9, 145.2],
+                            borderColor: '#6610f2',
+                            backgroundColor: '#6610f2',
+                            borderWidth: 3,
+                            borderDash: [5, 5],
+                            pointRadius: 4,
+                            fill: false
+                        },
+                        {
+                            label: '95%信頼区間',
+                            data: [null, null, null, null, null, 130.0, 132.8, 135.4, 138.2, 140.6, 142.9, 145.2],
+                            borderColor: 'transparent',
+                            backgroundColor: 'rgba(102, 16, 242, 0.1)',
+                            fill: '+1',
+                            pointRadius: 0
+                        },
+                        {
+                            label: '95%信頼区間',
+                            data: [null, null, null, null, null, 130.0, 129.3, 130.8, 132.1, 133.5, 134.2, 135.1],
+                            borderColor: 'transparent',
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            pointRadius: 0
+                        },
+                        {
+                            label: '95%信頼区間',
+                            data: [null, null, null, null, null, 130.0, 136.2, 140.1, 144.3, 147.7, 151.6, 155.3],
+                            borderColor: 'transparent',
+                            backgroundColor: 'transparent',
+                            fill: false,
+                            pointRadius: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            title: {
+                                display: true,
+                                text: '売上（百万円）'
+                            },
+                            min: 110
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    }
+                }
+            });
+
+            // 影響要因グラフ
+            const factorCtx = document.getElementById('factorChart').getContext('2d');
+            const factorChart = new Chart(factorCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['大型案件の契約増加', '技術者採用の増加', '既存顧客の単価上昇', '季節変動要因'],
+                    datasets: [{
+                        label: '影響度(%)',
+                        data: [4.2, 3.5, 2.1, -1.5],
+                        backgroundColor: [
+                            'rgba(40, 167, 69, 0.7)',
+                            'rgba(40, 167, 69, 0.7)',
+                            'rgba(40, 167, 69, 0.7)',
+                            'rgba(220, 53, 69, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(40, 167, 69, 1)',
+                            'rgba(40, 167, 69, 1)',
+                            'rgba(40, 167, 69, 1)',
+                            'rgba(220, 53, 69, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '影響度(%)'
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // シナリオ分析グラフ
+            if (document.getElementById('scenarioAnalysis').checked) {
+                // シナリオ比較グラフ
+                const scenarioCtx = document.getElementById('scenarioComparisonChart').getContext('2d');
+                const scenarioChart = new Chart(scenarioCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['2025/6', '2025/7', '2025/8', '2025/9', '2025/10', '2025/11'],
+                        datasets: [
+                            {
+                                label: 'ベースライン予測',
+                                data: [132.8, 135.4, 138.2, 140.6, 142.9, 145.2],
+                                borderColor: '#6c757d',
+                                backgroundColor: '#6c757d',
+                                borderWidth: 3,
+                                pointRadius: 4,
+                                fill: false
+                            },
+                            {
+                                label: '積極成長',
+                                data: [135.8, 140.4, 145.7, 150.9, 156.8, 162.5],
+                                borderColor: '#0d6efd',
+                                backgroundColor: '#0d6efd',
+                                borderWidth: 3,
+                                pointRadius: 4,
+                                fill: false
+                            },
+                            {
+                                label: '保守的成長',
+                                data: [133.5, 136.8, 140.2, 143.1, 145.8, 148.6],
+                                borderColor: '#198754',
+                                backgroundColor: '#198754',
+                                borderWidth: 3,
+                                pointRadius: 4,
+                                fill: false
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                title: {
+                                    display: true,
+                                    text: '売上（百万円）'
+                                },
+                                min: 130
+                            }
+                        }
+                    }
+                });
+
+                // シナリオインパクト分析グラフ（レーダーチャート）
+                const impactCtx = document.getElementById('scenarioImpactChart').getContext('2d');
+                const impactChart = new Chart(impactCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['売上', '粗利', '稼働率', '人員数', 'ROI'],
+                        datasets: [
+                            {
+                                label: 'ベースライン予測',
+                                data: [80, 75, 90, 75, 80],
+                                backgroundColor: 'rgba(108, 117, 125, 0.2)',
+                                borderColor: 'rgba(108, 117, 125, 0.8)',
+                                pointBackgroundColor: 'rgba(108, 117, 125, 1)',
+                                borderWidth: 2
+                            },
+                            {
+                                label: '積極成長',
+                                data: [95, 90, 85, 95, 75],
+                                backgroundColor: 'rgba(13, 110, 253, 0.2)',
+                                borderColor: 'rgba(13, 110, 253, 0.8)',
+                                pointBackgroundColor: 'rgba(13, 110, 253, 1)',
+                                borderWidth: 2
+                            },
+                            {
+                                label: '保守的成長',
+                                data: [85, 80, 95, 80, 90],
+                                backgroundColor: 'rgba(25, 135, 84, 0.2)',
+                                borderColor: 'rgba(25, 135, 84, 0.8)',
+                                pointBackgroundColor: 'rgba(25, 135, 84, 1)',
+                                borderWidth: 2
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            r: {
+                                min: 50,
+                                max: 100,
+                                ticks: {
+                                    display: false
+                                }
+                            }
+                        }
+                    }
+                });
+
+                // 感度分析グラフ（横棒グラフ）
+                const sensitivityCtx = document.getElementById('sensitivityChart').getContext('2d');
+                const sensitivityChart = new Chart(sensitivityCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['顧客増加率', '案件単価変動率', '技術者採用数', '離職率', '稼働率'],
+                        datasets: [{
+                            label: '影響度',
+                            data: [8.5, 7.2, 6.8, -4.2, 5.7],
+                            backgroundColor: [
+                                'rgba(13, 110, 253, 0.7)',
+                                'rgba(13, 110, 253, 0.7)',
+                                'rgba(13, 110, 253, 0.7)',
+                                'rgba(220, 53, 69, 0.7)',
+                                'rgba(13, 110, 253, 0.7)'
+                            ],
+                            borderColor: [
+                                'rgba(13, 110, 253, 1)',
+                                'rgba(13, 110, 253, 1)',
+                                'rgba(13, 110, 253, 1)',
+                                'rgba(220, 53, 69, 1)',
+                                'rgba(13, 110, 253, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: '影響度(%)'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: false
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // グラフタイプ切替ボタンの処理
+        document.querySelectorAll('[data-chart-type]').forEach(button => {
+            button.addEventListener('click', function() {
+                const chartType = this.getAttribute('data-chart-type');
+                
+                // アクティブなボタンのスタイルを更新
+                this.closest('.btn-group').querySelectorAll('.btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                this.classList.add('active');
+                
+                // 実際の実装ではここでグラフの更新処理を行う
+            });
+        });
+    </script>
+</body>
+</html>

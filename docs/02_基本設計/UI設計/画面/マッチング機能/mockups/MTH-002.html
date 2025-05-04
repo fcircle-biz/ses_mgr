@@ -3,25 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>マッチング詳細 | SES業務システム</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <title>SES業務システム - マッチング詳細</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
-            padding-top: 20px;
-            padding-bottom: 40px;
-        }
-        .system-header {
-            margin-bottom: 30px;
-            border-bottom: 1px solid #e5e5e5;
-        }
-        .match-header {
             background-color: #f8f9fa;
-            border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid #e0e0e0;
         }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        /* ステータスバッジのスタイル */
+        .badge-draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .badge-proposal {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .badge-active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .badge-contracted {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .badge-completed {
+            background-color: #d3d3d3;
+            color: #444;
+        }
+        .badge-cancelled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* マッチング詳細用カスタムスタイル */
         .match-score-circle {
             width: 160px;
             height: 160px;
@@ -235,148 +288,191 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="system-header d-flex justify-content-between align-items-center pb-3 mb-4">
-            <h1 class="fs-4">SES業務システム</h1>
-            <div class="d-flex align-items-center">
-                <div class="dropdown me-3">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bell"></i>
-                        <span class="badge bg-danger">3</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
-                        <li><a class="dropdown-item" href="#">未読通知 (3)</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">新しい案件が登録されました</a></li>
-                        <li><a class="dropdown-item" href="#">スキルシート更新依頼があります</a></li>
-                        <li><a class="dropdown-item" href="#">マッチング候補が見つかりました</a></li>
-                    </ul>
-                </div>
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        営業 太郎 様
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="#">プロフィール</a></li>
-                        <li><a class="dropdown-item" href="#">設定</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">ログアウト</a></li>
-                    </ul>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">営</div>
+                            <span>営業 太郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-        </header>
-        
-        <div class="mb-3">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="#">マッチング</a></li>
-                    <li class="breadcrumb-item"><a href="#">マッチング検索</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">マッチング詳細 #MT00123</li>
-                </ol>
-            </nav>
         </div>
-        
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">マッチング</a></li>
+                <li class="breadcrumb-item"><a href="#">マッチング検索</a></li>
+                <li class="breadcrumb-item active" aria-current="page">マッチング詳細 #MT00123</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">マッチング詳細 #MT00123</h2>
+            <div>
+                <button class="btn btn-outline-primary">
+                    <i class="bi bi-download me-1"></i> マッチング結果保存
+                </button>
+                <button class="btn btn-primary ms-2">
+                    <i class="bi bi-check2-circle me-1"></i> 提案登録
+                </button>
+            </div>
+        </div>
+
         <!-- マッチングヘッダー -->
-        <div class="match-header mb-4">
-            <div class="row">
-                <div class="col-md-3">
-                    <div class="match-score-circle high">
-                        <div class="match-score-value">95%</div>
-                        <div class="match-score-text">マッチング</div>
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="match-score-circle high">
+                            <div class="match-score-value">95%</div>
+                            <div class="match-score-text">マッチング</div>
+                        </div>
                     </div>
-                </div>
-                <div class="col-md-9">
-                    <div class="mb-3">
-                        <h2 class="fs-4 mb-3">マッチング概要</h2>
+                    <div class="col-md-9">
+                        <div class="mb-3">
+                            <h4 class="fs-5 mb-3">マッチング概要</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="key-value">
+                                        <div class="key">マッチングID</div>
+                                        <div class="value">MT00123</div>
+                                    </div>
+                                    <div class="key-value">
+                                        <div class="key">マッチングタイプ</div>
+                                        <div class="value">案件-技術者</div>
+                                    </div>
+                                    <div class="key-value">
+                                        <div class="key">検索条件</div>
+                                        <div class="value">Java, Spring, PostgreSQL, AWS</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="key-value">
+                                        <div class="key">実行日時</div>
+                                        <div class="value">2025/05/05 14:30</div>
+                                    </div>
+                                    <div class="key-value">
+                                        <div class="key">マッチングアルゴリズム</div>
+                                        <div class="value">詳細マッチング</div>
+                                    </div>
+                                    <div class="key-value">
+                                        <div class="key">検索結果</div>
+                                        <div class="value">1/15件</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h4 class="fs-5 mb-2">項目別スコア</h4>
                         <div class="row">
                             <div class="col-md-6">
-                                <div class="key-value">
-                                    <div class="key">マッチングID</div>
-                                    <div class="value">MT00123</div>
+                                <div class="mb-3">
+                                    <div class="match-bar-label">
+                                        <span>スキル</span>
+                                        <span>98%</span>
+                                    </div>
+                                    <div class="match-bar">
+                                        <div class="match-bar-fill high" style="width: 98%"></div>
+                                    </div>
                                 </div>
-                                <div class="key-value">
-                                    <div class="key">マッチングタイプ</div>
-                                    <div class="value">案件-技術者</div>
+                                <div class="mb-3">
+                                    <div class="match-bar-label">
+                                        <span>経験</span>
+                                        <span>95%</span>
+                                    </div>
+                                    <div class="match-bar">
+                                        <div class="match-bar-fill high" style="width: 95%"></div>
+                                    </div>
                                 </div>
-                                <div class="key-value">
-                                    <div class="key">検索条件</div>
-                                    <div class="value">Java, Spring, PostgreSQL, AWS</div>
+                                <div class="mb-3">
+                                    <div class="match-bar-label">
+                                        <span>単価</span>
+                                        <span>90%</span>
+                                    </div>
+                                    <div class="match-bar">
+                                        <div class="match-bar-fill high" style="width: 90%"></div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="col-md-6">
-                                <div class="key-value">
-                                    <div class="key">実行日時</div>
-                                    <div class="value">2025/05/05 14:30</div>
+                                <div class="mb-3">
+                                    <div class="match-bar-label">
+                                        <span>稼働時期</span>
+                                        <span>100%</span>
+                                    </div>
+                                    <div class="match-bar">
+                                        <div class="match-bar-fill high" style="width: 100%"></div>
+                                    </div>
                                 </div>
-                                <div class="key-value">
-                                    <div class="key">マッチングアルゴリズム</div>
-                                    <div class="value">詳細マッチング</div>
+                                <div class="mb-3">
+                                    <div class="match-bar-label">
+                                        <span>勤務地</span>
+                                        <span>100%</span>
+                                    </div>
+                                    <div class="match-bar">
+                                        <div class="match-bar-fill high" style="width: 100%"></div>
+                                    </div>
                                 </div>
-                                <div class="key-value">
-                                    <div class="key">検索結果</div>
-                                    <div class="value">1/15件</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <h3 class="fs-5 mb-2">項目別スコア</h3>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <div class="match-bar-label">
-                                    <span>スキル</span>
-                                    <span>98%</span>
-                                </div>
-                                <div class="match-bar">
-                                    <div class="match-bar-fill high" style="width: 98%"></div>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <div class="match-bar-label">
-                                    <span>経験</span>
-                                    <span>95%</span>
-                                </div>
-                                <div class="match-bar">
-                                    <div class="match-bar-fill high" style="width: 95%"></div>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <div class="match-bar-label">
-                                    <span>単価</span>
-                                    <span>90%</span>
-                                </div>
-                                <div class="match-bar">
-                                    <div class="match-bar-fill high" style="width: 90%"></div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="mb-3">
-                                <div class="match-bar-label">
-                                    <span>稼働時期</span>
-                                    <span>100%</span>
-                                </div>
-                                <div class="match-bar">
-                                    <div class="match-bar-fill high" style="width: 100%"></div>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <div class="match-bar-label">
-                                    <span>勤務地</span>
-                                    <span>100%</span>
-                                </div>
-                                <div class="match-bar">
-                                    <div class="match-bar-fill high" style="width: 100%"></div>
-                                </div>
-                            </div>
-                            <div class="mb-3">
-                                <div class="match-bar-label">
-                                    <span>その他</span>
-                                    <span>85%</span>
-                                </div>
-                                <div class="match-bar">
-                                    <div class="match-bar-fill medium" style="width: 85%"></div>
+                                <div class="mb-3">
+                                    <div class="match-bar-label">
+                                        <span>その他</span>
+                                        <span>85%</span>
+                                    </div>
+                                    <div class="match-bar">
+                                        <div class="match-bar-fill medium" style="width: 85%"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -691,9 +787,6 @@
                 <button class="btn btn-outline-primary me-2">
                     <i class="bi bi-file-earmark-text me-1"></i> スキルシート表示
                 </button>
-                <button class="btn btn-outline-primary">
-                    <i class="bi bi-download me-1"></i> マッチング結果保存
-                </button>
             </div>
             <div>
                 <button class="btn btn-primary">
@@ -710,7 +803,9 @@
             <i class="bi bi-chevron-right"></i>
         </a>
     </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
 </body>
 </html>
