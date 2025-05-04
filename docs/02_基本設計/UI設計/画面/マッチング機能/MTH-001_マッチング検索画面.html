@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム マッチング検索画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -121,6 +123,45 @@
             padding: 8px 12px;
             color: #6c757d;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -166,10 +207,10 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [マッチング検索画面のワイヤーフレーム]
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="matching-search-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
     <h2>画面構成要素</h2>
@@ -488,5 +529,26 @@
         <p>作成日: 2025年5月5日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('matching-search-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '800px',
+                mockups: [
+                    {
+                        name: 'マッチング検索',
+                        path: 'mockups/MTH-001.html',
+                        description: '案件または技術者を起点に、条件指定してマッチング検索を行う画面です。高度なアルゴリズム選択やカスタマイズ機能を備え、検索結果のプレビュー表示も可能です。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>
