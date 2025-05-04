@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 電子署名管理画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../契約管理画面設計.html">契約管理画面設計</a></li>
+            <li class="active">電子署名管理画面</li>
+        </ul>
+    </nav>
+
+    <h1>CNT-005: 電子署名管理画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>CNT-005</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>電子署名管理</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>電子署名の状況管理・履歴確認を行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>営業担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CNT-003: 契約詳細</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>CNT-003: 契約詳細</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [電子署名管理画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>主要な機能</h2>
+    <ul>
+        <li>署名依頼の送信</li>
+        <li>署名状況の管理・確認</li>
+        <li>署名履歴の表示</li>
+        <li>署名の再依頼・キャンセル</li>
+        <li>署名済み文書の取得</li>
+    </ul>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、選択した契約の電子署名状況と履歴が表示される</li>
+        <li>「署名依頼」ボタンをクリックすると、署名依頼先のメールアドレスを入力するダイアログが表示される</li>
+        <li>署名依頼を送信すると、署名依頼メールが指定したアドレスに送信され、状況が「署名待ち」に更新される</li>
+        <li>「再依頼」ボタンをクリックすると、同じ署名者に対して署名依頼メールを再送信する</li>
+        <li>「キャンセル」ボタンをクリックすると、署名依頼をキャンセルする
+            <ul>
+                <li>確認ダイアログを表示してユーザーの意思を確認</li>
+                <li>キャンセル成功時は状況が「キャンセル済み」に更新される</li>
+            </ul>
+        </li>
+        <li>「署名済み文書ダウンロード」ボタンをクリックすると、すべての署名が完了した契約書をPDF形式でダウンロードする</li>
+        <li>「署名ログ表示」ボタンをクリックすると、詳細な署名処理ログを表示するモーダルダイアログが表示される</li>
+        <li>「戻る」ボタンをクリックすると、契約詳細画面（CNT-003）に戻る</li>
+    </ol>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 契約一覧画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../契約管理画面設計.html">契約管理画面設計</a></li>
+            <li class="active">契約一覧画面</li>
+        </ul>
+    </nav>
+
+    <h1>CNT-001: 契約一覧画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>CNT-001</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>契約一覧</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>全契約の一覧表示・検索・フィルタリングを行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>営業担当者、経理担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CMN-002: ダッシュボード</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>CNT-003: 契約詳細、CNT-002: 契約作成</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [契約一覧画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>画面構成要素</h2>
+    <h3>1. 検索・フィルター部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>cnt_list_001</td>
+            <td>検索ボックス</td>
+            <td>テキスト入力</td>
+            <td>契約名、契約ID、顧客名などでのフリーワード検索</td>
+        </tr>
+        <tr>
+            <td>cnt_list_002</td>
+            <td>契約種別</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>契約種別によるフィルタリング（業務委託、派遣、請負など）</td>
+        </tr>
+        <tr>
+            <td>cnt_list_003</td>
+            <td>契約ステータス</td>
+            <td>セレクトボックス（複数選択可）</td>
+            <td>契約ステータスによるフィルタリング（下書き、承認待ち、締結済み、終了など）</td>
+        </tr>
+        <tr>
+            <td>cnt_list_004</td>
+            <td>契約期間（開始）</td>
+            <td>日付範囲選択</td>
+            <td>契約開始日によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>cnt_list_005</td>
+            <td>契約期間（終了）</td>
+            <td>日付範囲選択</td>
+            <td>契約終了日によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>cnt_list_006</td>
+            <td>顧客名</td>
+            <td>セレクトボックス</td>
+            <td>顧客名によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>cnt_list_007</td>
+            <td>担当者</td>
+            <td>セレクトボックス</td>
+            <td>担当者によるフィルタリング</td>
+        </tr>
+        <tr>
+            <td>cnt_list_008</td>
+            <td>検索ボタン</td>
+            <td>ボタン</td>
+            <td>検索条件を適用して結果を表示</td>
+        </tr>
+        <tr>
+            <td>cnt_list_009</td>
+            <td>クリアボタン</td>
+            <td>ボタン</td>
+            <td>検索条件をクリア</td>
+        </tr>
+    </table>
+
+    <h3>2. 一覧表示部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>cnt_list_010</td>
+            <td>契約一覧テーブル</td>
+            <td>テーブル</td>
+            <td>検索条件に合致する契約の一覧</td>
+        </tr>
+        <tr>
+            <td>cnt_list_011</td>
+            <td>契約ID</td>
+            <td>テキスト（リンク）</td>
+            <td>システム内部で管理される契約の一意識別子。クリックで詳細画面へ</td>
+        </tr>
+        <tr>
+            <td>cnt_list_012</td>
+            <td>契約名</td>
+            <td>テキスト（リンク）</td>
+            <td>契約の名称。クリックで詳細画面へ</td>
+        </tr>
+        <tr>
+            <td>cnt_list_013</td>
+            <td>契約種別</td>
+            <td>テキスト</td>
+            <td>契約の種別（業務委託、派遣、請負など）</td>
+        </tr>
+        <tr>
+            <td>cnt_list_014</td>
+            <td>契約ステータス</td>
+            <td>ラベル（色分け表示）</td>
+            <td>契約の現在のステータス</td>
+        </tr>
+        <tr>
+            <td>cnt_list_015</td>
+            <td>顧客名</td>
+            <td>テキスト</td>
+            <td>契約の相手先となる顧客企業名</td>
+        </tr>
+        <tr>
+            <td>cnt_list_016</td>
+            <td>契約期間</td>
+            <td>テキスト</td>
+            <td>契約の開始日～終了日</td>
+        </tr>
+        <tr>
+            <td>cnt_list_017</td>
+            <td>契約金額</td>
+            <td>数値（¥フォーマット）</td>
+            <td>契約の総額または月額</td>
+        </tr>
+        <tr>
+            <td>cnt_list_018</td>
+            <td>担当者</td>
+            <td>テキスト</td>
+            <td>契約の担当者名</td>
+        </tr>
+        <tr>
+            <td>cnt_list_019</td>
+            <td>最終更新日</td>
+            <td>日時</td>
+            <td>契約情報の最終更新日時</td>
+        </tr>
+        <tr>
+            <td>cnt_list_020</td>
+            <td>アクションボタン</td>
+            <td>ボタングループ</td>
+            <td>詳細表示、編集、PDF表示などの操作ボタン</td>
+        </tr>
+        <tr>
+            <td>cnt_list_021</td>
+            <td>ページネーション</td>
+            <td>ページ制御</td>
+            <td>複数ページにわたる結果のナビゲーション</td>
+        </tr>
+    </table>
+
+    <h3>3. 操作ボタン</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>cnt_list_022</td>
+            <td>新規契約作成ボタン</td>
+            <td>プライマリーボタン</td>
+            <td>新規契約作成画面への遷移</td>
+        </tr>
+        <tr>
+            <td>cnt_list_023</td>
+            <td>CSVエクスポートボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>表示中の契約一覧をCSV形式でエクスポート</td>
+        </tr>
+        <tr>
+            <td>cnt_list_024</td>
+            <td>CSVインポートボタン</td>
+            <td>セカンダリーボタン</td>
+            <td>CSV形式の契約情報をインポート</td>
+        </tr>
+    </table>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、デフォルトですべての有効な契約を表示する</li>
+        <li>検索条件を指定して検索ボタンをクリックすると、条件に合致する契約が一覧表示される</li>
+        <li>一覧の契約ID・契約名をクリックすると、該当の契約詳細画面（CNT-003）に遷移する</li>
+        <li>アクションボタンの「詳細」をクリックすると、該当の契約詳細画面（CNT-003）に遷移する</li>
+        <li>アクションボタンの「編集」をクリックすると、該当の契約を編集モードで開く</li>
+        <li>アクションボタンの「PDF」をクリックすると、該当の契約書をPDF形式で表示（CNT-004）</li>
+        <li>「新規契約作成」ボタンをクリックすると、契約作成画面（CNT-002）に遷移する</li>
+        <li>「CSVエクスポート」ボタンをクリックすると、現在の検索結果がCSVファイルとしてダウンロードされる</li>
+        <li>「CSVインポート」ボタンをクリックすると、CSVインポート用のモーダルダイアログが表示される</li>
+        <li>ページネーションを使用して、複数ページにわたる検索結果をナビゲートできる</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> ユーザーの権限レベルによって、表示される操作ボタンや実行可能な操作が異なります。</p>
+        <ul>
+            <li>営業担当者：契約の作成・編集が可能</li>
+            <li>経理担当者：契約の閲覧のみ可能、編集は不可</li>
+        </ul>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

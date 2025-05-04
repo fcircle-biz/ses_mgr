@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 契約テンプレート管理画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../契約管理画面設計.html">契約管理画面設計</a></li>
+            <li class="active">契約テンプレート管理画面</li>
+        </ul>
+    </nav>
+
+    <h1>CNT-006: 契約テンプレート管理画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>CNT-006</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>契約テンプレート管理</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>契約書テンプレートの管理・編集を行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>営業管理者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CNT-001: 契約一覧</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>CNT-001: 契約一覧</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [契約テンプレート管理画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>画面構成要素</h2>
+    <h3>1. テンプレート一覧部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_001</td>
+            <td>テンプレート一覧</td>
+            <td>リスト表示</td>
+            <td>利用可能な契約テンプレートの一覧</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_002</td>
+            <td>テンプレート名</td>
+            <td>テキスト（リンク）</td>
+            <td>テンプレートの名称。クリックで詳細表示</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_003</td>
+            <td>契約種別</td>
+            <td>テキスト</td>
+            <td>テンプレートの対応する契約種別</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_004</td>
+            <td>説明</td>
+            <td>テキスト</td>
+            <td>テンプレートの簡単な説明</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_005</td>
+            <td>最終更新日</td>
+            <td>日時</td>
+            <td>テンプレート情報の最終更新日時</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_006</td>
+            <td>状態</td>
+            <td>ラベル</td>
+            <td>テンプレートの状態（有効/無効）</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_007</td>
+            <td>アクションボタン</td>
+            <td>ボタングループ</td>
+            <td>編集、複製、削除などの操作ボタン</td>
+        </tr>
+    </table>
+
+    <h3>2. テンプレート詳細・編集部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_008</td>
+            <td>テンプレート名</td>
+            <td>テキスト入力</td>
+            <td>テンプレートの名称</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_009</td>
+            <td>契約種別</td>
+            <td>セレクトボックス</td>
+            <td>テンプレートの対応する契約種別</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_010</td>
+            <td>説明</td>
+            <td>テキストエリア</td>
+            <td>テンプレートの説明文</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_011</td>
+            <td>状態</td>
+            <td>ラジオボタン</td>
+            <td>テンプレートの状態（有効/無効）</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_012</td>
+            <td>テンプレート内容</td>
+            <td>リッチテキストエディタ</td>
+            <td>テンプレートの文書内容</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_013</td>
+            <td>入力項目定義</td>
+            <td>テーブル編集</td>
+            <td>テンプレートで使用する入力項目の定義</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_014</td>
+            <td>保存ボタン</td>
+            <td>ボタン</td>
+            <td>テンプレート情報を保存</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_015</td>
+            <td>プレビューボタン</td>
+            <td>ボタン</td>
+            <td>テンプレートのプレビュー表示</td>
+        </tr>
+        <tr>
+            <td>cnt_tmpl_016</td>
+            <td>キャンセルボタン</td>
+            <td>ボタン</td>
+            <td>編集をキャンセル</td>
+        </tr>
+    </table>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、利用可能なすべてのテンプレートが一覧表示される</li>
+        <li>テンプレート名をクリックすると、そのテンプレートの詳細情報が表示される</li>
+        <li>アクションボタンの「編集」をクリックすると、テンプレート編集モードになる</li>
+        <li>アクションボタンの「複製」をクリックすると、現在のテンプレートを複製して新規テンプレートを作成する</li>
+        <li>アクションボタンの「削除」をクリックすると、テンプレートを削除する
+            <ul>
+                <li>確認ダイアログを表示してユーザーの意思を確認</li>
+                <li>使用中のテンプレートは削除できない</li>
+            </ul>
+        </li>
+        <li>「新規テンプレート作成」ボタンをクリックすると、新規テンプレート作成モードになる</li>
+        <li>編集モードでの「保存」ボタンクリック時
+            <ul>
+                <li>入力内容のバリデーションを行い、問題がなければテンプレート情報を保存</li>
+                <li>保存成功時は表示モードに戻り、更新された情報が表示される</li>
+                <li>保存失敗時はエラーメッセージを表示</li>
+            </ul>
+        </li>
+        <li>「プレビュー」ボタンをクリックすると、テンプレートのプレビューがモーダルウィンドウで表示される</li>
+        <li>「キャンセル」ボタンをクリックすると、編集内容を破棄して表示モードに戻る</li>
+        <li>「一覧に戻る」ボタンをクリックすると、契約一覧画面（CNT-001）に戻る</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> この画面は営業管理者権限を持つユーザーのみアクセス可能です。テンプレートの編集は、システム全体の契約作成に影響するため、十分注意して行ってください。</p>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

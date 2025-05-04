@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 契約詳細画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../契約管理画面設計.html">契約管理画面設計</a></li>
+            <li class="active">契約詳細画面</li>
+        </ul>
+    </nav>
+
+    <h1>CNT-003: 契約詳細画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>CNT-003</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>契約詳細</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>契約の詳細情報表示・編集を行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>営業担当者、経理担当者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CNT-001: 契約一覧、CNT-002: 契約作成</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>CNT-001: 契約一覧、CNT-004: 契約書プレビュー、CNT-005: 電子署名管理</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [契約詳細画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>画面モード</h2>
+    <p>この画面は以下の2つのモードを持ちます：</p>
+    <ol>
+        <li><strong>表示モード</strong>: 契約の詳細情報を参照するためのモード（デフォルト）</li>
+        <li><strong>編集モード</strong>: 契約の詳細情報を編集するためのモード（営業担当者のみ、かつ特定のステータスの契約のみ）</li>
+    </ol>
+
+    <h2>タブ構成</h2>
+    <p>契約詳細画面は以下のタブで構成されます：</p>
+    <ol>
+        <li><strong>基本情報</strong>: 契約の基本的な情報（契約名、期間、金額など）</li>
+        <li><strong>契約内容</strong>: 契約の詳細な条件や規定</li>
+        <li><strong>署名情報</strong>: 電子署名の状況や履歴</li>
+        <li><strong>関連ドキュメント</strong>: 契約に関連する添付資料や文書</li>
+        <li><strong>変更履歴</strong>: 契約情報の変更履歴</li>
+    </ol>
+
+    <h2>主要な機能</h2>
+    <ul>
+        <li>契約の基本情報の表示・編集</li>
+        <li>契約書のプレビュー表示</li>
+        <li>電子署名の依頼・状況確認</li>
+        <li>契約のステータス変更</li>
+        <li>添付資料の表示・追加</li>
+        <li>変更履歴の表示</li>
+    </ul>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、表示モードで基本情報タブが選択された状態で表示</li>
+        <li>各タブをクリックすると、対応する情報が表示されるようタブ切り替えが行われる</li>
+        <li>「編集」ボタンをクリックすると編集モードに切り替わる（権限のある場合のみ表示）</li>
+        <li>編集モードでの「保存」ボタンクリック時
+            <ul>
+                <li>入力内容のバリデーションを行い、問題がなければ契約情報を更新する</li>
+                <li>更新成功時は表示モードに戻り、更新された情報が表示される</li>
+                <li>更新失敗時はエラーメッセージを表示し、入力内容を保持したままの状態で再表示する</li>
+            </ul>
+        </li>
+        <li>「キャンセル」ボタンをクリックすると、編集内容を破棄して表示モードに戻る</li>
+        <li>「プレビュー」ボタンをクリックすると、契約書プレビュー画面（CNT-004）に遷移する</li>
+        <li>「署名依頼」ボタンをクリックすると、契約の署名依頼を送信する
+            <ul>
+                <li>署名依頼成功時は署名情報タブに切り替わり、署名待ちステータスが表示される</li>
+                <li>署名依頼失敗時はエラーメッセージを表示</li>
+            </ul>
+        </li>
+        <li>「署名状況」ボタンをクリックすると、電子署名管理画面（CNT-005）に遷移する</li>
+        <li>「一覧に戻る」ボタンをクリックすると、契約一覧画面（CNT-001）に戻る</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> 編集モードへの切り替えボタンは、編集権限を持つユーザー（営業担当者）にのみ表示され、かつ特定のステータス（下書き、承認待ち）の契約にのみ有効です。締結済みや有効状態の契約は編集できません。</p>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>
