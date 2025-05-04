@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム スキルシート管理画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -121,6 +123,45 @@
             padding: 8px 12px;
             color: #6c757d;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -166,24 +207,178 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [スキルシート管理画面のワイヤーフレーム]
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="skill-sheet-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
-    <h2>主要な機能</h2>
-    <ul>
-        <li>スキルシートのテンプレート選択</li>
-        <li>スキルシートのプレビュー表示</li>
-        <li>スキルシートの内容編集</li>
-        <li>スキルシートのPDF/Word形式での出力</li>
-    </ul>
+    <h2>画面構成要素</h2>
+    <h3>1. ヘッダー部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>skill_sheet_001</td>
+            <td>技術者名・ID表示</td>
+            <td>テキスト表示</td>
+            <td>対象技術者の名前とIDを表示</td>
+        </tr>
+        <tr>
+            <td>skill_sheet_002</td>
+            <td>戻るボタン</td>
+            <td>ボタン</td>
+            <td>技術者詳細画面に戻るボタン</td>
+        </tr>
+        <tr>
+            <td>skill_sheet_003</td>
+            <td>編集ボタン</td>
+            <td>ボタン</td>
+            <td>スキルシート編集モードに切り替えるボタン</td>
+        </tr>
+    </table>
+
+    <h3>2. テンプレート選択部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>skill_sheet_004</td>
+            <td>テンプレート選択</td>
+            <td>ドロップダウンリスト</td>
+            <td>スキルシートのテンプレートを選択するリスト</td>
+        </tr>
+        <tr>
+            <td>skill_sheet_005</td>
+            <td>テンプレートプレビュー</td>
+            <td>サムネイル表示</td>
+            <td>各テンプレートのサムネイル画像表示</td>
+        </tr>
+    </table>
+
+    <h3>3. エクスポートオプション</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>skill_sheet_006</td>
+            <td>PDFエクスポートボタン</td>
+            <td>ボタン</td>
+            <td>スキルシートをPDF形式で出力するボタン</td>
+        </tr>
+        <tr>
+            <td>skill_sheet_007</td>
+            <td>Wordエクスポートボタン</td>
+            <td>ボタン</td>
+            <td>スキルシートをWord形式で出力するボタン</td>
+        </tr>
+        <tr>
+            <td>skill_sheet_008</td>
+            <td>印刷ボタン</td>
+            <td>ボタン</td>
+            <td>スキルシートを印刷するボタン</td>
+        </tr>
+    </table>
+
+    <h3>4. 表示オプション</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>skill_sheet_009</td>
+            <td>写真表示オプション</td>
+            <td>スイッチ</td>
+            <td>技術者の写真を表示するかのオプション</td>
+        </tr>
+        <tr>
+            <td>skill_sheet_010</td>
+            <td>連絡先表示オプション</td>
+            <td>スイッチ</td>
+            <td>連絡先情報を表示するかのオプション</td>
+        </tr>
+        <tr>
+            <td>skill_sheet_011</td>
+            <td>プロジェクト履歴表示オプション</td>
+            <td>スイッチ</td>
+            <td>プロジェクト履歴を表示するかのオプション</td>
+        </tr>
+        <tr>
+            <td>skill_sheet_012</td>
+            <td>資格表示オプション</td>
+            <td>スイッチ</td>
+            <td>資格情報を表示するかのオプション</td>
+        </tr>
+    </table>
+
+    <h3>5. スキルシートプレビュー</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>skill_sheet_013</td>
+            <td>技術者プロフィール</td>
+            <td>情報グループ</td>
+            <td>技術者の基本プロフィール情報の表示</td>
+        </tr>
+        <tr>
+            <td>skill_sheet_014</td>
+            <td>自己PR</td>
+            <td>テキスト表示</td>
+            <td>技術者の自己PRの表示</td>
+        </tr>
+        <tr>
+            <td>skill_sheet_015</td>
+            <td>スキルセクション</td>
+            <td>情報グループ</td>
+            <td>技術者のスキル情報の表示（カテゴリ、レベル、経験年数）</td>
+        </tr>
+        <tr>
+            <td>skill_sheet_016</td>
+            <td>資格一覧</td>
+            <td>リスト表示</td>
+            <td>取得資格の一覧表示</td>
+        </tr>
+        <tr>
+            <td>skill_sheet_017</td>
+            <td>プロジェクト履歴</td>
+            <td>リスト表示</td>
+            <td>過去のプロジェクト履歴の表示</td>
+        </tr>
+    </table>
 
     <h2>画面動作仕様</h2>
     <ol>
         <li>画面初期表示時は、デフォルトのテンプレートでスキルシートのプレビューを表示</li>
         <li>テンプレート選択ドロップダウンから別のテンプレートを選択すると、選択したテンプレートに応じたプレビューが表示される</li>
+        <li>テンプレートサムネイルをクリックしても、対応するテンプレートが選択される</li>
+        <li>表示オプションのスイッチを切り替えると、プレビュー内容がリアルタイムで更新される
+            <ul>
+                <li>写真表示オプションをオフにすると、技術者の写真が非表示になる</li>
+                <li>連絡先表示オプションをオフにすると、連絡先情報が非表示になる</li>
+                <li>プロジェクト履歴表示オプションをオフにすると、プロジェクト履歴セクションが非表示になる</li>
+                <li>資格表示オプションをオフにすると、資格情報セクションが非表示になる</li>
+            </ul>
+        </li>
         <li>「編集」ボタンをクリックすると編集モードに切り替わり、スキルシートの内容を編集できるようになる</li>
         <li>編集モードでの「保存」ボタンクリック時
             <ul>
@@ -194,12 +389,38 @@
         </li>
         <li>「PDFエクスポート」ボタンをクリックすると、現在のプレビュー内容がPDF形式でダウンロードされる</li>
         <li>「Wordエクスポート」ボタンをクリックすると、現在のプレビュー内容がWord形式でダウンロードされる</li>
+        <li>「印刷」ボタンをクリックすると、ブラウザの印刷ダイアログが表示される</li>
         <li>「戻る」ボタンをクリックすると、技術者詳細画面（ENG-003）に戻る</li>
     </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> スキルシートに含める個人情報は適切に管理し、クライアントに提出する際には必要に応じて連絡先などの情報を非表示にする設定を行うこと。</p>
+    </div>
 
     <div class="footer">
         <p>作成日: 2025年5月5日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('skill-sheet-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '800px',
+                mockups: [
+                    {
+                        name: 'スキルシート管理',
+                        path: 'mockups/ENG-004.html',
+                        description: '技術者のスキルシートの作成、編集、出力を行う画面です。複数のテンプレートから選択でき、表示項目のカスタマイズや各種フォーマットでのエクスポートが可能です。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>

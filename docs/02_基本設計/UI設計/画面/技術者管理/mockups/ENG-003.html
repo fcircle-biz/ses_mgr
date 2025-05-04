@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム - 技術者詳細</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        .badge-draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .badge-proposal {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .badge-active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .badge-contracted {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .badge-completed {
+            background-color: #d3d3d3;
+            color: #444;
+        }
+        .badge-cancelled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* カスタムスタイル */
+        .profile-header {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .profile-header-background {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background-color: #e9ecef;
+            z-index: 0;
+        }
+        .profile-image {
+            position: relative;
+            z-index: 1;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            border: 5px solid #fff;
+            background-color: #dee2e6;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        .profile-image i {
+            font-size: 48px;
+            color: #adb5bd;
+        }
+        .profile-info {
+            position: relative;
+            z-index: 1;
+        }
+        .profile-action-buttons {
+            position: relative;
+            z-index: 1;
+        }
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            width: 80px;
+            text-align: center;
+        }
+        .status-active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .status-waiting {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .status-reserved {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+        .status-leave {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .detail-table th {
+            width: 25%;
+            background-color: #f8f9fa;
+        }
+        .skill-tag {
+            background-color: #e9ecef;
+            border-radius: 20px;
+            padding: 3px 12px;
+            font-size: 0.825rem;
+            margin-right: 5px;
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+        .skill-level {
+            width: 100px;
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            display: inline-block;
+            position: relative;
+            margin-right: 10px;
+        }
+        .skill-level-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            border-radius: 4px;
+            background-color: #0d6efd;
+        }
+        .level-1 .skill-level-fill { width: 20%; }
+        .level-2 .skill-level-fill { width: 40%; }
+        .level-3 .skill-level-fill { width: 60%; }
+        .level-4 .skill-level-fill { width: 80%; }
+        .level-5 .skill-level-fill { width: 100%; }
+        .history-table {
+            font-size: 0.9em;
+        }
+        .history-table th {
+            font-size: 0.825rem;
+            font-weight: 600;
+        }
+        .document-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .document-icon {
+            font-size: 24px;
+            margin-right: 15px;
+            color: #6c757d;
+        }
+        .document-info {
+            flex-grow: 1;
+        }
+        .document-actions {
+            white-space: nowrap;
+        }
+        .note {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">技術者登録</a></li>
+                            <li><a class="dropdown-item active" href="#">技術者詳細</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">HT</div>
+                            <span>人事 太郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">技術者管理</a></li>
+                <li class="breadcrumb-item"><a href="#">技術者一覧</a></li>
+                <li class="breadcrumb-item active" aria-current="page">技術者詳細</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">技術者詳細</h2>
+            <div>
+                <button class="btn btn-outline-secondary me-2" type="button">
+                    <i class="bi bi-printer me-1"></i>印刷
+                </button>
+                <button class="btn btn-outline-secondary me-2" type="button">
+                    <i class="bi bi-file-earmark-pdf me-1"></i>PDF出力
+                </button>
+                <button class="btn btn-outline-primary" type="button">
+                    <i class="bi bi-search me-1"></i>マッチング検索
+                </button>
+            </div>
+        </div>
+
+        <!-- メインコンテンツエリア -->
+        <div class="row">
+            <div class="col-md-12">
+                <!-- 技術者プロフィールヘッダー -->
+                <div class="profile-header">
+                    <div class="profile-header-background"></div>
+                    <div class="row align-items-end">
+                        <div class="col-auto">
+                            <div class="profile-image">
+                                <i class="bi bi-person"></i>
+                            </div>
+                        </div>
+                        <div class="col profile-info">
+                            <div class="d-flex align-items-center mb-1">
+                                <h2 class="fs-3 mb-0">鈴木 花子</h2>
+                                <span class="badge bg-secondary ms-2">ENG0002</span>
+                                <span class="status-badge status-waiting ms-2">待機中</span>
+                            </div>
+                            <p class="mb-1">正社員 / フロントエンドエンジニア</p>
+                            <div class="text-muted small">最終更新日: 2025年4月25日</div>
+                        </div>
+                        <div class="col-auto profile-action-buttons">
+                            <button class="btn btn-primary">
+                                <i class="bi bi-pencil me-1"></i> 編集
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- タブナビゲーション -->
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">
+                            基本情報
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="skill-tab" data-bs-toggle="tab" data-bs-target="#skill" type="button" role="tab" aria-controls="skill" aria-selected="false">
+                            スキル情報
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">
+                            稼働履歴
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="matching-tab" data-bs-toggle="tab" data-bs-target="#matching" type="button" role="tab" aria-controls="matching" aria-selected="false">
+                            マッチング履歴
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="document-tab" data-bs-toggle="tab" data-bs-target="#document" type="button" role="tab" aria-controls="document" aria-selected="false">
+                            ドキュメント
+                        </button>
+                    </li>
+                </ul>
+                
+                <!-- タブコンテンツ -->
+                <div class="tab-content">
+                    <!-- 基本情報タブ -->
+                    <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h3 class="card-title fs-5 mb-0">個人情報</h3>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-bordered detail-table">
+                                    <tr>
+                                        <th>氏名</th>
+                                        <td>鈴木 花子</td>
+                                    </tr>
+                                    <tr>
+                                        <th>氏名（カナ）</th>
+                                        <td>スズキ ハナコ</td>
+                                    </tr>
+                                    <tr>
+                                        <th>生年月日</th>
+                                        <td>1990年6月15日 (35歳)</td>
+                                    </tr>
+                                    <tr>
+                                        <th>性別</th>
+                                        <td>女性</td>
+                                    </tr>
+                                    <tr>
+                                        <th>所属区分</th>
+                                        <td>正社員</td>
+                                    </tr>
+                                    <tr>
+                                        <th>入社日</th>
+                                        <td>2020年4月1日</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h3 class="card-title fs-5 mb-0">稼働情報</h3>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-bordered detail-table">
+                                    <tr>
+                                        <th>稼働状況</th>
+                                        <td><span class="status-badge status-waiting">待機中</span></td>
+                                    </tr>
+                                    <tr>
+                                        <th>対応可能日</th>
+                                        <td>即日</td>
+                                    </tr>
+                                    <tr>
+                                        <th>希望単価</th>
+                                        <td>65万円 / 月</td>
+                                    </tr>
+                                    <tr>
+                                        <th>勤務地希望</th>
+                                        <td>東京、リモート可</td>
+                                    </tr>
+                                    <tr>
+                                        <th>稼働率</th>
+                                        <td>95% (直近3ヶ月平均)</td>
+                                    </tr>
+                                    <tr>
+                                        <th>稼働備考</th>
+                                        <td>水曜日は早退の可能性あり</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h3 class="card-title fs-5 mb-0">連絡先情報</h3>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-bordered detail-table">
+                                    <tr>
+                                        <th>メールアドレス</th>
+                                        <td>h.suzuki@example.com</td>
+                                    </tr>
+                                    <tr>
+                                        <th>電話番号</th>
+                                        <td>090-1234-5678</td>
+                                    </tr>
+                                    <tr>
+                                        <th>緊急連絡先</th>
+                                        <td>鈴木 一郎（父）/ 03-1234-5678</td>
+                                    </tr>
+                                    <tr>
+                                        <th>住所</th>
+                                        <td>〒100-0001 東京都千代田区千代田1-1-1</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- スキル情報タブ -->
+                    <div class="tab-pane fade" id="skill" role="tabpanel" aria-labelledby="skill-tab">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h3 class="card-title fs-5 mb-0">主要スキル</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-4">
+                                    <h4 class="fs-6">プログラミング言語</h4>
+                                    <div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="me-3" style="width: 120px;">JavaScript</span>
+                                            <span class="skill-level level-5"><span class="skill-level-fill"></span></span>
+                                            <span class="text-muted small">5年</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="me-3" style="width: 120px;">TypeScript</span>
+                                            <span class="skill-level level-4"><span class="skill-level-fill"></span></span>
+                                            <span class="text-muted small">3年</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="me-3" style="width: 120px;">HTML/CSS</span>
+                                            <span class="skill-level level-5"><span class="skill-level-fill"></span></span>
+                                            <span class="text-muted small">5年</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h4 class="fs-6">フレームワーク・ライブラリ</h4>
+                                    <div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="me-3" style="width: 120px;">React</span>
+                                            <span class="skill-level level-5"><span class="skill-level-fill"></span></span>
+                                            <span class="text-muted small">4年</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="me-3" style="width: 120px;">Next.js</span>
+                                            <span class="skill-level level-4"><span class="skill-level-fill"></span></span>
+                                            <span class="text-muted small">2年</span>
+                                        </div>
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="me-3" style="width: 120px;">Redux</span>
+                                            <span class="skill-level level-4"><span class="skill-level-fill"></span></span>
+                                            <span class="text-muted small">3年</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div>
+                                    <h4 class="fs-6">タグ付けされたスキル</h4>
+                                    <div>
+                                        <span class="skill-tag">JavaScript</span>
+                                        <span class="skill-tag">TypeScript</span>
+                                        <span class="skill-tag">React</span>
+                                        <span class="skill-tag">Next.js</span>
+                                        <span class="skill-tag">Redux</span>
+                                        <span class="skill-tag">HTML</span>
+                                        <span class="skill-tag">CSS</span>
+                                        <span class="skill-tag">SCSS</span>
+                                        <span class="skill-tag">REST API</span>
+                                        <span class="skill-tag">Git</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 稼働履歴タブ -->
+                    <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h3 class="card-title fs-5 mb-0">稼働履歴</h3>
+                                <div>
+                                    <select class="form-select form-select-sm" style="width: auto;">
+                                        <option>すべて表示</option>
+                                        <option>直近1年</option>
+                                        <option>直近2年</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover history-table">
+                                        <thead>
+                                            <tr>
+                                                <th>案件ID</th>
+                                                <th>案件名</th>
+                                                <th>クライアント</th>
+                                                <th>期間</th>
+                                                <th>役割</th>
+                                                <th>使用技術</th>
+                                                <th>詳細</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>PRJ-1023</td>
+                                                <td>ECサイトリニューアル</td>
+                                                <td>株式会社デジタルソリューション</td>
+                                                <td>2024/10 - 2025/03</td>
+                                                <td>フロントエンドリード</td>
+                                                <td>React, TypeScript, Next.js</td>
+                                                <td><button class="btn btn-sm btn-outline-primary">詳細</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td>PRJ-1015</td>
+                                                <td>顧客管理システム開発</td>
+                                                <td>ABC商事株式会社</td>
+                                                <td>2024/04 - 2024/09</td>
+                                                <td>フロントエンド開発者</td>
+                                                <td>React, Redux, Bootstrap</td>
+                                                <td><button class="btn btn-sm btn-outline-primary">詳細</button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- マッチング履歴タブ -->
+                    <div class="tab-pane fade" id="matching" role="tabpanel" aria-labelledby="matching-tab">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h3 class="card-title fs-5 mb-0">マッチング履歴</h3>
+                                <div>
+                                    <select class="form-select form-select-sm" style="width: auto;">
+                                        <option>すべて表示</option>
+                                        <option>成立したマッチングのみ</option>
+                                        <option>不成立のマッチングのみ</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover history-table">
+                                        <thead>
+                                            <tr>
+                                                <th>日付</th>
+                                                <th>案件ID</th>
+                                                <th>案件名</th>
+                                                <th>クライアント</th>
+                                                <th>マッチング度</th>
+                                                <th>ステータス</th>
+                                                <th>対応営業</th>
+                                                <th>詳細</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>2025/04/01</td>
+                                                <td>PRJ-1029</td>
+                                                <td>金融アプリ開発</td>
+                                                <td>株式会社フィンテック</td>
+                                                <td><span class="badge bg-success">92%</span></td>
+                                                <td><span class="badge bg-warning">提案中</span></td>
+                                                <td>高橋 一郎</td>
+                                                <td><button class="btn btn-sm btn-outline-primary">詳細</button></td>
+                                            </tr>
+                                            <tr>
+                                                <td>2025/03/15</td>
+                                                <td>PRJ-1027</td>
+                                                <td>SNSアプリ開発</td>
+                                                <td>株式会社ソーシャルメディア</td>
+                                                <td><span class="badge bg-success">95%</span></td>
+                                                <td><span class="badge bg-danger">不成立</span></td>
+                                                <td>佐藤 健太</td>
+                                                <td><button class="btn btn-sm btn-outline-primary">詳細</button></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- ドキュメントタブ -->
+                    <div class="tab-pane fade" id="document" role="tabpanel" aria-labelledby="document-tab">
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h3 class="card-title fs-5 mb-0">関連ドキュメント</h3>
+                                <button class="btn btn-primary btn-sm">
+                                    <i class="bi bi-upload me-1"></i> 新規アップロード
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="document-item">
+                                    <div class="document-icon">
+                                        <i class="bi bi-file-earmark-pdf"></i>
+                                    </div>
+                                    <div class="document-info">
+                                        <h5 class="fs-6 mb-1">スキルシート_鈴木花子_20250401.pdf</h5>
+                                        <div class="text-muted small">アップロード日: 2025/04/01 | サイズ: 2.4 MB</div>
+                                    </div>
+                                    <div class="document-actions">
+                                        <button class="btn btn-sm btn-outline-primary me-1">表示</button>
+                                        <button class="btn btn-sm btn-outline-secondary me-1">ダウンロード</button>
+                                        <button class="btn btn-sm btn-outline-danger">削除</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="document-item">
+                                    <div class="document-icon">
+                                        <i class="bi bi-file-earmark-word"></i>
+                                    </div>
+                                    <div class="document-info">
+                                        <h5 class="fs-6 mb-1">職務経歴書_鈴木花子.docx</h5>
+                                        <div class="text-muted small">アップロード日: 2024/10/15 | サイズ: 1.2 MB</div>
+                                    </div>
+                                    <div class="document-actions">
+                                        <button class="btn btn-sm btn-outline-primary me-1">表示</button>
+                                        <button class="btn btn-sm btn-outline-secondary me-1">ダウンロード</button>
+                                        <button class="btn btn-sm btn-outline-danger">削除</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

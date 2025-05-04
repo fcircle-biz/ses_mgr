@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム 技術者登録画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -121,6 +123,45 @@
             padding: 8px 12px;
             color: #6c757d;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -166,13 +207,14 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [技術者登録画面のワイヤーフレーム]
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="engineer-register-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
-    <h2>画面項目定義</h2>
+    <h2>画面構成要素</h2>
+    <h3>1. 基本情報</h3>
     <table>
         <tr>
             <th>項目ID</th>
@@ -246,6 +288,18 @@
             <td>◯</td>
             <td>技術者の性別</td>
         </tr>
+    </table>
+
+    <h3>2. 稼働情報</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
         <tr>
             <td>eng_reg_009</td>
             <td>稼働状況</td>
@@ -286,6 +340,18 @@
             <td>◯</td>
             <td>希望する単価の上限</td>
         </tr>
+    </table>
+
+    <h3>3. 勤務地情報</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
         <tr>
             <td>eng_reg_014</td>
             <td>最寄り駅</td>
@@ -309,6 +375,18 @@
             <td>-</td>
             <td>◯</td>
             <td>リモート勤務の可否</td>
+        </tr>
+    </table>
+
+    <h3>4. スキル・PR情報</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
         </tr>
         <tr>
             <td>eng_reg_017</td>
@@ -341,6 +419,18 @@
             <td>1000文字以内</td>
             <td>×</td>
             <td>その他の補足情報</td>
+        </tr>
+    </table>
+
+    <h3>5. アクションボタン</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
         </tr>
         <tr>
             <td>eng_reg_021</td>
@@ -386,9 +476,34 @@
         </li>
     </ol>
 
+    <div class="note">
+        <p><strong>注意：</strong> 個人情報の取り扱いには十分注意し、技術者情報の登録・編集には適切な権限管理を行うこと。</p>
+    </div>
+
     <div class="footer">
         <p>作成日: 2025年5月5日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('engineer-register-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '600px',
+                mockups: [
+                    {
+                        name: '技術者登録',
+                        path: 'mockups/ENG-002.html',
+                        description: '新規技術者情報を登録するための入力フォーム画面です。基本情報、稼働情報、スキル情報など技術者に関する情報を入力できます。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>
