@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム システム管理画面設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .screen-list {
+            list-style-type: none;
+            padding: 0;
+        }
+        .screen-list li {
+            margin-bottom: 10px;
+            padding: 10px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+        .screen-list li a {
+            color: #2c3e50;
+            text-decoration: none;
+            font-weight: bold;
+            display: block;
+        }
+        .screen-list li a:hover {
+            color: #3498db;
+        }
+        .screen-list li .description {
+            color: #666;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>SES業務システム システム管理画面設計</h1>
+
+    <h2>システム管理画面一覧</h2>
+    <p>SES業務システムのシステム管理画面設計に関する詳細です。各画面の詳細仕様は、画面IDのリンクから確認できます。</p>
+    
+    <ul class="screen-list">
+        <li>
+            <a href="画面/システム管理/ADM-001_ユーザー管理画面.html">ADM-001: ユーザー管理画面</a>
+            <div class="description">システムユーザーの登録・編集・無効化などを管理する画面</div>
+        </li>
+        <li>
+            <a href="画面/システム管理/ADM-002_ロール管理画面.html">ADM-002: ロール管理画面</a>
+            <div class="description">ユーザーロールと権限の設定を管理する画面</div>
+        </li>
+        <li>
+            <a href="画面/システム管理/ADM-003_マスタ管理画面.html">ADM-003: マスタ管理画面</a>
+            <div class="description">システムで使用する各種マスタデータを管理する画面</div>
+        </li>
+        <li>
+            <a href="画面/システム管理/ADM-004_ログ管理画面.html">ADM-004: ログ管理画面</a>
+            <div class="description">システムログの閲覧・検索・エクスポートを行う画面</div>
+        </li>
+        <li>
+            <a href="画面/システム管理/ADM-005_バッチ管理画面.html">ADM-005: バッチ管理画面</a>
+            <div class="description">バッチ処理の実行・スケジュール設定・履歴確認を行う画面</div>
+        </li>
+    </ul>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

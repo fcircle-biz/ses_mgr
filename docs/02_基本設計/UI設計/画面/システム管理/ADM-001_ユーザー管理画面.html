@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム ユーザー管理画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../システム管理画面設計.html">システム管理画面設計</a></li>
+            <li class="active">ユーザー管理画面</li>
+        </ul>
+    </nav>
+
+    <h1>ADM-001: ユーザー管理画面</h1>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>ADM-001</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>ユーザー管理画面</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>システムユーザーの登録・編集・無効化などを管理する画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>システム管理者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CMN-002: ダッシュボード</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>ユーザー登録/編集モーダル（同画面内）</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [ユーザー管理画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>画面項目定義</h3>
+    <h4>検索条件部</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>user-search-001</td>
+            <td>ユーザーID</td>
+            <td>テキスト入力</td>
+            <td>半角英数字、30文字以内</td>
+            <td>-</td>
+            <td>検索条件：ユーザーID</td>
+        </tr>
+        <tr>
+            <td>user-search-002</td>
+            <td>ユーザー名</td>
+            <td>テキスト入力</td>
+            <td>100文字以内</td>
+            <td>-</td>
+            <td>検索条件：ユーザー名</td>
+        </tr>
+        <tr>
+            <td>user-search-003</td>
+            <td>メールアドレス</td>
+            <td>テキスト入力</td>
+            <td>メールアドレス形式、100文字以内</td>
+            <td>-</td>
+            <td>検索条件：メールアドレス</td>
+        </tr>
+        <tr>
+            <td>user-search-004</td>
+            <td>ロール</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索条件：ユーザーロール</td>
+        </tr>
+        <tr>
+            <td>user-search-005</td>
+            <td>ステータス</td>
+            <td>ラジオボタン</td>
+            <td>有効/無効/すべて</td>
+            <td>◯</td>
+            <td>検索条件：アカウント状態（デフォルト：すべて）</td>
+        </tr>
+        <tr>
+            <td>user-search-006</td>
+            <td>検索ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索実行</td>
+        </tr>
+        <tr>
+            <td>user-search-007</td>
+            <td>クリアボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索条件クリア</td>
+        </tr>
+    </table>
+
+    <h4>ユーザー一覧部</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>user-list-001</td>
+            <td>新規登録ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ユーザー新規登録モーダル表示</td>
+        </tr>
+        <tr>
+            <td>user-list-002</td>
+            <td>一括操作ドロップダウン</td>
+            <td>ドロップダウン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>選択したユーザーに対する一括操作（有効化/無効化/ロック解除）</td>
+        </tr>
+        <tr>
+            <td>user-list-003</td>
+            <td>ユーザーID</td>
+            <td>テキスト表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>一覧表示：ユーザーID</td>
+        </tr>
+        <tr>
+            <td>user-list-004</td>
+            <td>ユーザー名</td>
+            <td>テキスト表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>一覧表示：ユーザー名</td>
+        </tr>
+        <tr>
+            <td>user-list-005</td>
+            <td>メールアドレス</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>一覧表示：メールアドレス</td>
+        </tr>
+        <tr>
+            <td>user-list-006</td>
+            <td>ロール</td>
+            <td>テキスト表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>一覧表示：ユーザーロール</td>
+        </tr>
+        <tr>
+            <td>user-list-007</td>
+            <td>所属部門</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>一覧表示：所属部門</td>
+        </tr>
+        <tr>
+            <td>user-list-008</td>
+            <td>ステータス</td>
+            <td>アイコン表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>一覧表示：アカウント状態（有効/無効/ロック中）</td>
+        </tr>
+        <tr>
+            <td>user-list-009</td>
+            <td>最終ログイン日時</td>
+            <td>テキスト表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>一覧表示：最終ログイン日時</td>
+        </tr>
+        <tr>
+            <td>user-list-010</td>
+            <td>操作</td>
+            <td>アクションボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>編集/パスワードリセット/有効化・無効化</td>
+        </tr>
+        <tr>
+            <td>user-list-011</td>
+            <td>ページング</td>
+            <td>ページングコントロール</td>
+            <td>-</td>
+            <td>-</td>
+            <td>一覧のページ切り替え</td>
+        </tr>
+    </table>
+
+    <h4>ユーザー登録/編集モーダル</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>user-edit-001</td>
+            <td>ユーザーID</td>
+            <td>テキスト入力</td>
+            <td>半角英数字、8〜30文字</td>
+            <td>◯</td>
+            <td>ユーザーID（編集時は読み取り専用）</td>
+        </tr>
+        <tr>
+            <td>user-edit-002</td>
+            <td>氏名</td>
+            <td>テキスト入力</td>
+            <td>100文字以内</td>
+            <td>◯</td>
+            <td>ユーザーの氏名</td>
+        </tr>
+        <tr>
+            <td>user-edit-003</td>
+            <td>メールアドレス</td>
+            <td>テキスト入力</td>
+            <td>メールアドレス形式、100文字以内</td>
+            <td>◯</td>
+            <td>ユーザーのメールアドレス</td>
+        </tr>
+        <tr>
+            <td>user-edit-004</td>
+            <td>パスワード</td>
+            <td>パスワード入力</td>
+            <td>半角英数記号、12〜30文字</td>
+            <td>△</td>
+            <td>新規登録時のみ必須</td>
+        </tr>
+        <tr>
+            <td>user-edit-005</td>
+            <td>ロール</td>
+            <td>マルチセレクト</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>ユーザーに付与するロール（複数選択可）</td>
+        </tr>
+        <tr>
+            <td>user-edit-006</td>
+            <td>所属部門</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>ユーザーの所属部門</td>
+        </tr>
+        <tr>
+            <td>user-edit-007</td>
+            <td>電話番号</td>
+            <td>テキスト入力</td>
+            <td>電話番号形式</td>
+            <td>-</td>
+            <td>ユーザーの連絡先電話番号</td>
+        </tr>
+        <tr>
+            <td>user-edit-008</td>
+            <td>多要素認証</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>多要素認証の有効/無効</td>
+        </tr>
+        <tr>
+            <td>user-edit-009</td>
+            <td>アカウントロック</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>アカウントのロック状態（編集時のみ表示）</td>
+        </tr>
+        <tr>
+            <td>user-edit-010</td>
+            <td>保存ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ユーザー情報の保存</td>
+        </tr>
+        <tr>
+            <td>user-edit-011</td>
+            <td>キャンセルボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>編集のキャンセル</td>
+        </tr>
+    </table>
+
+    <h3>画面動作仕様</h3>
+    <h4>検索機能</h4>
+    <ol>
+        <li>検索条件を入力し、検索ボタンをクリックする</li>
+        <li>入力された条件に合致するユーザーを検索し、一覧に表示する</li>
+        <li>該当するユーザーがない場合は「該当するユーザーがありません」というメッセージを表示する</li>
+        <li>クリアボタンをクリックすると、すべての検索条件をクリアする</li>
+    </ol>
+
+    <h4>一覧表示機能</h4>
+    <ol>
+        <li>ユーザー情報を一覧形式で表示する</li>
+        <li>各カラムヘッダーをクリックすることで、そのカラムでソートができる</li>
+        <li>一覧の各行のチェックボックスで複数選択し、一括操作が可能</li>
+        <li>ページングコントロールで表示ページの切り替えが可能</li>
+    </ol>
+
+    <h4>ユーザー登録機能</h4>
+    <ol>
+        <li>新規登録ボタンをクリックすると、ユーザー登録モーダルが表示される</li>
+        <li>必要情報を入力し、保存ボタンをクリックする</li>
+        <li>入力値のバリデーションを行う
+            <ul>
+                <li>必須項目が未入力の場合はエラーメッセージを表示</li>
+                <li>入力形式が不正な場合はエラーメッセージを表示</li>
+                <li>ユーザーIDが既に使用されている場合はエラーメッセージを表示</li>
+            </ul>
+        </li>
+        <li>登録成功時は一覧を更新し、成功メッセージを表示する</li>
+        <li>登録失敗時はエラーメッセージを表示する</li>
+    </ol>
+
+    <h4>ユーザー編集機能</h4>
+    <ol>
+        <li>一覧の操作カラムから編集ボタンをクリックすると、ユーザー編集モーダルが表示される</li>
+        <li>現在の情報が初期表示され、編集可能（ただしユーザーIDは編集不可）</li>
+        <li>情報を編集し、保存ボタンをクリックする</li>
+        <li>入力値のバリデーションを行う</li>
+        <li>更新成功時は一覧を更新し、成功メッセージを表示する</li>
+        <li>更新失敗時はエラーメッセージを表示する</li>
+    </ol>
+
+    <h4>アカウント状態管理機能</h4>
+    <ol>
+        <li>一覧の操作カラムから有効化/無効化ボタンをクリックすると、アカウント状態を変更する</li>
+        <li>複数アカウントを選択して一括操作ドロップダウンから有効化/無効化/ロック解除を選択することも可能</li>
+        <li>操作実行前に確認ダイアログを表示する</li>
+        <li>操作成功時は一覧を更新し、成功メッセージを表示する</li>
+    </ol>
+
+    <h4>パスワードリセット機能</h4>
+    <ol>
+        <li>一覧の操作カラムからパスワードリセットボタンをクリックする</li>
+        <li>確認ダイアログが表示される</li>
+        <li>確認後、仮パスワードを生成し、ユーザーのメールアドレスに送信する</li>
+        <li>操作成功時は成功メッセージを表示する</li>
+    </ol>
+
+    <h3>特記事項</h3>
+    <ul>
+        <li>ユーザー管理画面はシステム管理者ロールを持つユーザーのみアクセス可能</li>
+        <li>自分自身のアカウントを無効化することはできない（エラーメッセージを表示）</li>
+        <li>最後のシステム管理者アカウントを無効化することはできない（エラーメッセージを表示）</li>
+        <li>ユーザーの削除機能は提供せず、無効化のみとする（監査対応）</li>
+        <li>パスワードは画面上では表示されず、新規登録時のみ設定可能。編集時はパスワードリセット機能を使用</li>
+        <li>アカウントロックは連続ログイン失敗によって自動的に設定され、管理者が解除可能</li>
+    </ul>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

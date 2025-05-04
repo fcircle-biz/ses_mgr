@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム バッチ管理画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../システム管理画面設計.html">システム管理画面設計</a></li>
+            <li class="active">バッチ管理画面</li>
+        </ul>
+    </nav>
+
+    <h1>ADM-005: バッチ管理画面</h1>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>ADM-005</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>バッチ管理画面</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>バッチ処理の実行・スケジュール設定・履歴確認を行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>システム管理者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CMN-002: ダッシュボード</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>バッチ詳細・設定モーダル（同画面内）</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [バッチ管理画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>画面項目定義</h3>
+    <h4>バッチタイプ選択タブ</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>batch-tab-001</td>
+            <td>定期バッチタブ</td>
+            <td>タブ</td>
+            <td>-</td>
+            <td>-</td>
+            <td>定期実行されるバッチ処理を表示</td>
+        </tr>
+        <tr>
+            <td>batch-tab-002</td>
+            <td>オンデマンドバッチタブ</td>
+            <td>タブ</td>
+            <td>-</td>
+            <td>-</td>
+            <td>手動実行用のバッチ処理を表示</td>
+        </tr>
+        <tr>
+            <td>batch-tab-003</td>
+            <td>実行履歴タブ</td>
+            <td>タブ</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ処理の実行履歴を表示</td>
+        </tr>
+    </table>
+
+    <h4>バッチ一覧部（定期・オンデマンド共通）</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>batch-list-001</td>
+            <td>カテゴリフィルタ</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ処理のカテゴリでフィルタリング</td>
+        </tr>
+        <tr>
+            <td>batch-list-002</td>
+            <td>検索ボックス</td>
+            <td>テキスト入力</td>
+            <td>100文字以内</td>
+            <td>-</td>
+            <td>バッチ処理名やIDで検索</td>
+        </tr>
+        <tr>
+            <td>batch-list-003</td>
+            <td>バッチID</td>
+            <td>テキスト表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ処理のID</td>
+        </tr>
+        <tr>
+            <td>batch-list-004</td>
+            <td>バッチ名</td>
+            <td>テキスト表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ処理の名称</td>
+        </tr>
+        <tr>
+            <td>batch-list-005</td>
+            <td>説明</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ処理の説明</td>
+        </tr>
+        <tr>
+            <td>batch-list-006</td>
+            <td>カテゴリ</td>
+            <td>テキスト表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ処理のカテゴリ</td>
+        </tr>
+        <tr>
+            <td>batch-list-007</td>
+            <td>スケジュール</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>定期バッチの実行スケジュール（Cron形式）</td>
+        </tr>
+        <tr>
+            <td>batch-list-008</td>
+            <td>次回実行予定</td>
+            <td>テキスト表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>次回の実行予定日時</td>
+        </tr>
+        <tr>
+            <td>batch-list-009</td>
+            <td>最終実行</td>
+            <td>テキスト表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>最終実行日時</td>
+        </tr>
+        <tr>
+            <td>batch-list-010</td>
+            <td>ステータス</td>
+            <td>アイコン表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ処理の有効/無効状態</td>
+        </tr>
+        <tr>
+            <td>batch-list-011</td>
+            <td>最終結果</td>
+            <td>アイコン表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>最終実行の結果（成功/失敗/警告）</td>
+        </tr>
+        <tr>
+            <td>batch-list-012</td>
+            <td>操作</td>
+            <td>アクションボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>実行/設定/有効化・無効化</td>
+        </tr>
+    </table>
+
+    <h4>実行履歴一覧部</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>batch-history-001</td>
+            <td>期間（開始）</td>
+            <td>日時選択</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索期間の開始日時</td>
+        </tr>
+        <tr>
+            <td>batch-history-002</td>
+            <td>期間（終了）</td>
+            <td>日時選択</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索期間の終了日時</td>
+        </tr>
+        <tr>
+            <td>batch-history-003</td>
+            <td>バッチ選択</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>特定バッチの履歴のみ表示</td>
+        </tr>
+        <tr>
+            <td>batch-history-004</td>
+            <td>結果フィルタ</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>成功/失敗/警告の表示選択</td>
+        </tr>
+        <tr>
+            <td>batch-history-005</td>
+            <td>検索ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索実行</td>
+        </tr>
+        <tr>
+            <td>batch-history-006</td>
+            <td>実行ID</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ実行のユニークID</td>
+        </tr>
+        <tr>
+            <td>batch-history-007</td>
+            <td>バッチ名</td>
+            <td>テキスト表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ処理の名称</td>
+        </tr>
+        <tr>
+            <td>batch-history-008</td>
+            <td>開始日時</td>
+            <td>テキスト表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>処理開始日時</td>
+        </tr>
+        <tr>
+            <td>batch-history-009</td>
+            <td>終了日時</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>処理終了日時</td>
+        </tr>
+        <tr>
+            <td>batch-history-010</td>
+            <td>処理時間</td>
+            <td>テキスト表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>処理にかかった時間</td>
+        </tr>
+        <tr>
+            <td>batch-history-011</td>
+            <td>実行トリガー</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>実行のきっかけ（スケジュール/手動/API）</td>
+        </tr>
+        <tr>
+            <td>batch-history-012</td>
+            <td>実行ユーザー</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>手動実行した場合のユーザーID</td>
+        </tr>
+        <tr>
+            <td>batch-history-013</td>
+            <td>結果</td>
+            <td>アイコン表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>処理結果（成功/失敗/警告）</td>
+        </tr>
+        <tr>
+            <td>batch-history-014</td>
+            <td>詳細</td>
+            <td>リンクボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>実行詳細モーダルを表示</td>
+        </tr>
+        <tr>
+            <td>batch-history-015</td>
+            <td>ページング</td>
+            <td>ページングコントロール</td>
+            <td>-</td>
+            <td>-</td>
+            <td>一覧のページ切り替え</td>
+        </tr>
+    </table>
+
+    <h4>バッチスケジュール設定モーダル</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>batch-schedule-001</td>
+            <td>バッチID</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ処理のID</td>
+        </tr>
+        <tr>
+            <td>batch-schedule-002</td>
+            <td>バッチ名</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ処理の名称</td>
+        </tr>
+        <tr>
+            <td>batch-schedule-003</td>
+            <td>スケジュール有効化</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>スケジュールの有効/無効設定</td>
+        </tr>
+        <tr>
+            <td>batch-schedule-004</td>
+            <td>スケジュール設定方式</td>
+            <td>ラジオボタン</td>
+            <td>ウィザード/Cron式</td>
+            <td>◯</td>
+            <td>スケジュール設定の入力方式</td>
+        </tr>
+        <tr>
+            <td>batch-schedule-005</td>
+            <td>ウィザード（分）</td>
+            <td>セレクトボックス</td>
+            <td>0-59</td>
+            <td>△</td>
+            <td>実行する分（ウィザード方式時に表示）</td>
+        </tr>
+        <tr>
+            <td>batch-schedule-006</td>
+            <td>ウィザード（時）</td>
+            <td>セレクトボックス</td>
+            <td>0-23</td>
+            <td>△</td>
+            <td>実行する時間（ウィザード方式時に表示）</td>
+        </tr>
+        <tr>
+            <td>batch-schedule-007</td>
+            <td>ウィザード（日）</td>
+            <td>セレクトボックス</td>
+            <td>1-31</td>
+            <td>△</td>
+            <td>実行する日（ウィザード方式時に表示）</td>
+        </tr>
+        <tr>
+            <td>batch-schedule-008</td>
+            <td>ウィザード（月）</td>
+            <td>セレクトボックス</td>
+            <td>1-12</td>
+            <td>△</td>
+            <td>実行する月（ウィザード方式時に表示）</td>
+        </tr>
+        <tr>
+            <td>batch-schedule-009</td>
+            <td>ウィザード（曜日）</td>
+            <td>チェックボックス</td>
+            <td>日-土</td>
+            <td>△</td>
+            <td>実行する曜日（ウィザード方式時に表示）</td>
+        </tr>
+        <tr>
+            <td>batch-schedule-010</td>
+            <td>Cron式</td>
+            <td>テキスト入力</td>
+            <td>Cron形式</td>
+            <td>△</td>
+            <td>スケジュールをCron式で指定（Cron式方式時に表示）</td>
+        </tr>
+        <tr>
+            <td>batch-schedule-011</td>
+            <td>タイムゾーン</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>◯</td>
+            <td>スケジュールのタイムゾーン</td>
+        </tr>
+        <tr>
+            <td>batch-schedule-012</td>
+            <td>説明</td>
+            <td>テキストエリア</td>
+            <td>200文字以内</td>
+            <td>-</td>
+            <td>スケジュールに関するメモ</td>
+        </tr>
+        <tr>
+            <td>batch-schedule-013</td>
+            <td>次回実行予定</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>現在の設定での次回実行予定日時</td>
+        </tr>
+        <tr>
+            <td>batch-schedule-014</td>
+            <td>保存ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>スケジュール設定の保存</td>
+        </tr>
+        <tr>
+            <td>batch-schedule-015</td>
+            <td>キャンセルボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>スケジュール設定のキャンセル</td>
+        </tr>
+    </table>
+
+    <h4>バッチパラメータ設定モーダル</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>batch-param-001</td>
+            <td>バッチID</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ処理のID</td>
+        </tr>
+        <tr>
+            <td>batch-param-002</td>
+            <td>バッチ名</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ処理の名称</td>
+        </tr>
+        <tr>
+            <td>batch-param-003</td>
+            <td>パラメータリスト</td>
+            <td>動的フォーム</td>
+            <td>バッチにより異なる</td>
+            <td>△</td>
+            <td>バッチ処理ごとのパラメータ設定項目</td>
+        </tr>
+        <tr>
+            <td>batch-param-004</td>
+            <td>リトライ設定</td>
+            <td>数値入力</td>
+            <td>0-10</td>
+            <td>◯</td>
+            <td>失敗時の最大リトライ回数</td>
+        </tr>
+        <tr>
+            <td>batch-param-005</td>
+            <td>タイムアウト</td>
+            <td>数値入力</td>
+            <td>1-360（分）</td>
+            <td>◯</td>
+            <td>処理タイムアウト時間</td>
+        </tr>
+        <tr>
+            <td>batch-param-006</td>
+            <td>通知設定</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>成功時/失敗時/警告時の通知設定</td>
+        </tr>
+        <tr>
+            <td>batch-param-007</td>
+            <td>通知先メール</td>
+            <td>テキスト入力</td>
+            <td>メールアドレス（複数可）</td>
+            <td>△</td>
+            <td>通知先メールアドレス（通知設定有効時）</td>
+        </tr>
+        <tr>
+            <td>batch-param-008</td>
+            <td>保存ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>パラメータ設定の保存</td>
+        </tr>
+        <tr>
+            <td>batch-param-009</td>
+            <td>キャンセルボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>パラメータ設定のキャンセル</td>
+        </tr>
+    </table>
+
+    <h4>バッチ実行詳細モーダル</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>batch-detail-001</td>
+            <td>実行ID</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ実行のユニークID</td>
+        </tr>
+        <tr>
+            <td>batch-detail-002</td>
+            <td>バッチ名</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ処理の名称</td>
+        </tr>
+        <tr>
+            <td>batch-detail-003</td>
+            <td>実行情報</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>開始/終了日時、処理時間等</td>
+        </tr>
+        <tr>
+            <td>batch-detail-004</td>
+            <td>使用パラメータ</td>
+            <td>キー・バリュー表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>実行時に使用されたパラメータ一覧</td>
+        </tr>
+        <tr>
+            <td>batch-detail-005</td>
+            <td>処理結果サマリー</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>処理件数、成功件数、失敗件数など</td>
+        </tr>
+        <tr>
+            <td>batch-detail-006</td>
+            <td>ログ表示</td>
+            <td>テキストエリア（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ処理のログ出力</td>
+        </tr>
+        <tr>
+            <td>batch-detail-007</td>
+            <td>エラー詳細</td>
+            <td>テキストエリア（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>エラーが発生した場合のエラー詳細</td>
+        </tr>
+        <tr>
+            <td>batch-detail-008</td>
+            <td>ログダウンロードボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>実行ログのダウンロード</td>
+        </tr>
+        <tr>
+            <td>batch-detail-009</td>
+            <td>結果ファイルダウンロードボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>バッチ処理で生成されたファイルのダウンロード（存在する場合）</td>
+        </tr>
+        <tr>
+            <td>batch-detail-010</td>
+            <td>再実行ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>同じパラメータでバッチを再実行</td>
+        </tr>
+        <tr>
+            <td>batch-detail-011</td>
+            <td>閉じるボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>詳細モーダルを閉じる</td>
+        </tr>
+    </table>
+
+    <h3>画面動作仕様</h3>
+    <h4>バッチ一覧表示機能</h4>
+    <ol>
+        <li>画面初期表示時は、定期バッチタブが選択された状態で表示される</li>
+        <li>タブを切り替えると、定期バッチ/オンデマンドバッチ/実行履歴に表示が切り替わる</li>
+        <li>カテゴリフィルタで特定カテゴリのバッチのみを表示できる</li>
+        <li>検索ボックスに文字を入力すると、バッチID・名称でフィルタリングされる</li>
+        <li>各カラムヘッダーをクリックすることで、そのカラムでソートができる</li>
+    </ol>
+
+    <h4>バッチ手動実行機能</h4>
+    <ol>
+        <li>一覧の操作カラムから実行ボタンをクリックする</li>
+        <li>パラメータ設定モーダルが表示される</li>
+        <li>必要なパラメータを入力し、実行ボタンをクリックする</li>
+        <li>バッチ処理が非同期で実行される</li>
+        <li>実行開始時に通知メッセージが表示される</li>
+        <li>実行履歴タブに遷移して、最新の実行状況を確認できる</li>
+    </ol>
+
+    <h4>スケジュール設定機能</h4>
+    <ol>
+        <li>一覧の操作カラムから設定ボタンをクリックする</li>
+        <li>スケジュール設定モーダルが表示される</li>
+        <li>ウィザード方式またはCron式方式でスケジュールを設定する</li>
+        <li>設定に基づいて次回実行予定日時が表示される</li>
+        <li>保存ボタンをクリックすると設定が保存される</li>
+        <li>スケジュール有効化チェックボックスで実行の有効/無効が切り替えられる</li>
+    </ol>
+
+    <h4>パラメータ設定機能</h4>
+    <ol>
+        <li>一覧の操作カラムから設定ボタンをクリックし、パラメータタブを選択する</li>
+        <li>パラメータ設定モーダルが表示される</li>
+        <li>バッチ処理ごとに定義されたパラメータを設定する</li>
+        <li>リトライ設定、タイムアウト、通知設定を行う</li>
+        <li>保存ボタンをクリックすると設定が保存される</li>
+    </ol>
+
+    <h4>実行履歴表示機能</h4>
+    <ol>
+        <li>実行履歴タブをクリックする</li>
+        <li>期間やバッチ選択などの条件で履歴を検索できる</li>
+        <li>結果フィルタで成功/失敗/警告のステータスで絞り込みが可能</li>
+        <li>詳細ボタンをクリックすると、実行詳細モーダルが表示される</li>
+        <li>実行詳細ではログや結果サマリー、エラー詳細を確認できる</li>
+        <li>ログや結果ファイルをダウンロードできる</li>
+        <li>必要に応じて同じパラメータで再実行することも可能</li>
+    </ol>
+
+    <h3>バッチ処理カテゴリと主要バッチ</h3>
+    <h4>データ集計バッチ</h4>
+    <ul>
+        <li>日次売上集計：前日の売上データを集計</li>
+        <li>月次売上集計：月次の売上データを集計</li>
+        <li>稼働率集計：技術者の稼働率を集計</li>
+        <li>粗利集計：案件ごとの粗利を集計</li>
+    </ul>
+
+    <h4>請求・支払バッチ</h4>
+    <ul>
+        <li>請求書生成：月次の請求書データを生成</li>
+        <li>支払データ生成：月次の支払データを生成</li>
+        <li>入金消込：入金データと請求データの消込処理</li>
+        <li>未入金通知：支払期限を過ぎた未入金の通知</li>
+    </ul>
+
+    <h4>通知バッチ</h4>
+    <ul>
+        <li>勤怠未提出通知：勤怠未提出者への通知</li>
+        <li>契約更新通知：契約更新予定の通知</li>
+        <li>契約終了通知：契約終了予定の通知</li>
+        <li>アラート通知：KPI閾値超過時のアラート通知</li>
+    </ul>
+
+    <h4>データメンテナンスバッチ</h4>
+    <ul>
+        <li>データアーカイブ：古いデータのアーカイブ処理</li>
+        <li>ログクリーンアップ：古いログの削除</li>
+        <li>テンポラリファイルクリーンアップ：一時ファイルの削除</li>
+        <li>バックアップ：データのバックアップ処理</li>
+    </ul>
+
+    <h4>インポート/エクスポートバッチ</h4>
+    <ul>
+        <li>マスタデータインポート：外部システムからのマスタデータ取込</li>
+        <li>取引先データ連携：会計システムへのデータ連携</li>
+        <li>社員データ連携：人事システムとのデータ連携</li>
+        <li>データエクスポート：各種データの外部システム向けエクスポート</li>
+    </ul>
+
+    <h3>特記事項</h3>
+    <ul>
+        <li>バッチ管理画面はシステム管理者ロールを持つユーザーのみアクセス可能</li>
+        <li>バッチ処理の実行はシステムリソースを消費するため、同時実行数に制限がある（デフォルト：5）</li>
+        <li>長時間実行するバッチ処理は、タイムアウト設定を適切に行う必要がある</li>
+        <li>定期バッチのスケジュール設定は、システム負荷の分散を考慮して行う</li>
+        <li>緊急時にバッチを停止できる「緊急停止」機能を提供する</li>
+        <li>バッチ実行履歴は3ヶ月間保持され、それ以降は自動的にアーカイブされる</li>
+        <li>バッチ処理のログは詳細モードと通常モードを切り替え可能</li>
+        <li>重要なバッチ処理の失敗時は、管理者へのメール通知と連携して運用する</li>
+    </ul>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

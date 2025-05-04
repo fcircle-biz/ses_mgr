@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム ログ管理画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../システム管理画面設計.html">システム管理画面設計</a></li>
+            <li class="active">ログ管理画面</li>
+        </ul>
+    </nav>
+
+    <h1>ADM-004: ログ管理画面</h1>
+    
+    <h3>画面概要</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>ADM-004</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>ログ管理画面</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>システムログの閲覧・検索・エクスポートを行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>システム管理者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>CMN-002: ダッシュボード</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>ログ詳細モーダル（同画面内）</td>
+        </tr>
+    </table>
+
+    <h3>画面レイアウト</h3>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [ログ管理画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h3>画面項目定義</h3>
+    <h4>ログ種別選択タブ</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>log-tab-001</td>
+            <td>操作ログタブ</td>
+            <td>タブ</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ユーザーの操作ログを表示</td>
+        </tr>
+        <tr>
+            <td>log-tab-002</td>
+            <td>システムログタブ</td>
+            <td>タブ</td>
+            <td>-</td>
+            <td>-</td>
+            <td>システムイベントログを表示</td>
+        </tr>
+        <tr>
+            <td>log-tab-003</td>
+            <td>エラーログタブ</td>
+            <td>タブ</td>
+            <td>-</td>
+            <td>-</td>
+            <td>エラーログを表示</td>
+        </tr>
+        <tr>
+            <td>log-tab-004</td>
+            <td>セキュリティログタブ</td>
+            <td>タブ</td>
+            <td>-</td>
+            <td>-</td>
+            <td>認証・認可関連のログを表示</td>
+        </tr>
+    </table>
+
+    <h4>検索条件部</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>log-search-001</td>
+            <td>期間（開始）</td>
+            <td>日時選択</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索期間の開始日時</td>
+        </tr>
+        <tr>
+            <td>log-search-002</td>
+            <td>期間（終了）</td>
+            <td>日時選択</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索期間の終了日時</td>
+        </tr>
+        <tr>
+            <td>log-search-003</td>
+            <td>ユーザーID</td>
+            <td>テキスト入力</td>
+            <td>半角英数字、30文字以内</td>
+            <td>-</td>
+            <td>特定ユーザーのログを検索（操作・セキュリティログで有効）</td>
+        </tr>
+        <tr>
+            <td>log-search-004</td>
+            <td>IPアドレス</td>
+            <td>テキスト入力</td>
+            <td>IPアドレス形式</td>
+            <td>-</td>
+            <td>特定IPアドレスからのアクセスログを検索</td>
+        </tr>
+        <tr>
+            <td>log-search-005</td>
+            <td>ログレベル</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ログレベルでフィルタ（INFO, WARN, ERROR, FATAL等）</td>
+        </tr>
+        <tr>
+            <td>log-search-006</td>
+            <td>操作種別</td>
+            <td>セレクトボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>操作種別でフィルタ（登録, 更新, 削除, 参照等）</td>
+        </tr>
+        <tr>
+            <td>log-search-007</td>
+            <td>キーワード</td>
+            <td>テキスト入力</td>
+            <td>100文字以内</td>
+            <td>-</td>
+            <td>ログメッセージ内を検索するキーワード</td>
+        </tr>
+        <tr>
+            <td>log-search-008</td>
+            <td>検索ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索実行</td>
+        </tr>
+        <tr>
+            <td>log-search-009</td>
+            <td>クリアボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索条件クリア</td>
+        </tr>
+    </table>
+
+    <h4>ログ一覧部</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>log-list-001</td>
+            <td>エクスポートボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>表示中のログをCSVでエクスポート</td>
+        </tr>
+        <tr>
+            <td>log-list-002</td>
+            <td>日時</td>
+            <td>テキスト表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ログ記録日時</td>
+        </tr>
+        <tr>
+            <td>log-list-003</td>
+            <td>ログレベル</td>
+            <td>アイコン表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ログの重要度レベル</td>
+        </tr>
+        <tr>
+            <td>log-list-004</td>
+            <td>カテゴリ</td>
+            <td>テキスト表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ログのカテゴリ</td>
+        </tr>
+        <tr>
+            <td>log-list-005</td>
+            <td>ユーザーID</td>
+            <td>テキスト表示（ソート可）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>操作を実行したユーザーID</td>
+        </tr>
+        <tr>
+            <td>log-list-006</td>
+            <td>IPアドレス</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>アクセス元IPアドレス</td>
+        </tr>
+        <tr>
+            <td>log-list-007</td>
+            <td>操作対象</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>操作対象のエンティティやリソース</td>
+        </tr>
+        <tr>
+            <td>log-list-008</td>
+            <td>メッセージ</td>
+            <td>テキスト表示（省略表示）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ログメッセージ（一部表示）</td>
+        </tr>
+        <tr>
+            <td>log-list-009</td>
+            <td>詳細表示</td>
+            <td>リンクボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ログ詳細モーダルを表示</td>
+        </tr>
+        <tr>
+            <td>log-list-010</td>
+            <td>ページング</td>
+            <td>ページングコントロール</td>
+            <td>-</td>
+            <td>-</td>
+            <td>一覧のページ切り替え</td>
+        </tr>
+    </table>
+
+    <h4>ログ詳細モーダル</h4>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>log-detail-001</td>
+            <td>ログID</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ログのユニークID</td>
+        </tr>
+        <tr>
+            <td>log-detail-002</td>
+            <td>日時</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ログ記録日時（詳細表示）</td>
+        </tr>
+        <tr>
+            <td>log-detail-003</td>
+            <td>ログレベル</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ログの重要度レベル</td>
+        </tr>
+        <tr>
+            <td>log-detail-004</td>
+            <td>カテゴリ</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ログのカテゴリ</td>
+        </tr>
+        <tr>
+            <td>log-detail-005</td>
+            <td>ユーザー情報</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ユーザーID、ユーザー名、ロール</td>
+        </tr>
+        <tr>
+            <td>log-detail-006</td>
+            <td>アクセス情報</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>IPアドレス、ユーザーエージェント等</td>
+        </tr>
+        <tr>
+            <td>log-detail-007</td>
+            <td>操作内容</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>実行された操作の詳細</td>
+        </tr>
+        <tr>
+            <td>log-detail-008</td>
+            <td>メッセージ</td>
+            <td>テキストエリア（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ログメッセージの全文</td>
+        </tr>
+        <tr>
+            <td>log-detail-009</td>
+            <td>スタックトレース</td>
+            <td>テキストエリア（読み取り専用）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>エラーログの場合のスタックトレース</td>
+        </tr>
+        <tr>
+            <td>log-detail-010</td>
+            <td>パラメータ</td>
+            <td>キー・バリュー表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>操作に関連するパラメータ一覧</td>
+        </tr>
+        <tr>
+            <td>log-detail-011</td>
+            <td>関連ログ</td>
+            <td>リンクリスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>同一トランザクションに関連する他のログへのリンク</td>
+        </tr>
+        <tr>
+            <td>log-detail-012</td>
+            <td>閉じるボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>詳細モーダルを閉じる</td>
+        </tr>
+    </table>
+
+    <h3>画面動作仕様</h3>
+    <h4>ログ表示機能</h4>
+    <ol>
+        <li>画面初期表示時は、操作ログタブが選択され、直近24時間のログが表示される</li>
+        <li>タブを切り替えると、対応するログ種別に表示が切り替わる</li>
+        <li>ログ種別ごとに表示項目が一部異なる
+            <ul>
+                <li>操作ログ：ユーザーID、操作対象、操作内容を重視</li>
+                <li>システムログ：カテゴリ、メッセージを重視</li>
+                <li>エラーログ：エラーレベル、メッセージを重視</li>
+                <li>セキュリティログ：ユーザーID、IPアドレス、アクション種別を重視</li>
+            </ul>
+        </li>
+        <li>各カラムヘッダーをクリックすることで、そのカラムでソートができる</li>
+    </ol>
+
+    <h4>ログ検索機能</h4>
+    <ol>
+        <li>検索条件を入力し、検索ボタンをクリックする</li>
+        <li>入力された条件に合致するログを検索し、一覧に表示する</li>
+        <li>該当するログがない場合は「該当するログがありません」というメッセージを表示する</li>
+        <li>クリアボタンをクリックすると、すべての検索条件をクリアする</li>
+        <li>検索条件はログ種別によって一部が有効/無効となる（例：ユーザーIDはシステムログでは無効）</li>
+    </ol>
+
+    <h4>ログ詳細表示機能</h4>
+    <ol>
+        <li>一覧の詳細表示リンクをクリックすると、ログ詳細モーダルが表示される</li>
+        <li>ログの種類によって表示される詳細情報の内容が異なる</li>
+        <li>エラーログの場合はスタックトレースが表示される</li>
+        <li>操作ログの場合は操作パラメータの詳細が表示される</li>
+        <li>関連ログがある場合は、リンクとして表示され、クリックすると該当ログの詳細が表示される</li>
+    </ol>
+
+    <h4>ログエクスポート機能</h4>
+    <ol>
+        <li>エクスポートボタンをクリックする</li>
+        <li>現在の検索条件に合致するログをCSVファイルまたはJSONファイルにエクスポートする</li>
+        <li>大量データの場合は処理中にプログレスバーを表示する</li>
+        <li>ファイルのダウンロードが開始される</li>
+    </ol>
+
+    <h3>ログ種別と記録内容</h3>
+    <h4>操作ログ</h4>
+    <ul>
+        <li>ユーザーがシステム上で行った操作の記録</li>
+        <li>記録内容：日時、ユーザーID、IPアドレス、操作種別、操作対象、パラメータ、結果</li>
+        <li>主な操作種別：登録、更新、削除、参照、承認、否認、ダウンロード、アップロード</li>
+    </ul>
+
+    <h4>システムログ</h4>
+    <ul>
+        <li>システム内部の処理状況や重要なイベントの記録</li>
+        <li>記録内容：日時、ログレベル、カテゴリ、メッセージ、コンポーネント</li>
+        <li>主なカテゴリ：アプリケーション、データベース、バッチ処理、外部連携</li>
+    </ul>
+
+    <h4>エラーログ</h4>
+    <ul>
+        <li>システム内で発生したエラーや例外の記録</li>
+        <li>記録内容：日時、エラーレベル、エラーコード、エラーメッセージ、スタックトレース、コンテキスト情報</li>
+        <li>エラーレベル：WARN（警告）、ERROR（エラー）、FATAL（致命的）</li>
+    </ul>
+
+    <h4>セキュリティログ</h4>
+    <ul>
+        <li>認証・認可に関する操作や不正アクセスの試みなどセキュリティ関連の記録</li>
+        <li>記録内容：日時、ユーザーID、IPアドレス、アクション種別、結果、詳細情報</li>
+        <li>主なアクション：ログイン、ログアウト、認証失敗、権限変更、パスワード変更、多要素認証</li>
+    </ul>
+
+    <h3>特記事項</h3>
+    <ul>
+        <li>ログ管理画面はシステム管理者ロールを持つユーザーのみアクセス可能</li>
+        <li>ログの保持期間は以下の通り設定される
+            <ul>
+                <li>操作ログ：3年間</li>
+                <li>システムログ：1年間</li>
+                <li>エラーログ：2年間</li>
+                <li>セキュリティログ：5年間</li>
+            </ul>
+        </li>
+        <li>保持期間を過ぎたログは自動的にアーカイブされる</li>
+        <li>アーカイブされたログは別途アーカイブ閲覧ツールで参照可能</li>
+        <li>パフォーマンス上の理由から、一度に表示するログは最大1000件まで</li>
+        <li>個人情報や機密情報はログ内でマスキングされる</li>
+        <li>緊急時のログ収集機能として、指定条件のログを即時ダウンロードできる機能を提供</li>
+    </ul>
+
+    <div class="footer">
+        <p>作成日: 2025年5月4日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>
