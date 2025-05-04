@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム - 案件詳細</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            padding-bottom: .5rem;
+            margin-bottom: 1.5rem;
+            color: #495057;
+        }
+        .info-label {
+            font-weight: 600;
+            color: #6c757d;
+            margin-bottom: .25rem;
+        }
+        .info-value {
+            margin-bottom: 1rem;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .badge-skill {
+            background-color: #e9ecef;
+            color: #495057;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+        .timeline-item::before {
+            content: "";
+            position: absolute;
+            left: -22px;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background-color: #dee2e6;
+        }
+        .timeline-item:last-child::before {
+            height: 0;
+        }
+        .timeline-marker {
+            position: absolute;
+            left: -30px;
+            top: 0;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background-color: #adb5bd;
+            border: 3px solid #fff;
+            z-index: 2;
+        }
+        .timeline-date {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+        .timeline-content {
+            padding: 0.75rem;
+            background-color: #fff;
+            border-radius: 0.375rem;
+            border: 1px solid #dee2e6;
+        }
+        .timeline-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd;
+        }
+        .file-item {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-icon {
+            margin-right: 8px;
+        }
+        .table-responsive {
+            margin-bottom: 0;
+        }
+        .status-badge {
+            font-size: 14px;
+            padding: 5px 10px;
+        }
+        .progress-timeline .timeline-marker {
+            background-color: #0d6efd;
+        }
+        .badge-active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item active" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">SI</div>
+                            <span>佐藤 一郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">案件管理</a></li>
+                <li class="breadcrumb-item"><a href="#">案件一覧</a></li>
+                <li class="breadcrumb-item active" aria-current="page">案件詳細</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="h4 mb-0">基幹システム刷新プロジェクト</h2>
+                <p class="text-muted mb-0">案件ID: PRJ-2025-0122</p>
+            </div>
+            <div>
+                <button class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-people me-1"></i>マッチング検索
+                </button>
+                <button class="btn btn-outline-primary me-2">
+                    <i class="bi bi-pencil me-1"></i>編集
+                </button>
+                <button class="btn btn-primary">
+                    <i class="bi bi-file-earmark-text me-1"></i>提案書作成
+                </button>
+            </div>
+        </div>
+
+        <!-- タブナビゲーション -->
+        <ul class="nav nav-tabs mb-4">
+            <li class="nav-item">
+                <a class="nav-link active" href="#">案件情報</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">提案履歴</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">マッチング結果</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">契約情報</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">活動履歴</a>
+            </li>
+        </ul>
+
+        <div class="row">
+            <!-- 左カラム：案件詳細情報 -->
+            <div class="col-md-8">
+                <!-- 基本情報 -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">基本情報</h5>
+                        <span class="badge rounded-pill badge-active px-3 py-2">進行中</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-label">顧客企業</div>
+                                <div class="info-value">ITソリューションズ株式会社</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-label">担当者</div>
+                                <div class="info-value">鈴木 次郎</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-label">開始予定日</div>
+                                <div class="info-value">2025/05/15</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-label">終了予定日</div>
+                                <div class="info-value">2026/03/31</div>
+                            </div>
+                            <div class="col-12">
+                                <div class="info-label">案件概要</div>
+                                <div class="info-value">
+                                    老朽化した基幹システムを刷新し、クラウド環境への移行を実施するプロジェクト。ユーザーインターフェース改善と業務効率化を主な目的として、最新技術を活用したシステム構築を行う。
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 案件詳細 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">詳細情報</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>現行システムは、20年前に開発されたクライアントサーバー型システムであり、保守性・拡張性の課題を抱えている。また、業務プロセスの変化に対応できておらず、多くの業務が手作業で補完されている状況である。</p>
+                        <p>新システムでは以下の点を重視して開発を行う：</p>
+                        <ul>
+                            <li>マイクロサービスアーキテクチャの採用による柔軟性と拡張性の確保</li>
+                            <li>クラウドネイティブ環境への完全移行</li>
+                            <li>モバイルデバイスからのアクセス対応</li>
+                            <li>BI機能の強化によるデータ活用促進</li>
+                            <li>APIによる外部システム連携の容易化</li>
+                        </ul>
+                        <p>プロジェクトは複数フェーズに分けて実施し、段階的なリリースを予定している。</p>
+                    </div>
+                </div>
+
+                <!-- 技術要件 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">技術要件</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-label">必要スキル</div>
+                                <div class="info-value">
+                                    <span class="badge-skill">Java</span>
+                                    <span class="badge-skill">Spring Boot</span>
+                                    <span class="badge-skill">React</span>
+                                    <span class="badge-skill">PostgreSQL</span>
+                                    <span class="badge-skill">AWS</span>
+                                    <span class="badge-skill">Docker</span>
+                                    <span class="badge-skill">Kubernetes</span>
+                                    <span class="badge-skill">マイクロサービス</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-label">勤務地</div>
+                                <div class="info-value">東京</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-label">作業形態</div>
+                                <div class="info-value">ハイブリッド</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-label">ポジション</div>
+                                <div class="info-value">アーキテクト、シニア開発者</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 予算・条件 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">予算・条件</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="info-label">予算範囲</div>
+                                <div class="info-value">700,000円 〜 900,000円/月</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-label">契約形態</div>
+                                <div class="info-value">SES</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-label">精算方法</div>
+                                <div class="info-value">月額固定</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-label">想定工数</div>
+                                <div class="info-value">5人月 × 10ヶ月</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 関連資料 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">関連資料</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="file-list">
+                            <div class="file-item">
+                                <div>
+                                    <i class="bi bi-file-earmark-pdf file-icon"></i>
+                                    基幹システム刷新プロジェクト企画書.pdf
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-download"></i>
+                                </button>
+                            </div>
+                            <div class="file-item">
+                                <div>
+                                    <i class="bi bi-file-earmark-image file-icon"></i>
+                                    現行システム構成図.png
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-download"></i>
+                                </button>
+                            </div>
+                            <div class="file-item">
+                                <div>
+                                    <i class="bi bi-file-earmark-excel file-icon"></i>
+                                    要件一覧.xlsx
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-download"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右カラム：ステータスと履歴 -->
+            <div class="col-md-4">
+                <!-- ステータス履歴 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">ステータス履歴</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-marker progress-timeline"></div>
+                                <div class="timeline-date">2025/05/10</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">進行中</div>
+                                    <p class="mb-0 text-muted">契約締結完了、プロジェクト開始</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-date">2025/05/01</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">契約完了</div>
+                                    <p class="mb-0 text-muted">正式契約締結</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-date">2025/04/15</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">提案中</div>
+                                    <p class="mb-0 text-muted">プロポーザル提出</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-date">2025/04/01</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">検討中</div>
+                                    <p class="mb-0 text-muted">案件登録</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- マッチング進捗 -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">マッチング進捗</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span>技術者アサイン進捗</span>
+                            <span class="text-primary">3/5人</span>
+                        </div>
+                        <div class="progress mb-4" style="height: 10px;">
+                            <div class="progress-bar" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60%</div>
+                        </div>
+                        
+                        <div class="table-responsive">
+                            <table class="table table-sm border">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>技術者名</th>
+                                        <th>ポジション</th>
+                                        <th>ステータス</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>山田 太郎</td>
+                                        <td>アーキテクト</td>
+                                        <td><span class="badge bg-success">確定</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>鈴木 花子</td>
+                                        <td>シニア開発者</td>
+                                        <td><span class="badge bg-success">確定</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>田中 健太</td>
+                                        <td>開発者</td>
+                                        <td><span class="badge bg-success">確定</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>佐藤 美咲</td>
+                                        <td>テスター</td>
+                                        <td><span class="badge bg-warning text-dark">提案中</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td>-</td>
+                                        <td>開発者</td>
+                                        <td><span class="badge bg-secondary">未割当</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="text-center mt-3">
+                            <a href="#" class="btn btn-sm btn-outline-primary">マッチング詳細を表示</a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 最近のアクティビティ -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">最近のアクティビティ</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-date">2025/05/12 15:30</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">資料追加</div>
+                                    <p class="mb-0 text-muted">要件一覧.xlsx がアップロードされました</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-date">2025/05/10 10:15</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">ステータス更新</div>
+                                    <p class="mb-0 text-muted">ステータスが「契約完了」から「進行中」に変更されました</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-date">2025/05/08 14:00</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">技術者アサイン</div>
+                                    <p class="mb-0 text-muted">田中 健太さんがプロジェクトにアサインされました</p>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-marker"></div>
+                                <div class="timeline-date">2025/05/05 09:45</div>
+                                <div class="timeline-content">
+                                    <div class="timeline-title">技術者提案</div>
+                                    <p class="mb-0 text-muted">佐藤 美咲さんをクライアントに提案しました</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

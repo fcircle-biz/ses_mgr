@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提案書作成 | SES業務システム</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            padding-top: 20px;
+            padding-bottom: 40px;
+        }
+        .system-header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .key-value {
+            margin-bottom: 0.5rem;
+        }
+        .key-value .key {
+            font-weight: 500;
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+        .key-value .value {
+            font-weight: 400;
+        }
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            width: 100px;
+            text-align: center;
+        }
+        .status-draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .status-proposed {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .status-reviewing {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+        .template-card {
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .template-card.selected {
+            border-color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+        .template-image {
+            width: 100%;
+            height: 160px;
+            object-fit: cover;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+        .template-name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-top: 0.5rem;
+        }
+        .template-desc {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        .proposal-preview {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+            min-height: 400px;
+            padding: 20px;
+            position: relative;
+        }
+        .proposal-preview-image {
+            width: 100%;
+            height: auto;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .section-panel {
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            background-color: #fff;
+        }
+        .section-panel-header {
+            padding: 10px 15px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-panel-body {
+            padding: 15px;
+        }
+        .section-panel-footer {
+            padding: 10px 15px;
+            background-color: #f8f9fa;
+            border-top: 1px solid #dee2e6;
+            text-align: right;
+        }
+        .form-check-input.section-toggle {
+            margin-right: 10px;
+        }
+        .drag-handle {
+            cursor: move;
+            color: #6c757d;
+            margin-right: 10px;
+        }
+        .section-panel.disabled {
+            opacity: 0.6;
+        }
+        .section-add-btn {
+            width: 100%;
+            border-style: dashed;
+            margin-bottom: 20px;
+        }
+        .drag-placeholder {
+            border: 2px dashed #dee2e6;
+            height: 50px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            background-color: #f8f9fa;
+        }
+        .editor-toolbar {
+            border: 1px solid #dee2e6;
+            border-radius: 4px 4px 0 0;
+            background-color: #f8f9fa;
+            padding: 5px;
+        }
+        .editor-toolbar-btn {
+            background-color: transparent;
+            border: none;
+            color: #495057;
+            padding: 5px 8px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+        .editor-toolbar-btn:hover {
+            background-color: #e9ecef;
+        }
+        .editor-content {
+            border: 1px solid #dee2e6;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            padding: 10px;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="system-header d-flex justify-content-between align-items-center pb-3 mb-4">
+            <h1 class="fs-4">SES業務システム</h1>
+            <div class="d-flex align-items-center">
+                <div class="dropdown me-3">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bell"></i>
+                        <span class="badge bg-danger">3</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                        <li><a class="dropdown-item" href="#">未読通知 (3)</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">新しい案件が登録されました</a></li>
+                        <li><a class="dropdown-item" href="#">スキルシート更新依頼があります</a></li>
+                        <li><a class="dropdown-item" href="#">マッチング候補が見つかりました</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        営業 太郎 様
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                        <li><a class="dropdown-item" href="#">設定</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        
+        <div class="mb-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">マッチング</a></li>
+                    <li class="breadcrumb-item"><a href="#">マッチング検索</a></li>
+                    <li class="breadcrumb-item"><a href="#">マッチング詳細 #MT00123</a></li>
+                    <li class="breadcrumb-item"><a href="#">提案管理 #PP00056</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">提案書作成</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <!-- タブナビゲーション -->
+        <ul class="nav nav-tabs mb-4" id="proposalTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic-content" type="button" role="tab" aria-controls="basic-content" aria-selected="true">基本情報</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="template-tab" data-bs-toggle="tab" data-bs-target="#template-content" type="button" role="tab" aria-controls="template-content" aria-selected="false">テンプレート選択</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="engineer-tab" data-bs-toggle="tab" data-bs-target="#engineer-content" type="button" role="tab" aria-controls="engineer-content" aria-selected="false">技術者情報</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="content-tab" data-bs-toggle="tab" data-bs-target="#content-edit" type="button" role="tab" aria-controls="content-edit" aria-selected="false">提案内容編集</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="preview-tab" data-bs-toggle="tab" data-bs-target="#preview-content" type="button" role="tab" aria-controls="preview-content" aria-selected="false">プレビュー</button>
+            </li>
+        </ul>
+        
+        <!-- タブコンテンツ -->
+        <div class="tab-content" id="proposalTabsContent">
+            <!-- 基本情報タブ -->
+            <div class="tab-pane fade show active" id="basic-content" role="tabpanel" aria-labelledby="basic-tab">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="fs-5 mb-0">提案書基本情報</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="key-value">
+                                    <div class="key">提案ID</div>
+                                    <div class="value">PP00056</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">提案名</div>
+                                    <div class="value">テックソリューション社向け基幹システムリニューアル案件提案</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">案件名</div>
+                                    <div class="value">基幹システムリニューアル</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">技術者名</div>
+                                    <div class="value">鈴木 一郎</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="key-value">
+                                    <div class="key">提案先企業</div>
+                                    <div class="value">株式会社テックソリューション</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">提案先担当者</div>
+                                    <div class="value">佐藤 健太</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">提案ステータス</div>
+                                    <div class="value">
+                                        <span class="status-badge status-reviewing">検討中</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="proposalTitle" class="form-label">提案書タイトル <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="proposalTitle" value="基幹システムリニューアルプロジェクト支援提案書">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="proposalSubtitle" class="form-label">提案書サブタイトル</label>
+                                    <input type="text" class="form-control" id="proposalSubtitle" value="バックエンド開発エンジニア提案">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="issueDate" class="form-label">発行日 <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="issueDate" value="2025-05-10">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="issueNumber" class="form-label">発行番号</label>
+                                    <input type="text" class="form-control" id="issueNumber" value="PRP-2025-0056" disabled>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="clientCompany" class="form-label">提案先企業名 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="clientCompany" value="株式会社テックソリューション">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="clientHonorific" class="form-label">提案先敬称 <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="clientHonorific">
+                                        <option>様</option>
+                                        <option selected>御中</option>
+                                        <option>各位</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="ourCompany" class="form-label">自社企業名 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="ourCompany" value="株式会社SESマネジメント">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="ourContact" class="form-label">連絡先 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="ourContact" value="営業部 営業太郎 (TEL: 03-1234-5678)">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="showCompanyLogo" checked>
+                            <label class="form-check-label" for="showCompanyLogo">
+                                提案書に自社ロゴを表示する
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="showCover" checked>
+                            <label class="form-check-label" for="showCover">
+                                表紙を含める
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="showToc" checked>
+                            <label class="form-check-label" for="showToc">
+                                目次を含める
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- テンプレート選択タブ -->
+            <div class="tab-pane fade" id="template-content" role="tabpanel" aria-labelledby="template-tab">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="fs-5 mb-0">テンプレート選択</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-3">
+                                <div class="template-card selected">
+                                    <div class="template-image d-flex justify-content-center align-items-center">
+                                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZjNzU3ZCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxyZWN0IHdpZHRoPSIxOCIgaGVpZ2h0PSIxOCIgeD0iMyIgeT0iMyIgcng9IjIiIHJ5PSIyIj48L3JlY3Q+PHBhdGggZD0iTTMgOWgxOCI+PC9wYXRoPjwvc3ZnPg==" alt="標準テンプレート" width="60">
+                                    </div>
+                                    <div class="template-name">標準テンプレート</div>
+                                    <div class="template-desc">一般的なビジネス提案に適した標準的なレイアウト</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="template-card">
+                                    <div class="template-image d-flex justify-content-center align-items-center">
+                                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZjNzU3ZCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxyZWN0IHdpZHRoPSI4IiBoZWlnaHQ9IjE4IiB4PSIzIiB5PSIzIiByeD0iMSIgcnk9IjEiPjwvcmVjdD48cmVjdCB3aWR0aD0iOCIgaGVpZ2h0PSIxOCIgeD0iMTMiIHk9IjMiIHJ4PSIxIiByeT0iMSI+PC9yZWN0Pjwvc3ZnPg==" alt="シンプルテンプレート" width="60">
+                                    </div>
+                                    <div class="template-name">シンプルテンプレート</div>
+                                    <div class="template-desc">簡潔な情報提供に適したシンプルなデザイン</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="template-card">
+                                    <div class="template-image d-flex justify-content-center align-items-center">
+                                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZjNzU3ZCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0zIDlhMiAyIDAgMCAxIDItMmgxNGEyIDIgMCAwIDEgMiAydjkuNWEyLjUgMi41IDAgMCAxLTIuNSAyLjVoLTEzYTIuNSAyLjUgMCAwIDEtMi41LTIuNVY5WiI+PC9wYXRoPjxwYXRoIGQ9Ik0zIDloMTlNOSAzdjZNMTUgM3Y2Ij48L3BhdGg+PC9zdmc+" alt="詳細テンプレート" width="60">
+                                    </div>
+                                    <div class="template-name">詳細テンプレート</div>
+                                    <div class="template-desc">詳細な技術情報やプロジェクト説明に適したレイアウト</div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="template-card">
+                                    <div class="template-image d-flex justify-content-center align-items-center">
+                                        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzZjNzU3ZCIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik00IDIyaDEyYTIgMiAwIDAgMCAyLTJWNmEyIDIgMCAwIDAtMi0ySDl2NmMwIDEuMS0uOS4yLTIgLjJIMHYxMGEyIDIgMCAwIDAgMiAyWiI+PC9wYXRoPjxwYXRoIGQ9Ik0xNSA2djRoNXYxYTIgMiAwIDAgMS0yIDJoLTR2LTMuNWEyLjUgMi41IDAgMCAwLTIuNS0yLjVINiI+PC9wYXRoPjxwYXRoIGQ9Ik0yIDBhMiAyIDAgMCAwLTIgMnY4aDZhMiAyIDAgMCAwIDItMlY0aDJhMiAyIDAgMCAwIDAtNEgyWiI+PC9wYXRoPjwvc3ZnPg==" alt="カスタムテンプレート" width="60">
+                                    </div>
+                                    <div class="template-name">カスタムテンプレート</div>
+                                    <div class="template-desc">自社ブランドに合わせたカスタマイズ済みのテンプレート</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-title">テンプレートプレビュー</div>
+                        <div class="proposal-preview d-flex justify-content-center align-items-center">
+                            <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2MDAgODAwIiBzdHlsZT0iYmFja2dyb3VuZC1jb2xvcjogI2ZmZmZmZiI+PHJlY3QgeD0iNTAiIHk9IjUwIiB3aWR0aD0iNTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y4ZjlmYSIgc3Ryb2tlPSIjZGVlMmU2IiBzdHJva2Utd2lkdGg9IjEiLz48cmVjdCB4PSIxMDAiIHk9IjcwIiB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwIiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiNkZWUyZTYiIHN0cm9rZS13aWR0aD0iMSIvPjxyZWN0IHg9IjUwIiB5PSIxODAiIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAiIGZpbGw9IiNmOGY5ZmEiIHN0cm9rZT0iI2RlZTJlNiIgc3Ryb2tlLXdpZHRoPSIxIi8+PHJlY3QgeD0iNTAiIHk9IjI1MCIgd2lkdGg9IjUwMCIgaGVpZ2h0PSIxMDAiIGZpbGw9IiNmZmZmZmYiIHN0cm9rZT0iI2RlZTJlNiIgc3Ryb2tlLXdpZHRoPSIxIi8+PHJlY3QgeD0iNTAiIHk9IjM4MCIgd2lkdGg9IjI0MCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNmOGY5ZmEiIHN0cm9rZT0iI2RlZTJlNiIgc3Ryb2tlLXdpZHRoPSIxIi8+PHJlY3QgeD0iMzEwIiB5PSIzODAiIHdpZHRoPSIyNDAiIGhlaWdodD0iMjAwIiBmaWxsPSIjZjhmOWZhIiBzdHJva2U9IiNkZWUyZTYiIHN0cm9rZS13aWR0aD0iMSIvPjxyZWN0IHg9IjUwIiB5PSI2MDAiIHdpZHRoPSI1MDAiIGhlaWdodD0iMTUwIiBmaWxsPSIjZmZmZmZmIiBzdHJva2U9IiNkZWUyZTYiIHN0cm9rZS13aWR0aD0iMSIvPjwvc3ZnPg==" class="proposal-preview-image" alt="標準テンプレートプレビュー">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 技術者情報タブ -->
+            <div class="tab-pane fade" id="engineer-content" role="tabpanel" aria-labelledby="engineer-tab">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="fs-5 mb-0">技術者情報</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="skillSheetSelect" class="form-label">スキルシート選択 <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <select class="form-select" id="skillSheetSelect">
+                                            <option>スキルシートを選択してください</option>
+                                            <option selected>鈴木一郎_スキルシート_v1.0 (2025/04/30更新)</option>
+                                            <option>鈴木一郎_スキルシート_v0.9 (2025/04/15更新)</option>
+                                            <option>鈴木一郎_スキルシート_v0.8 (2025/03/20更新)</option>
+                                        </select>
+                                        <button class="btn btn-outline-secondary" type="button">プレビュー</button>
+                                        <button class="btn btn-outline-secondary" type="button">編集</button>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="engineerName" class="form-label">技術者名（提案書記載用） <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="engineerName" value="鈴木 一郎">
+                                        <div class="input-group-text">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="anonymizeCheck">
+                                                <label class="form-check-label" for="anonymizeCheck">
+                                                    匿名化
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-text">匿名化をチェックすると「SES太郎」のような仮名に変更されます</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="proposalPrice" class="form-label">提案単価 <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="proposalPrice" value="85">
+                                        <select class="form-select" style="max-width: 100px;">
+                                            <option>円</option>
+                                            <option selected>万円</option>
+                                            <option>千円</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="startDate" class="form-label">提案開始日 <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="startDate" value="2025-06-01">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="proposalPeriod" class="form-label">提案期間 <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="proposalPeriod" value="10ヶ月（～2026年3月末）">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="skillSummary" class="form-label">スキル概要 <span class="text-danger">*</span></label>
+                                    <textarea class="form-control" id="skillSummary" rows="5">JavaおよびSpringフレームワークを用いたバックエンド開発を得意とするエンジニアです。8年の実務経験があり、PostgreSQLやAWSなどのインフラ環境にも精通しています。直近ではマイクロサービスアーキテクチャを採用した基幹システムの開発に従事し、パフォーマンス最適化やセキュリティ対策を含む幅広い業務を担当しました。</textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="experiencePoints" class="form-label">経験アピールポイント</label>
+                                    <textarea class="form-control" id="experiencePoints" rows="5">・中規模以上のシステム開発における設計・開発経験が豊富
+・AWS環境での開発経験（EC2、RDS、S3、Lambda等の利用経験あり）
+・要件定義から運用保守までの一連の開発プロセスに精通
+・テックソリューション社の類似システム開発経験あり（2023年度）
+・チーム開発におけるリードエンジニアとしての経験</textarea>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="includeQualifications" checked>
+                                    <label class="form-check-label" for="includeQualifications">
+                                        保有資格情報を提案書に含める
+                                    </label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="includeProjectHistory" checked>
+                                    <label class="form-check-label" for="includeProjectHistory">
+                                        過去のプロジェクト履歴を提案書に含める
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 提案内容編集タブ -->
+            <div class="tab-pane fade" id="content-edit" role="tabpanel" aria-labelledby="content-tab">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="fs-5 mb-0">提案内容カスタマイズ</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-4">
+                            <label for="proposalSummary" class="form-label">提案概要 <span class="text-danger">*</span></label>
+                            <div class="editor-toolbar">
+                                <button class="editor-toolbar-btn"><i class="bi bi-type-bold"></i></button>
+                                <button class="editor-toolbar-btn"><i class="bi bi-type-italic"></i></button>
+                                <button class="editor-toolbar-btn"><i class="bi bi-type-underline"></i></button>
+                                <button class="editor-toolbar-btn"><i class="bi bi-list-ul"></i></button>
+                                <button class="editor-toolbar-btn"><i class="bi bi-list-ol"></i></button>
+                                <button class="editor-toolbar-btn"><i class="bi bi-link"></i></button>
+                                <button class="editor-toolbar-btn"><i class="bi bi-image"></i></button>
+                            </div>
+                            <div class="editor-content" contenteditable="true">
+                                <p>株式会社テックソリューション様の基幹システムリニューアルプロジェクトについて、当社エンジニア鈴木一郎のご提案をさせていただきます。</p>
+                                <p>鈴木は、Java/Spring Boot を用いたバックエンド開発において8年の経験を持ち、データベース設計・実装、API開発、セキュリティ対策など幅広いスキルを有しています。特に御社の業界における類似システムでの開発経験があり、業務知識も兼ね備えていることから、プロジェクトに高い貢献が期待できます。</p>
+                                <p>本提案書では、エンジニアのスキル詳細、過去の実績、プロジェクト参画に関する条件等について詳細をご説明いたします。</p>
+                            </div>
+                        </div>
+                        
+                        <div class="section-title">提案項目構成</div>
+                        <p class="text-muted mb-3">以下の項目を編集・並べ替え・削除して提案書の構成をカスタマイズできます</p>
+                        
+                        <div class="section-panel">
+                            <div class="section-panel-header">
+                                <div>
+                                    <i class="bi bi-grip-vertical drag-handle"></i>
+                                    <input class="form-check-input section-toggle" type="checkbox" checked>
+                                    <span>提案概要</span>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-panel">
+                            <div class="section-panel-header">
+                                <div>
+                                    <i class="bi bi-grip-vertical drag-handle"></i>
+                                    <input class="form-check-input section-toggle" type="checkbox" checked>
+                                    <span>技術者プロフィール</span>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-panel">
+                            <div class="section-panel-header">
+                                <div>
+                                    <i class="bi bi-grip-vertical drag-handle"></i>
+                                    <input class="form-check-input section-toggle" type="checkbox" checked>
+                                    <span>保有スキル</span>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-panel">
+                            <div class="section-panel-header">
+                                <div>
+                                    <i class="bi bi-grip-vertical drag-handle"></i>
+                                    <input class="form-check-input section-toggle" type="checkbox" checked>
+                                    <span>プロジェクト実績</span>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-panel">
+                            <div class="section-panel-header">
+                                <div>
+                                    <i class="bi bi-grip-vertical drag-handle"></i>
+                                    <input class="form-check-input section-toggle" type="checkbox" checked>
+                                    <span>提案条件</span>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-panel">
+                            <div class="section-panel-header">
+                                <div>
+                                    <i class="bi bi-grip-vertical drag-handle"></i>
+                                    <input class="form-check-input section-toggle" type="checkbox" checked>
+                                    <span>会社概要</span>
+                                </div>
+                                <div>
+                                    <button class="btn btn-sm btn-outline-secondary"><i class="bi bi-pencil"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-outline-primary section-add-btn">
+                            <i class="bi bi-plus"></i> 項目を追加
+                        </button>
+                        
+                        <div class="mb-3">
+                            <label for="specialNotes" class="form-label">特記事項</label>
+                            <textarea class="form-control" id="specialNotes" rows="3">・リモート勤務については週2日を基本としつつ、状況に応じて週3日まで対応可能
+・AWS認定資格取得見込みがあることを強調して提案
+・マネジメント経験があり、今後チームリードも担当可能</textarea>
+                        </div>
+                        
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="includeCompanyProfile" checked>
+                            <label class="form-check-label" for="includeCompanyProfile">
+                                会社概要を提案書に含める
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="includeAchievements" checked>
+                            <label class="form-check-label" for="includeAchievements">
+                                自社の実績を提案書に含める
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- プレビュータブ -->
+            <div class="tab-pane fade" id="preview-content" role="tabpanel" aria-labelledby="preview-tab">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3 class="fs-5 mb-0">提案書プレビュー</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="proposal-preview d-flex justify-content-center align-items-center position-relative">
+                            <div class="position-absolute top-50 start-50 translate-middle text-center">
+                                <div class="spinner-border text-primary mb-3" role="status">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                                <p>プレビューを生成中...</p>
+                                <button class="btn btn-sm btn-primary mt-2">プレビュー表示</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ボタン群 -->
+        <div class="d-flex justify-content-between">
+            <div>
+                <button class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-arrow-left me-1"></i> 提案管理に戻る
+                </button>
+                <button class="btn btn-outline-primary me-2">
+                    <i class="bi bi-save me-1"></i> 下書き保存
+                </button>
+            </div>
+            <div>
+                <button class="btn btn-outline-primary me-2">
+                    <i class="bi bi-eye me-1"></i> プレビュー
+                </button>
+                <button class="btn btn-outline-primary me-2">
+                    <i class="bi bi-file-pdf me-1"></i> PDF保存
+                </button>
+                <button class="btn btn-primary">
+                    <i class="bi bi-envelope me-1"></i> メール送信
+                </button>
+            </div>
+        </div>
+        
+    </div>
+    
+    <!-- 項目追加モーダル -->
+    <div class="modal fade" id="addSectionModal" tabindex="-1" aria-labelledby="addSectionModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addSectionModalLabel">項目追加</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="sectionTitle" class="form-label">項目タイトル</label>
+                        <input type="text" class="form-control" id="sectionTitle">
+                    </div>
+                    <div class="mb-3">
+                        <label for="sectionType" class="form-label">項目タイプ</label>
+                        <select class="form-select" id="sectionType">
+                            <option selected>テキスト</option>
+                            <option>表</option>
+                            <option>画像</option>
+                            <option>リスト</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="sectionContent" class="form-label">内容</label>
+                        <textarea class="form-control" id="sectionContent" rows="4"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary">追加</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- スキルシートプレビューモーダル -->
+    <div class="modal fade" id="skillSheetPreviewModal" tabindex="-1" aria-labelledby="skillSheetPreviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="skillSheetPreviewModalLabel">スキルシートプレビュー</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center p-5">
+                        <div class="spinner-border text-primary mb-3" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p>スキルシートをロード中...</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // テンプレートカードの選択処理
+            const templateCards = document.querySelectorAll('.template-card');
+            templateCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    templateCards.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                });
+            });
+            
+            // 項目追加ボタンのクリックイベント
+            const addSectionBtn = document.querySelector('.section-add-btn');
+            addSectionBtn.addEventListener('click', function() {
+                const modal = new bootstrap.Modal(document.getElementById('addSectionModal'));
+                modal.show();
+            });
+            
+            // スキルシートプレビューボタンのクリックイベント
+            const previewSkillSheetBtn = document.querySelector('#skillSheetSelect').nextElementSibling;
+            previewSkillSheetBtn.addEventListener('click', function() {
+                const modal = new bootstrap.Modal(document.getElementById('skillSheetPreviewModal'));
+                modal.show();
+            });
+        });
+    </script>
+</body>
+</html>

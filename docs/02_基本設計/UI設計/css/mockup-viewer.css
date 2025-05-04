@@ -1,0 +1,143 @@
+/**
+ * SES業務システム - Mockup Viewer スタイル
+ */
+
+/* モックアップビューワーのコンテナスタイル */
+.mockup-viewer-container {
+    margin: 20px 0;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+/* モックアップビューワーのコントロールバー */
+.mockup-viewer-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 15px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* モックアップタブナビゲーション */
+.mockup-tabs {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.mockup-tab {
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    background-color: #e9ecef;
+    border: none;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.mockup-tab.active {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.mockup-tab:hover:not(.active) {
+    background-color: #dee2e6;
+}
+
+/* デバイスコントロール */
+.device-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.device-button {
+    padding: 6px;
+    background: none;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: all 0.2s;
+}
+
+.device-button.active {
+    opacity: 1;
+    background-color: #e9ecef;
+}
+
+.device-button:hover:not(.active) {
+    opacity: 0.8;
+    background-color: #f1f3f5;
+}
+
+/* iframeコンテナ */
+.mockup-iframe-container {
+    width: 100%;
+    transition: width 0.3s ease;
+    margin: 0 auto;
+    overflow: hidden;
+    background-color: #fff;
+}
+
+/* iframe自体 */
+.mockup-iframe {
+    width: 100%;
+    border: none;
+    display: block;
+    background-color: #fff;
+    min-height: 400px;
+}
+
+/* レスポンシブデバイスモード */
+.device-desktop .mockup-iframe-container {
+    width: 100%;
+}
+
+.device-tablet .mockup-iframe-container {
+    width: 768px;
+    max-width: 100%;
+    border-left: 1px solid #dee2e6;
+    border-right: 1px solid #dee2e6;
+}
+
+.device-mobile .mockup-iframe-container {
+    width: 375px;
+    max-width: 100%;
+    border-left: 1px solid #dee2e6;
+    border-right: 1px solid #dee2e6;
+}
+
+/* デバイスモード切替アニメーション */
+.device-desktop .mockup-iframe-container,
+.device-tablet .mockup-iframe-container,
+.device-mobile .mockup-iframe-container {
+    transition: width 0.3s ease;
+}
+
+/* モックアップの説明テキスト */
+.mockup-description {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* モバイル向けレスポンシブ対応 */
+@media (max-width: 768px) {
+    .mockup-viewer-controls {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+    
+    .device-controls {
+        align-self: flex-end;
+    }
+}

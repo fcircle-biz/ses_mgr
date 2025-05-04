@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技術者登録 | SES業務システム</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            padding-top: 20px;
+            padding-bottom: 40px;
+        }
+        .system-header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .form-section:last-child {
+            border-bottom: none;
+        }
+        .form-section-title {
+            margin-bottom: 1.5rem;
+            color: #0d6efd;
+            font-weight: 500;
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .required-label::after {
+            content: "*";
+            color: #dc3545;
+            margin-left: 4px;
+        }
+        .form-floating > .form-control-plaintext ~ label,
+        .form-floating > .form-control:focus ~ label,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label,
+        .form-floating > .form-select ~ label {
+            opacity: .65;
+            transform: scale(.85) translateY(-.5rem) translateX(.15rem);
+        }
+        .form-floating > .form-control:focus ~ label::after,
+        .form-floating > .form-control:not(:placeholder-shown) ~ label::after,
+        .form-floating > .form-select ~ label::after {
+            position: absolute;
+            inset: 1rem 0.375rem;
+            z-index: -1;
+            height: 1.5em;
+            content: "";
+            background-color: #fff;
+            border-radius: var(--bs-border-radius);
+        }
+        .form-text {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        .skill-selector .selected-skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 5px;
+        }
+        .skill-selector .selected-skill {
+            background-color: #e9ecef;
+            border-radius: 20px;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+        .skill-selector .remove-skill {
+            margin-left: 5px;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+        .dropdown-menu {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .note {
+            background-color: #f8f9fa;
+            border-left: 4px solid #0d6efd;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .alert {
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="system-header d-flex justify-content-between align-items-center pb-3 mb-4">
+            <h1 class="fs-4">SES業務システム</h1>
+            <div class="d-flex align-items-center">
+                <div class="dropdown me-3">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bell"></i>
+                        <span class="badge bg-danger">3</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                        <li><a class="dropdown-item" href="#">未読通知 (3)</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">新しい技術者が登録されました</a></li>
+                        <li><a class="dropdown-item" href="#">スキルシート更新依頼があります</a></li>
+                        <li><a class="dropdown-item" href="#">マッチング候補が見つかりました</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        人事 太郎 様
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                        <li><a class="dropdown-item" href="#">設定</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="list-group mb-4">
+                    <a href="#" class="list-group-item list-group-item-action">ダッシュボード</a>
+                    <a href="#" class="list-group-item list-group-item-action">案件管理</a>
+                    <a href="#" class="list-group-item list-group-item-action active">技術者管理</a>
+                    <a href="#" class="list-group-item list-group-item-action">契約管理</a>
+                    <a href="#" class="list-group-item list-group-item-action">マッチング</a>
+                    <a href="#" class="list-group-item list-group-item-action">勤怠工数管理</a>
+                    <a href="#" class="list-group-item list-group-item-action">請求支払管理</a>
+                    <a href="#" class="list-group-item list-group-item-action">レポーティング</a>
+                    <a href="#" class="list-group-item list-group-item-action">システム管理</a>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="fs-5 mb-0">技術者管理</h2>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="bi bi-people me-2"></i> 技術者一覧
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action active">
+                            <i class="bi bi-person-plus me-2"></i> 技術者登録
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="bi bi-file-earmark-text me-2"></i> スキルシート管理
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="bi bi-calendar3 me-2"></i> 稼働状況管理
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="bi bi-graph-up me-2"></i> スキル統計
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="fs-5 mb-0">ヘルプ</h2>
+                    </div>
+                    <div class="card-body">
+                        <p class="small mb-0">技術者の新規登録を行います。<span class="text-danger">*</span>の付いている項目は必須項目です。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="fs-4 mb-0">技術者登録</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="note mb-4">
+                            <p class="mb-0">技術者の基本情報を入力してください。登録後、詳細画面でスキル情報やプロジェクト履歴などを追加できます。</p>
+                        </div>
+                        
+                        <form>
+                            <!-- 基本情報セクション -->
+                            <div class="form-section">
+                                <h3 class="form-section-title fs-5">基本情報</h3>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="fullName" class="form-label required-label">氏名</label>
+                                        <input type="text" class="form-control" id="fullName" placeholder="例: 山田 太郎" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="fullNameKana" class="form-label required-label">氏名（カナ）</label>
+                                        <input type="text" class="form-control" id="fullNameKana" placeholder="例: ヤマダ タロウ" required>
+                                        <div class="form-text">全角カタカナで入力してください</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="birthDate" class="form-label required-label">生年月日</label>
+                                        <input type="date" class="form-control" id="birthDate" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label required-label">性別</label>
+                                        <div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="gender" id="genderMale" value="male" required>
+                                                <label class="form-check-label" for="genderMale">男性</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="gender" id="genderFemale" value="female">
+                                                <label class="form-check-label" for="genderFemale">女性</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="radio" name="gender" id="genderOther" value="other">
+                                                <label class="form-check-label" for="genderOther">その他</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label required-label">メールアドレス</label>
+                                        <input type="email" class="form-control" id="email" placeholder="例: taro.yamada@example.com" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="phone" class="form-label required-label">電話番号</label>
+                                        <input type="tel" class="form-control" id="phone" placeholder="例: 090-1234-5678" required>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="nearestStation" class="form-label required-label">最寄り駅</label>
+                                        <input type="text" class="form-control" id="nearestStation" placeholder="例: 東京駅" required>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="address" class="form-label">住所</label>
+                                        <input type="text" class="form-control" id="address" placeholder="例: 東京都千代田区千代田1-1-1">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 所属情報セクション -->
+                            <div class="form-section">
+                                <h3 class="form-section-title fs-5">所属情報</h3>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="employmentType" class="form-label required-label">所属区分</label>
+                                        <select class="form-select" id="employmentType" required>
+                                            <option value="" selected disabled>選択してください</option>
+                                            <option value="employee">正社員</option>
+                                            <option value="contract">契約社員</option>
+                                            <option value="partner">協力会社</option>
+                                            <option value="freelance">フリーランス</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="company" class="form-label">所属会社</label>
+                                        <input type="text" class="form-control" id="company" placeholder="例: 株式会社XXX">
+                                        <div class="form-text">協力会社の場合は必須</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="department" class="form-label">部署</label>
+                                        <input type="text" class="form-control" id="department" placeholder="例: 開発部">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="position" class="form-label">役職</label>
+                                        <input type="text" class="form-control" id="position" placeholder="例: 主任">
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="startDate" class="form-label">入社日</label>
+                                        <input type="date" class="form-control" id="startDate">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="employeeId" class="form-label">社員番号</label>
+                                        <input type="text" class="form-control" id="employeeId" placeholder="例: E12345">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- スキル・稼働情報セクション -->
+                            <div class="form-section">
+                                <h3 class="form-section-title fs-5">スキル・稼働情報</h3>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="workStatus" class="form-label required-label">稼働状況</label>
+                                        <select class="form-select" id="workStatus" required>
+                                            <option value="" selected disabled>選択してください</option>
+                                            <option value="active">稼働中</option>
+                                            <option value="waiting">待機中</option>
+                                            <option value="reserved">予約済み</option>
+                                            <option value="leave">休職中</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="availableDate" class="form-label">対応可能日</label>
+                                        <input type="date" class="form-control" id="availableDate">
+                                        <div class="form-text">待機中・予約済みの場合に入力</div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="yearsOfExperience" class="form-label required-label">経験年数</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="yearsOfExperience" placeholder="例: 5" min="0" max="50" required>
+                                            <span class="input-group-text">年</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="jobTitle" class="form-label required-label">職種</label>
+                                        <select class="form-select" id="jobTitle" required>
+                                            <option value="" selected disabled>選択してください</option>
+                                            <option value="backend">バックエンド開発者</option>
+                                            <option value="frontend">フロントエンド開発者</option>
+                                            <option value="fullstack">フルスタック開発者</option>
+                                            <option value="mobile">モバイル開発者</option>
+                                            <option value="infra">インフラエンジニア</option>
+                                            <option value="qa">QAエンジニア</option>
+                                            <option value="pm">プロジェクトマネージャー</option>
+                                            <option value="other">その他</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label for="rateMin" class="form-label required-label">希望単価（下限）</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="rateMin" placeholder="例: 500000" min="0" required>
+                                            <span class="input-group-text">円 / 月</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="rateMax" class="form-label required-label">希望単価（上限）</label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="rateMax" placeholder="例: 700000" min="0" required>
+                                            <span class="input-group-text">円 / 月</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <label class="form-label required-label">稼働可能エリア</label>
+                                        <div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" name="workArea" id="areaTokyoMetro" value="tokyoMetro">
+                                                <label class="form-check-label" for="areaTokyoMetro">東京23区内</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" name="workArea" id="areaTokyo" value="tokyo">
+                                                <label class="form-check-label" for="areaTokyo">東京都内</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" name="workArea" id="areaKanagawa" value="kanagawa">
+                                                <label class="form-check-label" for="areaKanagawa">神奈川県</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" name="workArea" id="areaSaitama" value="saitama">
+                                                <label class="form-check-label" for="areaSaitama">埼玉県</label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input" type="checkbox" name="workArea" id="areaChiba" value="chiba">
+                                                <label class="form-check-label" for="areaChiba">千葉県</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="remoteWork" class="form-label required-label">リモート対応</label>
+                                        <select class="form-select" id="remoteWork" required>
+                                            <option value="" selected disabled>選択してください</option>
+                                            <option value="full">フルリモート可</option>
+                                            <option value="partial">週数日出社</option>
+                                            <option value="no">不可（常駐のみ）</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <label for="skills" class="form-label required-label">技術スキル</label>
+                                        <div class="skill-selector">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="skills" placeholder="スキルを入力..." data-bs-toggle="dropdown" aria-expanded="false">
+                                                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                                                <ul class="dropdown-menu w-100">
+                                                    <li><a class="dropdown-item" href="#">Java</a></li>
+                                                    <li><a class="dropdown-item" href="#">JavaScript</a></li>
+                                                    <li><a class="dropdown-item" href="#">TypeScript</a></li>
+                                                    <li><a class="dropdown-item" href="#">Python</a></li>
+                                                    <li><a class="dropdown-item" href="#">C#</a></li>
+                                                    <li><a class="dropdown-item" href="#">PHP</a></li>
+                                                    <li><a class="dropdown-item" href="#">Ruby</a></li>
+                                                    <li><a class="dropdown-item" href="#">Go</a></li>
+                                                    <li><a class="dropdown-item" href="#">React</a></li>
+                                                    <li><a class="dropdown-item" href="#">Angular</a></li>
+                                                    <li><a class="dropdown-item" href="#">Vue.js</a></li>
+                                                    <li><a class="dropdown-item" href="#">Node.js</a></li>
+                                                    <li><a class="dropdown-item" href="#">Spring</a></li>
+                                                    <li><a class="dropdown-item" href="#">Django</a></li>
+                                                    <li><a class="dropdown-item" href="#">Ruby on Rails</a></li>
+                                                    <li><a class="dropdown-item" href="#">MySQL</a></li>
+                                                    <li><a class="dropdown-item" href="#">PostgreSQL</a></li>
+                                                    <li><a class="dropdown-item" href="#">MongoDB</a></li>
+                                                    <li><a class="dropdown-item" href="#">AWS</a></li>
+                                                    <li><a class="dropdown-item" href="#">Azure</a></li>
+                                                    <li><a class="dropdown-item" href="#">GCP</a></li>
+                                                    <li><a class="dropdown-item" href="#">Docker</a></li>
+                                                    <li><a class="dropdown-item" href="#">Kubernetes</a></li>
+                                                </ul>
+                                            </div>
+                                            <div class="selected-skills mt-2">
+                                                <div class="selected-skill">Java <span class="remove-skill">&times;</span></div>
+                                                <div class="selected-skill">Spring <span class="remove-skill">&times;</span></div>
+                                                <div class="selected-skill">React <span class="remove-skill">&times;</span></div>
+                                            </div>
+                                            <div class="form-text">複数のスキルを追加できます</div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-12">
+                                        <label for="certifications" class="form-label">資格</label>
+                                        <div class="skill-selector">
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="certifications" placeholder="資格を入力..." data-bs-toggle="dropdown" aria-expanded="false">
+                                                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
+                                                <ul class="dropdown-menu w-100">
+                                                    <li><a class="dropdown-item" href="#">応用情報技術者試験</a></li>
+                                                    <li><a class="dropdown-item" href="#">基本情報技術者試験</a></li>
+                                                    <li><a class="dropdown-item" href="#">AWS認定ソリューションアーキテクト</a></li>
+                                                    <li><a class="dropdown-item" href="#">Oracle認定Javaプログラマ</a></li>
+                                                    <li><a class="dropdown-item" href="#">Microsoft認定資格</a></li>
+                                                    <li><a class="dropdown-item" href="#">CCNA</a></li>
+                                                    <li><a class="dropdown-item" href="#">LPIC</a></li>
+                                                    <li><a class="dropdown-item" href="#">PMP</a></li>
+                                                </ul>
+                                            </div>
+                                            <div class="selected-skills mt-2">
+                                                <div class="selected-skill">応用情報技術者試験 <span class="remove-skill">&times;</span></div>
+                                                <div class="selected-skill">AWS認定ソリューションアーキテクト <span class="remove-skill">&times;</span></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- その他情報セクション -->
+                            <div class="form-section">
+                                <h3 class="form-section-title fs-5">その他情報</h3>
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label for="selfPR" class="form-label">自己PR</label>
+                                        <textarea class="form-control" id="selfPR" rows="3" placeholder="技術者のPRポイントを入力してください"></textarea>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="notes" class="form-label">備考</label>
+                                        <textarea class="form-control" id="notes" rows="3" placeholder="その他、特記事項があれば入力してください"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- 警告メッセージ -->
+                            <div class="alert alert-warning mt-4">
+                                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                                登録後、詳細画面でさらに詳細なスキル情報や経歴を入力してください。
+                            </div>
+                            
+                            <!-- 送信ボタン -->
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-outline-secondary">
+                                    <i class="bi bi-arrow-left me-1"></i> キャンセル
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-person-plus me-1"></i> 登録する
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

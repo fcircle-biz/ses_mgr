@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム 案件管理画面設計</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -145,6 +147,45 @@
             padding-left: 5px;
             font-size: 0.9em;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -173,13 +214,6 @@
             </a>
         </li>
     </ul>
-
-    <h2>画面遷移図</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [案件管理機能の画面遷移図]
-        </div>
-    </div>
 
     <h2>機能概要</h2>
     <table>
@@ -222,5 +256,6 @@
         <p>作成日: 2025年5月5日<br>
         バージョン: 1.0</p>
     </div>
+    
 </body>
 </html>

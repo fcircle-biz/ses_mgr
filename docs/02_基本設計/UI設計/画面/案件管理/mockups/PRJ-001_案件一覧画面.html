@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム - 案件一覧</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        .badge-draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .badge-proposal {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .badge-active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .badge-contracted {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .badge-completed {
+            background-color: #d3d3d3;
+            color: #444;
+        }
+        .badge-cancelled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item active" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">SI</div>
+                            <span>佐藤 一郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">案件管理</a></li>
+                <li class="breadcrumb-item active" aria-current="page">案件一覧</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">案件一覧</h2>
+            <div>
+                <button class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-download me-1"></i>CSVエクスポート
+                </button>
+                <a href="#" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i>新規案件登録
+                </a>
+            </div>
+        </div>
+
+        <!-- 検索・フィルターパネル -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">検索条件</h5>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="keyword" class="form-label">キーワード</label>
+                            <input type="text" class="form-control" id="keyword" placeholder="案件名、顧客名、案件IDなど">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="status" class="form-label">ステータス</label>
+                            <select class="form-select" id="status">
+                                <option value="">すべて</option>
+                                <option value="draft" selected>検討中</option>
+                                <option value="proposal">提案中</option>
+                                <option value="active">進行中</option>
+                                <option value="contracted">契約完了</option>
+                                <option value="completed">完了</option>
+                                <option value="cancelled">中止</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="client" class="form-label">顧客企業</label>
+                            <select class="form-select" id="client">
+                                <option value="">すべて</option>
+                                <option value="1">株式会社テクノロジーパートナーズ</option>
+                                <option value="2">ITソリューションズ株式会社</option>
+                                <option value="3">グローバルシステム株式会社</option>
+                                <option value="4">デジタルイノベーション株式会社</option>
+                                <option value="5">未来テクノロジー株式会社</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="assignee" class="form-label">担当者</label>
+                            <select class="form-select" id="assignee">
+                                <option value="">すべて</option>
+                                <option value="1">佐藤 一郎</option>
+                                <option value="2">鈴木 次郎</option>
+                                <option value="3">田中 三郎</option>
+                                <option value="4">山本 四郎</option>
+                                <option value="5">伊藤 五郎</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="dateRange" class="form-label">期間</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" placeholder="開始日">
+                                <span class="input-group-text">〜</span>
+                                <input type="date" class="form-control" placeholder="終了日">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="skills" class="form-label">スキル要件</label>
+                            <select class="form-select" id="skills">
+                                <option value="">すべて</option>
+                                <option value="java">Java</option>
+                                <option value="python">Python</option>
+                                <option value="js">JavaScript</option>
+                                <option value="react">React</option>
+                                <option value="spring">Spring Boot</option>
+                                <option value="aws">AWS</option>
+                            </select>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="button" class="btn btn-outline-secondary me-2">クリア</button>
+                            <button type="submit" class="btn btn-primary">検索</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 検索結果一覧 -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">検索結果</h5>
+                <span class="text-muted">全25件中 1-10件を表示</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>案件ID</th>
+                                <th>案件名</th>
+                                <th>顧客名</th>
+                                <th>ステータス</th>
+                                <th>開始日</th>
+                                <th>終了日</th>
+                                <th>担当者</th>
+                                <th style="width: 120px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><a href="#">PRJ-2025-0123</a></td>
+                                <td><a href="#">次世代ECサイトリニューアル</a></td>
+                                <td>株式会社テクノロジーパートナーズ</td>
+                                <td><span class="badge rounded-pill badge-proposal">提案中</span></td>
+                                <td>2025/06/01</td>
+                                <td>2025/12/31</td>
+                                <td>佐藤 一郎</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="マッチング">
+                                            <i class="bi bi-people"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><a href="#">PRJ-2025-0122</a></td>
+                                <td><a href="#">基幹システム刷新プロジェクト</a></td>
+                                <td>ITソリューションズ株式会社</td>
+                                <td><span class="badge rounded-pill badge-active">進行中</span></td>
+                                <td>2025/05/15</td>
+                                <td>2026/03/31</td>
+                                <td>鈴木 次郎</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="マッチング">
+                                            <i class="bi bi-people"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><a href="#">PRJ-2025-0121</a></td>
+                                <td><a href="#">クラウド移行支援</a></td>
+                                <td>グローバルシステム株式会社</td>
+                                <td><span class="badge rounded-pill badge-draft">検討中</span></td>
+                                <td>2025/07/01</td>
+                                <td>2025/10/31</td>
+                                <td>田中 三郎</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="マッチング">
+                                            <i class="bi bi-people"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><a href="#">PRJ-2025-0120</a></td>
+                                <td><a href="#">営業支援システム開発</a></td>
+                                <td>デジタルイノベーション株式会社</td>
+                                <td><span class="badge rounded-pill badge-contracted">契約完了</span></td>
+                                <td>2025/06/15</td>
+                                <td>2025/12/15</td>
+                                <td>山本 四郎</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="マッチング">
+                                            <i class="bi bi-people"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><a href="#">PRJ-2025-0119</a></td>
+                                <td><a href="#">IoTデバイス管理システム構築</a></td>
+                                <td>未来テクノロジー株式会社</td>
+                                <td><span class="badge rounded-pill badge-proposal">提案中</span></td>
+                                <td>2025/07/01</td>
+                                <td>2026/01/31</td>
+                                <td>伊藤 五郎</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="マッチング">
+                                            <i class="bi bi-people"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><a href="#">PRJ-2025-0118</a></td>
+                                <td><a href="#">顧客管理アプリ開発</a></td>
+                                <td>株式会社テクノロジーパートナーズ</td>
+                                <td><span class="badge rounded-pill badge-active">進行中</span></td>
+                                <td>2025/05/01</td>
+                                <td>2025/08/31</td>
+                                <td>佐藤 一郎</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="マッチング">
+                                            <i class="bi bi-people"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><a href="#">PRJ-2025-0117</a></td>
+                                <td><a href="#">データ分析基盤構築</a></td>
+                                <td>ITソリューションズ株式会社</td>
+                                <td><span class="badge rounded-pill badge-completed">完了</span></td>
+                                <td>2025/03/01</td>
+                                <td>2025/05/31</td>
+                                <td>鈴木 次郎</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="マッチング">
+                                            <i class="bi bi-people"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <div class="text-muted">全25件中 1-10件を表示</div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>

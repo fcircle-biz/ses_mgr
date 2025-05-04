@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム - 案件登録</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .section-title {
+            font-size: 1rem;
+            font-weight: 600;
+            padding-bottom: .5rem;
+            border-bottom: 1px solid #dee2e6;
+            margin-bottom: 1.5rem;
+            color: #495057;
+        }
+        .form-label.required::after {
+            content: "*";
+            color: #dc3545;
+            margin-left: 4px;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .badge-skill {
+            background-color: #e9ecef;
+            color: #495057;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+        .badge-skill .remove {
+            margin-left: 6px;
+            cursor: pointer;
+        }
+        .file-item {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-icon {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item active" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">SI</div>
+                            <span>佐藤 一郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">案件管理</a></li>
+                <li class="breadcrumb-item"><a href="#">案件一覧</a></li>
+                <li class="breadcrumb-item active" aria-current="page">案件登録</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">案件登録</h2>
+            <div>
+                <button class="btn btn-outline-secondary me-2">キャンセル</button>
+                <button class="btn btn-outline-success me-2">下書き保存</button>
+                <button class="btn btn-primary">登録</button>
+            </div>
+        </div>
+
+        <!-- フォームコンテンツ -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">案件情報</h5>
+            </div>
+            <div class="card-body">
+                <form class="needs-validation" novalidate>
+                    <!-- 基本情報セクション -->
+                    <h5 class="section-title">基本情報</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label for="project_name" class="form-label required">案件名</label>
+                            <input type="text" class="form-control" id="project_name" placeholder="例：金融システム向けWebアプリケーション開発" required>
+                            <div class="invalid-feedback">
+                                案件名を入力してください。
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="client" class="form-label required">顧客企業</label>
+                            <select class="form-select" id="client" required>
+                                <option value="" selected disabled>選択してください</option>
+                                <option value="1">株式会社テクノロジーパートナーズ</option>
+                                <option value="2">ITソリューションズ株式会社</option>
+                                <option value="3">グローバルシステム株式会社</option>
+                                <option value="4">デジタルイノベーション株式会社</option>
+                                <option value="5">未来テクノロジー株式会社</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                顧客企業を選択してください。
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="status" class="form-label required">ステータス</label>
+                            <select class="form-select" id="status" required>
+                                <option value="draft" selected>検討中</option>
+                                <option value="proposal">提案中</option>
+                                <option value="active">進行中</option>
+                                <option value="contracted">契約完了</option>
+                                <option value="completed">完了</option>
+                                <option value="cancelled">中止</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="assignee" class="form-label required">担当者</label>
+                            <select class="form-select" id="assignee" required>
+                                <option value="1" selected>佐藤 一郎</option>
+                                <option value="2">鈴木 次郎</option>
+                                <option value="3">田中 三郎</option>
+                                <option value="4">山本 四郎</option>
+                                <option value="5">伊藤 五郎</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="start_date" class="form-label required">開始予定日</label>
+                            <input type="date" class="form-control" id="start_date" required>
+                            <div class="invalid-feedback">
+                                開始予定日を入力してください。
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="end_date" class="form-label required">終了予定日</label>
+                            <input type="date" class="form-control" id="end_date" required>
+                            <div class="invalid-feedback">
+                                終了予定日を入力してください。
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 案件詳細セクション -->
+                    <h5 class="section-title">案件詳細</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label for="project_overview" class="form-label required">案件概要</label>
+                            <textarea class="form-control" id="project_overview" rows="3" placeholder="案件の概要、目的などを記載してください" required></textarea>
+                            <div class="invalid-feedback">
+                                案件概要を入力してください。
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label for="project_detail" class="form-label">詳細情報</label>
+                            <textarea class="form-control" id="project_detail" rows="5" placeholder="案件の詳細情報、背景などを記載してください"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- 技術要件セクション -->
+                    <h5 class="section-title">技術要件</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label for="skill_req" class="form-label">必要スキル</label>
+                            <div class="input-group mb-2">
+                                <input type="text" class="form-control" id="skill_req" placeholder="追加するスキル名を入力">
+                                <button class="btn btn-outline-secondary" type="button">追加</button>
+                            </div>
+                            <div class="d-flex flex-wrap mt-2">
+                                <span class="badge-skill">Java <span class="remove">&times;</span></span>
+                                <span class="badge-skill">Spring Boot <span class="remove">&times;</span></span>
+                                <span class="badge-skill">PostgreSQL <span class="remove">&times;</span></span>
+                                <span class="badge-skill">AWS <span class="remove">&times;</span></span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="work_location" class="form-label required">勤務地</label>
+                            <select class="form-select" id="work_location" required>
+                                <option value="" selected disabled>選択してください</option>
+                                <option value="tokyo">東京</option>
+                                <option value="osaka">大阪</option>
+                                <option value="nagoya">名古屋</option>
+                                <option value="fukuoka">福岡</option>
+                                <option value="remote">リモート</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                勤務地を選択してください。
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">作業形態</label>
+                            <div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="work_type" id="work_type_onsite" value="onsite" checked>
+                                    <label class="form-check-label" for="work_type_onsite">常駐</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="work_type" id="work_type_remote" value="remote">
+                                    <label class="form-check-label" for="work_type_remote">リモート</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="work_type" id="work_type_hybrid" value="hybrid">
+                                    <label class="form-check-label" for="work_type_hybrid">ハイブリッド</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="position_type" class="form-label required">ポジション</label>
+                            <select class="form-select" id="position_type" required>
+                                <option value="" selected disabled>選択してください</option>
+                                <option value="pm">プロジェクトマネージャ</option>
+                                <option value="leader">チームリーダー</option>
+                                <option value="architect">アーキテクト</option>
+                                <option value="seniordev">シニア開発者</option>
+                                <option value="dev">開発者</option>
+                                <option value="tester">テスター</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                ポジションを選択してください。
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 予算・条件セクション -->
+                    <h5 class="section-title">予算・条件</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3">
+                            <label for="budget_low" class="form-label required">予算下限（円/月）</label>
+                            <input type="number" class="form-control" id="budget_low" placeholder="例：500000" required>
+                            <div class="invalid-feedback">
+                                予算下限を入力してください。
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="budget_high" class="form-label required">予算上限（円/月）</label>
+                            <input type="number" class="form-control" id="budget_high" placeholder="例：800000" required>
+                            <div class="invalid-feedback">
+                                予算上限を入力してください。
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="contract_type" class="form-label required">契約形態</label>
+                            <select class="form-select" id="contract_type" required>
+                                <option value="" selected disabled>選択してください</option>
+                                <option value="ses">SES</option>
+                                <option value="dispatch">派遣</option>
+                                <option value="project">請負</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                契約形態を選択してください。
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="billing_method" class="form-label required">精算方法</label>
+                            <select class="form-select" id="billing_method" required>
+                                <option value="" selected disabled>選択してください</option>
+                                <option value="monthly">月額固定</option>
+                                <option value="time">時間精算</option>
+                                <option value="deliverable">成果物</option>
+                            </select>
+                            <div class="invalid-feedback">
+                                精算方法を選択してください。
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 関連資料セクション -->
+                    <h5 class="section-title">関連資料</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12">
+                            <label for="attachments" class="form-label">添付資料</label>
+                            <div class="input-group mb-3">
+                                <input type="file" class="form-control" id="attachments" multiple>
+                                <label class="input-group-text" for="attachments">アップロード</label>
+                            </div>
+                            <div class="file-list mt-3">
+                                <div class="file-item">
+                                    <div>
+                                        <i class="bi bi-file-earmark-pdf file-icon"></i>
+                                        案件要件書.pdf
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                                <div class="file-item">
+                                    <div>
+                                        <i class="bi bi-file-earmark-image file-icon"></i>
+                                        システム構成図.png
+                                    </div>
+                                    <button type="button" class="btn btn-sm btn-outline-danger">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <!-- フォーム送信ボタン -->
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-outline-secondary me-2">キャンセル</button>
+                        <button type="button" class="btn btn-outline-success me-2">下書き保存</button>
+                        <button type="submit" class="btn btn-primary">登録</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    
+    <!-- フォームバリデーション用のスクリプト -->
+    <script>
+    (() => {
+      'use strict'
+
+      // すべてのフォームを取得してバリデーションを適用
+      const forms = document.querySelectorAll('.needs-validation')
+
+      // Submit イベントを抑止してバリデーションを実行
+      Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+          if (!form.checkValidity()) {
+            event.preventDefault()
+            event.stopPropagation()
+          }
+
+          form.classList.add('was-validated')
+        }, false)
+      })
+    })()
+    </script>
+</body>
+</html>

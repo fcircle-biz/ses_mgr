@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>マッチング詳細 | SES業務システム</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            padding-top: 20px;
+            padding-bottom: 40px;
+        }
+        .system-header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .match-header {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
+        }
+        .match-score-circle {
+            width: 160px;
+            height: 160px;
+            border-radius: 50%;
+            background-color: #e9ecef;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin: 0 auto;
+        }
+        .match-score-circle.high {
+            background-color: #d1e7dd;
+            border: 8px solid #198754;
+        }
+        .match-score-circle.medium {
+            background-color: #fff3cd;
+            border: 8px solid #ffc107;
+        }
+        .match-score-circle.low {
+            background-color: #f8d7da;
+            border: 8px solid #dc3545;
+        }
+        .match-score-value {
+            font-size: 3rem;
+            font-weight: 700;
+            line-height: 1;
+        }
+        .match-score-text {
+            font-size: 1rem;
+            color: #6c757d;
+        }
+        .match-bar {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            margin-bottom: 5px;
+            position: relative;
+        }
+        .match-bar-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            border-radius: 4px;
+        }
+        .match-bar-fill.high {
+            background-color: #198754;
+        }
+        .match-bar-fill.medium {
+            background-color: #ffc107;
+        }
+        .match-bar-fill.low {
+            background-color: #dc3545;
+        }
+        .match-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .tag-item {
+            background-color: #e9ecef;
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 0.75rem;
+            white-space: nowrap;
+        }
+        .tag-item.matched {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .tag-item.partial {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+        .tag-item.missing {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 5px 10px;
+            border-radius: 20px;
+            display: inline-block;
+            width: 80px;
+            text-align: center;
+        }
+        .status-active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .status-waiting {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .status-reserved {
+            background-color: #fff3cd;
+            color: #664d03;
+        }
+        .status-leave {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .status-recruiting {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .status-selection {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .status-closed {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .match-comparison {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .match-comparison-header {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-bottom: 1px solid #e9ecef;
+            font-weight: 500;
+        }
+        .match-comparison-body {
+            padding: 15px;
+        }
+        .match-comparison-item {
+            display: flex;
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f8f9fa;
+        }
+        .match-comparison-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .match-comparison-label {
+            width: 120px;
+            font-weight: 500;
+            color: #6c757d;
+        }
+        .match-comparison-value {
+            flex-grow: 1;
+        }
+        .match-icon {
+            margin-right: 5px;
+        }
+        .match-icon-match {
+            color: #198754;
+        }
+        .match-icon-partial {
+            color: #ffc107;
+        }
+        .match-icon-no-match {
+            color: #dc3545;
+        }
+        .nav-pagination {
+            position: fixed;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: #fff;
+            font-size: 1.5rem;
+            z-index: 100;
+            transition: all 0.2s;
+        }
+        .nav-pagination:hover {
+            background: rgba(0, 0, 0, 0.2);
+        }
+        .nav-pagination.prev {
+            left: 10px;
+        }
+        .nav-pagination.next {
+            right: 10px;
+        }
+        .key-value {
+            margin-bottom: 0.5rem;
+        }
+        .key-value .key {
+            font-weight: 500;
+            color: #6c757d;
+            font-size: 0.875rem;
+        }
+        .key-value .value {
+            font-weight: 400;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="system-header d-flex justify-content-between align-items-center pb-3 mb-4">
+            <h1 class="fs-4">SES業務システム</h1>
+            <div class="d-flex align-items-center">
+                <div class="dropdown me-3">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bell"></i>
+                        <span class="badge bg-danger">3</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
+                        <li><a class="dropdown-item" href="#">未読通知 (3)</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">新しい案件が登録されました</a></li>
+                        <li><a class="dropdown-item" href="#">スキルシート更新依頼があります</a></li>
+                        <li><a class="dropdown-item" href="#">マッチング候補が見つかりました</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        営業 太郎 様
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                        <li><a class="dropdown-item" href="#">設定</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        
+        <div class="mb-3">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">マッチング</a></li>
+                    <li class="breadcrumb-item"><a href="#">マッチング検索</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">マッチング詳細 #MT00123</li>
+                </ol>
+            </nav>
+        </div>
+        
+        <!-- マッチングヘッダー -->
+        <div class="match-header mb-4">
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="match-score-circle high">
+                        <div class="match-score-value">95%</div>
+                        <div class="match-score-text">マッチング</div>
+                    </div>
+                </div>
+                <div class="col-md-9">
+                    <div class="mb-3">
+                        <h2 class="fs-4 mb-3">マッチング概要</h2>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="key-value">
+                                    <div class="key">マッチングID</div>
+                                    <div class="value">MT00123</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">マッチングタイプ</div>
+                                    <div class="value">案件-技術者</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">検索条件</div>
+                                    <div class="value">Java, Spring, PostgreSQL, AWS</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="key-value">
+                                    <div class="key">実行日時</div>
+                                    <div class="value">2025/05/05 14:30</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">マッチングアルゴリズム</div>
+                                    <div class="value">詳細マッチング</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">検索結果</div>
+                                    <div class="value">1/15件</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3 class="fs-5 mb-2">項目別スコア</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="match-bar-label">
+                                    <span>スキル</span>
+                                    <span>98%</span>
+                                </div>
+                                <div class="match-bar">
+                                    <div class="match-bar-fill high" style="width: 98%"></div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="match-bar-label">
+                                    <span>経験</span>
+                                    <span>95%</span>
+                                </div>
+                                <div class="match-bar">
+                                    <div class="match-bar-fill high" style="width: 95%"></div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="match-bar-label">
+                                    <span>単価</span>
+                                    <span>90%</span>
+                                </div>
+                                <div class="match-bar">
+                                    <div class="match-bar-fill high" style="width: 90%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <div class="match-bar-label">
+                                    <span>稼働時期</span>
+                                    <span>100%</span>
+                                </div>
+                                <div class="match-bar">
+                                    <div class="match-bar-fill high" style="width: 100%"></div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="match-bar-label">
+                                    <span>勤務地</span>
+                                    <span>100%</span>
+                                </div>
+                                <div class="match-bar">
+                                    <div class="match-bar-fill high" style="width: 100%"></div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="match-bar-label">
+                                    <span>その他</span>
+                                    <span>85%</span>
+                                </div>
+                                <div class="match-bar">
+                                    <div class="match-bar-fill medium" style="width: 85%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row mb-4">
+            <!-- 案件情報 -->
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title fs-5 mb-0">案件情報</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h4 class="fs-5">基幹システムリニューアル</h4>
+                            <span class="status-badge status-recruiting">募集中</span>
+                        </div>
+                        <p class="text-muted small mb-3">案件ID: PRJ-1025</p>
+                        
+                        <div class="section-title">基本情報</div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <div class="key-value">
+                                    <div class="key">クライアント</div>
+                                    <div class="value">株式会社テックソリューション</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">期間</div>
+                                    <div class="value">2025/06/01 ～ 2026/03/31</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">想定単価</div>
+                                    <div class="value">70万円 ～ 90万円</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="key-value">
+                                    <div class="key">勤務地</div>
+                                    <div class="value">東京都千代田区</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">稼働開始日</div>
+                                    <div class="value">2025/06/01</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">募集人数</div>
+                                    <div class="value">3名</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-title">スキル要件</div>
+                        <div class="mb-3">
+                            <div class="key">必須スキル</div>
+                            <div class="tag-list mt-1">
+                                <span class="tag-item matched">Java</span>
+                                <span class="tag-item matched">Spring</span>
+                                <span class="tag-item matched">PostgreSQL</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="key">望ましいスキル</div>
+                            <div class="tag-list mt-1">
+                                <span class="tag-item matched">JavaScript</span>
+                                <span class="tag-item matched">React</span>
+                                <span class="tag-item matched">AWS</span>
+                                <span class="tag-item">Docker</span>
+                                <span class="tag-item">Kubernetes</span>
+                            </div>
+                        </div>
+                        
+                        <div class="section-title">その他要件</div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="key-value">
+                                    <div class="key">希望経験年数</div>
+                                    <div class="value">3年以上</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">リモート勤務</div>
+                                    <div class="value">週3日まで可</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="key-value">
+                                    <div class="key">ポジション</div>
+                                    <div class="value">バックエンド開発</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">英語スキル</div>
+                                    <div class="value">読み書きレベル</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-outline-primary btn-sm">
+                            <i class="bi bi-box-arrow-up-right me-1"></i> 案件詳細を表示
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 技術者情報 -->
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header bg-info text-white">
+                        <h3 class="card-title fs-5 mb-0">技術者情報</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h4 class="fs-5">鈴木 一郎</h4>
+                            <span class="status-badge status-waiting">待機中</span>
+                        </div>
+                        <p class="text-muted small mb-3">技術者ID: ENG0001</p>
+                        
+                        <div class="section-title">基本情報</div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <div class="key-value">
+                                    <div class="key">所属区分</div>
+                                    <div class="value">正社員</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">経験年数</div>
+                                    <div class="value">8年</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">希望単価</div>
+                                    <div class="value">75万円/月</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="key-value">
+                                    <div class="key">希望勤務地</div>
+                                    <div class="value">東京都、神奈川県</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">稼働可能日</div>
+                                    <div class="value">即日</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">リモート対応</div>
+                                    <div class="value">可</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="section-title">保有スキル</div>
+                        <div class="mb-3">
+                            <div class="key">言語・フレームワーク</div>
+                            <div class="tag-list mt-1">
+                                <span class="tag-item matched">Java</span>
+                                <span class="tag-item matched">Spring</span>
+                                <span class="tag-item matched">JavaScript</span>
+                                <span class="tag-item matched">React</span>
+                                <span class="tag-item">Vue.js</span>
+                                <span class="tag-item">TypeScript</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <div class="key">DB・インフラ</div>
+                            <div class="tag-list mt-1">
+                                <span class="tag-item matched">PostgreSQL</span>
+                                <span class="tag-item matched">AWS</span>
+                                <span class="tag-item">MySQL</span>
+                                <span class="tag-item">Jenkins</span>
+                            </div>
+                        </div>
+                        
+                        <div class="section-title">その他情報</div>
+                        <div class="row">
+                            <div class="col-6">
+                                <div class="key-value">
+                                    <div class="key">役割・ポジション</div>
+                                    <div class="value">バックエンド開発</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">資格</div>
+                                    <div class="value">応用情報技術者</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="key-value">
+                                    <div class="key">英語スキル</div>
+                                    <div class="value">ビジネスレベル</div>
+                                </div>
+                                <div class="key-value">
+                                    <div class="key">前職</div>
+                                    <div class="value">株式会社システム開発</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-outline-info btn-sm">
+                            <i class="bi bi-box-arrow-up-right me-1"></i> 技術者詳細を表示
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 要件比較 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title fs-5 mb-0">要件比較</h3>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="match-comparison mb-3">
+                            <div class="match-comparison-header">
+                                スキル要件
+                            </div>
+                            <div class="match-comparison-body">
+                                <div class="match-comparison-item">
+                                    <div class="match-comparison-label">Java</div>
+                                    <div class="match-comparison-value">
+                                        <i class="bi bi-check-circle-fill match-icon match-icon-match"></i>
+                                        <span>要件を満たしています（8年）</span>
+                                    </div>
+                                </div>
+                                <div class="match-comparison-item">
+                                    <div class="match-comparison-label">Spring</div>
+                                    <div class="match-comparison-value">
+                                        <i class="bi bi-check-circle-fill match-icon match-icon-match"></i>
+                                        <span>要件を満たしています（6年）</span>
+                                    </div>
+                                </div>
+                                <div class="match-comparison-item">
+                                    <div class="match-comparison-label">PostgreSQL</div>
+                                    <div class="match-comparison-value">
+                                        <i class="bi bi-check-circle-fill match-icon match-icon-match"></i>
+                                        <span>要件を満たしています（5年）</span>
+                                    </div>
+                                </div>
+                                <div class="match-comparison-item">
+                                    <div class="match-comparison-label">AWS</div>
+                                    <div class="match-comparison-value">
+                                        <i class="bi bi-check-circle-fill match-icon match-icon-match"></i>
+                                        <span>要件を満たしています（4年）</span>
+                                    </div>
+                                </div>
+                                <div class="match-comparison-item">
+                                    <div class="match-comparison-label">Docker</div>
+                                    <div class="match-comparison-value">
+                                        <i class="bi bi-x-circle-fill match-icon match-icon-no-match"></i>
+                                        <span>経験なし</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="match-comparison mb-3">
+                            <div class="match-comparison-header">
+                                その他要件
+                            </div>
+                            <div class="match-comparison-body">
+                                <div class="match-comparison-item">
+                                    <div class="match-comparison-label">経験年数</div>
+                                    <div class="match-comparison-value">
+                                        <i class="bi bi-check-circle-fill match-icon match-icon-match"></i>
+                                        <span>要件（3年以上）を満たしています（8年）</span>
+                                    </div>
+                                </div>
+                                <div class="match-comparison-item">
+                                    <div class="match-comparison-label">単価</div>
+                                    <div class="match-comparison-value">
+                                        <i class="bi bi-check-circle-fill match-icon match-icon-match"></i>
+                                        <span>要件（70万円～90万円）を満たしています（75万円）</span>
+                                    </div>
+                                </div>
+                                <div class="match-comparison-item">
+                                    <div class="match-comparison-label">勤務地</div>
+                                    <div class="match-comparison-value">
+                                        <i class="bi bi-check-circle-fill match-icon match-icon-match"></i>
+                                        <span>要件（東京都千代田区）を満たしています（東京都、神奈川県）</span>
+                                    </div>
+                                </div>
+                                <div class="match-comparison-item">
+                                    <div class="match-comparison-label">稼働時期</div>
+                                    <div class="match-comparison-value">
+                                        <i class="bi bi-check-circle-fill match-icon match-icon-match"></i>
+                                        <span>要件（2025/06/01）を満たしています（即日）</span>
+                                    </div>
+                                </div>
+                                <div class="match-comparison-item">
+                                    <div class="match-comparison-label">英語スキル</div>
+                                    <div class="match-comparison-value">
+                                        <i class="bi bi-check-circle-fill match-icon match-icon-match"></i>
+                                        <span>要件（読み書きレベル）を満たしています（ビジネスレベル）</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ボタン群 -->
+        <div class="d-flex justify-content-between">
+            <div>
+                <button class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-arrow-left me-1"></i> 検索結果に戻る
+                </button>
+                <button class="btn btn-outline-primary me-2">
+                    <i class="bi bi-file-earmark-text me-1"></i> スキルシート表示
+                </button>
+                <button class="btn btn-outline-primary">
+                    <i class="bi bi-download me-1"></i> マッチング結果保存
+                </button>
+            </div>
+            <div>
+                <button class="btn btn-primary">
+                    <i class="bi bi-check2-circle me-1"></i> 提案登録
+                </button>
+            </div>
+        </div>
+        
+        <!-- ページング操作 -->
+        <a href="#" class="nav-pagination prev">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <a href="#" class="nav-pagination next">
+            <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

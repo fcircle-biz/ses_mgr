@@ -166,10 +166,10 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [案件登録画面のワイヤーフレーム]
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="project-register-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
     <h2>画面項目定義</h2>
@@ -366,5 +366,26 @@
         <p>作成日: 2025年5月5日<br>
         バージョン: 1.0</p>
     </div>
+
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 案件登録モックアップの設定
+            new MockupViewer('project-register-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '600px',
+                mockups: [
+                    {
+                        name: '案件登録画面',
+                        path: 'mockups/PRJ-002_案件登録画面.html',
+                        description: '新規案件の登録フォームを提供する画面です。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>

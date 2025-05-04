@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ダッシュボード | SES業務システム</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 20px;
+            padding-bottom: 40px;
+        }
+        .system-header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+        .dashboard-card {
+            height: 100%;
+            transition: transform 0.2s;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .chart-container {
+            height: 250px;
+        }
+        .notification-item {
+            border-left: 3px solid #dee2e6;
+            padding-left: 15px;
+            margin-bottom: 15px;
+        }
+        .notification-item.unread {
+            border-left-color: #0d6efd;
+        }
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 500;
+            color: #0d6efd;
+        }
+        .stat-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="system-header d-flex justify-content-between align-items-center pb-3 mb-4">
+            <h1 class="fs-4">SES業務システム</h1>
+            <div class="d-flex align-items-center">
+                <div class="dropdown me-3">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-bell"></i>
+                        <span class="badge bg-danger">3</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown" style="width: 300px;">
+                        <li><a class="dropdown-item" href="#">未読通知 (3)</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">新しい案件が登録されました</a></li>
+                        <li><a class="dropdown-item" href="#">新しいメッセージがあります</a></li>
+                        <li><a class="dropdown-item" href="#">承認待ちの依頼があります</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown">
+                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        山田 太郎 様
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                        <li><a class="dropdown-item" href="#">設定</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                    </ul>
+                </div>
+            </div>
+        </header>
+        
+        <div class="row">
+            <div class="col-md-3">
+                <div class="list-group mb-4">
+                    <a href="#" class="list-group-item list-group-item-action active">ダッシュボード</a>
+                    <a href="#" class="list-group-item list-group-item-action">案件管理</a>
+                    <a href="#" class="list-group-item list-group-item-action">技術者管理</a>
+                    <a href="#" class="list-group-item list-group-item-action">契約管理</a>
+                    <a href="#" class="list-group-item list-group-item-action">マッチング</a>
+                    <a href="#" class="list-group-item list-group-item-action">勤怠工数管理</a>
+                    <a href="#" class="list-group-item list-group-item-action">請求支払管理</a>
+                    <a href="#" class="list-group-item list-group-item-action">レポーティング</a>
+                    <a href="#" class="list-group-item list-group-item-action">システム管理</a>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="fs-5 mb-0">未処理タスク</h2>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                承認待ちの請求書
+                                <span class="badge bg-danger rounded-pill">3</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                人材マッチング候補
+                                <span class="badge bg-warning rounded-pill">5</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                未提出の工数報告
+                                <span class="badge bg-info rounded-pill">2</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                プロジェクトレビュー
+                                <span class="badge bg-primary rounded-pill">1</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h2 class="fs-5 mb-0">直近の予定</h2>
+                    </div>
+                    <div class="card-body p-0">
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">クライアントミーティング</h6>
+                                    <small>5月5日</small>
+                                </div>
+                                <small>株式会社テックソリューションとの定例会議</small>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">社内研修</h6>
+                                    <small>5月8日</small>
+                                </div>
+                                <small>データセキュリティ研修 - 参加必須</small>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">技術者面談</h6>
+                                    <small>5月10日</small>
+                                </div>
+                                <small>新規候補者面談 (3名)</small>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-9">
+                <div class="alert alert-info" role="alert">
+                    <h4 class="alert-heading">おはようございます、山田さん!</h4>
+                    <p>今週は新規案件が3件、新規技術者登録が2件あります。また、今月の売上目標は90%達成しています。</p>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card text-center h-100">
+                            <div class="card-body">
+                                <h5 class="card-title stat-label">案件数</h5>
+                                <p class="stat-value">47</p>
+                                <p class="card-text"><span class="text-success">+3</span> (前月比)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center h-100">
+                            <div class="card-body">
+                                <h5 class="card-title stat-label">技術者数</h5>
+                                <p class="stat-value">112</p>
+                                <p class="card-text"><span class="text-success">+5</span> (前月比)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center h-100">
+                            <div class="card-body">
+                                <h5 class="card-title stat-label">稼働率</h5>
+                                <p class="stat-value">92%</p>
+                                <p class="card-text"><span class="text-success">+2%</span> (前月比)</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center h-100">
+                            <div class="card-body">
+                                <h5 class="card-title stat-label">売上見込</h5>
+                                <p class="stat-value">1.2億</p>
+                                <p class="card-text"><span class="text-success">+8%</span> (前月比)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h3 class="fs-5 mb-0">月次売上推移</h3>
+                                <div class="btn-group btn-group-sm">
+                                    <button type="button" class="btn btn-outline-secondary">年間</button>
+                                    <button type="button" class="btn btn-outline-secondary active">半期</button>
+                                    <button type="button" class="btn btn-outline-secondary">四半期</button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="chart-container">
+                                    <canvas id="salesChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h3 class="fs-5 mb-0">案件ステータス</h3>
+                                <button class="btn btn-sm btn-outline-primary">詳細を見る</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover align-middle">
+                                        <thead>
+                                            <tr>
+                                                <th>案件ID</th>
+                                                <th>案件名</th>
+                                                <th>クライアント</th>
+                                                <th>開始日</th>
+                                                <th>ステータス</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>PRJ-1025</td>
+                                                <td>基幹システムリニューアル</td>
+                                                <td>株式会社テックソリューション</td>
+                                                <td>2025/04/01</td>
+                                                <td><span class="badge bg-success">進行中</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>PRJ-1024</td>
+                                                <td>クラウド移行プロジェクト</td>
+                                                <td>株式会社ネットワークサービス</td>
+                                                <td>2025/03/15</td>
+                                                <td><span class="badge bg-success">進行中</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>PRJ-1023</td>
+                                                <td>モバイルアプリ開発</td>
+                                                <td>株式会社デジタルソリューション</td>
+                                                <td>2025/02/20</td>
+                                                <td><span class="badge bg-warning">要注意</span></td>
+                                            </tr>
+                                            <tr>
+                                                <td>PRJ-1022</td>
+                                                <td>無線ネットワーク整備</td>
+                                                <td>株式会社インフラソリューション</td>
+                                                <td>2025/01/10</td>
+                                                <td><span class="badge bg-danger">遅延</span></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card mb-4">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <h3 class="fs-5 mb-0">マッチング候補</h3>
+                                <button class="btn btn-sm btn-outline-primary">全て見る</button>
+                            </div>
+                            <div class="card-body">
+                                <div class="list-group">
+                                    <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">佐藤 一郎</h6>
+                                            <small class="text-success">96% マッチ</small>
+                                        </div>
+                                        <p class="mb-1">フロントエンドエンジニア (React/Vue.js)</p>
+                                        <small>Java, JavaScript, React, Vue.js</small>
+                                    </a>
+                                    <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">田中 花子</h6>
+                                            <small class="text-success">92% マッチ</small>
+                                        </div>
+                                        <p class="mb-1">バックエンドエンジニア (Java/Spring)</p>
+                                        <small>Java, Spring, MySQL, AWS</small>
+                                    </a>
+                                    <a href="#" class="list-group-item list-group-item-action flex-column align-items-start">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1">鈴木 康介</h6>
+                                            <small class="text-warning">85% マッチ</small>
+                                        </div>
+                                        <p class="mb-1">インフラエンジニア (AWS)</p>
+                                        <small>AWS, Docker, Jenkins, Terraform</small>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h3 class="fs-5 mb-0">通知</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="notification-item unread">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">新規案件登録</h6>
+                                        <small>1時間前</small>
+                                    </div>
+                                    <p class="mb-1">「モバイル決済システム構築」が新規登録されました。</p>
+                                </div>
+                                <div class="notification-item unread">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">請求書承認依頼</h6>
+                                        <small>3時間前</small>
+                                    </div>
+                                    <p class="mb-1">「PRJ-1020」の請求書承認が必要です。</p>
+                                </div>
+                                <div class="notification-item unread">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">タスクリマインダー</h6>
+                                        <small>昨日</small>
+                                    </div>
+                                    <p class="mb-1">「月次レポート提出」の期限が近づいています。</p>
+                                </div>
+                                <div class="notification-item">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h6 class="mb-1">システムメンテナンス</h6>
+                                        <small>2日前</small>
+                                    </div>
+                                    <p class="mb-1">5月12日にシステムメンテナンスが予定されています。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // グラフデータのサンプル
+        const ctx = document.getElementById('salesChart').getContext('2d');
+        const salesChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['11月', '12月', '1月', '2月', '3月', '4月'],
+                datasets: [{
+                    label: '売上',
+                    data: [980, 1020, 940, 1080, 1150, 1200],
+                    borderColor: 'rgb(13, 110, 253)',
+                    backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        ticks: {
+                            callback: function(value) {
+                                return value / 100 + '\u767e万';
+                            }
+                        }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y / 100 + '\u767e万円';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
