@@ -3,277 +3,509 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ロール管理画面 | SES業務システム</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <title>SES業務システム - ロール管理</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <style>
         body {
-            padding-top: 20px;
-            padding-bottom: 40px;
+            background-color: #f8f9fa;
         }
-        .system-header {
-            margin-bottom: 30px;
-            border-bottom: 1px solid #e5e5e5;
+        .navbar-brand {
+            font-weight: 600;
         }
-        .permissions-section {
-            max-height: 400px;
-            overflow-y: auto;
-            border: 1px solid #dee2e6;
-            border-radius: 0.25rem;
-            padding: 1rem;
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        /* ステータスバッジのスタイル */
+        .badge-enabled {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .badge-disabled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .badge-system {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
         .permission-group {
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
             margin-bottom: 1rem;
-            border-bottom: 1px solid #e9ecef;
-            padding-bottom: 0.5rem;
+            padding: 1rem;
         }
-        .permission-item {
-            padding: 0.5rem 0;
-            margin-left: 1.5rem;
+        .permission-group-header {
+            margin-bottom: 0.5rem;
+            font-weight: 600;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="system-header d-flex justify-content-between align-items-center pb-3 mb-4">
-            <h1 class="fs-4">SES業務システム</h1>
-            <div class="d-flex align-items-center">
-                <div class="dropdown me-3">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        <i class="bi bi-bell"></i>
-                        <span class="badge bg-danger">3</span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
-                        <li><a class="dropdown-item" href="#">未読通知 (3)</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">新しい案件が登録されました</a></li>
-                        <li><a class="dropdown-item" href="#">新しいメッセージがあります</a></li>
-                        <li><a class="dropdown-item" href="#">承認待ちの依頼があります</a></li>
-                    </ul>
-                </div>
-                <div class="dropdown">
-                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                        管理者 様
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="#">プロフィール</a></li>
-                        <li><a class="dropdown-item" href="#">設定</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="#">ログアウト</a></li>
-                    </ul>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            システム管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">ユーザー管理</a></li>
+                            <li><a class="dropdown-item active" href="#">ロール管理</a></li>
+                            <li><a class="dropdown-item" href="#">マスタ管理</a></li>
+                            <li><a class="dropdown-item" href="#">ログ管理</a></li>
+                            <li><a class="dropdown-item" href="#">バッチ管理</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">KA</div>
+                            <span>管理者</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-        </header>
-        
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">システム管理</a></li>
+                <li class="breadcrumb-item active" aria-current="page">ロール管理</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">ロール管理</h2>
+            <div>
+                <button class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i>新規ロール作成
+                </button>
+            </div>
+        </div>
+
+        <!-- メインコンテンツエリア -->
         <div class="row">
-            <div class="col-md-3">
-                <div class="list-group mb-4">
-                    <a href="#" class="list-group-item list-group-item-action">ダッシュボード</a>
-                    <a href="#" class="list-group-item list-group-item-action">案件管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">技術者管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">契約管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">マッチング</a>
-                    <a href="#" class="list-group-item list-group-item-action">勤怠工数管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">請求支払管理</a>
-                    <a href="#" class="list-group-item list-group-item-action">レポーティング</a>
-                    <a href="#" class="list-group-item list-group-item-action active">システム管理</a>
+            <!-- ロール一覧 -->
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">ロール一覧</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <a href="#" class="list-group-item list-group-item-action active d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span>システム管理者</span>
+                                    <span class="badge rounded-pill badge-system ms-2">システム</span>
+                                </div>
+                                <span class="badge bg-secondary rounded-pill">5</span>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span>営業担当者</span>
+                                    <span class="badge rounded-pill badge-enabled ms-2">有効</span>
+                                </div>
+                                <span class="badge bg-secondary rounded-pill">12</span>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span>人事担当者</span>
+                                    <span class="badge rounded-pill badge-enabled ms-2">有効</span>
+                                </div>
+                                <span class="badge bg-secondary rounded-pill">8</span>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span>経理担当者</span>
+                                    <span class="badge rounded-pill badge-enabled ms-2">有効</span>
+                                </div>
+                                <span class="badge bg-secondary rounded-pill">6</span>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span>案件管理者</span>
+                                    <span class="badge rounded-pill badge-enabled ms-2">有効</span>
+                                </div>
+                                <span class="badge bg-secondary rounded-pill">9</span>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span>技術者管理者</span>
+                                    <span class="badge rounded-pill badge-enabled ms-2">有効</span>
+                                </div>
+                                <span class="badge bg-secondary rounded-pill">7</span>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span>マッチング担当者</span>
+                                    <span class="badge rounded-pill badge-enabled ms-2">有効</span>
+                                </div>
+                                <span class="badge bg-secondary rounded-pill">5</span>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span>一般ユーザー</span>
+                                    <span class="badge rounded-pill badge-enabled ms-2">有効</span>
+                                </div>
+                                <span class="badge bg-secondary rounded-pill">20</span>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span>レポート閲覧者</span>
+                                    <span class="badge rounded-pill badge-disabled ms-2">無効</span>
+                                </div>
+                                <span class="badge bg-secondary rounded-pill">0</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
-            
-            <div class="col-md-9">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="fs-3">ロール管理</h2>
-                    <button class="btn btn-primary">新規ロール作成</button>
-                </div>
-                
+
+            <!-- ロール詳細 -->
+            <div class="col-md-8">
                 <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">ロール詳細: システム管理者</h5>
+                        <div>
+                            <button class="btn btn-outline-primary btn-sm me-2">編集</button>
+                            <button class="btn btn-outline-danger btn-sm">削除</button>
+                        </div>
+                    </div>
                     <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="ロール名で検索...">
-                                    <button class="btn btn-outline-secondary" type="button">検索</button>
+                        <form>
+                            <div class="mb-3">
+                                <label for="roleName" class="form-label">ロール名</label>
+                                <input type="text" class="form-control" id="roleName" value="システム管理者" readonly>
+                            </div>
+                            <div class="mb-3">
+                                <label for="roleDescription" class="form-label">説明</label>
+                                <textarea class="form-control" id="roleDescription" rows="2" readonly>システム全体の設定や管理を行うためのロールです。すべての機能に対する完全なアクセス権限を持ちます。</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <label class="form-label mb-0">権限</label>
+                                    <span class="badge bg-primary">すべての権限</span>
+                                </div>
+
+                                <!-- システム管理権限 -->
+                                <div class="permission-group">
+                                    <div class="permission-group-header">システム管理</div>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_sys_view" checked disabled>
+                                                <label class="form-check-label" for="perm_sys_view">閲覧</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_sys_edit" checked disabled>
+                                                <label class="form-check-label" for="perm_sys_edit">編集</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_sys_create" checked disabled>
+                                                <label class="form-check-label" for="perm_sys_create">作成</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_sys_delete" checked disabled>
+                                                <label class="form-check-label" for="perm_sys_delete">削除</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- ユーザー管理権限 -->
+                                <div class="permission-group">
+                                    <div class="permission-group-header">ユーザー管理</div>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_user_view" checked disabled>
+                                                <label class="form-check-label" for="perm_user_view">閲覧</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_user_edit" checked disabled>
+                                                <label class="form-check-label" for="perm_user_edit">編集</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_user_create" checked disabled>
+                                                <label class="form-check-label" for="perm_user_create">作成</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_user_delete" checked disabled>
+                                                <label class="form-check-label" for="perm_user_delete">削除</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 案件管理権限 -->
+                                <div class="permission-group">
+                                    <div class="permission-group-header">案件管理</div>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_proj_view" checked disabled>
+                                                <label class="form-check-label" for="perm_proj_view">閲覧</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_proj_edit" checked disabled>
+                                                <label class="form-check-label" for="perm_proj_edit">編集</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_proj_create" checked disabled>
+                                                <label class="form-check-label" for="perm_proj_create">作成</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_proj_delete" checked disabled>
+                                                <label class="form-check-label" for="perm_proj_delete">削除</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 技術者管理権限 -->
+                                <div class="permission-group">
+                                    <div class="permission-group-header">技術者管理</div>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_eng_view" checked disabled>
+                                                <label class="form-check-label" for="perm_eng_view">閲覧</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_eng_edit" checked disabled>
+                                                <label class="form-check-label" for="perm_eng_edit">編集</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_eng_create" checked disabled>
+                                                <label class="form-check-label" for="perm_eng_create">作成</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_eng_delete" checked disabled>
+                                                <label class="form-check-label" for="perm_eng_delete">削除</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- 契約管理権限 -->
+                                <div class="permission-group">
+                                    <div class="permission-group-header">契約管理</div>
+                                    <div class="row">
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_cont_view" checked disabled>
+                                                <label class="form-check-label" for="perm_cont_view">閲覧</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_cont_edit" checked disabled>
+                                                <label class="form-check-label" for="perm_cont_edit">編集</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_cont_create" checked disabled>
+                                                <label class="form-check-label" for="perm_cont_create">作成</label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" id="perm_cont_delete" checked disabled>
+                                                <label class="form-check-label" for="perm_cont_delete">削除</label>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        
+                        </form>
+                    </div>
+                </div>
+
+                <!-- ロールユーザー一覧 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">ユーザー一覧 (システム管理者)</h5>
+                    </div>
+                    <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-striped table-hover align-middle">
+                            <table class="table table-hover mb-0">
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>ロール名</th>
-                                        <th>説明</th>
-                                        <th>ユーザー数</th>
+                                        <th>ユーザー名</th>
+                                        <th>メールアドレス</th>
+                                        <th>所属部門</th>
+                                        <th>状態</th>
                                         <th>操作</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <tr>
-                                        <td>1</td>
-                                        <td>システム管理者</td>
-                                        <td>システムの全機能にアクセスできる管理者ロール</td>
-                                        <td><span class="badge bg-primary">3</span></td>
+                                        <td>1001</td>
+                                        <td><a href="#">山田 太郎</a></td>
+                                        <td>t.yamada@example.com</td>
+                                        <td>システム部</td>
+                                        <td><span class="badge rounded-pill badge-enabled">有効</span></td>
                                         <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <button type="button" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></button>
-                                                <button type="button" class="btn btn-outline-secondary"><i class="bi bi-files"></i></button>
-                                                <button type="button" class="btn btn-outline-danger" disabled><i class="bi bi-trash"></i></button>
-                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger action-button" title="ロールから削除">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>2</td>
-                                        <td>営業担当者</td>
-                                        <td>案件とクライアント情報の管理権限がある営業向けロール</td>
-                                        <td><span class="badge bg-primary">8</span></td>
+                                        <td>1008</td>
+                                        <td><a href="#">中村 健太</a></td>
+                                        <td>k.nakamura@example.com</td>
+                                        <td>システム部</td>
+                                        <td><span class="badge rounded-pill badge-enabled">有効</span></td>
                                         <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <button type="button" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></button>
-                                                <button type="button" class="btn btn-outline-secondary"><i class="bi bi-files"></i></button>
-                                                <button type="button" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
-                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger action-button" title="ロールから削除">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>3</td>
-                                        <td>人事担当者</td>
-                                        <td>技術者情報と勤怠管理へのアクセス権限がある人事向けロール</td>
-                                        <td><span class="badge bg-primary">5</span></td>
+                                        <td>1012</td>
+                                        <td><a href="#">大山 修</a></td>
+                                        <td>o.oyama@example.com</td>
+                                        <td>システム部</td>
+                                        <td><span class="badge rounded-pill badge-enabled">有効</span></td>
                                         <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <button type="button" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></button>
-                                                <button type="button" class="btn btn-outline-secondary"><i class="bi bi-files"></i></button>
-                                                <button type="button" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
-                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger action-button" title="ロールから削除">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>4</td>
-                                        <td>経理担当者</td>
-                                        <td>請求と支払い情報への管理権限がある経理向けロール</td>
-                                        <td><span class="badge bg-primary">4</span></td>
+                                        <td>1015</td>
+                                        <td><a href="#">岡本 直子</a></td>
+                                        <td>n.okamoto@example.com</td>
+                                        <td>システム部</td>
+                                        <td><span class="badge rounded-pill badge-enabled">有効</span></td>
                                         <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <button type="button" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></button>
-                                                <button type="button" class="btn btn-outline-secondary"><i class="bi bi-files"></i></button>
-                                                <button type="button" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
-                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger action-button" title="ロールから削除">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
                                         </td>
                                     </tr>
                                     <tr>
-                                        <td>5</td>
-                                        <td>一般ユーザー</td>
-                                        <td>基本的な参照権限のみを持つ一般スタッフ向けロール</td>
-                                        <td><span class="badge bg-primary">12</span></td>
+                                        <td>1020</td>
+                                        <td><a href="#">西田 正人</a></td>
+                                        <td>m.nishida@example.com</td>
+                                        <td>システム部</td>
+                                        <td><span class="badge rounded-pill badge-enabled">有効</span></td>
                                         <td>
-                                            <div class="btn-group btn-group-sm">
-                                                <button type="button" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></button>
-                                                <button type="button" class="btn btn-outline-secondary"><i class="bi bi-files"></i></button>
-                                                <button type="button" class="btn btn-outline-danger"><i class="bi bi-trash"></i></button>
-                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-danger action-button" title="ロールから削除">
+                                                <i class="bi bi-x-lg"></i>
+                                            </button>
                                         </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        
-                        <nav aria-label="ページネーション" class="mt-3">
-                            <ul class="pagination justify-content-center">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1" aria-disabled="true">前へ</a>
-                                </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">次へ</a>
-                                </li>
-                            </ul>
-                        </nav>
-                    </div>
-                </div>
-                
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h3 class="fs-5 mb-0">権限マトリックス</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-bordered table-sm">
-                                <thead>
-                                    <tr>
-                                        <th>機能 / ロール</th>
-                                        <th>システム管理者</th>
-                                        <th>営業担当者</th>
-                                        <th>人事担当者</th>
-                                        <th>経理担当者</th>
-                                        <th>一般ユーザー</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>ダッシュボード</td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                    </tr>
-                                    <tr>
-                                        <td>案件管理 - 表示</td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                    </tr>
-                                    <tr>
-                                        <td>案件管理 - 編集</td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
-                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
-                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
-                                    </tr>
-                                    <tr>
-                                        <td>技術者管理 - 表示</td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                    </tr>
-                                    <tr>
-                                        <td>技術者管理 - 編集</td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
-                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
-                                    </tr>
-                                    <tr>
-                                        <td>請求支払管理 - 表示</td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
-                                    </tr>
-                                    <tr>
-                                        <td>請求支払管理 - 編集</td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
-                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
-                                    </tr>
-                                    <tr>
-                                        <td>システム管理</td>
-                                        <td class="text-center"><i class="bi bi-check-circle-fill text-success"></i></td>
-                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
-                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
-                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
-                                        <td class="text-center"><i class="bi bi-x-circle-fill text-danger"></i></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -283,8 +515,8 @@
             </div>
         </div>
     </div>
-    
-    <!-- ロール編集モーダル -->
+
+    <!-- モーダル: ロール編集 -->
     <div class="modal fade" id="roleEditModal" tabindex="-1" aria-labelledby="roleEditModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -293,236 +525,67 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <ul class="nav nav-tabs" id="roleTabs" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic-info" type="button" role="tab" aria-controls="basic-info" aria-selected="true">基本情報</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="permissions-tab" data-bs-toggle="tab" data-bs-target="#permissions" type="button" role="tab" aria-controls="permissions" aria-selected="false">権限設定</button>
-                        </li>
-                    </ul>
-                    <div class="tab-content mt-3" id="roleTabContent">
-                        <!-- 基本情報タブ -->
-                        <div class="tab-pane fade show active" id="basic-info" role="tabpanel" aria-labelledby="basic-tab">
-                            <form>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="roleId" class="form-label">ロールID <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="roleId" value="SYSADMIN" readonly>
-                                        <div class="form-text">既存ロールのIDは変更できません</div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="roleName" class="form-label">ロール名 <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="roleName" value="システム管理者">
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="roleDescription" class="form-label">説明</label>
-                                    <textarea class="form-control" id="roleDescription" rows="3">システムの全機能にアクセスできる管理者ロール</textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">ロール区分 <span class="text-danger">*</span></label>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="roleType" id="roleTypeSystem" checked>
-                                        <label class="form-check-label" for="roleTypeSystem">
-                                            システム（システム管理機能関連）
-                                        </label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="radio" name="roleType" id="roleTypeBusiness">
-                                        <label class="form-check-label" for="roleTypeBusiness">
-                                            業務（業務機能関連）
-                                        </label>
-                                    </div>
-                                </div>
-                            </form>
+                    <form>
+                        <div class="mb-3">
+                            <label for="editRoleName" class="form-label">ロール名 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="editRoleName" value="システム管理者">
                         </div>
-                        
-                        <!-- 権限設定タブ -->
-                        <div class="tab-pane fade" id="permissions" role="tabpanel" aria-labelledby="permissions-tab">
-                            <div class="row mb-3">
-                                <div class="col-12">
-                                    <div class="alert alert-info">
-                                        <i class="bi bi-info-circle"></i> 各機能に対するアクセス権限を設定してください。機能グループを選択すると、そのグループに含まれるすべての機能に同じ権限が適用されます。
-                                    </div>
+                        <div class="mb-3">
+                            <label for="editRoleDescription" class="form-label">説明</label>
+                            <textarea class="form-control" id="editRoleDescription" rows="2">システム全体の設定や管理を行うためのロールです。すべての機能に対する完全なアクセス権限を持ちます。</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <label class="form-label mb-0">権限</label>
+                                <div>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm me-2">すべて選択</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm">すべて解除</button>
                                 </div>
                             </div>
-                            <div class="permissions-section">
-                                <!-- ダッシュボード機能グループ -->
-                                <div class="permission-group">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong>ダッシュボード</strong>
-                                        </div>
-                                        <div>
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <input type="radio" class="btn-check" name="dashboard-perm" id="dashboard-none" autocomplete="off">
-                                                <label class="btn btn-outline-secondary" for="dashboard-none">なし</label>
-                                                <input type="radio" class="btn-check" name="dashboard-perm" id="dashboard-view" autocomplete="off">
-                                                <label class="btn btn-outline-primary" for="dashboard-view">閲覧</label>
-                                                <input type="radio" class="btn-check" name="dashboard-perm" id="dashboard-edit" autocomplete="off" checked>
-                                                <label class="btn btn-outline-success" for="dashboard-edit">編集</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="permission-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>ダッシュボード表示</div>
-                                            <div>
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    <input type="radio" class="btn-check" name="dashboard-view-perm" id="dashboard-view-none" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="dashboard-view-none">なし</label>
-                                                    <input type="radio" class="btn-check" name="dashboard-view-perm" id="dashboard-view-view" autocomplete="off" checked>
-                                                    <label class="btn btn-outline-primary" for="dashboard-view-view">閲覧</label>
+                            
+                            <!-- 権限グループ -->
+                            <div class="accordion" id="permissionAccordion">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header" id="headingSystem">
+                                        <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSystem" aria-expanded="true" aria-controls="collapseSystem">
+                                            システム管理
+                                        </button>
+                                    </h2>
+                                    <div id="collapseSystem" class="accordion-collapse collapse show" aria-labelledby="headingSystem" data-bs-parent="#permissionAccordion">
+                                        <div class="accordion-body">
+                                            <div class="row">
+                                                <div class="col-md-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="edit_perm_sys_view" checked>
+                                                        <label class="form-check-label" for="edit_perm_sys_view">閲覧</label>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="permission-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>ダッシュボードカスタマイズ</div>
-                                            <div>
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    <input type="radio" class="btn-check" name="dashboard-custom-perm" id="dashboard-custom-none" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="dashboard-custom-none">なし</label>
-                                                    <input type="radio" class="btn-check" name="dashboard-custom-perm" id="dashboard-custom-view" autocomplete="off">
-                                                    <label class="btn btn-outline-primary" for="dashboard-custom-view">閲覧</label>
-                                                    <input type="radio" class="btn-check" name="dashboard-custom-perm" id="dashboard-custom-edit" autocomplete="off" checked>
-                                                    <label class="btn btn-outline-success" for="dashboard-custom-edit">編集</label>
+                                                <div class="col-md-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="edit_perm_sys_edit" checked>
+                                                        <label class="form-check-label" for="edit_perm_sys_edit">編集</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="edit_perm_sys_create" checked>
+                                                        <label class="form-check-label" for="edit_perm_sys_create">作成</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="checkbox" id="edit_perm_sys_delete" checked>
+                                                        <label class="form-check-label" for="edit_perm_sys_delete">削除</label>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <!-- 案件管理機能グループ -->
-                                <div class="permission-group">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong>案件管理</strong>
-                                        </div>
-                                        <div>
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <input type="radio" class="btn-check" name="project-perm" id="project-none" autocomplete="off">
-                                                <label class="btn btn-outline-secondary" for="project-none">なし</label>
-                                                <input type="radio" class="btn-check" name="project-perm" id="project-view" autocomplete="off">
-                                                <label class="btn btn-outline-primary" for="project-view">閲覧</label>
-                                                <input type="radio" class="btn-check" name="project-perm" id="project-edit" autocomplete="off" checked>
-                                                <label class="btn btn-outline-success" for="project-edit">編集</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="permission-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>案件一覧</div>
-                                            <div>
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    <input type="radio" class="btn-check" name="project-list-perm" id="project-list-none" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="project-list-none">なし</label>
-                                                    <input type="radio" class="btn-check" name="project-list-perm" id="project-list-view" autocomplete="off" checked>
-                                                    <label class="btn btn-outline-primary" for="project-list-view">閲覧</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="permission-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>案件登録・編集</div>
-                                            <div>
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    <input type="radio" class="btn-check" name="project-edit-perm" id="project-edit-none" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="project-edit-none">なし</label>
-                                                    <input type="radio" class="btn-check" name="project-edit-perm" id="project-edit-view" autocomplete="off">
-                                                    <label class="btn btn-outline-primary" for="project-edit-view">閲覧</label>
-                                                    <input type="radio" class="btn-check" name="project-edit-perm" id="project-edit-edit" autocomplete="off" checked>
-                                                    <label class="btn btn-outline-success" for="project-edit-edit">編集</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="permission-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>案件削除</div>
-                                            <div>
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    <input type="radio" class="btn-check" name="project-delete-perm" id="project-delete-none" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="project-delete-none">なし</label>
-                                                    <input type="radio" class="btn-check" name="project-delete-perm" id="project-delete-view" autocomplete="off">
-                                                    <label class="btn btn-outline-primary" for="project-delete-view">閲覧</label>
-                                                    <input type="radio" class="btn-check" name="project-delete-perm" id="project-delete-edit" autocomplete="off" checked>
-                                                    <label class="btn btn-outline-success" for="project-delete-edit">編集</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <!-- システム管理機能グループ -->
-                                <div class="permission-group">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong>システム管理</strong>
-                                        </div>
-                                        <div>
-                                            <div class="btn-group btn-group-sm" role="group">
-                                                <input type="radio" class="btn-check" name="system-perm" id="system-none" autocomplete="off">
-                                                <label class="btn btn-outline-secondary" for="system-none">なし</label>
-                                                <input type="radio" class="btn-check" name="system-perm" id="system-view" autocomplete="off">
-                                                <label class="btn btn-outline-primary" for="system-view">閲覧</label>
-                                                <input type="radio" class="btn-check" name="system-perm" id="system-edit" autocomplete="off" checked>
-                                                <label class="btn btn-outline-success" for="system-edit">編集</label>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="permission-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>ユーザー管理</div>
-                                            <div>
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    <input type="radio" class="btn-check" name="user-perm" id="user-none" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="user-none">なし</label>
-                                                    <input type="radio" class="btn-check" name="user-perm" id="user-view" autocomplete="off">
-                                                    <label class="btn btn-outline-primary" for="user-view">閲覧</label>
-                                                    <input type="radio" class="btn-check" name="user-perm" id="user-edit" autocomplete="off" checked>
-                                                    <label class="btn btn-outline-success" for="user-edit">編集</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="permission-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>ロール管理</div>
-                                            <div>
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    <input type="radio" class="btn-check" name="role-perm" id="role-none" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="role-none">なし</label>
-                                                    <input type="radio" class="btn-check" name="role-perm" id="role-view" autocomplete="off">
-                                                    <label class="btn btn-outline-primary" for="role-view">閲覧</label>
-                                                    <input type="radio" class="btn-check" name="role-perm" id="role-edit" autocomplete="off" checked>
-                                                    <label class="btn btn-outline-success" for="role-edit">編集</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="permission-item">
-                                        <div class="d-flex justify-content-between align-items-center">
-                                            <div>マスタ管理</div>
-                                            <div>
-                                                <div class="btn-group btn-group-sm" role="group">
-                                                    <input type="radio" class="btn-check" name="master-perm" id="master-none" autocomplete="off">
-                                                    <label class="btn btn-outline-secondary" for="master-none">なし</label>
-                                                    <input type="radio" class="btn-check" name="master-perm" id="master-view" autocomplete="off">
-                                                    <label class="btn btn-outline-primary" for="master-view">閲覧</label>
-                                                    <input type="radio" class="btn-check" name="master-perm" id="master-edit" autocomplete="off" checked>
-                                                    <label class="btn btn-outline-success" for="master-edit">編集</label>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                                <!-- その他の権限グループも同様に -->
                             </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
@@ -531,30 +594,9 @@
             </div>
         </div>
     </div>
-    
-    <!-- ロール削除確認モーダル -->
-    <div class="modal fade" id="roleDeleteModal" tabindex="-1" aria-labelledby="roleDeleteModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="roleDeleteModalLabel">ロール削除確認</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <p><strong>営業担当者</strong>ロールを削除します。</p>
-                    <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle"></i> このロールは現在8名のユーザーに割り当てられています。削除するとこれらのユーザーはこのロールに関連する権限を失います。
-                    </div>
-                    <p>本当に削除してもよろしいですか？</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
-                    <button type="button" class="btn btn-danger">削除する</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
 </body>
 </html>
