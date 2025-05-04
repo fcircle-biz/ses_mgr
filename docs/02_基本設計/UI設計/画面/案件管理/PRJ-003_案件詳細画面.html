@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 案件詳細画面</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        .wireframe {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../案件管理画面設計.html">案件管理画面設計</a></li>
+            <li class="active">案件詳細画面</li>
+        </ul>
+    </nav>
+
+    <h1>PRJ-003: 案件詳細画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>PRJ-003</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>案件詳細</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>案件の詳細情報表示・編集を行う画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>営業担当者、営業管理者、経営層</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>PRJ-001: 案件一覧、PRJ-002: 案件登録</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>PRJ-001: 案件一覧、MTH-001: マッチング検索</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    <div class="wireframe">
+        <div class="wireframe-placeholder">
+            [案件詳細画面のワイヤーフレーム]
+        </div>
+    </div>
+
+    <h2>画面モード</h2>
+    <p>この画面は以下の2つのモードを持ちます：</p>
+    <ol>
+        <li><strong>表示モード</strong>: 案件の詳細情報を参照するためのモード（デフォルト）</li>
+        <li><strong>編集モード</strong>: 案件の詳細情報を編集するためのモード（権限のあるユーザーのみ）</li>
+    </ol>
+
+    <h2>タブ構成</h2>
+    <p>案件詳細画面は以下のタブで構成されます：</p>
+    <ol>
+        <li><strong>基本情報</strong>: 案件の基本的な情報（名称、期間、ステータスなど）</li>
+        <li><strong>要件</strong>: 案件の詳細な要件（業務内容、スキル要件など）</li>
+        <li><strong>マッチング状況</strong>: 案件と技術者のマッチング状況</li>
+        <li><strong>履歴</strong>: 案件に関する活動履歴</li>
+    </ol>
+
+    <h2>主要な機能</h2>
+    <ul>
+        <li>案件の基本情報の表示・編集</li>
+        <li>案件の詳細要件の表示・編集</li>
+        <li>案件のステータス変更</li>
+        <li>案件に関連するマッチング情報の表示</li>
+        <li>案件の活動履歴の表示</li>
+        <li>マッチング検索の実行</li>
+    </ul>
+
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>画面初期表示時は、表示モードで基本情報タブが選択された状態で表示</li>
+        <li>各タブをクリックすると、対応する情報が表示されるようタブ切り替えが行われる</li>
+        <li>「編集」ボタンをクリックすると編集モードに切り替わる（権限のある場合のみ表示）</li>
+        <li>編集モードでの「保存」ボタンクリック時
+            <ul>
+                <li>入力内容のバリデーションを行い、問題がなければ案件情報を更新する</li>
+                <li>更新成功時は表示モードに戻り、更新された情報が表示される</li>
+                <li>更新失敗時はエラーメッセージを表示し、入力内容を保持したままの状態で再表示する</li>
+            </ul>
+        </li>
+        <li>「キャンセル」ボタンをクリックすると、編集内容を破棄して表示モードに戻る</li>
+        <li>「マッチング検索」ボタンをクリックすると、この案件の条件でマッチング検索画面（MTH-001）に遷移する</li>
+        <li>「一覧に戻る」ボタンをクリックすると、案件一覧画面（PRJ-001）に戻る</li>
+    </ol>
+
+    <div class="note">
+        <p><strong>注意：</strong> 編集モードへの切り替えボタンは、編集権限を持つユーザー（案件の担当営業または営業管理者）にのみ表示されます。</p>
+    </div>
+
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
+    </div>
+</body>
+</html>

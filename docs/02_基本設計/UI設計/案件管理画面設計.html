@@ -105,215 +105,109 @@
             font-size: 14px;
             overflow-x: auto;
         }
+        .screen-list {
+            list-style-type: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+        .screen-list li {
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .screen-list a {
+            display: block;
+            padding: 15px;
+            text-decoration: none;
+            color: #333;
+            font-weight: bold;
+            background-color: #f8f9fa;
+            transition: background-color 0.2s;
+        }
+        .screen-list a:hover {
+            background-color: #e9ecef;
+        }
+        .screen-list .screen-id {
+            display: inline-block;
+            background-color: #3498db;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin-right: 10px;
+            font-size: 0.9em;
+        }
+        .screen-list .screen-desc {
+            display: block;
+            color: #666;
+            font-weight: normal;
+            margin-top: 8px;
+            padding-left: 5px;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
     <h1>SES業務システム 案件管理画面設計</h1>
 
-    <h2>PRJ-001: 案件一覧画面</h2>
+    <h2>画面一覧</h2>
+    <p>案件管理機能では、以下の画面を提供します。各画面の詳細設計は、リンク先のドキュメントを参照してください。</p>
     
-    <h3>画面概要</h3>
-    <table>
-        <tr>
-            <th>項目</th>
-            <th>内容</th>
-        </tr>
-        <tr>
-            <td>画面ID</td>
-            <td>PRJ-001</td>
-        </tr>
-        <tr>
-            <td>画面名</td>
-            <td>案件一覧</td>
-        </tr>
-        <tr>
-            <td>概要</td>
-            <td>全案件の一覧表示・検索・フィルタリングを行う画面</td>
-        </tr>
-        <tr>
-            <td>対象ユーザー</td>
-            <td>営業担当者、営業管理者、経営層</td>
-        </tr>
-        <tr>
-            <td>前画面</td>
-            <td>CMN-002: ダッシュボード</td>
-        </tr>
-        <tr>
-            <td>次画面</td>
-            <td>PRJ-003: 案件詳細、PRJ-002: 案件登録</td>
-        </tr>
-    </table>
+    <ul class="screen-list">
+        <li>
+            <a href="画面/案件管理/PRJ-001_案件一覧画面.html">
+                <span class="screen-id">PRJ-001</span> 案件一覧画面
+                <span class="screen-desc">全案件の一覧表示・検索・フィルタリングを行う画面</span>
+            </a>
+        </li>
+        <li>
+            <a href="画面/案件管理/PRJ-002_案件登録画面.html">
+                <span class="screen-id">PRJ-002</span> 案件登録画面
+                <span class="screen-desc">新規案件情報を登録する画面</span>
+            </a>
+        </li>
+        <li>
+            <a href="画面/案件管理/PRJ-003_案件詳細画面.html">
+                <span class="screen-id">PRJ-003</span> 案件詳細画面
+                <span class="screen-desc">案件の詳細情報表示・編集を行う画面</span>
+            </a>
+        </li>
+    </ul>
 
-    <h3>画面レイアウト</h3>
+    <h2>画面遷移図</h2>
     <div class="wireframe">
         <div class="wireframe-placeholder">
-            [案件一覧画面のワイヤーフレーム]
+            [案件管理機能の画面遷移図]
         </div>
     </div>
 
-    <h3>画面構成要素</h3>
-    <h4>1. 検索・フィルター部分</h4>
+    <h2>機能概要</h2>
     <table>
         <tr>
-            <th>項目ID</th>
-            <th>項目名</th>
-            <th>種類</th>
+            <th>機能</th>
             <th>説明</th>
         </tr>
         <tr>
-            <td>prj_list_001</td>
-            <td>検索ボックス</td>
-            <td>テキスト入力</td>
-            <td>案件名、案件ID、顧客名などでのフリーワード検索</td>
+            <td>案件一覧</td>
+            <td>全案件の一覧表示・検索・フィルタリング機能</td>
         </tr>
         <tr>
-            <td>prj_list_002</td>
-            <td>案件ステータス</td>
-            <td>セレクトボックス（複数選択可）</td>
-            <td>案件ステータスによるフィルタリング（検討中、提案中、進行中、完了、中止など）</td>
+            <td>案件登録</td>
+            <td>新規案件情報の登録機能</td>
         </tr>
         <tr>
-            <td>prj_list_003</td>
-            <td>顧客</td>
-            <td>セレクトボックス</td>
-            <td>顧客企業によるフィルタリング</td>
+            <td>案件詳細</td>
+            <td>案件の詳細情報表示・編集機能</td>
         </tr>
         <tr>
-            <td>prj_list_004</td>
-            <td>担当者</td>
-            <td>セレクトボックス</td>
-            <td>営業担当者によるフィルタリング</td>
+            <td>案件ステータス管理</td>
+            <td>案件のライフサイクルに沿ったステータス管理機能</td>
         </tr>
         <tr>
-            <td>prj_list_005</td>
-            <td>案件期間</td>
-            <td>日付範囲選択</td>
-            <td>案件の開始日・終了日によるフィルタリング</td>
-        </tr>
-        <tr>
-            <td>prj_list_006</td>
-            <td>スキル要件</td>
-            <td>マルチセレクト</td>
-            <td>必要スキルによるフィルタリング</td>
-        </tr>
-        <tr>
-            <td>prj_list_007</td>
-            <td>検索ボタン</td>
-            <td>ボタン</td>
-            <td>検索条件を適用して結果を表示</td>
-        </tr>
-        <tr>
-            <td>prj_list_008</td>
-            <td>クリアボタン</td>
-            <td>ボタン</td>
-            <td>検索条件をクリア</td>
+            <td>案件マッチング</td>
+            <td>案件と技術者のマッチング機能との連携</td>
         </tr>
     </table>
-
-    <h4>2. 一覧表示部分</h4>
-    <table>
-        <tr>
-            <th>項目ID</th>
-            <th>項目名</th>
-            <th>種類</th>
-            <th>説明</th>
-        </tr>
-        <tr>
-            <td>prj_list_009</td>
-            <td>案件一覧テーブル</td>
-            <td>テーブル</td>
-            <td>検索条件に合致する案件の一覧</td>
-        </tr>
-        <tr>
-            <td>prj_list_010</td>
-            <td>案件ID</td>
-            <td>テキスト（リンク）</td>
-            <td>システム内部で管理される案件の一意識別子。クリックで詳細画面へ</td>
-        </tr>
-        <tr>
-            <td>prj_list_011</td>
-            <td>案件名</td>
-            <td>テキスト（リンク）</td>
-            <td>案件の名称。クリックで詳細画面へ</td>
-        </tr>
-        <tr>
-            <td>prj_list_012</td>
-            <td>顧客名</td>
-            <td>テキスト</td>
-            <td>案件の顧客企業名</td>
-        </tr>
-        <tr>
-            <td>prj_list_013</td>
-            <td>ステータス</td>
-            <td>ラベル（色分け表示）</td>
-            <td>案件の現在のステータス</td>
-        </tr>
-        <tr>
-            <td>prj_list_014</td>
-            <td>開始日</td>
-            <td>日付</td>
-            <td>案件の開始予定日</td>
-        </tr>
-        <tr>
-            <td>prj_list_015</td>
-            <td>終了日</td>
-            <td>日付</td>
-            <td>案件の終了予定日</td>
-        </tr>
-        <tr>
-            <td>prj_list_016</td>
-            <td>担当者</td>
-            <td>テキスト</td>
-            <td>案件の営業担当者名</td>
-        </tr>
-        <tr>
-            <td>prj_list_017</td>
-            <td>アクションボタン</td>
-            <td>ボタングループ</td>
-            <td>詳細表示、編集、マッチング検索などの操作ボタン</td>
-        </tr>
-        <tr>
-            <td>prj_list_018</td>
-            <td>ページネーション</td>
-            <td>ページ制御</td>
-            <td>複数ページにわたる結果のナビゲーション</td>
-        </tr>
-    </table>
-
-    <h4>3. 操作ボタン</h4>
-    <table>
-        <tr>
-            <th>項目ID</th>
-            <th>項目名</th>
-            <th>種類</th>
-            <th>説明</th>
-        </tr>
-        <tr>
-            <td>prj_list_019</td>
-            <td>新規案件登録ボタン</td>
-            <td>プライマリーボタン</td>
-            <td>新規案件登録画面への遷移</td>
-        </tr>
-        <tr>
-            <td>prj_list_020</td>
-            <td>CSVエクスポートボタン</td>
-            <td>セカンダリーボタン</td>
-            <td>表示中の案件一覧をCSV形式でエクスポート</td>
-        </tr>
-    </table>
-
-    <h3>画面動作仕様</h3>
-    <ol>
-        <li>画面初期表示時は、デフォルトで「進行中」ステータスの案件を表示する</li>
-        <li>検索条件を指定して検索ボタンをクリックすると、条件に合致する案件が一覧表示される</li>
-        <li>一覧の案件ID・案件名をクリックすると、該当の案件詳細画面（PRJ-003）に遷移する</li>
-        <li>アクションボタンの「詳細」をクリックすると、該当の案件詳細画面（PRJ-003）に遷移する</li>
-        <li>アクションボタンの「編集」をクリックすると、該当の案件の編集モードで詳細画面に遷移する</li>
-        <li>アクションボタンの「マッチング」をクリックすると、該当案件とのマッチング検索画面（MTH-001）に遷移する</li>
-        <li>「新規案件登録」ボタンをクリックすると、案件登録画面（PRJ-002）に遷移する</li>
-        <li>「CSVエクスポート」ボタンをクリックすると、現在の検索結果がCSVファイルとしてダウンロードされる</li>
-        <li>ページネーションを使用して、複数ページにわたる検索結果をナビゲートできる</li>
-    </ol>
 
     <div class="note">
         <p><strong>注意：</strong> ユーザーの権限レベルによって、表示される操作ボタンや実行可能な操作が異なります。</p>
@@ -322,869 +216,6 @@
             <li>営業管理者：全案件の閲覧・編集が可能</li>
             <li>経営層：全案件の閲覧が可能だが、編集は不可</li>
         </ul>
-    </div>
-
-    <h3>Thymeleafテンプレート実装例</h3>
-    <div class="mockup">
-&lt;!DOCTYPE html&gt;
-&lt;html xmlns:th="http://www.thymeleaf.org"&gt;
-&lt;head&gt;
-    &lt;meta charset="UTF-8"&gt;
-    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
-    &lt;title&gt;案件一覧 - SES業務システム&lt;/title&gt;
-    &lt;link rel="stylesheet" th:href="@{/css/main.css}"&gt;
-&lt;/head&gt;
-&lt;body&gt;
-    &lt;!-- ヘッダー部分（共通コンポーネント） --&gt;
-    &lt;header th:replace="fragments/header :: header"&gt;&lt;/header&gt;
-    
-    &lt;div class="main-content"&gt;
-        &lt;div class="page-header"&gt;
-            &lt;h1&gt;案件一覧&lt;/h1&gt;
-            &lt;div class="actions"&gt;
-                &lt;a th:if="${@authService.hasAnyRole('ROLE_SALES', 'ROLE_SALES_MANAGER')}" 
-                   th:href="@{/projects/create}" class="btn btn-primary"&gt;
-                   &lt;i class="icon-plus"&gt;&lt;/i&gt; 新規案件登録
-                &lt;/a&gt;
-                &lt;button id="exportCsvBtn" class="btn btn-secondary"&gt;
-                    &lt;i class="icon-download"&gt;&lt;/i&gt; CSVエクスポート
-                &lt;/button&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-        
-        &lt;!-- 検索・フィルター部分 --&gt;
-        &lt;div class="search-panel"&gt;
-            &lt;form th:action="@{/projects}" method="get" id="searchForm"&gt;
-                &lt;div class="search-row"&gt;
-                    &lt;div class="form-group"&gt;
-                        &lt;label for="keyword"&gt;キーワード&lt;/label&gt;
-                        &lt;input type="text" id="keyword" name="keyword" th:value="${param.keyword}" 
-                               placeholder="案件名、案件ID、顧客名など"&gt;
-                    &lt;/div&gt;
-                    
-                    &lt;div class="form-group"&gt;
-                        &lt;label for="status"&gt;ステータス&lt;/label&gt;
-                        &lt;select id="status" name="status" multiple&gt;
-                            &lt;option value="PLANNING" th:selected="${#lists.contains(param.status, 'PLANNING')}"&gt;検討中&lt;/option&gt;
-                            &lt;option value="PROPOSAL" th:selected="${#lists.contains(param.status, 'PROPOSAL')}"&gt;提案中&lt;/option&gt;
-                            &lt;option value="IN_PROGRESS" th:selected="${#lists.contains(param.status, 'IN_PROGRESS')}"&gt;進行中&lt;/option&gt;
-                            &lt;option value="COMPLETED" th:selected="${#lists.contains(param.status, 'COMPLETED')}"&gt;完了&lt;/option&gt;
-                            &lt;option value="CANCELLED" th:selected="${#lists.contains(param.status, 'CANCELLED')}"&gt;中止&lt;/option&gt;
-                        &lt;/select&gt;
-                    &lt;/div&gt;
-                &lt;/div&gt;
-                
-                &lt;div class="search-row"&gt;
-                    &lt;div class="form-group"&gt;
-                        &lt;label for="customer"&gt;顧客&lt;/label&gt;
-                        &lt;select id="customer" name="customerId"&gt;
-                            &lt;option value=""&gt;すべて&lt;/option&gt;
-                            &lt;option th:each="customer : ${customers}" 
-                                    th:value="${customer.id}" 
-                                    th:text="${customer.name}"
-                                    th:selected="${param.customerId == customer.id}"&gt;顧客名&lt;/option&gt;
-                        &lt;/select&gt;
-                    &lt;/div&gt;
-                    
-                    &lt;div class="form-group"&gt;
-                        &lt;label for="salesPerson"&gt;担当者&lt;/label&gt;
-                        &lt;select id="salesPerson" name="salesPersonId"&gt;
-                            &lt;option value=""&gt;すべて&lt;/option&gt;
-                            &lt;option th:each="person : ${salesPersons}" 
-                                    th:value="${person.id}" 
-                                    th:text="${person.name}"
-                                    th:selected="${param.salesPersonId == person.id}"&gt;担当者名&lt;/option&gt;
-                        &lt;/select&gt;
-                    &lt;/div&gt;
-                &lt;/div&gt;
-                
-                &lt;div class="search-row"&gt;
-                    &lt;div class="form-group date-range"&gt;
-                        &lt;label&gt;案件期間&lt;/label&gt;
-                        &lt;div class="date-inputs"&gt;
-                            &lt;input type="date" id="startDate" name="startDate" th:value="${param.startDate}"&gt;
-                            &lt;span class="date-separator"&gt;～&lt;/span&gt;
-                            &lt;input type="date" id="endDate" name="endDate" th:value="${param.endDate}"&gt;
-                        &lt;/div&gt;
-                    &lt;/div&gt;
-                    
-                    &lt;div class="form-group"&gt;
-                        &lt;label for="skills"&gt;スキル要件&lt;/label&gt;
-                        &lt;select id="skills" name="skills" multiple&gt;
-                            &lt;option th:each="skill : ${skillCategories}" 
-                                    th:value="${skill.id}" 
-                                    th:text="${skill.name}"
-                                    th:selected="${#lists.contains(param.skills, skill.id)}"&gt;スキル名&lt;/option&gt;
-                        &lt;/select&gt;
-                    &lt;/div&gt;
-                &lt;/div&gt;
-                
-                &lt;div class="search-buttons"&gt;
-                    &lt;button type="submit" class="btn btn-search"&gt;検索&lt;/button&gt;
-                    &lt;button type="button" id="clearBtn" class="btn btn-outline"&gt;クリア&lt;/button&gt;
-                    &lt;a href="#" id="advancedSearchToggle" class="advanced-search-link"&gt;詳細検索 &lt;i class="icon-chevron-down"&gt;&lt;/i&gt;&lt;/a&gt;
-                &lt;/div&gt;
-                
-                &lt;div id="advancedSearchFields" class="advanced-search-fields" style="display: none;"&gt;
-                    &lt;!-- 詳細検索項目（必要に応じて拡張） --&gt;
-                &lt;/div&gt;
-            &lt;/form&gt;
-        &lt;/div&gt;
-        
-        &lt;!-- 案件一覧テーブル --&gt;
-        &lt;div class="table-responsive"&gt;
-            &lt;table class="data-table projects-table"&gt;
-                &lt;thead&gt;
-                    &lt;tr&gt;
-                        &lt;th&gt;案件ID&lt;/th&gt;
-                        &lt;th&gt;案件名&lt;/th&gt;
-                        &lt;th&gt;顧客名&lt;/th&gt;
-                        &lt;th&gt;ステータス&lt;/th&gt;
-                        &lt;th&gt;開始日&lt;/th&gt;
-                        &lt;th&gt;終了日&lt;/th&gt;
-                        &lt;th&gt;担当者&lt;/th&gt;
-                        &lt;th&gt;アクション&lt;/th&gt;
-                    &lt;/tr&gt;
-                &lt;/thead&gt;
-                &lt;tbody&gt;
-                    &lt;tr th:if="${projects.empty}"&gt;
-                        &lt;td colspan="8" class="no-data"&gt;該当する案件がありません&lt;/td&gt;
-                    &lt;/tr&gt;
-                    &lt;tr th:each="project : ${projects}" th:id="'project-' + ${project.id}"&gt;
-                        &lt;td&gt;&lt;a th:href="@{/projects/{id}(id=${project.id})}" th:text="${project.projectCode}"&gt;P00001&lt;/a&gt;&lt;/td&gt;
-                        &lt;td&gt;&lt;a th:href="@{/projects/{id}(id=${project.id})}" th:text="${project.name}"&gt;案件名&lt;/a&gt;&lt;/td&gt;
-                        &lt;td th:text="${project.customer.name}"&gt;顧客名&lt;/td&gt;
-                        &lt;td&gt;
-                            &lt;span class="status-badge" th:classappend="${'status-' + project.status.toLowerCase()}"
-                                  th:text="${@projectStatusUtil.getStatusLabel(project.status)}"&gt;ステータス&lt;/span&gt;
-                        &lt;/td&gt;
-                        &lt;td th:text="${#temporals.format(project.startDate, 'yyyy/MM/dd')}"&gt;2025/06/01&lt;/td&gt;
-                        &lt;td th:text="${#temporals.format(project.endDate, 'yyyy/MM/dd')}"&gt;2025/12/31&lt;/td&gt;
-                        &lt;td th:text="${project.salesPerson.name}"&gt;担当者名&lt;/td&gt;
-                        &lt;td class="actions"&gt;
-                            &lt;div class="btn-group"&gt;
-                                &lt;a th:href="@{/projects/{id}(id=${project.id})}" class="btn btn-sm btn-icon" title="詳細"&gt;
-                                    &lt;i class="icon-eye"&gt;&lt;/i&gt;
-                                &lt;/a&gt;
-                                &lt;a th:if="${@authService.canEditProject(project)}"
-                                   th:href="@{/projects/{id}/edit(id=${project.id})}" class="btn btn-sm btn-icon" title="編集"&gt;
-                                    &lt;i class="icon-edit"&gt;&lt;/i&gt;
-                                &lt;/a&gt;
-                                &lt;a th:href="@{/matching/search(projectId=${project.id})}" class="btn btn-sm btn-icon" title="マッチング"&gt;
-                                    &lt;i class="icon-search-person"&gt;&lt;/i&gt;
-                                &lt;/a&gt;
-                            &lt;/div&gt;
-                        &lt;/td&gt;
-                    &lt;/tr&gt;
-                &lt;/tbody&gt;
-            &lt;/table&gt;
-        &lt;/div&gt;
-        
-        &lt;!-- ページネーション --&gt;
-        &lt;div th:if="${!projects.empty}" class="pagination-container"&gt;
-            &lt;nav aria-label="ページナビゲーション"&gt;
-                &lt;ul class="pagination" th:with="
-                     totalPages=${projects.totalPages},
-                     currentPage=${projects.number + 1}"&gt;
-                    &lt;li class="page-item" th:classappend="${currentPage == 1} ? 'disabled' : ''"&gt;
-                        &lt;a class="page-link" th:href="@{/projects(page=1, size=${projects.size}, keyword=${param.keyword}, status=${param.status}, customerId=${param.customerId}, salesPersonId=${param.salesPersonId}, startDate=${param.startDate}, endDate=${param.endDate}, skills=${param.skills})}"&gt;&lt;&lt;&lt;/a&gt;
-                    &lt;/li&gt;
-                    &lt;li class="page-item" th:classappend="${currentPage == 1} ? 'disabled' : ''"&gt;
-                        &lt;a class="page-link" th:href="@{/projects(page=${currentPage - 1}, size=${projects.size}, keyword=${param.keyword}, status=${param.status}, customerId=${param.customerId}, salesPersonId=${param.salesPersonId}, startDate=${param.startDate}, endDate=${param.endDate}, skills=${param.skills})}"&gt;&lt;&lt;/a&gt;
-                    &lt;/li&gt;
-                    &lt;li class="page-item" th:each="i : ${#numbers.sequence(1, totalPages)}"
-                        th:if="${i &gt;= currentPage - 2 and i &lt;= currentPage + 2}"
-                        th:classappend="${i == currentPage} ? 'active' : ''"&gt;
-                        &lt;a class="page-link" th:href="@{/projects(page=${i}, size=${projects.size}, keyword=${param.keyword}, status=${param.status}, customerId=${param.customerId}, salesPersonId=${param.salesPersonId}, startDate=${param.startDate}, endDate=${param.endDate}, skills=${param.skills})}"
-                           th:text="${i}"&gt;1&lt;/a&gt;
-                    &lt;/li&gt;
-                    &lt;li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled' : ''"&gt;
-                        &lt;a class="page-link" th:href="@{/projects(page=${currentPage + 1}, size=${projects.size}, keyword=${param.keyword}, status=${param.status}, customerId=${param.customerId}, salesPersonId=${param.salesPersonId}, startDate=${param.startDate}, endDate=${param.endDate}, skills=${param.skills})}"&gt;&gt;&lt;/a&gt;
-                    &lt;/li&gt;
-                    &lt;li class="page-item" th:classappend="${currentPage == totalPages} ? 'disabled' : ''"&gt;
-                        &lt;a class="page-link" th:href="@{/projects(page=${totalPages}, size=${projects.size}, keyword=${param.keyword}, status=${param.status}, customerId=${param.customerId}, salesPersonId=${param.salesPersonId}, startDate=${param.startDate}, endDate=${param.endDate}, skills=${param.skills})}"&gt;&gt;&gt;&lt;/a&gt;
-                    &lt;/li&gt;
-                &lt;/ul&gt;
-                
-                &lt;div class="pagination-info"&gt;
-                    &lt;span th:text="${projects.numberOfElements + ' 件表示中（全 ' + projects.totalElements + ' 件）'}"&gt;
-                        10 件表示中（全 100 件）
-                    &lt;/span&gt;
-                    &lt;select id="pageSizeSelect" name="size" class="form-control form-control-sm"&gt;
-                        &lt;option value="10" th:selected="${projects.size == 10}"&gt;10件&lt;/option&gt;
-                        &lt;option value="25" th:selected="${projects.size == 25}"&gt;25件&lt;/option&gt;
-                        &lt;option value="50" th:selected="${projects.size == 50}"&gt;50件&lt;/option&gt;
-                        &lt;option value="100" th:selected="${projects.size == 100}"&gt;100件&lt;/option&gt;
-                    &lt;/select&gt;
-                &lt;/div&gt;
-            &lt;/nav&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-    
-    &lt;!-- フッター部分（共通コンポーネント） --&gt;
-    &lt;footer th:replace="fragments/footer :: footer"&gt;&lt;/footer&gt;
-    
-    &lt;script th:src="@{/js/projects-list.js}"&gt;&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-    </div>
-    
-    <h2>PRJ-002: 案件登録画面</h2>
-    
-    <h3>画面概要</h3>
-    <table>
-        <tr>
-            <th>項目</th>
-            <th>内容</th>
-        </tr>
-        <tr>
-            <td>画面ID</td>
-            <td>PRJ-002</td>
-        </tr>
-        <tr>
-            <td>画面名</td>
-            <td>案件登録</td>
-        </tr>
-        <tr>
-            <td>概要</td>
-            <td>新規案件情報を登録する画面</td>
-        </tr>
-        <tr>
-            <td>対象ユーザー</td>
-            <td>営業担当者、営業管理者</td>
-        </tr>
-        <tr>
-            <td>前画面</td>
-            <td>PRJ-001: 案件一覧</td>
-        </tr>
-        <tr>
-            <td>次画面</td>
-            <td>PRJ-003: 案件詳細（登録成功時）、PRJ-001: 案件一覧（キャンセル時）</td>
-        </tr>
-    </table>
-
-    <h3>画面レイアウト</h3>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [案件登録画面のワイヤーフレーム]
-        </div>
-    </div>
-
-    <h3>画面項目定義</h3>
-    <table>
-        <tr>
-            <th>項目ID</th>
-            <th>項目名</th>
-            <th>種類</th>
-            <th>入力制限</th>
-            <th>必須</th>
-            <th>説明</th>
-        </tr>
-        <tr>
-            <td>prj_reg_001</td>
-            <td>案件名</td>
-            <td>テキスト入力</td>
-            <td>200文字以内</td>
-            <td>◯</td>
-            <td>案件の名称</td>
-        </tr>
-        <tr>
-            <td>prj_reg_002</td>
-            <td>顧客</td>
-            <td>セレクトボックス</td>
-            <td>-</td>
-            <td>◯</td>
-            <td>案件の顧客企業</td>
-        </tr>
-        <tr>
-            <td>prj_reg_003</td>
-            <td>営業担当者</td>
-            <td>セレクトボックス</td>
-            <td>-</td>
-            <td>◯</td>
-            <td>案件の営業担当者</td>
-        </tr>
-        <tr>
-            <td>prj_reg_004</td>
-            <td>案件ステータス</td>
-            <td>セレクトボックス</td>
-            <td>-</td>
-            <td>◯</td>
-            <td>案件の現在のステータス</td>
-        </tr>
-        <tr>
-            <td>prj_reg_005</td>
-            <td>開始日</td>
-            <td>日付選択</td>
-            <td>有効な日付</td>
-            <td>◯</td>
-            <td>案件の開始予定日</td>
-        </tr>
-        <tr>
-            <td>prj_reg_006</td>
-            <td>終了日</td>
-            <td>日付選択</td>
-            <td>開始日以降の日付</td>
-            <td>◯</td>
-            <td>案件の終了予定日</td>
-        </tr>
-        <tr>
-            <td>prj_reg_007</td>
-            <td>案件概要</td>
-            <td>テキストエリア</td>
-            <td>2000文字以内</td>
-            <td>◯</td>
-            <td>案件の概要説明</td>
-        </tr>
-        <tr>
-            <td>prj_reg_008</td>
-            <td>業務内容</td>
-            <td>テキストエリア</td>
-            <td>2000文字以内</td>
-            <td>◯</td>
-            <td>具体的な業務内容</td>
-        </tr>
-        <tr>
-            <td>prj_reg_009</td>
-            <td>必須スキル</td>
-            <td>マルチセレクト</td>
-            <td>-</td>
-            <td>◯</td>
-            <td>案件に必要なスキル</td>
-        </tr>
-        <tr>
-            <td>prj_reg_010</td>
-            <td>歓迎スキル</td>
-            <td>マルチセレクト</td>
-            <td>-</td>
-            <td>×</td>
-            <td>あれば望ましいスキル</td>
-        </tr>
-        <tr>
-            <td>prj_reg_011</td>
-            <td>必要経験年数</td>
-            <td>数値入力</td>
-            <td>整数（0〜20）</td>
-            <td>◯</td>
-            <td>必要な経験年数</td>
-        </tr>
-        <tr>
-            <td>prj_reg_012</td>
-            <td>単価（下限）</td>
-            <td>数値入力</td>
-            <td>整数（0〜999999）</td>
-            <td>◯</td>
-            <td>想定単価の下限</td>
-        </tr>
-        <tr>
-            <td>prj_reg_013</td>
-            <td>単価（上限）</td>
-            <td>数値入力</td>
-            <td>整数（下限以上、999999以下）</td>
-            <td>◯</td>
-            <td>想定単価の上限</td>
-        </tr>
-        <tr>
-            <td>prj_reg_014</td>
-            <td>募集人数</td>
-            <td>数値入力</td>
-            <td>整数（1〜20）</td>
-            <td>◯</td>
-            <td>募集する技術者の人数</td>
-        </tr>
-        <tr>
-            <td>prj_reg_015</td>
-            <td>勤務地</td>
-            <td>テキスト入力</td>
-            <td>200文字以内</td>
-            <td>◯</td>
-            <td>案件の勤務地</td>
-        </tr>
-        <tr>
-            <td>prj_reg_016</td>
-            <td>リモート勤務</td>
-            <td>チェックボックスグループ</td>
-            <td>-</td>
-            <td>◯</td>
-            <td>リモート勤務の可否や条件</td>
-        </tr>
-        <tr>
-            <td>prj_reg_017</td>
-            <td>備考</td>
-            <td>テキストエリア</td>
-            <td>2000文字以内</td>
-            <td>×</td>
-            <td>その他の補足情報</td>
-        </tr>
-        <tr>
-            <td>prj_reg_018</td>
-            <td>登録ボタン</td>
-            <td>ボタン</td>
-            <td>-</td>
-            <td>-</td>
-            <td>案件情報の登録を実行</td>
-        </tr>
-        <tr>
-            <td>prj_reg_019</td>
-            <td>キャンセルボタン</td>
-            <td>ボタン</td>
-            <td>-</td>
-            <td>-</td>
-            <td>入力をキャンセルして前画面に戻る</td>
-        </tr>
-    </table>
-
-    <h3>画面動作仕様</h3>
-    <ol>
-        <li>必須項目が入力されているかをバリデーションチェックする
-            <ul>
-                <li>未入力の必須項目がある場合はエラーメッセージを表示</li>
-                <li>入力形式や値の範囲が不正な場合はエラーメッセージを表示</li>
-            </ul>
-        </li>
-        <li>顧客セレクトボックスで「新規登録」を選択した場合、顧客登録用のモーダルダイアログを表示する</li>
-        <li>スキル選択では、カテゴリーごとにスキルを選択できるツリー構造のセレクターを表示する</li>
-        <li>単価の下限が上限を超える値に設定された場合、エラーメッセージを表示する</li>
-        <li>「登録」ボタンをクリックした場合
-            <ul>
-                <li>入力内容のバリデーションを行い、問題がなければ案件情報を登録する</li>
-                <li>登録成功時は案件詳細画面（PRJ-003）に遷移する</li>
-                <li>登録失敗時はエラーメッセージを表示し、入力内容を保持したままの状態で再表示する</li>
-            </ul>
-        </li>
-        <li>「キャンセル」ボタンをクリックした場合
-            <ul>
-                <li>入力内容を破棄して案件一覧画面（PRJ-001）に戻る</li>
-                <li>入力内容がある場合は確認ダイアログを表示し、ユーザーの意思を確認する</li>
-            </ul>
-        </li>
-    </ol>
-
-    <h3>Thymeleafテンプレート実装例（部分）</h3>
-    <div class="mockup">
-&lt;!-- 案件登録フォームの主要部分 --&gt;
-&lt;form th:action="@{/projects/create}" method="post" th:object="${projectForm}" class="form-horizontal"&gt;
-    &lt;div class="form-section"&gt;
-        &lt;h3&gt;基本情報&lt;/h3&gt;
-        
-        &lt;div class="form-group" th:classappend="${#fields.hasErrors('name')} ? 'has-error' : ''"&gt;
-            &lt;label for="name" class="control-label"&gt;案件名 &lt;span class="required"&gt;*&lt;/span&gt;&lt;/label&gt;
-            &lt;input type="text" class="form-control" id="name" th:field="*{name}" maxlength="200" required&gt;
-            &lt;div class="error-message" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"&gt;
-                案件名を入力してください
-            &lt;/div&gt;
-        &lt;/div&gt;
-        
-        &lt;div class="form-group" th:classappend="${#fields.hasErrors('customerId')} ? 'has-error' : ''"&gt;
-            &lt;label for="customerId" class="control-label"&gt;顧客 &lt;span class="required"&gt;*&lt;/span&gt;&lt;/label&gt;
-            &lt;div class="input-group"&gt;
-                &lt;select class="form-control" id="customerId" th:field="*{customerId}" required&gt;
-                    &lt;option value=""&gt;選択してください&lt;/option&gt;
-                    &lt;option th:each="customer : ${customers}" 
-                            th:value="${customer.id}" 
-                            th:text="${customer.name}"&gt;顧客名&lt;/option&gt;
-                    &lt;option value="new"&gt;新規登録...&lt;/option&gt;
-                &lt;/select&gt;
-                &lt;div class="input-group-append"&gt;
-                    &lt;button type="button" id="newCustomerBtn" class="btn btn-outline-secondary"&gt;
-                        &lt;i class="icon-plus"&gt;&lt;/i&gt;
-                    &lt;/button&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
-            &lt;div class="error-message" th:if="${#fields.hasErrors('customerId')}" th:errors="*{customerId}"&gt;
-                顧客を選択してください
-            &lt;/div&gt;
-        &lt;/div&gt;
-        
-        &lt;!-- 他の基本情報項目 --&gt;
-        &lt;!-- salesPersonId, status, startDate, endDate など --&gt;
-    &lt;/div&gt;
-    
-    &lt;div class="form-section"&gt;
-        &lt;h3&gt;案件内容&lt;/h3&gt;
-        
-        &lt;div class="form-group" th:classappend="${#fields.hasErrors('description')} ? 'has-error' : ''"&gt;
-            &lt;label for="description" class="control-label"&gt;案件概要 &lt;span class="required"&gt;*&lt;/span&gt;&lt;/label&gt;
-            &lt;textarea class="form-control" id="description" th:field="*{description}" 
-                      rows="4" maxlength="2000" required&gt;&lt;/textarea&gt;
-            &lt;div class="error-message" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"&gt;
-                案件概要を入力してください
-            &lt;/div&gt;
-        &lt;/div&gt;
-        
-        &lt;div class="form-group" th:classappend="${#fields.hasErrors('jobDescription')} ? 'has-error' : ''"&gt;
-            &lt;label for="jobDescription" class="control-label"&gt;業務内容 &lt;span class="required"&gt;*&lt;/span&gt;&lt;/label&gt;
-            &lt;textarea class="form-control" id="jobDescription" th:field="*{jobDescription}" 
-                      rows="4" maxlength="2000" required&gt;&lt;/textarea&gt;
-            &lt;div class="error-message" th:if="${#fields.hasErrors('jobDescription')}" th:errors="*{jobDescription}"&gt;
-                業務内容を入力してください
-            &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-    
-    &lt;div class="form-section"&gt;
-        &lt;h3&gt;スキル要件&lt;/h3&gt;
-        
-        &lt;div class="form-group" th:classappend="${#fields.hasErrors('requiredSkills')} ? 'has-error' : ''"&gt;
-            &lt;label class="control-label"&gt;必須スキル &lt;span class="required"&gt;*&lt;/span&gt;&lt;/label&gt;
-            &lt;div class="skill-selector"&gt;
-                &lt;div th:each="category : ${skillCategories}" class="skill-category"&gt;
-                    &lt;div class="category-header" th:attr="data-category=${category.id}"&gt;
-                        &lt;i class="icon-chevron-right"&gt;&lt;/i&gt;
-                        &lt;span th:text="${category.name}"&gt;カテゴリー名&lt;/span&gt;
-                    &lt;/div&gt;
-                    &lt;div class="category-skills" style="display: none;"&gt;
-                        &lt;div th:each="skill : ${category.skills}" class="form-check"&gt;
-                            &lt;input class="form-check-input" type="checkbox" 
-                                  th:field="*{requiredSkills}" th:value="${skill.id}" 
-                                  th:id="${'req-skill-' + skill.id}"&gt;
-                            &lt;label class="form-check-label" th:for="${'req-skill-' + skill.id}" 
-                                   th:text="${skill.name}"&gt;スキル名&lt;/label&gt;
-                        &lt;/div&gt;
-                    &lt;/div&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
-            &lt;div class="error-message" th:if="${#fields.hasErrors('requiredSkills')}" th:errors="*{requiredSkills}"&gt;
-                必須スキルを選択してください
-            &lt;/div&gt;
-        &lt;/div&gt;
-        
-        &lt;!-- 他のスキル要件項目 --&gt;
-        &lt;!-- preferredSkills, yearsOfExperience など --&gt;
-    &lt;/div&gt;
-    
-    &lt;div class="form-section"&gt;
-        &lt;h3&gt;条件&lt;/h3&gt;
-        
-        &lt;!-- 条件関連項目 --&gt;
-        &lt;!-- minRate, maxRate, positions, location, remoteWork など --&gt;
-    &lt;/div&gt;
-    
-    &lt;div class="form-buttons"&gt;
-        &lt;button type="submit" class="btn btn-primary"&gt;登録&lt;/button&gt;
-        &lt;a th:href="@{/projects}" class="btn btn-secondary" id="cancelBtn"&gt;キャンセル&lt;/a&gt;
-    &lt;/div&gt;
-&lt;/form&gt;
-
-&lt;!-- 新規顧客登録用モーダル --&gt;
-&lt;div class="modal fade" id="newCustomerModal" tabindex="-1" role="dialog" aria-labelledby="newCustomerModalLabel" aria-hidden="true"&gt;
-    &lt;div class="modal-dialog" role="document"&gt;
-        &lt;div class="modal-content"&gt;
-            &lt;div class="modal-header"&gt;
-                &lt;h5 class="modal-title" id="newCustomerModalLabel"&gt;新規顧客登録&lt;/h5&gt;
-                &lt;button type="button" class="close" data-dismiss="modal" aria-label="Close"&gt;
-                    &lt;span aria-hidden="true"&gt;&times;&lt;/span&gt;
-                &lt;/button&gt;
-            &lt;/div&gt;
-            &lt;div class="modal-body"&gt;
-                &lt;div class="form-group"&gt;
-                    &lt;label for="customerName"&gt;顧客名&lt;/label&gt;
-                    &lt;input type="text" class="form-control" id="customerName"&gt;
-                &lt;/div&gt;
-                &lt;!-- 他の顧客情報入力フィールド --&gt;
-            &lt;/div&gt;
-            &lt;div class="modal-footer"&gt;
-                &lt;button type="button" class="btn btn-secondary" data-dismiss="modal"&gt;キャンセル&lt;/button&gt;
-                &lt;button type="button" class="btn btn-primary" id="saveCustomerBtn"&gt;保存&lt;/button&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-    </div>
-
-    <h2>PRJ-003: 案件詳細画面</h2>
-    
-    <h3>画面概要</h3>
-    <table>
-        <tr>
-            <th>項目</th>
-            <th>内容</th>
-        </tr>
-        <tr>
-            <td>画面ID</td>
-            <td>PRJ-003</td>
-        </tr>
-        <tr>
-            <td>画面名</td>
-            <td>案件詳細</td>
-        </tr>
-        <tr>
-            <td>概要</td>
-            <td>案件の詳細情報表示・編集を行う画面</td>
-        </tr>
-        <tr>
-            <td>対象ユーザー</td>
-            <td>営業担当者、営業管理者、経営層</td>
-        </tr>
-        <tr>
-            <td>前画面</td>
-            <td>PRJ-001: 案件一覧、PRJ-002: 案件登録</td>
-        </tr>
-        <tr>
-            <td>次画面</td>
-            <td>PRJ-001: 案件一覧、MTH-001: マッチング検索</td>
-        </tr>
-    </table>
-
-    <h3>画面レイアウト</h3>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [案件詳細画面のワイヤーフレーム]
-        </div>
-    </div>
-
-    <h3>画面モード</h3>
-    <p>この画面は以下の2つのモードを持ちます：</p>
-    <ol>
-        <li><strong>表示モード</strong>: 案件の詳細情報を参照するためのモード（デフォルト）</li>
-        <li><strong>編集モード</strong>: 案件の詳細情報を編集するためのモード（権限のあるユーザーのみ）</li>
-    </ol>
-
-    <h3>タブ構成</h3>
-    <p>案件詳細画面は以下のタブで構成されます：</p>
-    <ol>
-        <li><strong>基本情報</strong>: 案件の基本的な情報（名称、期間、ステータスなど）</li>
-        <li><strong>要件</strong>: 案件の詳細な要件（業務内容、スキル要件など）</li>
-        <li><strong>マッチング状況</strong>: 案件と技術者のマッチング状況</li>
-        <li><strong>履歴</strong>: 案件に関する活動履歴</li>
-    </ol>
-
-    <h3>主要な機能</h3>
-    <ul>
-        <li>案件の基本情報の表示・編集</li>
-        <li>案件の詳細要件の表示・編集</li>
-        <li>案件のステータス変更</li>
-        <li>案件に関連するマッチング情報の表示</li>
-        <li>案件の活動履歴の表示</li>
-        <li>マッチング検索の実行</li>
-    </ul>
-
-    <h3>画面動作仕様</h3>
-    <ol>
-        <li>画面初期表示時は、表示モードで基本情報タブが選択された状態で表示</li>
-        <li>各タブをクリックすると、対応する情報が表示されるようタブ切り替えが行われる</li>
-        <li>「編集」ボタンをクリックすると編集モードに切り替わる（権限のある場合のみ表示）</li>
-        <li>編集モードでの「保存」ボタンクリック時
-            <ul>
-                <li>入力内容のバリデーションを行い、問題がなければ案件情報を更新する</li>
-                <li>更新成功時は表示モードに戻り、更新された情報が表示される</li>
-                <li>更新失敗時はエラーメッセージを表示し、入力内容を保持したままの状態で再表示する</li>
-            </ul>
-        </li>
-        <li>「キャンセル」ボタンをクリックすると、編集内容を破棄して表示モードに戻る</li>
-        <li>「マッチング検索」ボタンをクリックすると、この案件の条件でマッチング検索画面（MTH-001）に遷移する</li>
-        <li>「一覧に戻る」ボタンをクリックすると、案件一覧画面（PRJ-001）に戻る</li>
-    </ol>
-
-    <div class="note">
-        <p><strong>注意：</strong> 編集モードへの切り替えボタンは、編集権限を持つユーザー（案件の担当営業または営業管理者）にのみ表示されます。</p>
-    </div>
-
-    <h3>Thymeleafテンプレート実装例（部分）</h3>
-    <div class="mockup">
-&lt;!-- 基本情報タブの内容（表示モード） --&gt;
-&lt;div id="basicInfo" class="tab-pane active"&gt;
-    &lt;div class="detail-section"&gt;
-        &lt;h3&gt;案件基本情報&lt;/h3&gt;
-        
-        &lt;div class="detail-row"&gt;
-            &lt;div class="detail-label"&gt;案件ID&lt;/div&gt;
-            &lt;div class="detail-value" th:text="${project.projectCode}"&gt;P00001&lt;/div&gt;
-        &lt;/div&gt;
-        
-        &lt;div class="detail-row"&gt;
-            &lt;div class="detail-label"&gt;案件名&lt;/div&gt;
-            &lt;div class="detail-value" th:text="${project.name}"&gt;案件名&lt;/div&gt;
-        &lt;/div&gt;
-        
-        &lt;div class="detail-row"&gt;
-            &lt;div class="detail-label"&gt;顧客&lt;/div&gt;
-            &lt;div class="detail-value"&gt;
-                &lt;a th:href="@{/customers/{id}(id=${project.customer.id})}" 
-                   th:text="${project.customer.name}"&gt;顧客名&lt;/a&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-        
-        &lt;div class="detail-row"&gt;
-            &lt;div class="detail-label"&gt;ステータス&lt;/div&gt;
-            &lt;div class="detail-value"&gt;
-                &lt;span class="status-badge" th:classappend="${'status-' + project.status.toLowerCase()}"
-                      th:text="${@projectStatusUtil.getStatusLabel(project.status)}"&gt;進行中&lt;/span&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-        
-        &lt;div class="detail-row"&gt;
-            &lt;div class="detail-label"&gt;案件期間&lt;/div&gt;
-            &lt;div class="detail-value"&gt;
-                &lt;span th:text="${#temporals.format(project.startDate, 'yyyy/MM/dd')}"&gt;2025/06/01&lt;/span&gt;
-                &lt;span&gt;～&lt;/span&gt;
-                &lt;span th:text="${#temporals.format(project.endDate, 'yyyy/MM/dd')}"&gt;2025/12/31&lt;/span&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-        
-        &lt;div class="detail-row"&gt;
-            &lt;div class="detail-label"&gt;営業担当者&lt;/div&gt;
-            &lt;div class="detail-value" th:text="${project.salesPerson.name}"&gt;営業担当者名&lt;/div&gt;
-        &lt;/div&gt;
-        
-        &lt;div class="detail-row"&gt;
-            &lt;div class="detail-label"&gt;最終更新日&lt;/div&gt;
-            &lt;div class="detail-value" th:text="${#temporals.format(project.updatedAt, 'yyyy/MM/dd HH:mm')}"&gt;
-                2025/05/01 14:30
-            &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-    
-    &lt;div class="detail-section"&gt;
-        &lt;h3&gt;案件概要&lt;/h3&gt;
-        &lt;div class="detail-content" th:text="${project.description}"&gt;
-            案件の概要説明テキストが表示されます。
-        &lt;/div&gt;
-    &lt;/div&gt;
-    
-    &lt;div class="detail-section"&gt;
-        &lt;h3&gt;条件&lt;/h3&gt;
-        
-        &lt;div class="detail-row"&gt;
-            &lt;div class="detail-label"&gt;単価レンジ&lt;/div&gt;
-            &lt;div class="detail-value"&gt;
-                &lt;span th:text="${#numbers.formatInteger(project.minRate, 0, 'COMMA') + '円'}"&gt;600,000円&lt;/span&gt;
-                &lt;span&gt;～&lt;/span&gt;
-                &lt;span th:text="${#numbers.formatInteger(project.maxRate, 0, 'COMMA') + '円'}"&gt;800,000円&lt;/span&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-        
-        &lt;div class="detail-row"&gt;
-            &lt;div class="detail-label"&gt;募集人数&lt;/div&gt;
-            &lt;div class="detail-value" th:text="${project.positions + '名'}"&gt;2名&lt;/div&gt;
-        &lt;/div&gt;
-        
-        &lt;div class="detail-row"&gt;
-            &lt;div class="detail-label"&gt;勤務地&lt;/div&gt;
-            &lt;div class="detail-value" th:text="${project.location}"&gt;東京都千代田区&lt;/div&gt;
-        &lt;/div&gt;
-        
-        &lt;div class="detail-row"&gt;
-            &lt;div class="detail-label"&gt;リモート勤務&lt;/div&gt;
-            &lt;div class="detail-value" th:text="${@projectUtil.getRemoteWorkLabel(project.remoteWork)}"&gt;
-                週3日まで可能
-            &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-
-&lt;!-- 要件タブの内容（表示モード） --&gt;
-&lt;div id="requirements" class="tab-pane"&gt;
-    &lt;div class="detail-section"&gt;
-        &lt;h3&gt;業務内容&lt;/h3&gt;
-        &lt;div class="detail-content" th:text="${project.jobDescription}"&gt;
-            業務内容の詳細説明が表示されます。
-        &lt;/div&gt;
-    &lt;/div&gt;
-    
-    &lt;div class="detail-section"&gt;
-        &lt;h3&gt;必須スキル&lt;/h3&gt;
-        &lt;div class="skill-tags"&gt;
-            &lt;span class="skill-tag required" th:each="skill : ${requiredSkills}" th:text="${skill.name}"&gt;
-                Java
-            &lt;/span&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-    
-    &lt;div class="detail-section"&gt;
-        &lt;h3&gt;歓迎スキル&lt;/h3&gt;
-        &lt;div class="skill-tags"&gt;
-            &lt;span class="skill-tag preferred" th:each="skill : ${preferredSkills}" th:text="${skill.name}"&gt;
-                AWS
-            &lt;/span&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-    
-    &lt;div class="detail-section"&gt;
-        &lt;h3&gt;必要経験年数&lt;/h3&gt;
-        &lt;div class="detail-content" th:text="${project.yearsOfExperience + '年以上'}"&gt;
-            3年以上
-        &lt;/div&gt;
-    &lt;/div&gt;
-    
-    &lt;div class="detail-section"&gt;
-        &lt;h3&gt;備考&lt;/h3&gt;
-        &lt;div class="detail-content" th:text="${project.notes}"&gt;
-            備考情報が表示されます。
-        &lt;/div&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-
-&lt;!-- マッチング状況タブの内容 --&gt;
-&lt;div id="matching" class="tab-pane"&gt;
-    &lt;div class="detail-section"&gt;
-        &lt;h3&gt;マッチング状況 &lt;span class="count-badge" th:text="${matchingResults.size()}"&gt;5&lt;/span&gt;&lt;/h3&gt;
-        
-        &lt;div th:if="${matchingResults.empty}" class="empty-state"&gt;
-            まだマッチング結果がありません。
-            &lt;div class="action-prompt"&gt;
-                &lt;a th:href="@{/matching/search(projectId=${project.id})}" class="btn btn-primary"&gt;
-                    マッチング検索を実行
-                &lt;/a&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-        
-        &lt;div th:unless="${matchingResults.empty}" class="matching-list"&gt;
-            &lt;div th:each="match : ${matchingResults}" class="matching-item"&gt;
-                &lt;div class="matching-score" th:text="${match.score + '%'}"&gt;85%&lt;/div&gt;
-                &lt;div class="matching-info"&gt;
-                    &lt;div class="engineer-name"&gt;
-                        &lt;a th:href="@{/engineers/{id}(id=${match.engineer.id})}" 
-                           th:text="${match.engineer.name}"&gt;技術者名&lt;/a&gt;
-                    &lt;/div&gt;
-                    &lt;div class="matching-status" th:text="${@matchingUtil.getStatusLabel(match.status)}"&gt;
-                        提案中
-                    &lt;/div&gt;
-                    &lt;div class="matching-date" th:text="${#temporals.format(match.createdAt, 'yyyy/MM/dd')}"&gt;
-                        2025/05/01
-                    &lt;/div&gt;
-                &lt;/div&gt;
-                &lt;div class="matching-actions"&gt;
-                    &lt;a th:href="@{/matching/{id}(id=${match.id})}" class="btn btn-sm btn-outline-primary"&gt;
-                        詳細
-                    &lt;/a&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
-            
-            &lt;div class="more-action"&gt;
-                &lt;a th:href="@{/matching/search(projectId=${project.id})}" class="btn btn-primary"&gt;
-                    新たにマッチング検索
-                &lt;/a&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
-
-&lt;!-- 履歴タブの内容 --&gt;
-&lt;div id="history" class="tab-pane"&gt;
-    &lt;div class="detail-section"&gt;
-        &lt;h3&gt;案件履歴&lt;/h3&gt;
-        
-        &lt;div class="timeline"&gt;
-            &lt;div th:each="event : ${projectHistory}" class="timeline-item"&gt;
-                &lt;div class="timeline-marker" th:classappend="${'event-' + event.type.toLowerCase()}"&gt;&lt;/div&gt;
-                &lt;div class="timeline-content"&gt;
-                    &lt;div class="timeline-header"&gt;
-                        &lt;span class="timeline-date" th:text="${#temporals.format(event.createdAt, 'yyyy/MM/dd HH:mm')}"&gt;
-                            2025/05/01 14:30
-                        &lt;/span&gt;
-                        &lt;span class="timeline-user" th:text="${event.createdBy.name}"&gt;
-                            ユーザー名
-                        &lt;/span&gt;
-                    &lt;/div&gt;
-                    &lt;div class="timeline-body" th:text="${event.description}"&gt;
-                        案件が登録されました。
-                    &lt;/div&gt;
-                &lt;/div&gt;
-            &lt;/div&gt;
-        &lt;/div&gt;
-    &lt;/div&gt;
-&lt;/div&gt;
     </div>
 
     <div class="footer">
