@@ -2852,13 +2852,1392 @@
     </ul>
 
     <h2 id="error">11. エラー処理設計</h2>
-    <p class="todo">TODO: エラー処理設計の詳細を記述する。</p>
+    <p>SES業務システムにおけるエラー処理は、システムの堅牢性と利用者体験の品質を確保するために重要である。本章では、エラー処理の基本方針とその実装方法について詳述する。</p>
+
+    <h3>11.1 エラー処理の基本方針</h3>
+    <p>エラー処理の基本方針は以下の通りとする。</p>
+    <ul>
+        <li><strong>一貫性</strong>: 全てのコンポーネントで一貫したエラー処理方式を採用する</li>
+        <li><strong>追跡可能性</strong>: エラーの発生から解決までの追跡が可能な仕組みを提供する</li>
+        <li><strong>適切な情報提供</strong>: エンドユーザーには理解可能なメッセージを、開発者には詳細なエラー情報を提供する</li>
+        <li><strong>回復可能性</strong>: 可能な限りシステムとユーザー操作の回復手段を提供する</li>
+        <li><strong>セキュリティ</strong>: エラー情報による機密情報の漏洩を防止する</li>
+    </ul>
+
+    <h3>11.2 エラー分類</h3>
+    <p>本システムで扱うエラーを以下のように分類する。</p>
+
+    <table>
+        <tr>
+            <th>エラー分類</th>
+            <th>説明</th>
+            <th>処理方針</th>
+            <th>主な発生箇所</th>
+        </tr>
+        <tr>
+            <td>入力エラー</td>
+            <td>ユーザー入力値の検証エラー</td>
+            <td>フロントエンド・バックエンドの両方で検証し、具体的なエラーメッセージをユーザーに提供</td>
+            <td>ユーザーインターフェース、Web API</td>
+        </tr>
+        <tr>
+            <td>ビジネスルールエラー</td>
+            <td>業務ロジック上の制約違反</td>
+            <td>一貫したエラーコードとメッセージを定義し、ユーザーに明確な回避策を提示</td>
+            <td>サービス層、ドメイン層</td>
+        </tr>
+        <tr>
+            <td>システムエラー</td>
+            <td>内部処理や外部連携の技術的エラー</td>
+            <td>詳細ログを記録し、管理者に通知。ユーザーには一般的なエラーメッセージを表示</td>
+            <td>データアクセス層、連携サービス</td>
+        </tr>
+        <tr>
+            <td>セキュリティエラー</td>
+            <td>認証・認可、不正アクセスに関するエラー</td>
+            <td>詳細をログに記録し、セキュリティ監視システムに連携。ユーザーには最小限の情報のみ提供</td>
+            <td>認証サービス、API Gateway</td>
+        </tr>
+        <tr>
+            <td>可用性エラー</td>
+            <td>サービス停止、過負荷などによるエラー</td>
+            <td>代替手段の提示、リトライ機構の提供。運用監視システムへ迅速に通知</td>
+            <td>全コンポーネント</td>
+        </tr>
+    </table>
+
+    <h3>11.3 エラーコード体系</h3>
+    <p>エラーコードは以下の体系で定義する。</p>
+
+    <pre>
+    E-AABCC
+    </pre>
+
+    <ul>
+        <li><strong>E-</strong>: エラーを示すプレフィックス</li>
+        <li><strong>AA</strong>: モジュールコード（01: 共通, 02: 案件管理, 03: 技術者管理, 04: 契約管理, 05: 勤怠工数管理, 06: 請求支払, 07: マッチング, 08: レポーティング, 09: システム管理）</li>
+        <li><strong>B</strong>: エラー分類（1: 入力エラー, 2: ビジネスルールエラー, 3: システムエラー, 4: セキュリティエラー, 5: 可用性エラー）</li>
+        <li><strong>CC</strong>: 連番（00-99）</li>
+    </ul>
+
+    <p>例:</p>
+    <ul>
+        <li><strong>E-01101</strong>: 共通モジュールの入力エラー01</li>
+        <li><strong>E-03201</strong>: 技術者管理モジュールのビジネスルールエラー01</li>
+        <li><strong>E-04301</strong>: 契約管理モジュールのシステムエラー01</li>
+    </ul>
+
+    <h3>11.4 フロントエンドのエラー処理</h3>
+    <p>フロントエンドでのエラー処理方針を以下に示す。</p>
+
+    <h4>11.4.1 UI表示方法</h4>
+    <ul>
+        <li><strong>フォームバリデーション</strong>: 入力項目の近くに赤文字でエラーメッセージを表示</li>
+        <li><strong>処理エラー</strong>: モーダルダイアログまたはトーストメッセージでエラー内容を表示</li>
+        <li><strong>システムエラー</strong>: 専用のエラーページに遷移し、エラーIDと問い合わせ先を表示</li>
+        <li><strong>ネットワークエラー</strong>: オフライン状態の表示と、回復時の自動リトライオプションを提供</li>
+    </ul>
+
+    <h4>11.4.2 実装方式</h4>
+    <p>フロントエンドでのエラー処理は、以下の方式で実装する。</p>
+    <ul>
+        <li><strong>Reactコンポーネント</strong>: エラーバウンダリによる例外のキャッチと回復</li>
+        <li><strong>Redux/状態管理</strong>: グローバルエラー状態の管理と表示制御</li>
+        <li><strong>API通信</strong>: Axios インターセプターによるエラーハンドリングと統一処理</li>
+        <li><strong>Formライブラリ</strong>: React Hook FormとYupによるバリデーション制御</li>
+    </ul>
+
+    <div class="container">
+        <div class="image-placeholder">
+            [フロントエンドエラー処理フロー図]<br>
+            ここにフロントエンドのエラー処理フロー図を挿入
+        </div>
+    </div>
+
+    <h3>11.5 バックエンドのエラー処理</h3>
+    <p>バックエンド（API）でのエラー処理方針を以下に示す。</p>
+
+    <h4>11.5.1 API応答形式</h4>
+    <p>エラー発生時のAPI応答は以下のJSON形式で統一する。</p>
+    <pre>
+    {
+      "status": "error",
+      "errorCode": "E-AABCC",
+      "message": "ユーザー向けエラーメッセージ",
+      "details": [
+        {
+          "field": "該当フィールド名（該当する場合）",
+          "message": "詳細エラーメッセージ"
+        }
+      ],
+      "timestamp": "2023-01-01T12:00:00Z",
+      "requestId": "リクエスト識別子",
+      "path": "/api/v1/resource"
+    }
+    </pre>
+
+    <h4>11.5.2 実装方式</h4>
+    <p>バックエンドでのエラー処理は、以下の方式で実装する。</p>
+    <ul>
+        <li><strong>例外ハンドリング</strong>: グローバル例外ハンドラーによる統一的な例外処理</li>
+        <li><strong>ビジネス例外</strong>: 独自の例外階層を定義し、業務ロジックで明示的に発生させる</li>
+        <li><strong>バリデーション</strong>: Bean Validationと独自バリデーターの組み合わせ</li>
+        <li><strong>ログ連携</strong>: 例外発生時に構造化ログを自動記録</li>
+        <li><strong>監視連携</strong>: 重大なエラー発生時に監視システムへ通知</li>
+    </ul>
+
+    <div class="container">
+        <div class="image-placeholder">
+            [バックエンドエラー処理フロー図]<br>
+            ここにバックエンドのエラー処理フロー図を挿入
+        </div>
+    </div>
+
+    <h3>11.6 データアクセスレイヤーのエラー処理</h3>
+    <p>データアクセスレイヤーにおけるエラー処理方針を以下に示す。</p>
+    <ul>
+        <li><strong>トランザクション管理</strong>: 適切なトランザクション境界の設定とロールバック制御</li>
+        <li><strong>コネクション管理</strong>: コネクションプールの監視とタイムアウト制御</li>
+        <li><strong>リトライ機構</strong>: 一時的なエラーに対する適切なバックオフとリトライ</li>
+        <li><strong>デッドロック対策</strong>: 楽観的ロックの採用と競合検出機構</li>
+        <li><strong>整合性確保</strong>: データ整合性エラーの検出と回復手順</li>
+    </ul>
+
+    <h3>11.7 外部連携のエラー処理</h3>
+    <p>外部システムとの連携におけるエラー処理方針を以下に示す。</p>
+    <ul>
+        <li><strong>タイムアウト設定</strong>: 適切なタイムアウト値の設定と監視</li>
+        <li><strong>サーキットブレーカー</strong>: 障害検知による一時的なサービス利用停止と自動回復</li>
+        <li><strong>フォールバック機構</strong>: 代替処理パスの用意</li>
+        <li><strong>非同期処理</strong>: 重要な連携処理の非同期化とリトライキュー</li>
+        <li><strong>整合性確保</strong>: べき等性の保証とトランザクションID管理</li>
+    </ul>
+
+    <div class="container">
+        <div class="image-placeholder">
+            [外部連携エラー処理パターン図]<br>
+            ここに外部連携のエラー処理パターン図を挿入
+        </div>
+    </div>
+
+    <h3>11.8 運用面のエラー対応</h3>
+    <p>システム運用におけるエラー対応方針を以下に示す。</p>
+    <ul>
+        <li><strong>エラーモニタリング</strong>: リアルタイムでのエラー発生状況監視</li>
+        <li><strong>エラー分析</strong>: エラーログ集計と傾向分析</li>
+        <li><strong>自動対応</strong>: 特定パターンのエラーに対する自動復旧処理</li>
+        <li><strong>エスカレーション</strong>: エラーの重要度に応じた通知先と対応手順</li>
+        <li><strong>ユーザー支援</strong>: エラー発生時のサポート体制とナレッジベース</li>
+    </ul>
+
+    <h4>11.8.1 監視項目</h4>
+    <table>
+        <tr>
+            <th>監視項目</th>
+            <th>閾値</th>
+            <th>通知先</th>
+            <th>対応方針</th>
+        </tr>
+        <tr>
+            <td>システムエラー発生率</td>
+            <td>1分間に5件以上</td>
+            <td>システム管理者、開発チーム</td>
+            <td>即時調査、必要に応じてロールバック</td>
+        </tr>
+        <tr>
+            <td>特定APIのエラー率</td>
+            <td>10%以上</td>
+            <td>開発チーム、運用担当者</td>
+            <td>該当APIの診断、代替手段の案内</td>
+        </tr>
+        <tr>
+            <td>DB接続エラー</td>
+            <td>1件以上</td>
+            <td>DBA、システム管理者</td>
+            <td>DB状態確認、コネクションプール再設定</td>
+        </tr>
+        <tr>
+            <td>外部連携エラー</td>
+            <td>連続3回以上</td>
+            <td>システム管理者、連携先担当者</td>
+            <td>連携先状態確認、代替処理パスへの切替</td>
+        </tr>
+    </table>
+
+    <h3>11.9 エラーメッセージ管理</h3>
+    <p>エラーメッセージの管理方針を以下に示す。</p>
+    <ul>
+        <li><strong>メッセージの外部化</strong>: プロパティファイルによるメッセージ定義</li>
+        <li><strong>多言語対応</strong>: 日本語・英語の基本対応</li>
+        <li><strong>メッセージの構成</strong>: [エラーコード] メッセージ本文 (対処方法)</li>
+        <li><strong>プレースホルダー</strong>: メッセージ内の動的部分は{0}形式のプレースホルダーで定義</li>
+    </ul>
+
+    <p>例：</p>
+    <pre>
+    # プロパティファイル例
+    E-01101=入力された{0}は必須項目です。値を入力してください。
+    E-03201=指定された技術者は既に{0}案件にアサイン済みです。別の技術者を選択してください。
+    E-04301=契約書生成中にエラーが発生しました。しばらく経ってから再試行してください。(エラーID: {0})
+    </pre>
 
     <h2 id="logging">12. ログ設計</h2>
-    <p class="todo">TODO: ログ設計の詳細を記述する。</p>
+    <p>本章では、SES業務システムにおけるログ設計について定義する。システムの運用・監視・障害対応・セキュリティ対策を効果的に行うため、適切なログ収集・分析基盤を構築する。</p>
+
+    <h3>12.1 ログ設計の基本方針</h3>
+    <p>ログ設計の基本方針は以下の通りとする。</p>
+    <ul>
+        <li><strong>統一性</strong>: 全コンポーネントで統一されたログ形式とレベルを採用</li>
+        <li><strong>追跡可能性</strong>: リクエスト単位での一連の処理の追跡が可能</li>
+        <li><strong>分析可能性</strong>: ログの集中管理と分析が容易な構造化ログの採用</li>
+        <li><strong>セキュリティ</strong>: 機密情報のマスキングと適切なアクセス制御</li>
+        <li><strong>パフォーマンス</strong>: ログ出力によるシステムパフォーマンスへの影響を最小化</li>
+    </ul>
+
+    <h3>12.2 ログの分類</h3>
+    <p>システムで収集するログを以下のように分類する。</p>
+
+    <table>
+        <tr>
+            <th>ログ種別</th>
+            <th>概要</th>
+            <th>主な目的</th>
+            <th>保存期間</th>
+        </tr>
+        <tr>
+            <td>アプリケーションログ</td>
+            <td>アプリケーションの動作状況を記録</td>
+            <td>障害調査、パフォーマンス分析</td>
+            <td>90日</td>
+        </tr>
+        <tr>
+            <td>アクセスログ</td>
+            <td>APIや画面へのアクセス情報を記録</td>
+            <td>アクセス監視、不正アクセス検知</td>
+            <td>180日</td>
+        </tr>
+        <tr>
+            <td>監査ログ</td>
+            <td>重要業務アクションを記録</td>
+            <td>内部統制、セキュリティ監査</td>
+            <td>5年</td>
+        </tr>
+        <tr>
+            <td>エラーログ</td>
+            <td>障害やエラー情報を記録</td>
+            <td>障害対応、品質改善</td>
+            <td>1年</td>
+        </tr>
+        <tr>
+            <td>パフォーマンスログ</td>
+            <td>システムのパフォーマンス指標を記録</td>
+            <td>性能監視、ボトルネック特定</td>
+            <td>30日</td>
+        </tr>
+        <tr>
+            <td>デバッグログ</td>
+            <td>詳細なデバッグ情報を記録</td>
+            <td>開発時のデバッグ</td>
+            <td>7日（本番環境では基本的に無効）</td>
+        </tr>
+    </table>
+
+    <h3>12.3 ログレベル定義</h3>
+    <p>ログレベルは以下のように定義し、環境ごとに出力レベルを制御する。</p>
+
+    <table>
+        <tr>
+            <th>レベル</th>
+            <th>概要</th>
+            <th>使用方針</th>
+            <th>環境ごとの設定</th>
+        </tr>
+        <tr>
+            <td>FATAL</td>
+            <td>システムの継続が困難な致命的な問題</td>
+            <td>システム停止やデータ破損につながる重大なエラー</td>
+            <td>全環境で出力</td>
+        </tr>
+        <tr>
+            <td>ERROR</td>
+            <td>エラー状態だが、システムは継続可能</td>
+            <td>予期しない例外、外部システム連携失敗など</td>
+            <td>全環境で出力</td>
+        </tr>
+        <tr>
+            <td>WARN</td>
+            <td>警告レベルの問題</td>
+            <td>将来的に問題となる可能性がある状況、性能低下の兆候など</td>
+            <td>全環境で出力</td>
+        </tr>
+        <tr>
+            <td>INFO</td>
+            <td>重要な業務イベント</td>
+            <td>ユーザーログイン、重要業務処理の開始・完了など</td>
+            <td>全環境で出力</td>
+        </tr>
+        <tr>
+            <td>DEBUG</td>
+            <td>開発・デバッグ用の詳細情報</td>
+            <td>メソッド呼び出し、詳細パラメータなど</td>
+            <td>開発・テスト環境のみ出力</td>
+        </tr>
+        <tr>
+            <td>TRACE</td>
+            <td>最も詳細なデバッグ情報</td>
+            <td>詳細なデータダンプ、ループ内処理など</td>
+            <td>開発環境のみ必要時に出力</td>
+        </tr>
+    </table>
+
+    <h3>12.4 ログ出力内容</h3>
+    <p>各ログには以下の情報を含める。</p>
+
+    <h4>12.4.1 共通項目</h4>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>説明</th>
+            <th>例</th>
+        </tr>
+        <tr>
+            <td>timestamp</td>
+            <td>ログ記録日時（ISO 8601形式）</td>
+            <td>2023-01-01T12:34:56.789Z</td>
+        </tr>
+        <tr>
+            <td>level</td>
+            <td>ログレベル</td>
+            <td>INFO, ERROR など</td>
+        </tr>
+        <tr>
+            <td>service</td>
+            <td>サービス（マイクロサービス）名</td>
+            <td>contract-service</td>
+        </tr>
+        <tr>
+            <td>instance</td>
+            <td>サーバーインスタンス識別子</td>
+            <td>contract-service-pod-8a7b6c5d</td>
+        </tr>
+        <tr>
+            <td>thread</td>
+            <td>スレッド名</td>
+            <td>http-nio-8080-exec-1</td>
+        </tr>
+        <tr>
+            <td>logger</td>
+            <td>ロガー名（クラス名）</td>
+            <td>jp.co.sesmanager.contract.service.ContractServiceImpl</td>
+        </tr>
+        <tr>
+            <td>traceId</td>
+            <td>分散トレース用ID</td>
+            <td>4a7b9c3d2e1f8a7b9c3d2e1f</td>
+        </tr>
+        <tr>
+            <td>userId</td>
+            <td>ユーザーID（認証済みの場合）</td>
+            <td>user_12345</td>
+        </tr>
+        <tr>
+            <td>message</td>
+            <td>ログメッセージ本文</td>
+            <td>Contract created successfully</td>
+        </tr>
+    </table>
+
+    <h4>12.4.2 種別ごとの固有項目</h4>
+
+    <h5>アプリケーションログ追加項目</h5>
+    <ul>
+        <li><strong>methodName</strong>: 実行メソッド名</li>
+        <li><strong>elapsedTime</strong>: 処理時間（ミリ秒）</li>
+        <li><strong>context</strong>: 処理コンテキスト情報</li>
+    </ul>
+
+    <h5>アクセスログ追加項目</h5>
+    <ul>
+        <li><strong>remoteIp</strong>: クライアントIPアドレス</li>
+        <li><strong>method</strong>: HTTPメソッド</li>
+        <li><strong>path</strong>: リクエストパス</li>
+        <li><strong>query</strong>: クエリパラメータ（機密情報マスク済み）</li>
+        <li><strong>userAgent</strong>: ユーザーエージェント</li>
+        <li><strong>referer</strong>: リファラー</li>
+        <li><strong>statusCode</strong>: HTTPステータスコード</li>
+        <li><strong>responseTime</strong>: レスポンス時間（ミリ秒）</li>
+        <li><strong>bodySize</strong>: レスポンスボディサイズ（バイト）</li>
+    </ul>
+
+    <h5>監査ログ追加項目</h5>
+    <ul>
+        <li><strong>action</strong>: 実行されたアクション種別</li>
+        <li><strong>resource</strong>: 操作対象リソース種別</li>
+        <li><strong>resourceId</strong>: 操作対象リソースID</li>
+        <li><strong>beforeState</strong>: 変更前の状態（サマリーのみ）</li>
+        <li><strong>afterState</strong>: 変更後の状態（サマリーのみ）</li>
+        <li><strong>ipAddress</strong>: 操作元IPアドレス</li>
+        <li><strong>success</strong>: 操作成功フラグ</li>
+    </ul>
+
+    <h5>エラーログ追加項目</h5>
+    <ul>
+        <li><strong>errorCode</strong>: エラーコード</li>
+        <li><strong>exceptionClass</strong>: 例外クラス名</li>
+        <li><strong>exceptionMessage</strong>: 例外メッセージ</li>
+        <li><strong>stackTrace</strong>: スタックトレース（要約版）</li>
+        <li><strong>rootCause</strong>: 根本原因</li>
+    </ul>
+
+    <h5>パフォーマンスログ追加項目</h5>
+    <ul>
+        <li><strong>operation</strong>: 計測対象操作</li>
+        <li><strong>duration</strong>: 処理時間（ミリ秒）</li>
+        <li><strong>memoryUsage</strong>: メモリ使用量</li>
+        <li><strong>cpuUsage</strong>: CPU使用率</li>
+        <li><strong>databaseCalls</strong>: データベース呼び出し回数</li>
+        <li><strong>externalCalls</strong>: 外部サービス呼び出し回数</li>
+    </ul>
+
+    <h3>12.5 ログ出力形式</h3>
+    <p>ログは以下の形式で出力する。</p>
+
+    <h4>12.5.1 JSON形式</h4>
+    <p>主に分析・監視用途向けにJSON形式でログを出力する。</p>
+    <pre>
+    {
+      "timestamp": "2023-01-01T12:34:56.789Z",
+      "level": "INFO",
+      "service": "contract-service",
+      "instance": "contract-service-pod-8a7b6c5d",
+      "thread": "http-nio-8080-exec-1",
+      "logger": "jp.co.sesmanager.contract.service.ContractServiceImpl",
+      "traceId": "4a7b9c3d2e1f8a7b9c3d2e1f",
+      "userId": "user_12345",
+      "message": "Contract created successfully",
+      "methodName": "createContract",
+      "elapsedTime": 235,
+      "context": {
+        "contractId": "CNT-2023-00123",
+        "customerId": "CUST-456",
+        "engineerId": "ENG-789"
+      }
+    }
+    </pre>
+
+    <h4>12.5.2 テキスト形式</h4>
+    <p>開発時のコンソール表示用にテキスト形式でも出力する。</p>
+    <pre>
+    2023-01-01 12:34:56.789 [INFO] [contract-service] [http-nio-8080-exec-1] [4a7b9c3d2e1f] [user_12345] jp.co.sesmanager.contract.service.ContractServiceImpl - Contract created successfully - contractId: CNT-2023-00123
+    </pre>
+
+    <h3>12.6 ログアーキテクチャ</h3>
+    <p>ログ収集・分析のためのアーキテクチャを以下のように定義する。</p>
+
+    <div class="container">
+        <div class="image-placeholder">
+            [ログアーキテクチャ図]<br>
+            ここにログアーキテクチャ図を挿入
+        </div>
+    </div>
+
+    <h4>12.6.1 コンポーネント構成</h4>
+    <table>
+        <tr>
+            <th>コンポーネント</th>
+            <th>役割</th>
+            <th>製品選定</th>
+        </tr>
+        <tr>
+            <td>ログ生成</td>
+            <td>アプリケーションからのログ出力</td>
+            <td>SLF4J + Logback（アプリ）、NGINX（Webサーバー）、PostgreSQL（データベース）</td>
+        </tr>
+        <tr>
+            <td>ログ収集</td>
+            <td>各サーバーからのログファイル収集</td>
+            <td>Filebeat、Fluentd</td>
+        </tr>
+        <tr>
+            <td>ログ転送</td>
+            <td>収集したログの転送と前処理</td>
+            <td>Logstash</td>
+        </tr>
+        <tr>
+            <td>ログストレージ</td>
+            <td>ログの永続化と検索</td>
+            <td>Elasticsearch</td>
+        </tr>
+        <tr>
+            <td>ログ可視化</td>
+            <td>ログの分析・可視化</td>
+            <td>Kibana、Grafana</td>
+        </tr>
+        <tr>
+            <td>アラート生成</td>
+            <td>ログパターンに基づくアラート</td>
+            <td>Elasticsearch Watcher、Alertmanager</td>
+        </tr>
+        <tr>
+            <td>分散トレーシング</td>
+            <td>サービスをまたぐ処理の追跡</td>
+            <td>Jaeger、Zipkin</td>
+        </tr>
+    </table>
+
+    <h4>12.6.2 データフロー</h4>
+    <ol>
+        <li>アプリケーションがログを生成（ファイルまたはsyslog）</li>
+        <li>Filebeat/Fluentdがログを収集</li>
+        <li>Logstashがログを整形・強化（IP位置情報付与、機密情報マスキングなど）</li>
+        <li>Elasticsearchにログを保存</li>
+        <li>Kibana/Grafanaでログを可視化</li>
+        <li>Elasticsearch Watcherがパターンマッチでアラート生成</li>
+    </ol>
+
+    <h3>12.7 監査ログの要件</h3>
+    <p>特に重要な監査ログについては、以下の要件を満たす実装とする。</p>
+
+    <h4>12.7.1 監査対象アクション</h4>
+    <p>以下のアクションを監査対象とし、必ず監査ログを記録する。</p>
+    <ul>
+        <li><strong>認証関連</strong>: ログイン成功/失敗、ログアウト、パスワード変更、多要素認証</li>
+        <li><strong>権限関連</strong>: 権限の付与/変更/剥奪、権限昇格、アクセス拒否</li>
+        <li><strong>データ操作</strong>: 重要データの作成/読取/更新/削除</li>
+        <li><strong>設定変更</strong>: システム設定、マスターデータ、セキュリティ設定の変更</li>
+        <li><strong>システム操作</strong>: バッチ処理の開始/完了、インポート/エクスポート、連携処理</li>
+    </ul>
+
+    <h4>12.7.2 監査ログの保全</h4>
+    <p>監査ログの完全性と機密性を確保するため、以下の対策を実施する。</p>
+    <ul>
+        <li><strong>改ざん防止</strong>: ログの書き込み専用アクセス、ハッシュによる整合性検証</li>
+        <li><strong>アクセス制限</strong>: 監査ログへのアクセスは監査権限を持つユーザーのみに制限</li>
+        <li><strong>長期保存</strong>: 規定期間（5年間）のログ保存、定期的なアーカイブ</li>
+        <li><strong>バックアップ</strong>: 定期的なバックアップと異なるストレージへの複製</li>
+    </ul>
+
+    <h3>12.8 開発ガイドライン</h3>
+    <p>開発者向けのログ出力ガイドラインを以下に示す。</p>
+
+    <h4>12.8.1 ログ出力のベストプラクティス</h4>
+    <ul>
+        <li><strong>適切なレベル選択</strong>: ログレベルの定義に従い、適切なレベルでログを出力</li>
+        <li><strong>構造化情報</strong>: 単純な文字列結合ではなく、構造化されたコンテキスト情報を提供</li>
+        <li><strong>機密情報の保護</strong>: パスワード、個人情報、機密データをログに出力しない</li>
+        <li><strong>例外スタックトレース</strong>: 例外のスタックトレースを適切に記録</li>
+        <li><strong>コンテキスト維持</strong>: MDC（Mapped Diagnostic Context）を活用</li>
+        <li><strong>パフォーマンス考慮</strong>: ログ出力のパフォーマンス影響を最小化</li>
+    </ul>
+
+    <h4>12.8.2 出力サンプル</h4>
+    <p>推奨されるログ出力パターンの実装例：</p>
+
+    <pre>
+    // Javaでの実装例
+    // 良いパターン
+    logger.info("Contract created for customer: {}, engineer: {}", customerId, engineerId);
+    
+    try {
+        // 処理
+    } catch (Exception e) {
+        logger.error("Failed to process payment: {}", paymentId, e);
+    }
+    
+    // MDCの活用
+    MDC.put("traceId", generateTraceId());
+    MDC.put("userId", currentUser.getId());
+    logger.info("Processing request");
+    
+    // 悪いパターン（避けるべき）
+    logger.debug("Contract data: " + contractJson); // 大量のデータを文字列結合
+    logger.info("User password changed to: " + newPassword); // 機密情報の露出
+    </pre>
+
+    <h3>12.9 運用管理</h3>
+    <p>ログの運用管理方針を以下に示す。</p>
+
+    <h4>12.9.1 容量管理</h4>
+    <ul>
+        <li><strong>ローテーション</strong>: 日次でのログローテーション</li>
+        <li><strong>圧縮</strong>: 古いログファイルの自動圧縮</li>
+        <li><strong>削除</strong>: 保存期間を超えたログの自動削除</li>
+        <li><strong>アーカイブ</strong>: 長期保存が必要なログの安価なストレージへの移動</li>
+        <li><strong>容量監視</strong>: ログストレージの容量監視とアラート設定</li>
+    </ul>
+
+    <h4>12.9.2 パフォーマンス管理</h4>
+    <ul>
+        <li><strong>非同期ログ出力</strong>: アプリケーションのパフォーマンスへの影響を軽減</li>
+        <li><strong>バッファリング</strong>: ログ転送時のバッファリングによる効率化</li>
+        <li><strong>インデックス最適化</strong>: Elasticsearchのインデックス戦略の最適化</li>
+        <li><strong>シャーディング</strong>: 高ボリュームログのシャーディングによる分散</li>
+        <li><strong>クエリ最適化</strong>: 頻繁に使用されるログ検索クエリの最適化</li>
+    </ul>
+
+    <h4>12.9.3 監視・分析</h4>
+    <ul>
+        <li><strong>ダッシュボード</strong>: 主要なログ指標をまとめたダッシュボードの整備</li>
+        <li><strong>アラート</strong>: 重要なログパターンに対するアラート設定</li>
+        <li><strong>定期レポート</strong>: ログ分析の定期レポート生成</li>
+        <li><strong>異常検知</strong>: 機械学習による異常パターンの検出</li>
+        <li><strong>セキュリティ分析</strong>: セキュリティインシデントの検出と分析</li>
+    </ul>
 
     <h2 id="monitoring">13. 監視設計</h2>
-    <p class="todo">TODO: 監視設計の詳細を記述する。</p>
+    <p>本章では、SES業務システムの運用状況を継続的に把握し、問題の早期発見・対応を可能にするための監視設計について記述する。</p>
+
+    <h3>13.1 監視設計の基本方針</h3>
+    <p>監視設計の基本方針は以下の通りとする。</p>
+    <ul>
+        <li><strong>網羅性</strong>: インフラからアプリケーションまで全レイヤーを監視対象とする</li>
+        <li><strong>予防的監視</strong>: 問題発生前の予兆を検知し、事前対応を可能にする</li>
+        <li><strong>自動検知</strong>: 異常の自動検知とアラート通知による迅速な対応</li>
+        <li><strong>可視化</strong>: システム状態の直感的な可視化によるモニタリング</li>
+        <li><strong>相関分析</strong>: 複数指標の相関関係から真の原因を特定</li>
+    </ul>
+
+    <h3>13.2 監視レイヤー構成</h3>
+    <p>監視対象を以下のレイヤーに分類し、それぞれに適した監視項目と手法を定義する。</p>
+
+    <table>
+        <tr>
+            <th>監視レイヤー</th>
+            <th>概要</th>
+            <th>主な監視対象</th>
+            <th>監視ツール</th>
+        </tr>
+        <tr>
+            <td>インフラストラクチャ監視</td>
+            <td>物理/仮想リソースの状態監視</td>
+            <td>サーバー、ネットワーク、ストレージ</td>
+            <td>Prometheus、Node Exporter</td>
+        </tr>
+        <tr>
+            <td>プラットフォーム監視</td>
+            <td>ミドルウェアや実行環境の監視</td>
+            <td>Kubernetes、データベース、メッセージキュー</td>
+            <td>kube-state-metrics、JMX Exporter</td>
+        </tr>
+        <tr>
+            <td>アプリケーション監視</td>
+            <td>アプリケーション自体の動作監視</td>
+            <td>API、サービス、バッチ処理</td>
+            <td>Spring Boot Actuator、Micrometer</td>
+        </tr>
+        <tr>
+            <td>ビジネスプロセス監視</td>
+            <td>業務フローの進行状況監視</td>
+            <td>業務KPI、処理件数、エラー率</td>
+            <td>カスタムメトリクス、Grafana</td>
+        </tr>
+        <tr>
+            <td>エンドユーザー体験監視</td>
+            <td>実際のユーザー体験の監視</td>
+            <td>レスポンスタイム、エラー率、UI操作</td>
+            <td>Synthetic Monitoring、RUM</td>
+        </tr>
+    </table>
+
+    <h3>13.3 監視対象と指標</h3>
+    <p>各監視レイヤーにおける主要な監視対象と指標を定義する。</p>
+
+    <h4>13.3.1 インフラストラクチャ監視</h4>
+    <table>
+        <tr>
+            <th>監視対象</th>
+            <th>監視指標</th>
+            <th>閾値（警告/重大）</th>
+            <th>監視間隔</th>
+        </tr>
+        <tr>
+            <td>CPU</td>
+            <td>CPU使用率</td>
+            <td>70% / 90%</td>
+            <td>30秒</td>
+        </tr>
+        <tr>
+            <td>メモリ</td>
+            <td>メモリ使用率</td>
+            <td>80% / 95%</td>
+            <td>30秒</td>
+        </tr>
+        <tr>
+            <td>ディスク</td>
+            <td>ディスク使用率</td>
+            <td>75% / 90%</td>
+            <td>5分</td>
+        </tr>
+        <tr>
+            <td>ディスクI/O</td>
+            <td>I/O待ち時間</td>
+            <td>100ms / 500ms</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>ネットワーク</td>
+            <td>インターフェース使用率</td>
+            <td>60% / 80%</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>ネットワーク</td>
+            <td>パケット損失率</td>
+            <td>1% / 5%</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>プロセス</td>
+            <td>プロセス数</td>
+            <td>定義による</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>負荷</td>
+            <td>ロードアベレージ</td>
+            <td>CPU数×0.7 / CPU数×0.9</td>
+            <td>1分</td>
+        </tr>
+    </table>
+
+    <h4>13.3.2 プラットフォーム監視</h4>
+    <h5>Kubernetes</h5>
+    <table>
+        <tr>
+            <th>監視対象</th>
+            <th>監視指標</th>
+            <th>閾値（警告/重大）</th>
+            <th>監視間隔</th>
+        </tr>
+        <tr>
+            <td>ノード</td>
+            <td>ノード状態</td>
+            <td>NotReady</td>
+            <td>30秒</td>
+        </tr>
+        <tr>
+            <td>ポッド</td>
+            <td>ポッド状態</td>
+            <td>Pending/Failed/Unknown</td>
+            <td>30秒</td>
+        </tr>
+        <tr>
+            <td>ポッド</td>
+            <td>再起動回数</td>
+            <td>3回 / 5回(10分間)</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>デプロイメント</td>
+            <td>利用可能レプリカ率</td>
+            <td>80% / 50%</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>リソース</td>
+            <td>リソース要求vs割り当て</td>
+            <td>90% / 100%</td>
+            <td>5分</td>
+        </tr>
+    </table>
+
+    <h5>データベース（PostgreSQL）</h5>
+    <table>
+        <tr>
+            <th>監視対象</th>
+            <th>監視指標</th>
+            <th>閾値（警告/重大）</th>
+            <th>監視間隔</th>
+        </tr>
+        <tr>
+            <td>接続</td>
+            <td>接続数</td>
+            <td>最大接続数の70% / 90%</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>接続</td>
+            <td>接続エラー率</td>
+            <td>5% / 10%</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>パフォーマンス</td>
+            <td>クエリ実行時間</td>
+            <td>1秒 / 5秒</td>
+            <td>5分</td>
+        </tr>
+        <tr>
+            <td>パフォーマンス</td>
+            <td>スロークエリ数</td>
+            <td>10件 / 50件(10分間)</td>
+            <td>10分</td>
+        </tr>
+        <tr>
+            <td>ストレージ</td>
+            <td>テーブルサイズ増加率</td>
+            <td>10% / 20%(日次)</td>
+            <td>1時間</td>
+        </tr>
+        <tr>
+            <td>レプリケーション</td>
+            <td>レプリケーション遅延</td>
+            <td>10秒 / 60秒</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>バックアップ</td>
+            <td>最終バックアップ経過時間</td>
+            <td>25時間 / 36時間</td>
+            <td>1時間</td>
+        </tr>
+    </table>
+
+    <h4>13.3.3 アプリケーション監視</h4>
+    <table>
+        <tr>
+            <th>監視対象</th>
+            <th>監視指標</th>
+            <th>閾値（警告/重大）</th>
+            <th>監視間隔</th>
+        </tr>
+        <tr>
+            <td>API</td>
+            <td>レスポンスタイム(90パーセンタイル)</td>
+            <td>2秒 / 5秒</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>API</td>
+            <td>エラー率</td>
+            <td>1% / 5%</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>API</td>
+            <td>リクエスト数</td>
+            <td>通常の150% / 200%</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>サービス</td>
+            <td>サービス可用性</td>
+            <td>99% / 95%</td>
+            <td>5分</td>
+        </tr>
+        <tr>
+            <td>サービス</td>
+            <td>依存サービスのヘルスステータス</td>
+            <td>警告 / エラー</td>
+            <td>30秒</td>
+        </tr>
+        <tr>
+            <td>JVM</td>
+            <td>ヒープメモリ使用率</td>
+            <td>70% / 85%</td>
+            <td>30秒</td>
+        </tr>
+        <tr>
+            <td>JVM</td>
+            <td>GC頻度</td>
+            <td>5回/分 / 10回/分</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>JVM</td>
+            <td>GC時間</td>
+            <td>累積時間の10% / 20%</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>スレッド</td>
+            <td>アクティブスレッド数</td>
+            <td>スレッドプール最大の70% / 90%</td>
+            <td>30秒</td>
+        </tr>
+        <tr>
+            <td>キャッシュ</td>
+            <td>キャッシュヒット率</td>
+            <td>80%以下 / 60%以下</td>
+            <td>5分</td>
+        </tr>
+    </table>
+
+    <h4>13.3.4 ビジネスプロセス監視</h4>
+    <table>
+        <tr>
+            <th>監視対象</th>
+            <th>監視指標</th>
+            <th>閾値（警告/重大）</th>
+            <th>監視間隔</th>
+        </tr>
+        <tr>
+            <td>契約処理</td>
+            <td>新規契約作成数</td>
+            <td>前週比±30% / ±50%</td>
+            <td>1時間</td>
+        </tr>
+        <tr>
+            <td>技術者マッチング</td>
+            <td>マッチング処理完了率</td>
+            <td>95% / 90%</td>
+            <td>1時間</td>
+        </tr>
+        <tr>
+            <td>技術者マッチング</td>
+            <td>マッチングスコア平均値</td>
+            <td>前週比-10% / -20%</td>
+            <td>1日</td>
+        </tr>
+        <tr>
+            <td>請求処理</td>
+            <td>請求書生成エラー率</td>
+            <td>1% / 5%</td>
+            <td>1時間</td>
+        </tr>
+        <tr>
+            <td>勤怠登録</td>
+            <td>勤怠登録完了率</td>
+            <td>当月95%未満 / 90%未満</td>
+            <td>1日</td>
+        </tr>
+        <tr>
+            <td>工数報告</td>
+            <td>未承認工数報告数</td>
+            <td>前週比+20% / +40%</td>
+            <td>1日</td>
+        </tr>
+        <tr>
+            <td>外部連携</td>
+            <td>連携処理成功率</td>
+            <td>98% / 95%</td>
+            <td>1時間</td>
+        </tr>
+    </table>
+
+    <h4>13.3.5 エンドユーザー体験監視</h4>
+    <table>
+        <tr>
+            <th>監視対象</th>
+            <th>監視指標</th>
+            <th>閾値（警告/重大）</th>
+            <th>監視間隔</th>
+        </tr>
+        <tr>
+            <td>ページロード</td>
+            <td>ページ読み込み時間</td>
+            <td>3秒 / 5秒</td>
+            <td>5分</td>
+        </tr>
+        <tr>
+            <td>ページロード</td>
+            <td>First Contentful Paint</td>
+            <td>1.5秒 / 3秒</td>
+            <td>5分</td>
+        </tr>
+        <tr>
+            <td>UI操作</td>
+            <td>UI応答時間</td>
+            <td>500ms / 1秒</td>
+            <td>5分</td>
+        </tr>
+        <tr>
+            <td>エラー</td>
+            <td>JSエラー発生率</td>
+            <td>1% / 5%</td>
+            <td>5分</td>
+        </tr>
+        <tr>
+            <td>ユーザーフロー</td>
+            <td>主要業務フロー完了率</td>
+            <td>95% / 90%</td>
+            <td>1時間</td>
+        </tr>
+        <tr>
+            <td>セッション</td>
+            <td>セッション異常終了率</td>
+            <td>10% / 20%</td>
+            <td>15分</td>
+        </tr>
+    </table>
+
+    <h3>13.4 監視アーキテクチャ</h3>
+    <p>システム監視のためのアーキテクチャを以下のように定義する。</p>
+
+    <div class="container">
+        <div class="image-placeholder">
+            [監視アーキテクチャ図]<br>
+            ここに監視アーキテクチャ図を挿入
+        </div>
+    </div>
+
+    <h4>13.4.1 監視コンポーネント構成</h4>
+    <table>
+        <tr>
+            <th>コンポーネント</th>
+            <th>役割</th>
+            <th>製品選定</th>
+        </tr>
+        <tr>
+            <td>メトリクス収集</td>
+            <td>各種指標データの収集</td>
+            <td>Prometheus、Telegraf</td>
+        </tr>
+        <tr>
+            <td>メトリクスストレージ</td>
+            <td>時系列データの永続化</td>
+            <td>Prometheus TSDB、InfluxDB</td>
+        </tr>
+        <tr>
+            <td>可視化</td>
+            <td>メトリクスのダッシュボード表示</td>
+            <td>Grafana</td>
+        </tr>
+        <tr>
+            <td>アラート生成</td>
+            <td>閾値超過時のアラート発生</td>
+            <td>Prometheus Alertmanager</td>
+        </tr>
+        <tr>
+            <td>通知</td>
+            <td>アラートの通知配信</td>
+            <td>Slack、メール、OpsGenie</td>
+        </tr>
+        <tr>
+            <td>サービス監視</td>
+            <td>外部からのサービス可用性チェック</td>
+            <td>Blackbox Exporter、Synthetic Monitoring</td>
+        </tr>
+        <tr>
+            <td>ログ連携</td>
+            <td>ログとメトリクスの統合分析</td>
+            <td>Loki、Elasticsearch</td>
+        </tr>
+        <tr>
+            <td>トレース連携</td>
+            <td>分散トレースとの連携</td>
+            <td>Jaeger、Zipkin</td>
+        </tr>
+    </table>
+
+    <h4>13.4.2 データフロー</h4>
+    <ol>
+        <li>Prometheusが各種Exporterからメトリクスをスクレイプ</li>
+        <li>アプリケーションが/actuator/prometheusエンドポイントでメトリクスを公開</li>
+        <li>Prometheusがメトリクスをローカルストレージに保存</li>
+        <li>長期保存用メトリクスは外部ストレージに転送</li>
+        <li>Grafanaが各種データソースからデータを取得し可視化</li>
+        <li>Alertmanagerがアラートルールに基づきアラートを生成</li>
+        <li>アラートはSilence/Inhibitなどのフィルタリングを経て通知</li>
+    </ol>
+
+    <h3>13.5 アラート設計</h3>
+    <p>アラートの分類と通知先を以下のように定義する。</p>
+
+    <h4>13.5.1 アラート重要度</h4>
+    <table>
+        <tr>
+            <th>重要度</th>
+            <th>定義</th>
+            <th>対応時間</th>
+            <th>通知方法</th>
+        </tr>
+        <tr>
+            <td>Critical</td>
+            <td>サービスが停止しているか、重大な機能障害が発生している</td>
+            <td>即時（24時間365日）</td>
+            <td>電話、SMS、Slack、メール</td>
+        </tr>
+        <tr>
+            <td>High</td>
+            <td>サービスに一部影響があるか、放置すると重大な問題になる恐れがある</td>
+            <td>30分以内（営業時間）、2時間以内（営業時間外）</td>
+            <td>SMS、Slack、メール</td>
+        </tr>
+        <tr>
+            <td>Medium</td>
+            <td>サービスへの影響は限定的だが、対応が必要な問題</td>
+            <td>営業時間内に対応</td>
+            <td>Slack、メール</td>
+        </tr>
+        <tr>
+            <td>Low</td>
+            <td>サービスへの直接的な影響はないが、調査が必要な事象</td>
+            <td>翌営業日以降に対応</td>
+            <td>Slack、メール</td>
+        </tr>
+        <tr>
+            <td>Info</td>
+            <td>情報提供のみ、即時対応不要</td>
+            <td>対応不要</td>
+            <td>ダッシュボード、ログ</td>
+        </tr>
+    </table>
+
+    <h4>13.5.2 アラートルール設計</h4>
+    <p>アラートルールの例：</p>
+    <pre>
+    # CPU使用率の高負荷アラート
+    alert: HighCpuLoad
+    expr: 100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 90
+    for: 5m
+    labels:
+      severity: high
+    annotations:
+      summary: "High CPU load (instance {{ $labels.instance }})"
+      description: "CPU load is > 90%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+    # APIエラー率アラート
+    alert: HighApiErrorRate
+    expr: sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) / sum(rate(http_server_requests_seconds_count[5m])) > 0.05
+    for: 2m
+    labels:
+      severity: high
+    annotations:
+      summary: "High API error rate"
+      description: "Error rate is > 5% (current value: {{ $value | humanizePercentage }})"
+    </pre>
+
+    <h4>13.5.3 アラート抑制とグルーピング</h4>
+    <p>アラートの効率的な管理のため、以下の抑制・グルーピングルールを設定する：</p>
+    <ul>
+        <li><strong>抑制</strong>: ノード障害発生時に、そのノード上のサービス個別アラートを抑制</li>
+        <li><strong>抑制</strong>: ネットワーク障害発生時に、関連サービスの接続エラーアラートを抑制</li>
+        <li><strong>グルーピング</strong>: 同一サービスの複数インスタンスのアラートをグループ化</li>
+        <li><strong>グルーピング</strong>: 同一原因と推測される複数種類のアラートをグループ化</li>
+        <li><strong>静寂化</strong>: 計画メンテナンス時に特定アラートを一時的に無効化</li>
+    </ul>
+
+    <h3>13.6 ダッシュボード設計</h3>
+    <p>監視ダッシュボードを以下のように構成する。</p>
+
+    <h4>13.6.1 ダッシュボード階層</h4>
+    <ol>
+        <li><strong>トップレベルダッシュボード</strong>: 全体状況の俯瞰
+            <ul>
+                <li>システム全体のヘルスステータス</li>
+                <li>主要サービスの可用性</li>
+                <li>アクティブアラートのサマリー</li>
+                <li>ビジネスKPIの概要</li>
+            </ul>
+        </li>
+        <li><strong>サービス別ダッシュボード</strong>: 各サービスの詳細監視
+            <ul>
+                <li>サービスの健全性指標</li>
+                <li>リソース使用状況</li>
+                <li>エラー率と応答時間</li>
+                <li>依存サービス連携状況</li>
+            </ul>
+        </li>
+        <li><strong>インフラダッシュボード</strong>: インフラ状況の監視
+            <ul>
+                <li>ノード状態とリソース使用率</li>
+                <li>データベースパフォーマンス</li>
+                <li>ネットワーク状態</li>
+                <li>ストレージ使用状況</li>
+            </ul>
+        </li>
+        <li><strong>ビジネスダッシュボード</strong>: 業務指標の監視
+            <ul>
+                <li>契約状況</li>
+                <li>マッチング効率</li>
+                <li>請求・支払処理状況</li>
+                <li>技術者稼働状況</li>
+            </ul>
+        </li>
+        <li><strong>トラブルシューティングダッシュボード</strong>: 障害調査用
+            <ul>
+                <li>詳細なアプリケーションメトリクス</li>
+                <li>JVMと言語ランタイムの状態</li>
+                <li>スロークエリと高負荷エンドポイント</li>
+                <li>ログとトレースへの連携</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h4>13.6.2 ユーザーロールに応じたダッシュボード</h4>
+    <table>
+        <tr>
+            <th>ユーザーロール</th>
+            <th>主な関心事</th>
+            <th>ダッシュボード内容</th>
+        </tr>
+        <tr>
+            <td>運用管理者</td>
+            <td>システム全体の健全性、アラート状況</td>
+            <td>全体状況、アラート一覧、リソース使用状況</td>
+        </tr>
+        <tr>
+            <td>システム管理者</td>
+            <td>インフラと技術的詳細</td>
+            <td>詳細なリソースメトリクス、セキュリティ状態、パフォーマンス指標</td>
+        </tr>
+        <tr>
+            <td>開発者</td>
+            <td>アプリケーションの状態と性能</td>
+            <td>API性能、エラー率、JVMメトリクス、依存サービス連携状況</td>
+        </tr>
+        <tr>
+            <td>業務管理者</td>
+            <td>業務KPIと利用状況</td>
+            <td>ユーザー活動、業務処理効率、契約状況、マッチング状況</td>
+        </tr>
+        <tr>
+            <td>経営層</td>
+            <td>ビジネスパフォーマンス</td>
+            <td>サービスレベル達成状況、重要KPI、トレンド分析</td>
+        </tr>
+    </table>
+
+    <h3>13.7 監視運用</h3>
+    <p>監視システムの運用方針を以下に示す。</p>
+
+    <h4>13.7.1 監視設定管理</h4>
+    <ul>
+        <li><strong>構成管理</strong>: 監視設定をコード化し、バージョン管理システムで管理</li>
+        <li><strong>CI/CD連携</strong>: アプリケーションデプロイ時に監視設定も自動更新</li>
+        <li><strong>テスト</strong>: アラートルールのテストを自動化し、誤検知を防止</li>
+        <li><strong>ドキュメント化</strong>: 各アラートの意味と対応方法をドキュメント化</li>
+        <li><strong>定期レビュー</strong>: 監視設定の有効性を定期的にレビューし最適化</li>
+    </ul>
+
+    <h4>13.7.2 インシデント対応</h4>
+    <p>監視アラートに基づくインシデント対応フローを以下のように定義する：</p>
+    <ol>
+        <li><strong>検知</strong>: 監視システムがアラート条件を検知</li>
+        <li><strong>通知</strong>: 重要度に応じた通知先へアラート送信</li>
+        <li><strong>トリアージ</strong>: オンコール担当者がアラートの緊急度と影響範囲を評価</li>
+        <li><strong>エスカレーション</strong>: 必要に応じて適切な専門家へエスカレーション</li>
+        <li><strong>対応</strong>: インシデント対応手順に従い問題を解決</li>
+        <li><strong>解決</strong>: 問題解決後、アラートをクローズ</li>
+        <li><strong>事後分析</strong>: インシデントの根本原因分析と再発防止策の検討</li>
+        <li><strong>改善</strong>: 監視ルールとアラート設定の見直し</li>
+    </ol>
+
+    <h4>13.7.3 キャパシティプランニング</h4>
+    <p>監視データを活用したキャパシティプランニングを実施する。</p>
+    <ul>
+        <li><strong>トレンド分析</strong>: リソース使用量の長期トレンドを分析し、将来予測を行う</li>
+        <li><strong>季節変動対応</strong>: 繁忙期に備えたリソース計画を立案</li>
+        <li><strong>ボトルネック特定</strong>: パフォーマンス測定により拡張が必要なコンポーネントを特定</li>
+        <li><strong>スケール計画</strong>: 段階的なスケールアップ/アウト計画の立案</li>
+        <li><strong>コスト最適化</strong>: 使用率データに基づくリソース最適化</li>
+    </ul>
+
+    <h3>13.8 SLI/SLO設計</h3>
+    <p>主要なサービスレベル指標（SLI）とサービスレベル目標（SLO）を定義する。</p>
+
+    <h4>13.8.1 SLI定義</h4>
+    <table>
+        <tr>
+            <th>SLI</th>
+            <th>測定方法</th>
+            <th>測定ポイント</th>
+        </tr>
+        <tr>
+            <td>可用性</td>
+            <td>成功リクエスト数 / 全リクエスト数</td>
+            <td>API Gateway</td>
+        </tr>
+        <tr>
+            <td>レイテンシ</td>
+            <td>レスポンス時間の90パーセンタイル</td>
+            <td>各サービスエンドポイント</td>
+        </tr>
+        <tr>
+            <td>エラー率</td>
+            <td>エラーレスポンス数 / 全リクエスト数</td>
+            <td>各サービスエンドポイント</td>
+        </tr>
+        <tr>
+            <td>処理能力</td>
+            <td>単位時間あたりの処理リクエスト数</td>
+            <td>アプリケーションサービス</td>
+        </tr>
+        <tr>
+            <td>データ新鮮度</td>
+            <td>最終データ更新からの経過時間</td>
+            <td>データ分析サービス</td>
+        </tr>
+    </table>
+
+    <h4>13.8.2 SLO定義</h4>
+    <table>
+        <tr>
+            <th>サービス</th>
+            <th>SLI</th>
+            <th>SLO</th>
+            <th>測定期間</th>
+            <th>エラーバジェット</th>
+        </tr>
+        <tr>
+            <td rowspan="3">API Gateway</td>
+            <td>可用性</td>
+            <td>99.9%</td>
+            <td>月次</td>
+            <td>43分/月</td>
+        </tr>
+        <tr>
+            <td>レイテンシ</td>
+            <td>95%のリクエストが200ms以内</td>
+            <td>日次</td>
+            <td>5%のリクエスト</td>
+        </tr>
+        <tr>
+            <td>エラー率</td>
+            <td>0.5%未満</td>
+            <td>日次</td>
+            <td>0.5%のリクエスト</td>
+        </tr>
+        <tr>
+            <td rowspan="2">契約管理サービス</td>
+            <td>可用性</td>
+            <td>99.5%</td>
+            <td>月次</td>
+            <td>3.6時間/月</td>
+        </tr>
+        <tr>
+            <td>契約処理時間</td>
+            <td>90%の処理が5秒以内</td>
+            <td>日次</td>
+            <td>10%の処理</td>
+        </tr>
+        <tr>
+            <td rowspan="2">マッチングエンジン</td>
+            <td>バッチ処理成功率</td>
+            <td>99%</td>
+            <td>週次</td>
+            <td>1回/週</td>
+        </tr>
+        <tr>
+            <td>処理時間</td>
+            <td>95%の処理が30分以内</td>
+            <td>週次</td>
+            <td>5%の処理</td>
+        </tr>
+        <tr>
+            <td rowspan="2">勤怠工数システム</td>
+            <td>可用性</td>
+            <td>99.5%（営業時間内）</td>
+            <td>月次</td>
+            <td>3.6時間/月</td>
+        </tr>
+        <tr>
+            <td>データ保存時間</td>
+            <td>95%の保存が2秒以内</td>
+            <td>日次</td>
+            <td>5%の処理</td>
+        </tr>
+    </table>
+
+    <h4>13.8.3 SLO監視とレポート</h4>
+    <ul>
+        <li><strong>リアルタイム監視</strong>: SLI指標のリアルタイム監視とアラート設定</li>
+        <li><strong>エラーバジェット消費</strong>: エラーバジェット消費率の可視化</li>
+        <li><strong>傾向分析</strong>: SLI指標の経時変化と傾向分析</li>
+        <li><strong>定期レポート</strong>: SLO達成状況の定期レポート（日次/週次/月次）</li>
+        <li><strong>改善計画</strong>: SLO未達時の改善計画立案と実施</li>
+    </ul>
 
     <h2 id="migration">14. 移行設計</h2>
     <p class="todo">TODO: 移行設計の詳細を記述する。</p>
