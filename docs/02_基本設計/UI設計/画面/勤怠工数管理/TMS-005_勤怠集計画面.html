@@ -3,44 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>勤怠集計画面 | 勤怠・工数管理</title>
+    <title>SES業務システム 勤怠集計画面</title>
+    <!-- モックアップビューワー用のCSS -->
     <link rel="stylesheet" href="../../css/mockup-viewer.css">
-    <script src="../../js/mockup-viewer.js" defer></script>
     <style>
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
             line-height: 1.6;
             color: #333;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f9f9f9;
         }
-        h1, h2, h3, h4 {
+        h1, h2, h3, h4, h5, h6 {
             color: #2c3e50;
-            margin-top: 30px;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
         }
         h1 {
+            font-size: 28px;
             text-align: center;
-            padding-bottom: 20px;
+            margin-top: 1em;
             border-bottom: 2px solid #3498db;
-            margin-bottom: 30px;
+            padding-bottom: 10px;
         }
-        .section {
-            background-color: white;
-            border-radius: 5px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
         }
         table {
-            width: 100%;
             border-collapse: collapse;
+            width: 100%;
             margin-bottom: 20px;
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 10px;
+            padding: 8px 12px;
             text-align: left;
         }
         th {
@@ -48,556 +58,526 @@
             font-weight: bold;
         }
         tr:nth-child(even) {
-            background-color: #f9f9f9;
+            background-color: #f8f9fa;
         }
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-        .screen-info {
-            display: flex;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        .screen-info div {
-            flex: 1;
-            min-width: 200px;
-            margin-bottom: 10px;
-        }
-        .screen-info .label {
-            font-weight: bold;
-            color: #7f8c8d;
-            margin-right: 8px;
-        }
-        .mockup-viewer-container {
+        .wireframe {
             border: 1px solid #ddd;
-            border-radius: 5px;
             padding: 20px;
-            text-align: center;
-            background-color: #f5f5f5;
-            margin-bottom: 20px;
-            min-height: 600px;
-        }
-        .wireframe p {
-            color: #7f8c8d;
-            font-style: italic;
-        }
-        .nav-links {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-        a {
-            text-decoration: none;
-            color: #3498db;
-            font-weight: bold;
-        }
-        a:hover {
-            text-decoration: underline;
-            color: #2980b9;
-        }
-        .notes {
-            background-color: #fff9e6;
-            border-left: 4px solid #f1c40f;
-            padding: 15px;
             margin: 20px 0;
-        }
-        .notes h3 {
-            color: #f39c12;
-            margin-top: 0;
-        }
-        footer {
+            background-color: #f9f9f9;
             text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
             margin-top: 50px;
             padding-top: 20px;
             border-top: 1px solid #eee;
-            color: #7f8c8d;
-            font-size: 0.9em;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
         }
-        .req-label {
-            display: inline-block;
-            padding: 2px 6px;
-            margin-left: 5px;
-            font-size: 0.7em;
-            border-radius: 3px;
-            vertical-align: middle;
-        }
-        .required {
-            background-color: #e74c3c;
-            color: white;
-        }
-        .optional {
-            background-color: #95a5a6;
-            color: white;
-        }
-        .chart-container {
-            width: 100%;
-            min-height: 300px;
-            border: 1px solid #ddd;
-            background-color: #f9f9f9;
-            border-radius: 4px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .chart-container p {
-            color: #7f8c8d;
-            font-style: italic;
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
         }
         .breadcrumb {
-            padding: 10px 0;
-            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
             list-style: none;
-            background-color: transparent;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
             border-radius: 4px;
         }
         .breadcrumb li {
-            display: inline-block;
-        }
-        .breadcrumb li + li:before {
-            padding: 0 5px;
-            color: #ccc;
-            content: "/\00a0";
+            display: flex;
+            align-items: center;
         }
         .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
+        }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
             color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
         }
     </style>
 </head>
 <body>
-    <!-- パンくずリスト -->
-    <ul class="breadcrumb">
-        <li><a href="../../index.html">ホーム</a></li>
-        <li><a href="../勤怠工数管理画面設計.html">勤怠工数管理</a></li>
-        <li class="active">勤怠集計画面</li>
-    </ul>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../勤怠工数管理画面設計.html">勤怠工数管理画面設計</a></li>
+            <li class="active">勤怠集計画面</li>
+        </ul>
+    </nav>
+
+    <h1>TMS-005: 勤怠集計画面</h1>
     
-    <h1>勤怠集計画面</h1>
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>TMS-005</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>勤怠集計画面</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>組織全体または特定の部門・グループの勤怠データを様々な切り口で集計・分析し、視覚的に表示するための画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>管理者、部門マネージャー、経営層</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>ダッシュボード(CMN-002)、勤怠管理画面(TMS-003)</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>勤怠詳細画面、レポート出力画面、工数集計画面(TMS-006)</td>
+        </tr>
+    </table>
 
-    <div class="section">
-        <h2>画面概要</h2>
-        <div class="screen-info">
-            <div><span class="label">画面ID:</span> TMS-005</div>
-            <div><span class="label">画面名:</span> 勤怠集計画面</div>
-            <div><span class="label">対象ユーザー:</span> 管理者、部門マネージャー、経営層</div>
-            <div><span class="label">前画面:</span> ダッシュボード、勤怠管理画面（TMS-003）</div>
-            <div><span class="label">次画面:</span> 勤怠詳細画面、レポート出力画面</div>
-        </div>
-        <p>
-            勤怠集計画面は、組織全体または特定の部門・グループの勤怠データを様々な切り口で集計・分析し、
-            視覚的に表示するための画面です。出勤率、残業時間、休暇取得状況などの指標を集計し、
-            期間比較や部門間比較を行うことができます。また、傾向分析やアラート検出により、
-            労務管理上の課題を早期に発見し、適切な対応を促すためのツールとしても機能します。
-        </p>
+    <h2>画面レイアウト</h2>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="attendance-summary-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
-    <div class="section">
-        <h2>画面レイアウト</h2>
-        <!-- モックアップビューワーのコンテナ -->
-        <div id="attendance-summary-mockup" class="mockup-viewer-container">
-            <!-- モックアップビューワーがここに表示されます -->
-        </div>
-        <p>
-            画面は主に以下の4つのエリアで構成されます：
-        </p>
-        <ol>
-            <li><strong>集計条件部分</strong>：期間選択、集計対象（組織、部門など）、集計軸の設定</li>
-            <li><strong>サマリー指標部分</strong>：主要KPIのカード表示（出勤率、平均残業時間、有給取得率など）</li>
-            <li><strong>グラフ・チャート部分</strong>：選択した指標や軸に基づくグラフィカルな表示（棒グラフ、折れ線グラフなど）</li>
-            <li><strong>詳細データ部分</strong>：集計データの詳細テーブル表示、ソート・フィルタ機能付き</li>
-        </ol>
-    </div>
+    <h2>画面構成要素</h2>
+    <h3>1. 集計条件部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>tms_sum_001</td>
+            <td>期間タイプ</td>
+            <td>ラジオボタン</td>
+            <td>月次/四半期/年次/カスタム</td>
+            <td>必須</td>
+            <td>集計期間の種類を選択</td>
+        </tr>
+        <tr>
+            <td>tms_sum_002</td>
+            <td>期間選択（開始）</td>
+            <td>日付選択</td>
+            <td>過去24ヶ月～当月</td>
+            <td>必須</td>
+            <td>集計の開始期間</td>
+        </tr>
+        <tr>
+            <td>tms_sum_003</td>
+            <td>期間選択（終了）</td>
+            <td>日付選択</td>
+            <td>過去24ヶ月～当月</td>
+            <td>必須</td>
+            <td>集計の終了期間</td>
+        </tr>
+        <tr>
+            <td>tms_sum_004</td>
+            <td>比較期間チェック</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>任意</td>
+            <td>期間比較を行うか</td>
+        </tr>
+        <tr>
+            <td>tms_sum_005</td>
+            <td>比較期間選択</td>
+            <td>ドロップダウン</td>
+            <td>前年同期/前期/カスタム</td>
+            <td>任意</td>
+            <td>比較する期間の種類</td>
+        </tr>
+        <tr>
+            <td>tms_sum_006</td>
+            <td>組織レベル</td>
+            <td>ドロップダウン</td>
+            <td>全社/部門/グループ/個人</td>
+            <td>必須</td>
+            <td>集計の組織レベル</td>
+        </tr>
+        <tr>
+            <td>tms_sum_007</td>
+            <td>組織選択</td>
+            <td>ツリー選択</td>
+            <td>-</td>
+            <td>任意</td>
+            <td>特定の組織単位を選択（複数選択可）</td>
+        </tr>
+        <tr>
+            <td>tms_sum_008</td>
+            <td>集計軸選択</td>
+            <td>ドロップダウン（複数選択）</td>
+            <td>-</td>
+            <td>必須</td>
+            <td>集計の軸（部門別/役職別/年代別など）</td>
+        </tr>
+        <tr>
+            <td>tms_sum_009</td>
+            <td>集計ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>条件に基づいて集計実行</td>
+        </tr>
+        <tr>
+            <td>tms_sum_010</td>
+            <td>クリアボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>条件をクリア</td>
+        </tr>
+        <tr>
+            <td>tms_sum_011</td>
+            <td>レポート保存ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>現在の集計条件をレポートとして保存</td>
+        </tr>
+    </table>
 
-    <div class="section">
-        <h2>画面項目定義</h2>
-        
-        <h3>1. 集計条件部分</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>項目ID</th>
-                    <th>項目名</th>
-                    <th>種類</th>
-                    <th>入力制限</th>
-                    <th>必須</th>
-                    <th>説明</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>tms_sum_001</td>
-                    <td>期間タイプ</td>
-                    <td>ラジオボタン</td>
-                    <td>月次/四半期/年次/カスタム</td>
-                    <td><span class="req-label required">必須</span></td>
-                    <td>集計期間の種類を選択</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_002</td>
-                    <td>期間選択（開始）</td>
-                    <td>日付選択</td>
-                    <td>過去24ヶ月～当月</td>
-                    <td><span class="req-label required">必須</span></td>
-                    <td>集計の開始期間</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_003</td>
-                    <td>期間選択（終了）</td>
-                    <td>日付選択</td>
-                    <td>過去24ヶ月～当月</td>
-                    <td><span class="req-label required">必須</span></td>
-                    <td>集計の終了期間</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_004</td>
-                    <td>比較期間チェック</td>
-                    <td>チェックボックス</td>
-                    <td>-</td>
-                    <td><span class="req-label optional">任意</span></td>
-                    <td>期間比較を行うか</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_005</td>
-                    <td>比較期間選択</td>
-                    <td>ドロップダウン</td>
-                    <td>前年同期/前期/カスタム</td>
-                    <td><span class="req-label optional">任意</span></td>
-                    <td>比較する期間の種類</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_006</td>
-                    <td>組織レベル</td>
-                    <td>ドロップダウン</td>
-                    <td>全社/部門/グループ/個人</td>
-                    <td><span class="req-label required">必須</span></td>
-                    <td>集計の組織レベル</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_007</td>
-                    <td>組織選択</td>
-                    <td>ツリー選択</td>
-                    <td>-</td>
-                    <td><span class="req-label optional">任意</span></td>
-                    <td>特定の組織単位を選択（複数選択可）</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_008</td>
-                    <td>集計軸選択</td>
-                    <td>ドロップダウン（複数選択）</td>
-                    <td>-</td>
-                    <td><span class="req-label required">必須</span></td>
-                    <td>集計の軸（部門別/役職別/年代別など）</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_009</td>
-                    <td>集計ボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>条件に基づいて集計実行</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_010</td>
-                    <td>クリアボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>条件をクリア</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_011</td>
-                    <td>レポート保存ボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>現在の集計条件をレポートとして保存</td>
-                </tr>
-            </tbody>
-        </table>
+    <h3>2. サマリー指標部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>tms_sum_012</td>
+            <td>平均出勤率</td>
+            <td>メトリクスカード</td>
+            <td>-</td>
+            <td>-</td>
+            <td>期間内の平均出勤率と前期比</td>
+        </tr>
+        <tr>
+            <td>tms_sum_013</td>
+            <td>平均残業時間</td>
+            <td>メトリクスカード</td>
+            <td>-</td>
+            <td>-</td>
+            <td>期間内の平均残業時間と前期比</td>
+        </tr>
+        <tr>
+            <td>tms_sum_014</td>
+            <td>有給休暇取得率</td>
+            <td>メトリクスカード</td>
+            <td>-</td>
+            <td>-</td>
+            <td>期間内の有給休暇取得率と前期比</td>
+        </tr>
+        <tr>
+            <td>tms_sum_015</td>
+            <td>平均稼働率</td>
+            <td>メトリクスカード</td>
+            <td>-</td>
+            <td>-</td>
+            <td>期間内の平均稼働率と前期比</td>
+        </tr>
+        <tr>
+            <td>tms_sum_016</td>
+            <td>深夜・休日勤務率</td>
+            <td>メトリクスカード</td>
+            <td>-</td>
+            <td>-</td>
+            <td>期間内の深夜・休日勤務の割合と前期比</td>
+        </tr>
+        <tr>
+            <td>tms_sum_017</td>
+            <td>欠勤率</td>
+            <td>メトリクスカード</td>
+            <td>-</td>
+            <td>-</td>
+            <td>期間内の欠勤率と前期比</td>
+        </tr>
+        <tr>
+            <td>tms_sum_018</td>
+            <td>カスタム指標表示</td>
+            <td>メトリクスカード</td>
+            <td>-</td>
+            <td>-</td>
+            <td>ユーザー定義の指標表示（設定可能）</td>
+        </tr>
+    </table>
 
-        <h3>2. サマリー指標部分</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>項目ID</th>
-                    <th>項目名</th>
-                    <th>種類</th>
-                    <th>入力制限</th>
-                    <th>必須</th>
-                    <th>説明</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>tms_sum_012</td>
-                    <td>平均出勤率</td>
-                    <td>メトリクスカード</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>期間内の平均出勤率と前期比</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_013</td>
-                    <td>平均残業時間</td>
-                    <td>メトリクスカード</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>期間内の平均残業時間と前期比</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_014</td>
-                    <td>有給休暇取得率</td>
-                    <td>メトリクスカード</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>期間内の有給休暇取得率と前期比</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_015</td>
-                    <td>平均稼働率</td>
-                    <td>メトリクスカード</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>期間内の平均稼働率と前期比</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_016</td>
-                    <td>深夜・休日勤務率</td>
-                    <td>メトリクスカード</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>期間内の深夜・休日勤務の割合と前期比</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_017</td>
-                    <td>欠勤率</td>
-                    <td>メトリクスカード</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>期間内の欠勤率と前期比</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_018</td>
-                    <td>カスタム指標表示</td>
-                    <td>メトリクスカード</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>ユーザー定義の指標表示（設定可能）</td>
-                </tr>
-            </tbody>
-        </table>
+    <h3>3. グラフ・チャート部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>tms_sum_019</td>
+            <td>主要グラフ表示</td>
+            <td>グラフ</td>
+            <td>-</td>
+            <td>-</td>
+            <td>選択した指標の主要グラフ表示</td>
+        </tr>
+        <tr>
+            <td>tms_sum_020</td>
+            <td>グラフタイプ選択</td>
+            <td>ドロップダウン</td>
+            <td>棒/折れ線/円/散布図など</td>
+            <td>任意</td>
+            <td>グラフの種類を選択</td>
+        </tr>
+        <tr>
+            <td>tms_sum_021</td>
+            <td>表示指標選択</td>
+            <td>ドロップダウン（複数選択）</td>
+            <td>-</td>
+            <td>任意</td>
+            <td>グラフに表示する指標を選択</td>
+        </tr>
+        <tr>
+            <td>tms_sum_022</td>
+            <td>期間トレンドグラフ</td>
+            <td>折れ線グラフ</td>
+            <td>-</td>
+            <td>-</td>
+            <td>期間ごとの指標推移を表示</td>
+        </tr>
+        <tr>
+            <td>tms_sum_023</td>
+            <td>組織比較グラフ</td>
+            <td>棒グラフ/レーダーチャート</td>
+            <td>-</td>
+            <td>-</td>
+            <td>組織間の指標比較を表示</td>
+        </tr>
+        <tr>
+            <td>tms_sum_024</td>
+            <td>残業時間分布</td>
+            <td>ヒストグラム</td>
+            <td>-</td>
+            <td>-</td>
+            <td>残業時間の分布を表示</td>
+        </tr>
+        <tr>
+            <td>tms_sum_025</td>
+            <td>グラフダウンロード</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>グラフを画像としてダウンロード</td>
+        </tr>
+        <tr>
+            <td>tms_sum_026</td>
+            <td>グラフ拡大表示</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>グラフをポップアップで拡大表示</td>
+        </tr>
+    </table>
 
-        <h3>3. グラフ・チャート部分</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>項目ID</th>
-                    <th>項目名</th>
-                    <th>種類</th>
-                    <th>入力制限</th>
-                    <th>必須</th>
-                    <th>説明</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>tms_sum_019</td>
-                    <td>主要グラフ表示</td>
-                    <td>グラフ</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>選択した指標の主要グラフ表示</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_020</td>
-                    <td>グラフタイプ選択</td>
-                    <td>ドロップダウン</td>
-                    <td>棒/折れ線/円/散布図など</td>
-                    <td><span class="req-label optional">任意</span></td>
-                    <td>グラフの種類を選択</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_021</td>
-                    <td>表示指標選択</td>
-                    <td>ドロップダウン（複数選択）</td>
-                    <td>-</td>
-                    <td><span class="req-label optional">任意</span></td>
-                    <td>グラフに表示する指標を選択</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_022</td>
-                    <td>期間トレンドグラフ</td>
-                    <td>折れ線グラフ</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>期間ごとの指標推移を表示</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_023</td>
-                    <td>組織比較グラフ</td>
-                    <td>棒グラフ/レーダーチャート</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>組織間の指標比較を表示</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_024</td>
-                    <td>残業時間分布</td>
-                    <td>ヒストグラム</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>残業時間の分布を表示</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_025</td>
-                    <td>グラフダウンロード</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>グラフを画像としてダウンロード</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_026</td>
-                    <td>グラフ拡大表示</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>グラフをポップアップで拡大表示</td>
-                </tr>
-            </tbody>
-        </table>
+    <h3>4. 詳細データ部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>tms_sum_027</td>
+            <td>データテーブル表示</td>
+            <td>テーブル</td>
+            <td>-</td>
+            <td>-</td>
+            <td>集計結果の詳細データを表形式で表示</td>
+        </tr>
+        <tr>
+            <td>tms_sum_028</td>
+            <td>ソート機能</td>
+            <td>クリック操作</td>
+            <td>-</td>
+            <td>-</td>
+            <td>列ヘッダーのクリックでソート</td>
+        </tr>
+        <tr>
+            <td>tms_sum_029</td>
+            <td>フィルタ機能</td>
+            <td>フィルタUI</td>
+            <td>-</td>
+            <td>-</td>
+            <td>列ごとのフィルタリング</td>
+        </tr>
+        <tr>
+            <td>tms_sum_030</td>
+            <td>ページネーション</td>
+            <td>ページ切替UI</td>
+            <td>-</td>
+            <td>-</td>
+            <td>大量データの場合のページ切替</td>
+        </tr>
+        <tr>
+            <td>tms_sum_031</td>
+            <td>データエクスポート</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>テーブルデータをCSV/Excelでエクスポート</td>
+        </tr>
+        <tr>
+            <td>tms_sum_032</td>
+            <td>詳細データリンク</td>
+            <td>リンク</td>
+            <td>-</td>
+            <td>-</td>
+            <td>各行のデータ詳細へのリンク</td>
+        </tr>
+        <tr>
+            <td>tms_sum_033</td>
+            <td>異常値ハイライト</td>
+            <td>スタイル</td>
+            <td>-</td>
+            <td>-</td>
+            <td>基準から大きく逸脱した値を色付け</td>
+        </tr>
+    </table>
 
-        <div class="chart-container">
-            <p>[集計データのグラフ表示位置：折れ線グラフ、棒グラフ、円グラフなどが表示される]</p>
-        </div>
+    <h2>画面動作仕様</h2>
+    <ol>
+        <li>初期表示時
+            <ul>
+                <li>初期表示時は現在の月を含む四半期を期間として表示</li>
+                <li>ログインユーザーの権限に応じた組織レベルをデフォルト選択（部門長なら部門レベル、管理者なら全社レベルなど）</li>
+                <li>主要な勤怠指標（出勤率、残業時間、有給取得率など）のサマリー表示</li>
+                <li>期間内の主要指標の推移を折れ線グラフで表示</li>
+                <li>詳細データは集計レベルに応じて表示（部門レベルなら部門ごとのデータなど）</li>
+            </ul>
+        </li>
+        <li>集計条件変更時
+            <ul>
+                <li>期間タイプを変更すると、該当する期間選択UIに切り替わる（月次なら月選択、四半期なら四半期選択など）</li>
+                <li>期間を変更すると、該当期間のデータを再集計</li>
+                <li>比較期間チェックをONにすると、比較期間選択UIが有効化</li>
+                <li>組織レベルを変更すると、集計粒度とデータ表示が変更される</li>
+                <li>集計軸を変更すると、グラフと詳細テーブルの表示が更新される</li>
+                <li>集計ボタンをクリックすると、選択した条件でデータを再集計し、全ての表示を更新</li>
+            </ul>
+        </li>
+        <li>グラフ・チャート操作
+            <ul>
+                <li>グラフタイプを変更すると、同じデータを選択したグラフ形式で再表示</li>
+                <li>表示指標を変更すると、選択した指標のみをグラフに表示</li>
+                <li>グラフの凡例クリックで、該当データの表示/非表示を切替</li>
+                <li>グラフ上のデータポイントにマウスオーバーすると、詳細値をポップアップ表示</li>
+                <li>グラフ拡大表示ボタンをクリックすると、グラフをモーダルウィンドウで拡大表示</li>
+                <li>グラフダウンロードボタンをクリックすると、現在表示中のグラフをPNG/JPG/PDFでダウンロード</li>
+            </ul>
+        </li>
+        <li>詳細データ操作
+            <ul>
+                <li>テーブル列ヘッダーをクリックすると、その列でソート（昇順/降順切替）</li>
+                <li>フィルタアイコンをクリックすると、列ごとのフィルタリング条件を設定するUIを表示</li>
+                <li>ページネーション操作で、大量データの場合に別ページのデータを表示</li>
+                <li>データエクスポートボタンをクリックすると、現在のフィルタ条件に基づくデータをCSV/Excel形式でダウンロード</li>
+                <li>データ行のリンクをクリックすると、該当データの詳細画面に遷移（部門行→部門詳細など）</li>
+            </ul>
+        </li>
+        <li>レポート操作
+            <ul>
+                <li>レポート保存ボタンをクリックすると、現在の集計条件と表示設定をレポートとして保存するダイアログを表示</li>
+                <li>保存したレポートは名前を付けて管理し、後で同じ条件での集計を簡単に再実行可能</li>
+                <li>保存レポートリストから選択すると、保存時の条件で集計を実行</li>
+                <li>定期レポート設定により、指定したレポートを定期的に自動生成し、指定ユーザーに配信することも可能</li>
+            </ul>
+        </li>
+    </ol>
 
-        <h3>4. 詳細データ部分</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>項目ID</th>
-                    <th>項目名</th>
-                    <th>種類</th>
-                    <th>入力制限</th>
-                    <th>必須</th>
-                    <th>説明</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>tms_sum_027</td>
-                    <td>データテーブル表示</td>
-                    <td>テーブル</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>集計結果の詳細データを表形式で表示</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_028</td>
-                    <td>ソート機能</td>
-                    <td>クリック操作</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>列ヘッダーのクリックでソート</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_029</td>
-                    <td>フィルタ機能</td>
-                    <td>フィルタUI</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>列ごとのフィルタリング</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_030</td>
-                    <td>ページネーション</td>
-                    <td>ページ切替UI</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>大量データの場合のページ切替</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_031</td>
-                    <td>データエクスポート</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>テーブルデータをCSV/Excelでエクスポート</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_032</td>
-                    <td>詳細データリンク</td>
-                    <td>リンク</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>各行のデータ詳細へのリンク</td>
-                </tr>
-                <tr>
-                    <td>tms_sum_033</td>
-                    <td>異常値ハイライト</td>
-                    <td>スタイル</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>基準から大きく逸脱した値を色付け</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="section">
-        <h2>画面動作仕様</h2>
-
-        <h3>1. 初期表示</h3>
-        <ul>
-            <li>初期表示時は現在の月を含む四半期を期間として表示</li>
-            <li>ログインユーザーの権限に応じた組織レベルをデフォルト選択（部門長なら部門レベル、管理者なら全社レベルなど）</li>
-            <li>主要な勤怠指標（出勤率、残業時間、有給取得率など）のサマリー表示</li>
-            <li>期間内の主要指標の推移を折れ線グラフで表示</li>
-            <li>詳細データは集計レベルに応じて表示（部門レベルなら部門ごとのデータなど）</li>
-        </ul>
-
-        <h3>2. 集計条件変更時</h3>
-        <ul>
-            <li>期間タイプを変更すると、該当する期間選択UIに切り替わる（月次なら月選択、四半期なら四半期選択など）</li>
-            <li>期間を変更すると、該当期間のデータを再集計</li>
-            <li>比較期間チェックをONにすると、比較期間選択UIが有効化</li>
-            <li>組織レベルを変更すると、集計粒度とデータ表示が変更される</li>
-            <li>集計軸を変更すると、グラフと詳細テーブルの表示が更新される</li>
-            <li>集計ボタンをクリックすると、選択した条件でデータを再集計し、全ての表示を更新</li>
-        </ul>
-
-        <h3>3. グラフ・チャート操作</h3>
-        <ul>
-            <li>グラフタイプを変更すると、同じデータを選択したグラフ形式で再表示</li>
-            <li>表示指標を変更すると、選択した指標のみをグラフに表示</li>
-            <li>グラフの凡例クリックで、該当データの表示/非表示を切替</li>
-            <li>グラフ上のデータポイントにマウスオーバーすると、詳細値をポップアップ表示</li>
-            <li>グラフ拡大表示ボタンをクリックすると、グラフをモーダルウィンドウで拡大表示</li>
-            <li>グラフダウンロードボタンをクリックすると、現在表示中のグラフをPNG/JPG/PDFでダウンロード</li>
-        </ul>
-
-        <h3>4. 詳細データ操作</h3>
-        <ul>
-            <li>テーブル列ヘッダーをクリックすると、その列でソート（昇順/降順切替）</li>
-            <li>フィルタアイコンをクリックすると、列ごとのフィルタリング条件を設定するUIを表示</li>
-            <li>ページネーション操作で、大量データの場合に別ページのデータを表示</li>
-            <li>データエクスポートボタンをクリックすると、現在のフィルタ条件に基づくデータをCSV/Excel形式でダウンロード</li>
-            <li>データ行のリンクをクリックすると、該当データの詳細画面に遷移（部門行→部門詳細など）</li>
-        </ul>
-
-        <h3>5. レポート操作</h3>
-        <ul>
-            <li>レポート保存ボタンをクリックすると、現在の集計条件と表示設定をレポートとして保存するダイアログを表示</li>
-            <li>保存したレポートは名前を付けて管理し、後で同じ条件での集計を簡単に再実行可能</li>
-            <li>保存レポートリストから選択すると、保存時の条件で集計を実行</li>
-            <li>定期レポート設定により、指定したレポートを定期的に自動生成し、指定ユーザーに配信することも可能</li>
-        </ul>
-    </div>
-
-    <div class="notes">
-        <h3>特記事項・注意点</h3>
+    <div class="note">
+        <p><strong>注意：</strong>
         <ul>
             <li>大量データの集計処理は時間がかかる場合があるため、処理中はプログレス表示を行う</li>
             <li>集計データは日次でバッチ処理によって事前計算しておくことで、UI操作のレスポンスを向上させる</li>
@@ -605,48 +585,34 @@
             <li>36協定の上限時間に近い従業員を警告表示する機能により、労働時間管理を支援</li>
             <li>CSV/Excelエクスポート時に個人情報保護の観点から出力項目を適切に制限する</li>
             <li>月次、四半期、年次で集計方法や表示する指標が異なる場合があるため、期間タイプに応じた集計ロジックを実装</li>
-            <li>比較データがない期間（事業開始初期など）では、比較表示を適切に処理する</li>
-            <li>集計データにおける0除算やNULLデータは適切に処理し、グラフや表の表示が崩れないようにする</li>
         </ul>
+        </p>
     </div>
 
-    <div class="nav-links">
-        <a href="TMS-004_工数承認画面.html">← 前の画面：工数承認画面</a>
-        <a href="TMS-006_工数集計画面.html">次の画面：工数集計画面 →</a>
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
     </div>
-
-    <footer>
-        <p>SES業務システム 勤怠・工数管理 画面設計書 | 最終更新日: 2025年5月5日</p>
-    </footer>
-
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
     <script>
+        // ページ読み込み後にモックアップビューワーを初期化
         document.addEventListener('DOMContentLoaded', function() {
-            // モックアップビューワーの初期化
-            initMockupViewer('attendance-summary-mockup', 'mockups/TMS-005.html');
+            // モックアップの設定
+            new MockupViewer('attendance-summary-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '600px',
+                mockups: [
+                    {
+                        name: '勤怠集計画面',
+                        path: 'mockups/TMS-005.html',
+                        description: '集計条件選択部分、サマリー指標表示部分、グラフ・チャート表示部分、詳細データ表示部分から構成される画面です。期間や組織単位などの集計条件を設定し、出勤率、残業時間、有給取得率などの指標を様々な切り口で集計・分析できます。グラフやチャートで視覚的に表示し、詳細データはテーブル形式で閲覧・エクスポートが可能です。'
+                    }
+                ]
+            });
         });
-
-        // モックアップビューワー初期化関数
-        function initMockupViewer(containerId, mockupPath) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-
-            const iframe = document.createElement('iframe');
-            iframe.width = '100%';
-            iframe.height = '600px';
-            iframe.style.border = '1px solid #ddd';
-            iframe.src = mockupPath;
-            
-            container.appendChild(iframe);
-            
-            // 説明テキストを追加
-            const description = document.createElement('p');
-            description.textContent = '集計条件選択部分、サマリー指標表示部分、グラフ・チャート表示部分、詳細データ表示部分から構成される画面';
-            description.style.fontStyle = 'italic';
-            description.style.color = '#7f8c8d';
-            description.style.marginTop = '10px';
-            
-            container.appendChild(description);
-        }
     </script>
 </body>
 </html>
