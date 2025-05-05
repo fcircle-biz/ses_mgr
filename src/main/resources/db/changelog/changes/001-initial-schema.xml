@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="001-initial-schema" author="claude">
+        <comment>Create the initial schema for SES Manager application</comment>
+        
+        <!-- UUID Extensions -->
+        <sql>CREATE EXTENSION IF NOT EXISTS "uuid-ossp"</sql>
+        
+        <!-- pgcrypto for password hashing -->
+        <sql>CREATE EXTENSION IF NOT EXISTS pgcrypto</sql>
+        
+        <!-- Update timestamp trigger function -->
+        <createProcedure>
+            CREATE OR REPLACE FUNCTION update_timestamp()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.updated_at = CURRENT_TIMESTAMP;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+        </createProcedure>
+        
+        <!-- Department Table -->
+        <createTable tableName="departments">
+            <column name="department_id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="department_name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="department_code" type="VARCHAR(50)">
+                <constraints unique="true"/>
+            </column>
+            <column name="parent_department_id" type="INTEGER">
+                <constraints foreignKeyName="fk_department_parent" references="departments(department_id)"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <createIndex indexName="idx_departments_parent" tableName="departments">
+            <column name="parent_department_id"/>
+        </createIndex>
+        <createIndex indexName="idx_departments_is_active" tableName="departments">
+            <column name="is_active"/>
+        </createIndex>
+        
+        <!-- User Table -->
+        <createTable tableName="users">
+            <column name="user_id" type="UUID" defaultValueComputed="uuid_generate_v4()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="login_id" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="department_id" type="INTEGER">
+                <constraints foreignKeyName="fk_user_department" references="departments(department_id)"/>
+            </column>
+            <column name="position" type="VARCHAR(255)"/>
+            <column name="phone" type="VARCHAR(255)"/>
+            <column name="password_hash" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mfa_enabled" type="BOOLEAN" defaultValueBoolean="false"/>
+            <column name="status" type="VARCHAR(20)" defaultValue="active">
+                <constraints checkConstraint="status IN ('active', 'inactive', 'locked')"/>
+            </column>
+            <column name="last_login_at" type="TIMESTAMP"/>
+            <column name="login_attempts" type="INTEGER" defaultValueNumeric="0"/>
+            <column name="password_expires_at" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <createIndex indexName="idx_users_email" tableName="users">
+            <column name="email"/>
+        </createIndex>
+        <createIndex indexName="idx_users_department_id" tableName="users">
+            <column name="department_id"/>
+        </createIndex>
+        <createIndex indexName="idx_users_status" tableName="users">
+            <column name="status"/>
+        </createIndex>
+        
+        <!-- Role Table -->
+        <createTable tableName="roles">
+            <column name="role_id" type="UUID" defaultValueComputed="uuid_generate_v4()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="role_code" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="role_type" type="VARCHAR(20)" defaultValue="business">
+                <constraints checkConstraint="role_type IN ('system', 'business')"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <createIndex indexName="idx_roles_type" tableName="roles">
+            <column name="role_type"/>
+        </createIndex>
+        
+        <!-- Permission Table -->
+        <createTable tableName="permissions">
+            <column name="permission_id" type="UUID" defaultValueComputed="uuid_generate_v4()">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="permission_code" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="resource_type" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="resource_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="action" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <createIndex indexName="idx_permissions_resource" tableName="permissions">
+            <column name="resource_type"/>
+            <column name="resource_name"/>
+        </createIndex>
+        <createIndex indexName="idx_permissions_action" tableName="permissions">
+            <column name="action"/>
+        </createIndex>
+
+        <!-- Role Permissions Table -->
+        <createTable tableName="role_permissions">
+            <column name="role_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_role_permission_role" references="roles(role_id)"/>
+            </column>
+            <column name="permission_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_role_permission_permission" references="permissions(permission_id)"/>
+            </column>
+            <column name="access_level" type="VARCHAR(20)" defaultValue="none">
+                <constraints checkConstraint="access_level IN ('none', 'read', 'write')"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addPrimaryKey tableName="role_permissions" columnNames="role_id, permission_id"/>
+        
+        <!-- User Roles Table -->
+        <createTable tableName="user_roles">
+            <column name="user_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_user_role_user" references="users(user_id)"/>
+            </column>
+            <column name="role_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_user_role_role" references="roles(role_id)"/>
+            </column>
+            <column name="assigned_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="assigned_by" type="UUID">
+                <constraints foreignKeyName="fk_user_role_assigned_by" references="users(user_id)"/>
+            </column>
+            <column name="expires_at" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <addPrimaryKey tableName="user_roles" columnNames="user_id, role_id"/>
+        
+        <createIndex indexName="idx_user_roles_expires_at" tableName="user_roles">
+            <column name="expires_at"/>
+        </createIndex>
+        
+        <!-- Company Table -->
+        <createTable tableName="companies">
+            <column name="company_id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="company_name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="company_type" type="VARCHAR(20)" defaultValue="自社">
+                <constraints nullable="false" checkConstraint="company_type IN ('自社', 'パートナー企業', '顧客')"/>
+            </column>
+            <column name="address" type="VARCHAR(200)"/>
+            <column name="phone_number" type="VARCHAR(20)"/>
+            <column name="email" type="VARCHAR(100)"/>
+            <column name="website" type="VARCHAR(200)"/>
+            <column name="contract_date" type="DATE"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <createIndex indexName="idx_companies_name" tableName="companies">
+            <column name="company_name"/>
+        </createIndex>
+        <createIndex indexName="idx_companies_type" tableName="companies">
+            <column name="company_type"/>
+        </createIndex>
+        
+        <!-- Customer Table -->
+        <createTable tableName="customers">
+            <column name="customer_id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="company_id" type="INTEGER">
+                <constraints foreignKeyName="fk_customer_company" references="companies(company_id)"/>
+            </column>
+            <column name="customer_name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="address" type="VARCHAR(200)"/>
+            <column name="phone_number" type="VARCHAR(20)"/>
+            <column name="email" type="VARCHAR(100)"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <createIndex indexName="idx_customer_name" tableName="customers">
+            <column name="customer_name"/>
+        </createIndex>
+        <createIndex indexName="idx_customer_company_id" tableName="customers">
+            <column name="company_id"/>
+        </createIndex>
+        
+        <!-- Engineer Table -->
+        <createTable tableName="engineers">
+            <column name="engineer_id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="company_id" type="INTEGER">
+                <constraints nullable="false" foreignKeyName="fk_engineer_company" references="companies(company_id)"/>
+            </column>
+            <column name="engineer_name" type="VARCHAR(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="furigana" type="VARCHAR(100)"/>
+            <column name="email" type="VARCHAR(100)"/>
+            <column name="phone_number" type="VARCHAR(20)"/>
+            <column name="birth_date" type="DATE"/>
+            <column name="employment_type" type="VARCHAR(20)" defaultValue="正社員">
+                <constraints nullable="false" checkConstraint="employment_type IN ('正社員', '契約社員', 'パートナー', 'フリーランス')"/>
+            </column>
+            <column name="join_date" type="DATE"/>
+            <column name="years_of_experience" type="INTEGER" defaultValueNumeric="0"/>
+            <column name="preferred_work_location" type="TEXT"/>
+            <column name="status" type="VARCHAR(20)" defaultValue="稼働可能">
+                <constraints nullable="false" checkConstraint="status IN ('稼働可能', 'アサイン中', '研修中', '休職中', '退職')"/>
+            </column>
+            <column name="availability_date" type="DATE"/>
+            <column name="preferred_unit_price" type="NUMERIC(10,2)"/>
+            <column name="profile_text" type="TEXT"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <createIndex indexName="idx_engineers_company_id" tableName="engineers">
+            <column name="company_id"/>
+        </createIndex>
+        <createIndex indexName="idx_engineers_status" tableName="engineers">
+            <column name="status"/>
+        </createIndex>
+        <createIndex indexName="idx_engineers_availability_date" tableName="engineers">
+            <column name="availability_date"/>
+        </createIndex>
+        
+        <!-- Add triggers for timestamp updates -->
+        <sql>
+            CREATE TRIGGER update_departments_timestamp
+            BEFORE UPDATE ON departments
+            FOR EACH ROW
+            EXECUTE FUNCTION update_timestamp();
+            
+            CREATE TRIGGER update_users_timestamp
+            BEFORE UPDATE ON users
+            FOR EACH ROW
+            EXECUTE FUNCTION update_timestamp();
+            
+            CREATE TRIGGER update_roles_timestamp
+            BEFORE UPDATE ON roles
+            FOR EACH ROW
+            EXECUTE FUNCTION update_timestamp();
+            
+            CREATE TRIGGER update_permissions_timestamp
+            BEFORE UPDATE ON permissions
+            FOR EACH ROW
+            EXECUTE FUNCTION update_timestamp();
+            
+            CREATE TRIGGER update_role_permissions_timestamp
+            BEFORE UPDATE ON role_permissions
+            FOR EACH ROW
+            EXECUTE FUNCTION update_timestamp();
+            
+            CREATE TRIGGER update_user_roles_timestamp
+            BEFORE UPDATE ON user_roles
+            FOR EACH ROW
+            EXECUTE FUNCTION update_timestamp();
+            
+            CREATE TRIGGER update_companies_timestamp
+            BEFORE UPDATE ON companies
+            FOR EACH ROW
+            EXECUTE FUNCTION update_timestamp();
+            
+            CREATE TRIGGER update_customers_timestamp
+            BEFORE UPDATE ON customers
+            FOR EACH ROW
+            EXECUTE FUNCTION update_timestamp();
+            
+            CREATE TRIGGER update_engineers_timestamp
+            BEFORE UPDATE ON engineers
+            FOR EACH ROW
+            EXECUTE FUNCTION update_timestamp();
+        </sql>
+        
+        <!-- Initial Data -->
+        <insert tableName="departments">
+            <column name="department_name">システム管理</column>
+            <column name="department_code">ADMIN</column>
+            <column name="description">システム管理部門</column>
+        </insert>
+        
+        <insert tableName="users">
+            <column name="login_id">admin</column>
+            <column name="email">admin@example.com</column>
+            <column name="name">システム管理者</column>
+            <column name="department_id">1</column>
+            <column name="position">システム管理者</column>
+            <column name="password_hash">$2a$10$qH0rCkrHqJ3hbZIOmTCxTOPAQR7R2QrZY6ytBLpMp/JzgiMMZnP.6</column> <!-- password: admin -->
+        </insert>
+        
+        <insert tableName="roles">
+            <column name="role_code">ADMIN</column>
+            <column name="name">システム管理者</column>
+            <column name="description">システム全体の管理権限を持つロール</column>
+            <column name="role_type">system</column>
+        </insert>
+        
+        <insert tableName="roles">
+            <column name="role_code">MANAGER</column>
+            <column name="name">管理者</column>
+            <column name="description">業務機能の管理権限を持つロール</column>
+            <column name="role_type">business</column>
+        </insert>
+        
+        <insert tableName="roles">
+            <column name="role_code">USER</column>
+            <column name="name">一般ユーザー</column>
+            <column name="description">基本的な業務機能を利用するロール</column>
+            <column name="role_type">business</column>
+        </insert>
+        
+        <sql>
+            INSERT INTO user_roles (user_id, role_id)
+            VALUES (
+                (SELECT user_id FROM users WHERE login_id = 'admin'),
+                (SELECT role_id FROM roles WHERE role_code = 'ADMIN')
+            );
+        </sql>
+        
+        <insert tableName="companies">
+            <column name="company_name">自社</column>
+            <column name="company_type">自社</column>
+            <column name="address">東京都千代田区丸の内1-1-1</column>
+            <column name="phone_number">03-1234-5678</column>
+            <column name="email">info@example.com</column>
+            <column name="website">https://example.com</column>
+        </insert>
+        
+        <!-- Add table comments -->
+        <sql>
+            COMMENT ON TABLE users IS 'システムユーザー情報を管理するテーブル';
+            COMMENT ON TABLE roles IS '役割と権限のセットを管理するテーブル';
+            COMMENT ON TABLE permissions IS '各リソースに対する権限を管理するテーブル';
+            COMMENT ON TABLE role_permissions IS '役割と権限の関連付けを管理するテーブル';
+            COMMENT ON TABLE user_roles IS 'ユーザーと役割の関連付けを管理するテーブル';
+            COMMENT ON TABLE companies IS '自社、パートナー、顧客の企業情報を管理するテーブル';
+            COMMENT ON TABLE engineers IS 'エンジニア情報を管理するテーブル';
+        </sql>
+    </changeSet>
+</databaseChangeLog>

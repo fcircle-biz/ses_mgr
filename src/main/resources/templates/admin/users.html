@@ -1,0 +1,1046 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/default :: layout(~{::title}, ~{::main})}">
+<head>
+    <meta charset="UTF-8">
+    <title>ユーザー管理 | SES業務システム</title>
+</head>
+<body>
+<main>
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a th:href="@{/}">ホーム</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/admin}">システム管理</a></li>
+                <li class="breadcrumb-item active" aria-current="page">ユーザー管理</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">ユーザー管理</h2>
+            <div>
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#userCreateModal">
+                    <i class="bi bi-plus-lg me-1"></i>新規ユーザー登録
+                </button>
+            </div>
+        </div>
+
+        <!-- メインコンテンツエリア -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#" id="tab-all-users">ユーザー一覧</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="tab-inactive-users">無効ユーザー</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="tab-login-history">ログイン履歴</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <!-- 検索パネル -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">検索条件</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="user-search-form">
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label for="userId" class="form-label">ユーザーID</label>
+                                    <input type="text" class="form-control" id="userId" name="userId">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="userName" class="form-label">ユーザー名</label>
+                                    <input type="text" class="form-control" id="userName" name="userName">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="email" class="form-label">メールアドレス</label>
+                                    <input type="email" class="form-control" id="email" name="email">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="role" class="form-label">ロール</label>
+                                    <select class="form-select" id="role" name="role">
+                                        <option value="">すべて</option>
+                                        <option value="ADMIN">システム管理者</option>
+                                        <option value="MANAGER">管理者</option>
+                                        <option value="USER">一般ユーザー</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="department" class="form-label">所属部門</label>
+                                    <select class="form-select" id="department" name="department">
+                                        <option value="">すべて</option>
+                                        <option value="1">システム部</option>
+                                        <option value="2">営業部</option>
+                                        <option value="3">人事部</option>
+                                        <option value="4">経理部</option>
+                                        <option value="5">総務部</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">ステータス</label>
+                                    <div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="status" id="statusAll" value="all" checked>
+                                            <label class="form-check-label" for="statusAll">すべて</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="status" id="statusActive" value="active">
+                                            <label class="form-check-label" for="statusActive">有効</label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input" type="radio" name="status" id="statusInactive" value="inactive">
+                                            <label class="form-check-label" for="statusInactive">無効</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 text-end">
+                                    <button type="button" class="btn btn-outline-secondary me-2" id="btn-clear-search">クリア</button>
+                                    <button type="submit" class="btn btn-primary">検索</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 検索結果 -->
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">検索結果</h5>
+                        <span class="text-muted" id="result-count">全0件中 0-0件を表示</span>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="mb-3 p-3 bg-light d-flex justify-content-between">
+                            <div class="dropdown">
+                                <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="bulkActionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    一括操作
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="bulkActionDropdown">
+                                    <li><a class="dropdown-item" href="#" id="btn-bulk-enable">選択したユーザーを有効化</a></li>
+                                    <li><a class="dropdown-item" href="#" id="btn-bulk-disable">選択したユーザーを無効化</a></li>
+                                    <li><a class="dropdown-item" href="#" id="btn-bulk-unlock">選択したユーザーのロックを解除</a></li>
+                                </ul>
+                            </div>
+                            <button class="btn btn-outline-secondary btn-sm" id="btn-export-csv">
+                                <i class="bi bi-download me-1"></i>CSVエクスポート
+                            </button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0" id="user-table">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" class="form-check-input" id="select-all"></th>
+                                        <th>ID</th>
+                                        <th>ユーザー名</th>
+                                        <th>メールアドレス</th>
+                                        <th>ロール</th>
+                                        <th>所属部門</th>
+                                        <th>最終ログイン</th>
+                                        <th>状態</th>
+                                        <th style="width: 120px;">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <!-- サンプルデータ -->
+                                    <tr>
+                                        <td><input type="checkbox" class="form-check-input user-select"></td>
+                                        <td>1001</td>
+                                        <td>山田 太郎</td>
+                                        <td>t.yamada@example.com</td>
+                                        <td>システム管理者</td>
+                                        <td>システム部</td>
+                                        <td>2025/05/04 09:15</td>
+                                        <td><span class="badge rounded-pill text-bg-success">有効</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集" data-bs-toggle="modal" data-bs-target="#userEditModal">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="パスワードリセット" data-bs-toggle="modal" data-bs-target="#passwordResetModal">
+                                                    <i class="bi bi-key"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="無効化">
+                                                    <i class="bi bi-slash-circle"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="checkbox" class="form-check-input user-select"></td>
+                                        <td>1002</td>
+                                        <td>鈴木 一郎</td>
+                                        <td>i.suzuki@example.com</td>
+                                        <td>営業担当者</td>
+                                        <td>営業部</td>
+                                        <td>2025/05/03 14:22</td>
+                                        <td><span class="badge rounded-pill text-bg-success">有効</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="パスワードリセット">
+                                                    <i class="bi bi-key"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="無効化">
+                                                    <i class="bi bi-slash-circle"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="checkbox" class="form-check-input user-select"></td>
+                                        <td>1003</td>
+                                        <td>佐藤 花子</td>
+                                        <td>h.sato@example.com</td>
+                                        <td>人事担当者</td>
+                                        <td>人事部</td>
+                                        <td>2025/05/04 11:03</td>
+                                        <td><span class="badge rounded-pill text-bg-warning">ロック中</span></td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
+                                                    <i class="bi bi-pencil"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="パスワードリセット">
+                                                    <i class="bi bi-key"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="ロック解除">
+                                                    <i class="bi bi-unlock"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between align-items-center">
+                        <div class="text-muted">全3件中 1-3件を表示</div>
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination mb-0">
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                                <li class="page-item disabled">
+                                    <a class="page-link" href="#" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ユーザー編集モーダル -->
+    <div class="modal fade" id="userEditModal" tabindex="-1" aria-labelledby="userEditModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userEditModalLabel">ユーザー編集</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="user-edit-form">
+                        <input type="hidden" id="editUserId" name="userId" value="">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editLoginId" class="form-label">ユーザーID <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="editLoginId" name="loginId" readonly>
+                                <div class="form-text">既存ユーザーのIDは変更できません</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editName" class="form-label">氏名 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="editName" name="name" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editEmail" class="form-label">メールアドレス <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="editEmail" name="email" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editDepartment" class="form-label">所属部門 <span class="text-danger">*</span></label>
+                                <select class="form-select" id="editDepartment" name="departmentId" required>
+                                    <option value="1">システム部</option>
+                                    <option value="2">営業部</option>
+                                    <option value="3">人事部</option>
+                                    <option value="4">経理部</option>
+                                    <option value="5">総務部</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="editPhone" class="form-label">電話番号</label>
+                                <input type="tel" class="form-control" id="editPhone" name="phone">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="editRoles" class="form-label">ロール <span class="text-danger">*</span></label>
+                                <select class="form-select" id="editRoles" name="roles" multiple size="3" required>
+                                    <option value="ADMIN">システム管理者</option>
+                                    <option value="MANAGER">管理者</option>
+                                    <option value="USER">一般ユーザー</option>
+                                </select>
+                                <div class="form-text">Ctrlキーを押しながら複数選択できます</div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="edit2FA" name="mfaEnabled">
+                                    <label class="form-check-label" for="edit2FA">多要素認証を有効にする</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="editLocked" name="locked">
+                                    <label class="form-check-label" for="editLocked">アカウントロック</label>
+                                </div>
+                                <div class="form-text">アカウントがロックされている場合、チェックを外すことでロックを解除できます</div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary" id="btn-save-user">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ユーザー新規登録モーダル -->
+    <div class="modal fade" id="userCreateModal" tabindex="-1" aria-labelledby="userCreateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userCreateModalLabel">新規ユーザー登録</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="user-create-form">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="createLoginId" class="form-label">ユーザーID <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="createLoginId" name="loginId" required>
+                                <div class="form-text">半角英数字、8〜30文字</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="createName" class="form-label">氏名 <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="createName" name="name" required>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="createEmail" class="form-label">メールアドレス <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="createEmail" name="email" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="createPassword" class="form-label">パスワード <span class="text-danger">*</span></label>
+                                <input type="password" class="form-control" id="createPassword" name="password" required>
+                                <div class="form-text">半角英数記号、12〜30文字</div>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="createDepartment" class="form-label">所属部門 <span class="text-danger">*</span></label>
+                                <select class="form-select" id="createDepartment" name="departmentId" required>
+                                    <option value="1">システム部</option>
+                                    <option value="2">営業部</option>
+                                    <option value="3">人事部</option>
+                                    <option value="4">経理部</option>
+                                    <option value="5">総務部</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="createPhone" class="form-label">電話番号</label>
+                                <input type="tel" class="form-control" id="createPhone" name="phone">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="createRoles" class="form-label">ロール <span class="text-danger">*</span></label>
+                                <select class="form-select" id="createRoles" name="roles" multiple size="3" required>
+                                    <option value="ADMIN">システム管理者</option>
+                                    <option value="MANAGER">管理者</option>
+                                    <option value="USER">一般ユーザー</option>
+                                </select>
+                                <div class="form-text">Ctrlキーを押しながら複数選択できます</div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-check form-switch mt-4">
+                                    <input class="form-check-input" type="checkbox" id="create2FA" name="mfaEnabled">
+                                    <label class="form-check-label" for="create2FA">多要素認証を有効にする</label>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary" id="btn-create-user">登録</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- パスワードリセット確認モーダル -->
+    <div class="modal fade" id="passwordResetModal" tabindex="-1" aria-labelledby="passwordResetModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="passwordResetModalLabel">パスワードリセット確認</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p><span id="resetUserName">選択したユーザー</span>さんのパスワードをリセットします。</p>
+                    <p>仮パスワードがユーザーのメールアドレス（<span id="resetUserEmail">user@example.com</span>）に送信されます。</p>
+                    <p>よろしいですか？</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-warning" id="btn-reset-password">パスワードリセット</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- ページ固有のJavaScript -->
+<script th:inline="javascript">
+document.addEventListener('DOMContentLoaded', function() {
+    // 初期表示時にユーザー一覧を取得
+    loadUsers();
+
+    // タブ切り替え
+    document.getElementById('tab-all-users').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('tab-all-users').classList.add('active');
+        document.getElementById('tab-inactive-users').classList.remove('active');
+        document.getElementById('tab-login-history').classList.remove('active');
+        
+        // ユーザー一覧を取得（全ユーザー）
+        loadUsers();
+    });
+
+    document.getElementById('tab-inactive-users').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('tab-all-users').classList.remove('active');
+        document.getElementById('tab-inactive-users').classList.add('active');
+        document.getElementById('tab-login-history').classList.remove('active');
+        
+        // 無効ユーザーを取得
+        loadInactiveUsers();
+    });
+
+    document.getElementById('tab-login-history').addEventListener('click', function(e) {
+        e.preventDefault();
+        document.getElementById('tab-all-users').classList.remove('active');
+        document.getElementById('tab-inactive-users').classList.remove('active');
+        document.getElementById('tab-login-history').classList.add('active');
+        
+        // ログイン履歴を取得
+        loadLoginHistory();
+    });
+
+    // 検索フォーム
+    document.getElementById('user-search-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        const searchCriteria = {};
+        
+        formData.forEach((value, key) => {
+            if (value) {
+                searchCriteria[key] = value;
+            }
+        });
+        
+        searchUsers(searchCriteria);
+    });
+
+    // 検索フォームクリア
+    document.getElementById('btn-clear-search').addEventListener('click', function() {
+        document.getElementById('user-search-form').reset();
+        loadUsers(); // 検索条件クリア後に全ユーザーを表示
+    });
+
+    // 全選択チェックボックス
+    document.getElementById('select-all').addEventListener('change', function() {
+        const isChecked = this.checked;
+        document.querySelectorAll('.user-select').forEach(checkbox => {
+            checkbox.checked = isChecked;
+        });
+    });
+
+    // ユーザー編集モーダル表示時の処理
+    document.getElementById('userEditModal').addEventListener('show.bs.modal', function(e) {
+        // 編集対象のユーザーIDを取得
+        const button = e.relatedTarget;
+        const userId = button.closest('tr').querySelector('td:nth-child(2)').textContent;
+        
+        // ユーザー情報を取得して編集フォームにセット
+        fetch(`/api/admin/users/${userId}`)
+            .then(response => response.json())
+            .then(user => {
+                document.getElementById('editUserId').value = user.id;
+                document.getElementById('editLoginId').value = user.loginId;
+                document.getElementById('editName').value = user.name;
+                document.getElementById('editEmail').value = user.email;
+                document.getElementById('editDepartment').value = user.departmentId;
+                document.getElementById('editPhone').value = user.phone || '';
+                
+                // ロールの設定
+                const roleSelect = document.getElementById('editRoles');
+                Array.from(roleSelect.options).forEach(option => {
+                    option.selected = user.roles.includes(option.value);
+                });
+                
+                // 多要素認証の設定
+                document.getElementById('edit2FA').checked = user.mfaEnabled;
+                
+                // ロック状態の設定
+                document.getElementById('editLocked').checked = user.locked;
+            })
+            .catch(error => {
+                console.error('ユーザー情報の取得に失敗しました:', error);
+                alert('ユーザー情報の取得に失敗しました');
+            });
+    });
+
+    // パスワードリセットモーダル表示時の処理
+    document.getElementById('passwordResetModal').addEventListener('show.bs.modal', function(e) {
+        // リセット対象のユーザー情報を取得
+        const button = e.relatedTarget;
+        const tr = button.closest('tr');
+        const userId = tr.querySelector('td:nth-child(2)').textContent;
+        const userName = tr.querySelector('td:nth-child(3)').textContent;
+        const userEmail = tr.querySelector('td:nth-child(4)').textContent;
+        
+        // モーダル内の表示を更新
+        document.getElementById('resetUserName').textContent = userName;
+        document.getElementById('resetUserEmail').textContent = userEmail;
+        
+        // ボタンにユーザーIDをデータ属性として設定
+        document.getElementById('btn-reset-password').setAttribute('data-user-id', userId);
+    });
+
+    // ユーザー保存処理
+    document.getElementById('btn-save-user').addEventListener('click', function() {
+        const form = document.getElementById('user-edit-form');
+        if (form.checkValidity()) {
+            const formData = new FormData(form);
+            const userData = {};
+            
+            formData.forEach((value, key) => {
+                if (key === 'roles') {
+                    // 複数選択の場合は配列を取得
+                    const select = form.querySelector(`[name="${key}"]`);
+                    userData[key] = Array.from(select.selectedOptions).map(option => option.value);
+                } else if (key === 'mfaEnabled' || key === 'locked') {
+                    // チェックボックスの値を取得
+                    userData[key] = value === 'on';
+                } else {
+                    userData[key] = value;
+                }
+            });
+            
+            const userId = userData.userId;
+            
+            // APIを呼び出してユーザー情報を更新
+            fetch(`/api/admin/users/${userId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('ユーザー情報を更新しました');
+                    
+                    // モーダルを閉じる
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('userEditModal'));
+                    modal.hide();
+                    
+                    // ユーザー一覧を再読み込み
+                    loadUsers();
+                } else {
+                    alert('ユーザー情報の更新に失敗しました: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error('ユーザー情報の更新に失敗しました:', error);
+                alert('ユーザー情報の更新に失敗しました');
+            });
+        } else {
+            form.reportValidity();
+        }
+    });
+
+    // ユーザー作成処理
+    document.getElementById('btn-create-user').addEventListener('click', function() {
+        const form = document.getElementById('user-create-form');
+        if (form.checkValidity()) {
+            const formData = new FormData(form);
+            const userData = {};
+            
+            formData.forEach((value, key) => {
+                if (key === 'roles') {
+                    // 複数選択の場合は配列を取得
+                    const select = form.querySelector(`[name="${key}"]`);
+                    userData[key] = Array.from(select.selectedOptions).map(option => option.value);
+                } else if (key === 'mfaEnabled') {
+                    // チェックボックスの値を取得
+                    userData[key] = value === 'on';
+                } else {
+                    userData[key] = value;
+                }
+            });
+            
+            // APIを呼び出してユーザーを作成
+            fetch('/api/admin/users', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(userData)
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    alert('ユーザーを登録しました');
+                    
+                    // モーダルを閉じる
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('userCreateModal'));
+                    modal.hide();
+                    
+                    // フォームをリセット
+                    form.reset();
+                    
+                    // ユーザー一覧を再読み込み
+                    loadUsers();
+                } else {
+                    alert('ユーザーの登録に失敗しました: ' + result.message);
+                }
+            })
+            .catch(error => {
+                console.error('ユーザーの登録に失敗しました:', error);
+                alert('ユーザーの登録に失敗しました');
+            });
+        } else {
+            form.reportValidity();
+        }
+    });
+
+    // パスワードリセット処理
+    document.getElementById('btn-reset-password').addEventListener('click', function() {
+        const userId = this.getAttribute('data-user-id');
+        
+        // APIを呼び出してパスワードをリセット
+        fetch(`/api/admin/users/${userId}/reset-password`, {
+            method: 'POST'
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                alert('パスワードリセットメールを送信しました');
+                
+                // モーダルを閉じる
+                const modal = bootstrap.Modal.getInstance(document.getElementById('passwordResetModal'));
+                modal.hide();
+            } else {
+                alert('パスワードリセットに失敗しました: ' + result.message);
+            }
+        })
+        .catch(error => {
+            console.error('パスワードリセットに失敗しました:', error);
+            alert('パスワードリセットに失敗しました');
+        });
+    });
+
+    // 一括操作のイベントハンドラ
+    document.getElementById('btn-bulk-enable').addEventListener('click', function(e) {
+        e.preventDefault();
+        bulkChangeUserStatus('ACTIVE');
+    });
+
+    document.getElementById('btn-bulk-disable').addEventListener('click', function(e) {
+        e.preventDefault();
+        bulkChangeUserStatus('INACTIVE');
+    });
+
+    document.getElementById('btn-bulk-unlock').addEventListener('click', function(e) {
+        e.preventDefault();
+        bulkUnlockUsers();
+    });
+
+    // CSVエクスポート
+    document.getElementById('btn-export-csv').addEventListener('click', function() {
+        // CSVデータの生成
+        const table = document.getElementById('user-table');
+        const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
+        const rows = Array.from(table.querySelectorAll('tbody tr'));
+        
+        let csvContent = headers.join(',') + '\n';
+        
+        rows.forEach(row => {
+            const values = Array.from(row.querySelectorAll('td')).map((td, index) => {
+                // チェックボックスの列はスキップ
+                if (index === 0) return '';
+                
+                // ステータスのバッジは中身のテキストを取得
+                if (index === 7) {
+                    const badge = td.querySelector('.badge');
+                    return badge ? badge.textContent.trim() : '';
+                }
+                
+                // 操作ボタンの列はスキップ
+                if (index === 8) return '';
+                
+                return '"' + td.textContent.trim().replace(/"/g, '""') + '"';
+            }).filter(Boolean); // 空の値をフィルタリング
+            
+            csvContent += values.join(',') + '\n';
+        });
+        
+        // CSVファイルのダウンロード
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'users-' + new Date().toISOString().slice(0, 10) + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+
+    // ユーザーのステータス変更イベント（有効化/無効化/ロック解除）
+    document.addEventListener('click', function(e) {
+        // 無効化・有効化ボタン
+        if (e.target.closest('.action-button[title="無効化"]')) {
+            const userId = e.target.closest('tr').querySelector('td:nth-child(2)').textContent;
+            changeUserStatus(userId, 'INACTIVE');
+        } else if (e.target.closest('.action-button[title="有効化"]')) {
+            const userId = e.target.closest('tr').querySelector('td:nth-child(2)').textContent;
+            changeUserStatus(userId, 'ACTIVE');
+        } else if (e.target.closest('.action-button[title="ロック解除"]')) {
+            const userId = e.target.closest('tr').querySelector('td:nth-child(2)').textContent;
+            unlockUser(userId);
+        }
+    });
+});
+
+// ユーザー一覧を取得する関数
+function loadUsers() {
+    fetch('/api/admin/users')
+        .then(response => response.json())
+        .then(users => {
+            displayUsers(users);
+        })
+        .catch(error => {
+            console.error('ユーザー一覧の取得に失敗しました:', error);
+            alert('ユーザー一覧の取得に失敗しました');
+        });
+}
+
+// 無効ユーザーを取得する関数
+function loadInactiveUsers() {
+    // 実際の実装では無効ユーザーを取得するAPIを呼び出す
+    // 今回はサンプルとして検索条件で絞り込む
+    searchUsers({ status: 'inactive' });
+}
+
+// ログイン履歴を取得する関数
+function loadLoginHistory() {
+    // ログイン履歴表示用のテーブルヘッダーに差し替え
+    const tableHeader = `
+        <tr>
+            <th>ユーザーID</th>
+            <th>ユーザー名</th>
+            <th>ログイン日時</th>
+            <th>IPアドレス</th>
+            <th>ブラウザ</th>
+            <th>ステータス</th>
+            <th>詳細</th>
+        </tr>
+    `;
+    
+    document.querySelector('#user-table thead').innerHTML = tableHeader;
+    
+    // ログイン履歴表示用の行を作成
+    const tableBody = document.querySelector('#user-table tbody');
+    tableBody.innerHTML = `
+        <tr>
+            <td>1001</td>
+            <td>山田 太郎</td>
+            <td>2025/05/05 09:15:22</td>
+            <td>192.168.1.101</td>
+            <td>Chrome 120.0.0.0</td>
+            <td><span class="badge rounded-pill text-bg-success">成功</span></td>
+            <td>正常ログイン</td>
+        </tr>
+        <tr>
+            <td>1002</td>
+            <td>鈴木 一郎</td>
+            <td>2025/05/04 14:22:45</td>
+            <td>192.168.1.102</td>
+            <td>Firefox 120.0</td>
+            <td><span class="badge rounded-pill text-bg-success">成功</span></td>
+            <td>正常ログイン</td>
+        </tr>
+        <tr>
+            <td>1003</td>
+            <td>佐藤 花子</td>
+            <td>2025/05/04 11:03:15</td>
+            <td>192.168.1.103</td>
+            <td>Edge 120.0.0.0</td>
+            <td><span class="badge rounded-pill text-bg-danger">失敗</span></td>
+            <td>パスワード不一致（5回連続失敗によりロック）</td>
+        </tr>
+    `;
+    
+    // 一括操作ボタンと検索フォームを非表示
+    document.querySelector('.dropdown').style.display = 'none';
+}
+
+// ユーザーを検索する関数
+function searchUsers(searchCriteria) {
+    fetch('/api/admin/users/search', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(searchCriteria)
+    })
+    .then(response => response.json())
+    .then(users => {
+        displayUsers(users);
+    })
+    .catch(error => {
+        console.error('ユーザー検索に失敗しました:', error);
+        alert('ユーザー検索に失敗しました');
+    });
+}
+
+// ユーザー一覧を表示する関数
+function displayUsers(users) {
+    const tableBody = document.querySelector('#user-table tbody');
+    tableBody.innerHTML = '';
+    
+    if (users.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="9" class="text-center">該当するユーザーがいません</td></tr>';
+        document.getElementById('result-count').textContent = '0件';
+        return;
+    }
+    
+    users.forEach(user => {
+        const row = document.createElement('tr');
+        
+        // ステータスに応じたバッジのクラスとテキスト
+        let statusBadgeClass = 'success';
+        let statusText = '有効';
+        
+        if (user.status === 'INACTIVE') {
+            statusBadgeClass = 'danger';
+            statusText = '無効';
+        } else if (user.status === 'LOCKED') {
+            statusBadgeClass = 'warning';
+            statusText = 'ロック中';
+        }
+        
+        // 操作ボタンの設定
+        let actionButtons = `
+            <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集" data-bs-toggle="modal" data-bs-target="#userEditModal">
+                    <i class="bi bi-pencil"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="パスワードリセット" data-bs-toggle="modal" data-bs-target="#passwordResetModal">
+                    <i class="bi bi-key"></i>
+                </button>
+        `;
+        
+        // ステータスに応じて表示するボタンを変更
+        if (user.status === 'ACTIVE') {
+            actionButtons += `
+                <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="無効化">
+                    <i class="bi bi-slash-circle"></i>
+                </button>
+            `;
+        } else if (user.status === 'INACTIVE') {
+            actionButtons += `
+                <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="有効化">
+                    <i class="bi bi-check-circle"></i>
+                </button>
+            `;
+        } else if (user.status === 'LOCKED') {
+            actionButtons += `
+                <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="ロック解除">
+                    <i class="bi bi-unlock"></i>
+                </button>
+            `;
+        }
+        
+        actionButtons += `</div>`;
+        
+        // 最終ログイン日時のフォーマット
+        const lastLogin = user.lastLogin ? new Date(user.lastLogin).toLocaleString('ja-JP') : '-';
+        
+        // 主要ロール（表示用）
+        const roleNames = user.roleNames ? user.roleNames.join(', ') : '-';
+        
+        row.innerHTML = `
+            <td><input type="checkbox" class="form-check-input user-select"></td>
+            <td>${user.id}</td>
+            <td>${user.name}</td>
+            <td>${user.email}</td>
+            <td>${roleNames}</td>
+            <td>${user.department}</td>
+            <td>${lastLogin}</td>
+            <td><span class="badge rounded-pill text-bg-${statusBadgeClass}">${statusText}</span></td>
+            <td>${actionButtons}</td>
+        `;
+        
+        tableBody.appendChild(row);
+    });
+    
+    // 件数表示の更新
+    document.getElementById('result-count').textContent = `全${users.length}件中 1-${users.length}件を表示`;
+}
+
+// ユーザーのステータスを変更する関数
+function changeUserStatus(userId, status) {
+    fetch(`/api/admin/users/${userId}/status`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status: status })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert(status === 'ACTIVE' ? 'ユーザーを有効化しました' : 'ユーザーを無効化しました');
+            loadUsers(); // ユーザー一覧を再読み込み
+        } else {
+            alert('ステータス変更に失敗しました: ' + result.message);
+        }
+    })
+    .catch(error => {
+        console.error('ステータス変更に失敗しました:', error);
+        alert('ステータス変更に失敗しました');
+    });
+}
+
+// ユーザーのロックを解除する関数
+function unlockUser(userId) {
+    fetch(`/api/admin/users/${userId}/unlock`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert('ユーザーのロックを解除しました');
+            loadUsers(); // ユーザー一覧を再読み込み
+        } else {
+            alert('ロック解除に失敗しました: ' + result.message);
+        }
+    })
+    .catch(error => {
+        console.error('ロック解除に失敗しました:', error);
+        alert('ロック解除に失敗しました');
+    });
+}
+
+// 複数ユーザーのステータスを一括変更する関数
+function bulkChangeUserStatus(status) {
+    // 選択されたユーザーIDを取得
+    const checkboxes = document.querySelectorAll('.user-select:checked');
+    if (checkboxes.length === 0) {
+        alert('ユーザーを選択してください');
+        return;
+    }
+    
+    const userIds = Array.from(checkboxes).map(checkbox => {
+        return checkbox.closest('tr').querySelector('td:nth-child(2)').textContent;
+    });
+    
+    fetch('/api/admin/users/bulk-status', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userIds: userIds, status: status })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert(status === 'ACTIVE' ? '選択したユーザーを有効化しました' : '選択したユーザーを無効化しました');
+            loadUsers(); // ユーザー一覧を再読み込み
+        } else {
+            alert('一括ステータス変更に失敗しました: ' + result.message);
+        }
+    })
+    .catch(error => {
+        console.error('一括ステータス変更に失敗しました:', error);
+        alert('一括ステータス変更に失敗しました');
+    });
+}
+
+// 複数ユーザーのロックを一括解除する関数
+function bulkUnlockUsers() {
+    // 選択されたユーザーIDを取得
+    const checkboxes = document.querySelectorAll('.user-select:checked');
+    if (checkboxes.length === 0) {
+        alert('ユーザーを選択してください');
+        return;
+    }
+    
+    const userIds = Array.from(checkboxes).map(checkbox => {
+        return checkbox.closest('tr').querySelector('td:nth-child(2)').textContent;
+    });
+    
+    fetch('/api/admin/users/bulk-unlock', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userIds: userIds })
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.success) {
+            alert('選択したユーザーのロックを解除しました');
+            loadUsers(); // ユーザー一覧を再読み込み
+        } else {
+            alert('一括ロック解除に失敗しました: ' + result.message);
+        }
+    })
+    .catch(error => {
+        console.error('一括ロック解除に失敗しました:', error);
+        alert('一括ロック解除に失敗しました');
+    });
+}
+</script>
+</body>
+</html>

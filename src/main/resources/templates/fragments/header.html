@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Header Fragment</title>
+</head>
+<body>
+    <header th:fragment="header" class="bg-primary text-white p-3">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <h1 class="h4 mb-0">SES業務システム</h1>
+                <div class="user-info" sec:authorize="isAuthenticated()">
+                    <span sec:authentication="name">ユーザー名</span>
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-light ms-2">ログアウト</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </header>
+</body>
+</html>

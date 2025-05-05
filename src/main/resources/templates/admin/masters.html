@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ja" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layouts/default :: layout(~{::title}, ~{::main})}">
+<head>
+    <meta charset="UTF-8">
+    <title>マスタ管理 | SES業務システム</title>
+</head>
+<body>
+<main>
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a th:href="@{/}">ホーム</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/admin}">システム管理</a></li>
+                <li class="breadcrumb-item active" aria-current="page">マスタ管理</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header mb-4">
+            <h2 class="h4 mb-0">マスタ管理</h2>
+        </div>
+
+        <!-- マスタ管理タブ -->
+        <ul class="nav nav-tabs mb-4" id="masterTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="department-tab" data-bs-toggle="tab" data-bs-target="#department-tab-pane" type="button" role="tab" aria-controls="department-tab-pane" aria-selected="true">部門</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="company-tab" data-bs-toggle="tab" data-bs-target="#company-tab-pane" type="button" role="tab" aria-controls="company-tab-pane" aria-selected="false">企業</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="skills-tab" data-bs-toggle="tab" data-bs-target="#skills-tab-pane" type="button" role="tab" aria-controls="skills-tab-pane" aria-selected="false">スキル</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="codes-tab" data-bs-toggle="tab" data-bs-target="#codes-tab-pane" type="button" role="tab" aria-controls="codes-tab-pane" aria-selected="false">コード値</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="holidays-tab" data-bs-toggle="tab" data-bs-target="#holidays-tab-pane" type="button" role="tab" aria-controls="holidays-tab-pane" aria-selected="false">休日</button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="masterTabsContent">
+            <!-- 部門マスタ -->
+            <div class="tab-pane fade show active" id="department-tab-pane" role="tabpanel" aria-labelledby="department-tab" tabindex="0">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0">部門マスタ</h5>
+                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#departmentModal">
+                            <i class="bi bi-plus-lg me-1"></i>新規登録
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th>部門ID</th>
+                                        <th>部門コード</th>
+                                        <th>部門名</th>
+                                        <th>親部門</th>
+                                        <th>状態</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td>
+                                        <td>SYS</td>
+                                        <td>システム部</td>
+                                        <td>-</td>
+                                        <td><span class="badge text-bg-success">有効</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-secondary" title="編集">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" title="削除">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td>
+                                        <td>SAL</td>
+                                        <td>営業部</td>
+                                        <td>-</td>
+                                        <td><span class="badge text-bg-success">有効</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-secondary" title="編集">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" title="削除">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>3</td>
+                                        <td>HR</td>
+                                        <td>人事部</td>
+                                        <td>-</td>
+                                        <td><span class="badge text-bg-success">有効</span></td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-secondary" title="編集">
+                                                <i class="bi bi-pencil"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" title="削除">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 他のマスタタブもプレースホルダーとして用意 -->
+            <div class="tab-pane fade" id="company-tab-pane" role="tabpanel" aria-labelledby="company-tab" tabindex="0">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">企業マスタ</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">企業マスタの管理画面です。実装中...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-pane fade" id="skills-tab-pane" role="tabpanel" aria-labelledby="skills-tab" tabindex="0">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">スキルマスタ</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">スキルマスタの管理画面です。実装中...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-pane fade" id="codes-tab-pane" role="tabpanel" aria-labelledby="codes-tab" tabindex="0">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">コード値マスタ</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">コード値マスタの管理画面です。実装中...</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-pane fade" id="holidays-tab-pane" role="tabpanel" aria-labelledby="holidays-tab" tabindex="0">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">休日マスタ</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">休日マスタの管理画面です。実装中...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 部門登録/編集モーダル -->
+    <div class="modal fade" id="departmentModal" tabindex="-1" aria-labelledby="departmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="departmentModalLabel">部門登録</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="department-form">
+                        <div class="mb-3">
+                            <label for="departmentCode" class="form-label">部門コード <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="departmentCode" name="departmentCode" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="departmentName" class="form-label">部門名 <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="departmentName" name="departmentName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="parentDepartment" class="form-label">親部門</label>
+                            <select class="form-select" id="parentDepartment" name="parentDepartmentId">
+                                <option value="">なし</option>
+                                <option value="1">システム部</option>
+                                <option value="2">営業部</option>
+                                <option value="3">人事部</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="departmentDescription" class="form-label">説明</label>
+                            <textarea class="form-control" id="departmentDescription" name="description" rows="2"></textarea>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" value="" id="departmentIsActive" name="isActive" checked>
+                            <label class="form-check-label" for="departmentIsActive">
+                                有効
+                            </label>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary" id="btn-save-department">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- ページ固有のJavaScript -->
+<script th:inline="javascript">
+document.addEventListener('DOMContentLoaded', function() {
+    // 部門保存処理
+    document.getElementById('btn-save-department').addEventListener('click', function() {
+        const form = document.getElementById('department-form');
+        if (form.checkValidity()) {
+            // TODO: 実際の保存処理を実装
+            alert('部門情報を保存しました');
+            $('#departmentModal').modal('hide');
+        } else {
+            form.reportValidity();
+        }
+    });
+});
+</script>
+</body>
+</html>
