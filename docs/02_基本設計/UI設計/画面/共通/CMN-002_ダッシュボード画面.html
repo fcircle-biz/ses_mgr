@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム ダッシュボード画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -88,16 +90,11 @@
             color: #777;
             font-size: 14px;
         }
-        .component {
-            border: 1px solid #ddd;
-            padding: 10px;
-            margin: 10px 0;
-            background-color: #f9f9f9;
-        }
-        .component h4 {
-            margin-top: 0;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 5px;
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
         }
         .breadcrumb {
             display: flex;
@@ -126,6 +123,45 @@
             padding: 8px 12px;
             color: #6c757d;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -136,9 +172,9 @@
         </ul>
     </nav>
 
-    <h1>CMN-002: ダッシュボード</h1>
+    <h1>CMN-002: ダッシュボード画面</h1>
     
-    <h3>画面概要</h3>
+    <h2>画面概要</h2>
     <table>
         <tr>
             <th>項目</th>
@@ -170,70 +206,103 @@
         </tr>
     </table>
 
-    <h3>画面レイアウト</h3>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [ダッシュボード画面のワイヤーフレーム]
-        </div>
+    <h2>画面レイアウト</h2>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="dashboard-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
-    <h3>画面構成コンポーネント</h3>
-    <div class="component">
-        <h4>ヘッダー</h4>
-        <p>画面上部に表示される共通ヘッダー</p>
-        <ul>
-            <li>システムロゴ</li>
-            <li>グローバルナビゲーションメニュー</li>
-            <li>通知アイコン（未読通知数表示）</li>
-            <li>ユーザー情報ドロップダウン</li>
-        </ul>
-    </div>
+    <h2>画面構成要素</h2>
+    <h3>1. ヘッダー</h3>
+    <table>
+        <tr>
+            <th>コンポーネント</th>
+            <th>説明</th>
+            <th>機能・振る舞い</th>
+        </tr>
+        <tr>
+            <td>システムロゴ</td>
+            <td>左上に表示されるシステムロゴ</td>
+            <td>クリックするとダッシュボードに戻る</td>
+        </tr>
+        <tr>
+            <td>通知アイコン</td>
+            <td>未読通知数を表示するアイコン</td>
+            <td>クリックするとドロップダウンで通知一覧を表示</td>
+        </tr>
+        <tr>
+            <td>ユーザー情報</td>
+            <td>ログインユーザー名を表示</td>
+            <td>クリックするとプロフィール・設定・ログアウトメニューを表示</td>
+        </tr>
+    </table>
 
-    <div class="component">
-        <h4>通知パネル</h4>
-        <p>最新の通知を表示するパネル</p>
-        <ul>
-            <li>未読通知一覧</li>
-            <li>通知種別アイコン</li>
-            <li>通知タイトル</li>
-            <li>通知日時</li>
-            <li>全通知一覧へのリンク</li>
-        </ul>
-    </div>
+    <h3>2. サイドメニュー</h3>
+    <table>
+        <tr>
+            <th>コンポーネント</th>
+            <th>説明</th>
+            <th>機能・振る舞い</th>
+        </tr>
+        <tr>
+            <td>機能メニュー</td>
+            <td>システムの主要機能へのリンク一覧</td>
+            <td>各機能画面への遷移</td>
+        </tr>
+        <tr>
+            <td>未処理タスク</td>
+            <td>ユーザーの未処理タスク一覧</td>
+            <td>クリックで対応する処理画面へ遷移</td>
+        </tr>
+        <tr>
+            <td>直近の予定</td>
+            <td>ユーザーの直近の予定を表示</td>
+            <td>予定詳細の確認が可能</td>
+        </tr>
+    </table>
 
-    <div class="component">
-        <h4>クイックアクション</h4>
-        <p>よく使う機能へのショートカット</p>
-        <ul>
-            <li>案件登録</li>
-            <li>技術者検索</li>
-            <li>勤怠入力</li>
-            <li>請求書作成（ロールにより表示項目が変動）</li>
-        </ul>
-    </div>
+    <h3>3. ダッシュボードコンテンツ</h3>
+    <table>
+        <tr>
+            <th>コンポーネント</th>
+            <th>説明</th>
+            <th>機能・振る舞い</th>
+        </tr>
+        <tr>
+            <td>ウェルカムバナー</td>
+            <td>ユーザー名と重要なお知らせを表示</td>
+            <td>主要指標のハイライトを表示</td>
+        </tr>
+        <tr>
+            <td>KPI概要カード</td>
+            <td>主要指標をカード形式で表示</td>
+            <td>案件数・技術者数・稼働率・売上見込の表示</td>
+        </tr>
+        <tr>
+            <td>売上推移グラフ</td>
+            <td>月次売上の推移をグラフで表示</td>
+            <td>年間・半期・四半期の切り替えが可能</td>
+        </tr>
+        <tr>
+            <td>案件ステータス一覧</td>
+            <td>直近の案件状況を一覧表示</td>
+            <td>詳細ページへのリンクあり</td>
+        </tr>
+        <tr>
+            <td>マッチング候補</td>
+            <td>マッチングスコアの高い技術者を表示</td>
+            <td>候補者プロフィールへのリンクあり</td>
+        </tr>
+        <tr>
+            <td>通知パネル</td>
+            <td>最新の通知を表示</td>
+            <td>未読・既読の状態を視覚的に表示</td>
+        </tr>
+    </table>
 
-    <div class="component">
-        <h4>業務進捗情報</h4>
-        <p>ユーザーの担当業務の進捗状況</p>
-        <ul>
-            <li>承認待ちタスク一覧</li>
-            <li>期限の近いタスク</li>
-            <li>最近の活動履歴</li>
-        </ul>
-    </div>
-
-    <div class="component">
-        <h4>KPI概要</h4>
-        <p>ロールに応じた主要KPIの表示（経営層・管理者向け）</p>
-        <ul>
-            <li>当月売上状況</li>
-            <li>稼働率概要</li>
-            <li>案件獲得状況</li>
-            <li>詳細レポートへのリンク</li>
-        </ul>
-    </div>
-
-    <h3>ユーザーロール別表示項目</h3>
+    <h2>画面動作仕様</h2>
+    <h3>1. ユーザーロール別表示項目</h3>
     <table>
         <tr>
             <th>ユーザーロール</th>
@@ -267,9 +336,94 @@
         </tr>
     </table>
 
+    <h3>2. 通知処理</h3>
+    <table>
+        <tr>
+            <th>操作</th>
+            <th>振る舞い</th>
+        </tr>
+        <tr>
+            <td>通知アイコンクリック</td>
+            <td>ドロップダウンメニューで通知一覧を表示</td>
+        </tr>
+        <tr>
+            <td>通知リストアイテムクリック</td>
+            <td>対応する画面へ遷移し、既読状態に変更</td>
+        </tr>
+        <tr>
+            <td>全ての通知をクリックした場合</td>
+            <td>通知一覧画面へ遷移</td>
+        </tr>
+    </table>
+
+    <h3>3. メニュー操作</h3>
+    <table>
+        <tr>
+            <th>操作</th>
+            <th>振る舞い</th>
+        </tr>
+        <tr>
+            <td>メニューアイテムクリック</td>
+            <td>対応する機能画面へ遷移</td>
+        </tr>
+        <tr>
+            <td>未処理タスクアイテムクリック</td>
+            <td>タスク処理画面へ直接遷移</td>
+        </tr>
+        <tr>
+            <td>予定アイテムクリック</td>
+            <td>予定詳細ポップアップを表示</td>
+        </tr>
+    </table>
+
+    <h3>4. KPI表示</h3>
+    <table>
+        <tr>
+            <th>操作</th>
+            <th>振る舞い</th>
+        </tr>
+        <tr>
+            <td>KPIカードクリック</td>
+            <td>対応する詳細レポート画面へ遷移</td>
+        </tr>
+        <tr>
+            <td>グラフ期間切り替え</td>
+            <td>選択した期間でグラフデータを再描画</td>
+        </tr>
+        <tr>
+            <td>グラフにマウスオーバー</td>
+            <td>詳細データをツールチップで表示</td>
+        </tr>
+    </table>
+
+    <div class="note">
+        <p><strong>注意：</strong> ダッシュボードの表示内容はユーザー権限に応じて適切に制御されます。機密性の高い情報（売上情報、案件詳細情報など）は権限のあるユーザーにのみ表示されます。また、パフォーマンス最適化のため、グラフやデータの初期表示は直近6ヶ月分に制限されています。</p>
+    </div>
+
     <div class="footer">
         <p>作成日: 2025年5月5日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('dashboard-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '600px',
+                mockups: [
+                    {
+                        name: 'ダッシュボード',
+                        path: 'mockups/CMN-002.html',
+                        description: 'SES業務システムのダッシュボード画面のモックアップです。ユーザー別の重要情報やKPI、タスクをまとめて表示します。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>

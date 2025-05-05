@@ -368,7 +368,7 @@
                         beginAtZero: false,
                         ticks: {
                             callback: function(value) {
-                                return value / 100 + '\u767e万';
+                                return value / 100 + '百万';
                             }
                         }
                     }
@@ -377,7 +377,7 @@
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                return context.dataset.label + ': ' + context.parsed.y / 100 + '\u767e万円';
+                                return context.dataset.label + ': ' + context.parsed.y / 100 + '百万円';
                             }
                         }
                     }
