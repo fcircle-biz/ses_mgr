@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム ログイン画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -88,6 +90,12 @@
             color: #777;
             font-size: 14px;
         }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
         .breadcrumb {
             display: flex;
             flex-wrap: wrap;
@@ -115,6 +123,45 @@
             padding: 8px 12px;
             color: #6c757d;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -127,7 +174,7 @@
 
     <h1>CMN-001: ログイン画面</h1>
     
-    <h3>画面概要</h3>
+    <h2>画面概要</h2>
     <table>
         <tr>
             <th>項目</th>
@@ -159,14 +206,15 @@
         </tr>
     </table>
 
-    <h3>画面レイアウト</h3>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [ログイン画面のワイヤーフレーム]
-        </div>
+    <h2>画面レイアウト</h2>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="login-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
-    <h3>画面項目定義</h3>
+    <h2>画面構成要素</h2>
+    <h3>1. ログインフォーム部分</h3>
     <table>
         <tr>
             <th>項目ID</th>
@@ -181,7 +229,7 @@
             <td>ユーザーID</td>
             <td>テキスト入力</td>
             <td>半角英数字、8〜20文字</td>
-            <td>◯</td>
+            <td>必須</td>
             <td>ログイン用ユーザーID</td>
         </tr>
         <tr>
@@ -189,11 +237,19 @@
             <td>パスワード</td>
             <td>パスワード入力</td>
             <td>半角英数記号、12〜30文字</td>
-            <td>◯</td>
+            <td>必須</td>
             <td>ログイン用パスワード</td>
         </tr>
         <tr>
             <td>login-003</td>
+            <td>ログイン状態を保存</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>任意</td>
+            <td>ログイン状態を一定期間保持するかどうか</td>
+        </tr>
+        <tr>
+            <td>login-004</td>
             <td>ログインボタン</td>
             <td>ボタン</td>
             <td>-</td>
@@ -201,7 +257,7 @@
             <td>ログイン処理実行用ボタン</td>
         </tr>
         <tr>
-            <td>login-004</td>
+            <td>login-005</td>
             <td>パスワードを忘れた場合</td>
             <td>リンク</td>
             <td>-</td>
@@ -209,16 +265,16 @@
             <td>パスワードリセット画面へのリンク</td>
         </tr>
         <tr>
-            <td>login-005</td>
+            <td>login-006</td>
             <td>多要素認証コード</td>
             <td>テキスト入力</td>
             <td>半角数字、6桁</td>
-            <td>△</td>
+            <td>条件付き</td>
             <td>多要素認証が有効な場合に表示される入力欄</td>
         </tr>
     </table>
 
-    <h3>画面動作仕様</h3>
+    <h2>画面動作仕様</h2>
     <ol>
         <li>ユーザーIDとパスワードを入力し、ログインボタンをクリックする</li>
         <li>入力値のバリデーションを行う
@@ -242,9 +298,41 @@
         <li>認証に成功した場合、ダッシュボード画面に遷移する</li>
     </ol>
 
+    <div class="note">
+        <p><strong>注意：</strong>
+        <ul>
+            <li>パスワードは平文で送信せず、常にSSL通信で暗号化されます</li>
+            <li>多要素認証は管理者がユーザーごとに有効・無効を設定できます</li>
+            <li>セキュリティ監査のため、ログイン試行は全てログに記録されます</li>
+            <li>「ログイン状態を保存」を選択した場合でも、30日経過後は再ログインが必要です</li>
+        </ul>
+        </p>
+    </div>
+
     <div class="footer">
         <p>作成日: 2025年5月5日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('login-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '600px',
+                mockups: [
+                    {
+                        name: 'ログイン画面',
+                        path: 'mockups/CMN-001.html',
+                        description: 'SES業務システムへのログイン画面です。ユーザーIDとパスワードを入力してログインを行います。多要素認証が有効な場合は、追加の認証コード入力画面が表示されます。パスワードを忘れた場合は、リセット画面へのリンクも用意されています。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>
