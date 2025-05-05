@@ -3,42 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工数入力画面 | 勤怠・工数管理</title>
+    <title>SES業務システム 工数入力画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
             line-height: 1.6;
             color: #333;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f9f9f9;
         }
-        h1, h2, h3, h4 {
+        h1, h2, h3, h4, h5, h6 {
             color: #2c3e50;
-            margin-top: 30px;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
         }
         h1 {
+            font-size: 28px;
             text-align: center;
-            padding-bottom: 20px;
+            margin-top: 1em;
             border-bottom: 2px solid #3498db;
-            margin-bottom: 30px;
+            padding-bottom: 10px;
         }
-        .section {
-            background-color: white;
-            border-radius: 5px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
         }
         table {
-            width: 100%;
             border-collapse: collapse;
+            width: 100%;
             margin-bottom: 20px;
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 10px;
+            padding: 8px 12px;
             text-align: left;
         }
         th {
@@ -46,71 +58,70 @@
             font-weight: bold;
         }
         tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-        .screen-info {
-            display: flex;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        .screen-info div {
-            flex: 1;
-            min-width: 200px;
-            margin-bottom: 10px;
-        }
-        .screen-info .label {
-            font-weight: bold;
-            color: #7f8c8d;
-            margin-right: 8px;
+            background-color: #f8f9fa;
         }
         .wireframe {
             border: 1px solid #ddd;
-            border-radius: 5px;
             padding: 20px;
-            text-align: center;
-            background-color: #f5f5f5;
-            margin-bottom: 20px;
-        }
-        .wireframe p {
-            color: #7f8c8d;
-            font-style: italic;
-        }
-        .nav-links {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-        a {
-            text-decoration: none;
-            color: #3498db;
-            font-weight: bold;
-        }
-        a:hover {
-            text-decoration: underline;
-            color: #2980b9;
-        }
-        .notes {
-            background-color: #fff9e6;
-            border-left: 4px solid #f1c40f;
-            padding: 15px;
             margin: 20px 0;
-        }
-        .notes h3 {
-            color: #f39c12;
-            margin-top: 0;
-        }
-        footer {
+            background-color: #f9f9f9;
             text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
             margin-top: 50px;
             padding-top: 20px;
             border-top: 1px solid #eee;
-            color: #7f8c8d;
-            font-size: 0.9em;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
         }
         .req-label {
             display: inline-block;
@@ -135,352 +146,344 @@
     </style>
 </head>
 <body>
-    <h1>工数入力画面</h1>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../勤怠工数管理画面設計.html">勤怠・工数管理画面設計</a></li>
+            <li class="active">工数入力画面</li>
+        </ul>
+    </nav>
 
-    <div class="section">
-        <h2>画面概要</h2>
-        <div class="screen-info">
-            <div><span class="label">画面ID:</span> TMS-002</div>
-            <div><span class="label">画面名:</span> 工数入力画面</div>
-            <div><span class="label">対象ユーザー:</span> 技術者</div>
-            <div><span class="label">前画面:</span> 勤怠入力画面（TMS-001）、ダッシュボード</div>
-            <div><span class="label">次画面:</span> 勤怠入力画面（TMS-001）、工数集計画面（TMS-006）</div>
-        </div>
-        <p>
-            工数入力画面は、技術者が日々の作業内容と作業時間（工数）を案件・タスク別に記録するための画面です。
-            勤怠入力で登録した総労働時間を、異なる業務やプロジェクトにどれだけ配分したかを入力します。
-            入力された工数データは、案件別の稼働状況管理や請求処理の基礎データとなります。
-        </p>
+    <h1>TMS-002: 工数入力画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>TMS-002</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>工数入力画面</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>技術者が日々の作業内容と作業時間（工数）を案件・タスク別に記録するための画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>技術者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>勤怠入力画面（TMS-001）、ダッシュボード</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>勤怠入力画面（TMS-001）、工数集計画面（TMS-006）</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="effort-input-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
-    <div class="section">
-        <h2>画面レイアウト</h2>
-        <div class="wireframe">
-            <p>[工数入力画面のワイヤーフレーム表示位置]</p>
-            <p>日付選択部分、勤怠情報サマリー、工数入力テーブル、工数合計表示、ボタン類から構成される画面</p>
-        </div>
-        <p>
-            画面は主に以下の4つのエリアで構成されます：
-        </p>
-        <ol>
-            <li><strong>ヘッダー部分</strong>：日付選択、前日/翌日移動ボタン</li>
-            <li><strong>勤怠情報表示部分</strong>：選択日の勤怠情報（勤務状態、実働時間など）のサマリー表示</li>
-            <li><strong>工数入力テーブル</strong>：案件/タスク別の工数を入力するテーブル（行追加可能）</li>
-            <li><strong>フッター部分</strong>：工数合計、実働時間との差分表示、操作ボタン</li>
-        </ol>
-    </div>
+    <h2>画面構成要素</h2>
+    <h3>1. ヘッダー部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>tms_eff_001</td>
+            <td>日付選択</td>
+            <td>日付選択</td>
+            <td>過去6ヶ月～当日まで</td>
+            <td><span class="req-label required">必須</span></td>
+            <td>工数を入力する日付を選択</td>
+        </tr>
+        <tr>
+            <td>tms_eff_002</td>
+            <td>前日ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>前日の工数入力画面に移動</td>
+        </tr>
+        <tr>
+            <td>tms_eff_003</td>
+            <td>翌日ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>翌日の工数入力画面に移動（当日以降は無効）</td>
+        </tr>
+        <tr>
+            <td>tms_eff_004</td>
+            <td>週表示切替ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>週単位の工数入力表示に切り替え</td>
+        </tr>
+    </table>
 
-    <div class="section">
-        <h2>画面項目定義</h2>
-        
-        <h3>1. ヘッダー部分</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>項目ID</th>
-                    <th>項目名</th>
-                    <th>種類</th>
-                    <th>入力制限</th>
-                    <th>必須</th>
-                    <th>説明</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>H01</td>
-                    <td>日付選択</td>
-                    <td>日付選択</td>
-                    <td>過去6ヶ月～当日まで</td>
-                    <td><span class="req-label required">必須</span></td>
-                    <td>工数を入力する日付を選択</td>
-                </tr>
-                <tr>
-                    <td>H02</td>
-                    <td>前日ボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>前日の工数入力画面に移動</td>
-                </tr>
-                <tr>
-                    <td>H03</td>
-                    <td>翌日ボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>翌日の工数入力画面に移動（当日以降は無効）</td>
-                </tr>
-                <tr>
-                    <td>H04</td>
-                    <td>週表示切替ボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>週単位の工数入力表示に切り替え</td>
-                </tr>
-            </tbody>
-        </table>
+    <h3>2. 勤怠情報表示部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>tms_eff_005</td>
+            <td>勤怠状態表示</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>選択日の勤怠状態（出勤/有給休暇など）</td>
+        </tr>
+        <tr>
+            <td>tms_eff_006</td>
+            <td>実働時間表示</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>勤怠データから計算された実働時間</td>
+        </tr>
+        <tr>
+            <td>tms_eff_007</td>
+            <td>勤怠未入力警告</td>
+            <td>警告メッセージ</td>
+            <td>-</td>
+            <td>-</td>
+            <td>勤怠データが未入力の場合に表示する警告</td>
+        </tr>
+        <tr>
+            <td>tms_eff_008</td>
+            <td>勤怠入力へボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>勤怠入力画面へ遷移</td>
+        </tr>
+    </table>
 
-        <h3>2. 勤怠情報表示部分</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>項目ID</th>
-                    <th>項目名</th>
-                    <th>種類</th>
-                    <th>入力制限</th>
-                    <th>必須</th>
-                    <th>説明</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>S01</td>
-                    <td>勤怠状態表示</td>
-                    <td>テキスト表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>選択日の勤怠状態（出勤/有給休暇など）</td>
-                </tr>
-                <tr>
-                    <td>S02</td>
-                    <td>実働時間表示</td>
-                    <td>テキスト表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>勤怠データから計算された実働時間</td>
-                </tr>
-                <tr>
-                    <td>S03</td>
-                    <td>勤怠未入力警告</td>
-                    <td>警告メッセージ</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>勤怠データが未入力の場合に表示する警告</td>
-                </tr>
-                <tr>
-                    <td>S04</td>
-                    <td>勤怠入力へボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>勤怠入力画面へ遷移</td>
-                </tr>
-            </tbody>
-        </table>
+    <h3>3. 工数入力テーブル</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>tms_eff_009</td>
+            <td>工数一覧テーブル</td>
+            <td>テーブル</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件・タスク別工数を行単位で入力するテーブル</td>
+        </tr>
+        <tr>
+            <td>tms_eff_010</td>
+            <td>案件選択</td>
+            <td>ドロップダウン</td>
+            <td>アサイン中の案件のみ</td>
+            <td><span class="req-label required">必須</span></td>
+            <td>工数を入力する案件を選択</td>
+        </tr>
+        <tr>
+            <td>tms_eff_011</td>
+            <td>タスク名</td>
+            <td>テキスト入力</td>
+            <td>100文字以内</td>
+            <td><span class="req-label required">必須</span></td>
+            <td>作業内容のタスク名</td>
+        </tr>
+        <tr>
+            <td>tms_eff_012</td>
+            <td>タスク分類</td>
+            <td>ドロップダウン</td>
+            <td>要件定義/設計/開発/テスト/レビュー/会議/調査/保守/その他</td>
+            <td><span class="req-label required">必須</span></td>
+            <td>タスクの種類を選択</td>
+        </tr>
+        <tr>
+            <td>tms_eff_013</td>
+            <td>工数</td>
+            <td>数値入力</td>
+            <td>0.1～24.0時間、0.1単位</td>
+            <td><span class="req-label required">必須</span></td>
+            <td>タスクにかかった工数（時間）</td>
+        </tr>
+        <tr>
+            <td>tms_eff_014</td>
+            <td>請求可能フラグ</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td><span class="req-label required">必須</span></td>
+            <td>該当工数が請求可能かどうかのフラグ</td>
+        </tr>
+        <tr>
+            <td>tms_eff_015</td>
+            <td>作業内容</td>
+            <td>テキストエリア</td>
+            <td>500文字以内</td>
+            <td><span class="req-label optional">任意</span></td>
+            <td>作業内容の詳細説明</td>
+        </tr>
+        <tr>
+            <td>tms_eff_016</td>
+            <td>行削除ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>該当行を削除</td>
+        </tr>
+        <tr>
+            <td>tms_eff_017</td>
+            <td>行追加ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>工数入力行を追加</td>
+        </tr>
+    </table>
 
-        <h3>3. 工数入力テーブル</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>項目ID</th>
-                    <th>項目名</th>
-                    <th>種類</th>
-                    <th>入力制限</th>
-                    <th>必須</th>
-                    <th>説明</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>T01</td>
-                    <td>工数一覧テーブル</td>
-                    <td>テーブル</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>案件・タスク別工数を行単位で入力するテーブル</td>
-                </tr>
-                <tr>
-                    <td>T02</td>
-                    <td>案件選択</td>
-                    <td>ドロップダウン</td>
-                    <td>アサイン中の案件のみ</td>
-                    <td><span class="req-label required">必須</span></td>
-                    <td>工数を入力する案件を選択</td>
-                </tr>
-                <tr>
-                    <td>T03</td>
-                    <td>タスク名</td>
-                    <td>テキスト入力</td>
-                    <td>100文字以内</td>
-                    <td><span class="req-label required">必須</span></td>
-                    <td>作業内容のタスク名</td>
-                </tr>
-                <tr>
-                    <td>T04</td>
-                    <td>タスク分類</td>
-                    <td>ドロップダウン</td>
-                    <td>要件定義/設計/開発/テスト/レビュー/会議/調査/保守/その他</td>
-                    <td><span class="req-label required">必須</span></td>
-                    <td>タスクの種類を選択</td>
-                </tr>
-                <tr>
-                    <td>T05</td>
-                    <td>工数</td>
-                    <td>数値入力</td>
-                    <td>0.1～24.0時間、0.1単位</td>
-                    <td><span class="req-label required">必須</span></td>
-                    <td>タスクにかかった工数（時間）</td>
-                </tr>
-                <tr>
-                    <td>T06</td>
-                    <td>請求可能フラグ</td>
-                    <td>チェックボックス</td>
-                    <td>-</td>
-                    <td><span class="req-label required">必須</span></td>
-                    <td>該当工数が請求可能かどうかのフラグ</td>
-                </tr>
-                <tr>
-                    <td>T07</td>
-                    <td>作業内容</td>
-                    <td>テキストエリア</td>
-                    <td>500文字以内</td>
-                    <td><span class="req-label optional">任意</span></td>
-                    <td>作業内容の詳細説明</td>
-                </tr>
-                <tr>
-                    <td>T08</td>
-                    <td>行削除ボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>該当行を削除</td>
-                </tr>
-                <tr>
-                    <td>T09</td>
-                    <td>行追加ボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>工数入力行を追加</td>
-                </tr>
-            </tbody>
-        </table>
+    <h3>4. フッター部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>tms_eff_018</td>
+            <td>工数合計表示</td>
+            <td>計算表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>入力された工数の合計時間</td>
+        </tr>
+        <tr>
+            <td>tms_eff_019</td>
+            <td>実働時間との差分</td>
+            <td>計算表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>実働時間 - 工数合計。差分が出ると警告表示</td>
+        </tr>
+        <tr>
+            <td>tms_eff_020</td>
+            <td>テンプレート読込ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>保存済みの工数テンプレートを読み込む</td>
+        </tr>
+        <tr>
+            <td>tms_eff_021</td>
+            <td>テンプレート保存ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>現在の入力内容をテンプレートとして保存</td>
+        </tr>
+        <tr>
+            <td>tms_eff_022</td>
+            <td>前日コピーボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>前日の工数データをコピーして読み込む</td>
+        </tr>
+        <tr>
+            <td>tms_eff_023</td>
+            <td>保存ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>工数データを保存する</td>
+        </tr>
+        <tr>
+            <td>tms_eff_024</td>
+            <td>キャンセルボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>編集をキャンセルして前画面に戻る</td>
+        </tr>
+    </table>
 
-        <h3>4. フッター部分</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>項目ID</th>
-                    <th>項目名</th>
-                    <th>種類</th>
-                    <th>入力制限</th>
-                    <th>必須</th>
-                    <th>説明</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>F01</td>
-                    <td>工数合計表示</td>
-                    <td>計算表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>入力された工数の合計時間</td>
-                </tr>
-                <tr>
-                    <td>F02</td>
-                    <td>実働時間との差分</td>
-                    <td>計算表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>実働時間 - 工数合計。差分が出ると警告表示</td>
-                </tr>
-                <tr>
-                    <td>F03</td>
-                    <td>テンプレート読込ボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>保存済みの工数テンプレートを読み込む</td>
-                </tr>
-                <tr>
-                    <td>F04</td>
-                    <td>テンプレート保存ボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>現在の入力内容をテンプレートとして保存</td>
-                </tr>
-                <tr>
-                    <td>F05</td>
-                    <td>前日コピーボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>前日の工数データをコピーして読み込む</td>
-                </tr>
-                <tr>
-                    <td>F06</td>
-                    <td>保存ボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>工数データを保存する</td>
-                </tr>
-                <tr>
-                    <td>F07</td>
-                    <td>キャンセルボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>編集をキャンセルして前画面に戻る</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <h2>画面動作仕様</h2>
 
-    <div class="section">
-        <h2>画面動作仕様</h2>
+    <h3>1. 初期表示</h3>
+    <ul>
+        <li>初期表示時は当日の日付が選択された状態で表示</li>
+        <li>勤怠データが入力済みの場合、勤怠情報サマリー部分に情報を表示</li>
+        <li>勤怠データが未入力の場合、警告メッセージを表示</li>
+        <li>工数データが既に入力済みの場合は、そのデータをテーブルに表示</li>
+        <li>工数データが未入力の場合は、空の工数入力行を1行表示</li>
+    </ul>
 
-        <h3>1. 初期表示</h3>
-        <ul>
-            <li>初期表示時は当日の日付が選択された状態で表示</li>
-            <li>勤怠データが入力済みの場合、勤怠情報サマリー部分に情報を表示</li>
-            <li>勤怠データが未入力の場合、警告メッセージを表示</li>
-            <li>工数データが既に入力済みの場合は、そのデータをテーブルに表示</li>
-            <li>工数データが未入力の場合は、空の工数入力行を1行表示</li>
-        </ul>
+    <h3>2. 日付変更時</h3>
+    <ul>
+        <li>日付選択、または前日/翌日ボタンで日付を変更すると、選択された日付の勤怠情報と工数データを再読込</li>
+        <li>未保存の工数データがある場合は、確認ダイアログを表示</li>
+        <li>選択された日付が未来日付の場合、工数入力を無効化</li>
+    </ul>
 
-        <h3>2. 日付変更時</h3>
-        <ul>
-            <li>日付選択、または前日/翌日ボタンで日付を変更すると、選択された日付の勤怠情報と工数データを再読込</li>
-            <li>未保存の工数データがある場合は、確認ダイアログを表示</li>
-            <li>選択された日付が未来日付の場合、工数入力を無効化</li>
-        </ul>
+    <h3>3. 工数入力時</h3>
+    <ul>
+        <li>案件を選択すると、その案件に関連する既定のタスク分類や請求可能フラグの初期値を自動設定</li>
+        <li>工数を入力すると、リアルタイムで合計工数と実働時間との差分を再計算</li>
+        <li>工数合計が実働時間と異なる場合、差分を赤字で表示し警告</li>
+        <li>工数合計が実働時間を超える場合、超過分を強調表示</li>
+    </ul>
 
-        <h3>3. 工数入力時</h3>
-        <ul>
-            <li>案件を選択すると、その案件に関連する既定のタスク分類や請求可能フラグの初期値を自動設定</li>
-            <li>工数を入力すると、リアルタイムで合計工数と実働時間との差分を再計算</li>
-            <li>工数合計が実働時間と異なる場合、差分を赤字で表示し警告</li>
-            <li>工数合計が実働時間を超える場合、超過分を強調表示</li>
-        </ul>
+    <h3>4. 工数テンプレート操作</h3>
+    <ul>
+        <li>テンプレート保存ボタンをクリックすると、現在の工数入力内容に名前を付けて保存するダイアログを表示</li>
+        <li>テンプレート読込ボタンをクリックすると、保存済みテンプレート一覧を表示し、選択したテンプレートを読み込む</li>
+        <li>前日コピーボタンをクリックすると、前日の工数データを現在の画面にコピー（案件とタスクのみ、工数値は空欄）</li>
+    </ul>
 
-        <h3>4. 工数テンプレート操作</h3>
-        <ul>
-            <li>テンプレート保存ボタンをクリックすると、現在の工数入力内容に名前を付けて保存するダイアログを表示</li>
-            <li>テンプレート読込ボタンをクリックすると、保存済みテンプレート一覧を表示し、選択したテンプレートを読み込む</li>
-            <li>前日コピーボタンをクリックすると、前日の工数データを現在の画面にコピー（案件とタスクのみ、工数値は空欄）</li>
-        </ul>
+    <h3>5. 保存時</h3>
+    <ul>
+        <li>必須項目が未入力の場合、エラーメッセージを表示して保存を中止</li>
+        <li>工数合計と実働時間が異なる場合、警告メッセージを表示するが、保存は可能</li>
+        <li>入力内容に問題がなければ、データを保存し、成功メッセージを表示</li>
+        <li>保存後、画面をリフレッシュして最新データを表示</li>
+    </ul>
 
-        <h3>5. 保存時</h3>
-        <ul>
-            <li>必須項目が未入力の場合、エラーメッセージを表示して保存を中止</li>
-            <li>工数合計と実働時間が異なる場合、警告メッセージを表示するが、保存は可能</li>
-            <li>入力内容に問題がなければ、データを保存し、成功メッセージを表示</li>
-            <li>保存後、画面をリフレッシュして最新データを表示</li>
-        </ul>
+    <h3>6. 週表示モード</h3>
+    <ul>
+        <li>週表示切替ボタンをクリックすると、現在の日付を含む週（月～金または月～日）の工数を一画面で入力可能な表示に切り替え</li>
+        <li>週表示モードでは、日ごとの列と、案件・タスクごとの行のマトリクス形式で工数を入力</li>
+        <li>各日の合計工数と実働時間の整合性を常に確認可能</li>
+    </ul>
 
-        <h3>6. 週表示モード</h3>
-        <ul>
-            <li>週表示切替ボタンをクリックすると、現在の日付を含む週（月～金または月～日）の工数を一画面で入力可能な表示に切り替え</li>
-            <li>週表示モードでは、日ごとの列と、案件・タスクごとの行のマトリクス形式で工数を入力</li>
-            <li>各日の合計工数と実働時間の整合性を常に確認可能</li>
-        </ul>
-    </div>
-
-    <div class="notes">
+    <div class="note">
         <h3>特記事項・注意点</h3>
         <ul>
             <li>勤怠情報の実働時間と工数合計の整合性を取ることが重要</li>
@@ -493,13 +496,30 @@
         </ul>
     </div>
 
-    <div class="nav-links">
-        <a href="TMS-001_勤怠入力画面.html">← 前の画面：勤怠入力画面</a>
-        <a href="TMS-003_勤怠管理画面.html">次の画面：勤怠管理画面 →</a>
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
     </div>
-
-    <footer>
-        <p>SES業務システム 勤怠・工数管理 画面設計書 | 最終更新日: 2025年5月4日</p>
-    </footer>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 工数入力画面モックアップの設定
+            new MockupViewer('effort-input-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '600px',
+                mockups: [
+                    {
+                        name: '工数入力画面',
+                        path: 'mockups/TMS-002.html',
+                        description: '日付選択部分、勤怠情報サマリー、工数入力テーブル、工数合計表示、ボタン類から構成される画面です。技術者が日々の作業内容と作業時間を案件・タスク別に記録することができます。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>

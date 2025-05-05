@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工数承認画面 | SES業務システム</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f5f7fa;
+        }
+        .card {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            border: none;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eaecf0;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 500;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .status-draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .status-submitted {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .status-approved {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .progress {
+            height: 0.8rem;
+        }
+        .progress-bar {
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        .info-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            height: 100%;
+            margin-bottom: 15px;
+        }
+        .info-title {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        .info-value {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #212529;
+        }
+        .info-unit {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-left: 4px;
+        }
+        .warning-icon {
+            color: #dc3545;
+            font-size: 1.2rem;
+        }
+        .action-buttons {
+            white-space: nowrap;
+        }
+        .action-button {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        .checkbox-column {
+            width: 40px;
+        }
+        .search-panel {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .form-label {
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        .table-responsive {
+            min-height: 450px;
+        }
+        .budget-exceeded {
+            color: #dc3545;
+            font-weight: 500;
+        }
+        .chart-container {
+            height: 200px;
+        }
+        .project-header {
+            background-color: #e9f2ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .project-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .project-info {
+            display: flex;
+            gap: 20px;
+        }
+        .project-info-item {
+            font-size: 0.85rem;
+        }
+        .project-info-label {
+            color: #6c757d;
+            margin-right: 5px;
+        }
+        .task-hour-cell {
+            min-width: 80px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <h3 class="mb-4">工数承認</h3>
+
+        <!-- 検索・フィルタリング部分 -->
+        <div class="card">
+            <div class="card-body search-panel">
+                <form>
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-2">
+                            <label class="form-label" for="yearMonth">年月</label>
+                            <select class="form-select" id="yearMonth">
+                                <option>2025年5月</option>
+                                <option>2025年4月</option>
+                                <option>2025年3月</option>
+                                <option>2025年2月</option>
+                                <option>2025年1月</option>
+                                <option>2024年12月</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="project">プロジェクト</label>
+                            <select class="form-select" id="project">
+                                <option>A社：販売管理システム開発</option>
+                                <option>B社：社内基幹システム保守</option>
+                                <option>C社：WEBサイトリニューアル</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">ステータス</label>
+                            <div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="statusSubmitted" checked>
+                                    <label class="form-check-label" for="statusSubmitted">提出済</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="statusApproved" checked>
+                                    <label class="form-check-label" for="statusApproved">承認済</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="statusRejected" checked>
+                                    <label class="form-check-label" for="statusRejected">差戻</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="member">メンバー検索</label>
+                            <input type="text" class="form-control" id="member" placeholder="メンバー名で検索">
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-3">
+                            <label class="form-label" for="taskType">タスク種別</label>
+                            <select class="form-select" id="taskType">
+                                <option>全てのタスク</option>
+                                <option>要件定義</option>
+                                <option>設計</option>
+                                <option>開発</option>
+                                <option>テスト</option>
+                                <option>レビュー</option>
+                                <option>会議</option>
+                                <option>調査</option>
+                                <option>保守</option>
+                                <option>その他</option>
+                            </select>
+                        </div>
+                        <div class="col-md-9 text-end align-self-end">
+                            <button type="button" class="btn btn-primary">
+                                <i class="bi bi-search"></i> 検索
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary ms-2">
+                                <i class="bi bi-x-circle"></i> クリア
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 案件概要部分 -->
+        <div class="project-header">
+            <div class="project-title">
+                A社：販売管理システム開発
+            </div>
+            <div class="project-info">
+                <div class="project-info-item">
+                    <span class="project-info-label">案件ID:</span>
+                    <span>PRJ-2025-0023</span>
+                </div>
+                <div class="project-info-item">
+                    <span class="project-info-label">案件期間:</span>
+                    <span>2025/01/01 - 2025/12/31</span>
+                </div>
+                <div class="project-info-item">
+                    <span class="project-info-label">責任者:</span>
+                    <span>山本 雄二</span>
+                </div>
+                <div class="project-info-item">
+                    <a href="#" class="small">案件詳細 <i class="bi bi-box-arrow-up-right"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <!-- 左側：案件概要情報 -->
+            <div class="col-md-5">
+                <div class="card h-100">
+                    <div class="card-header">
+                        予算・実績サマリー
+                    </div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <div class="info-title">月次予算工数</div>
+                                    <div class="info-value">320.0<span class="info-unit">時間</span></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <div class="info-title">月次実績工数</div>
+                                    <div class="info-value">298.5<span class="info-unit">時間</span></div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="info-box">
+                                    <div class="info-title">予算進捗率</div>
+                                    <div class="progress mb-2">
+                                        <div class="progress-bar bg-primary" role="progressbar" style="width: 93.3%" aria-valuenow="93.3" aria-valuemin="0" aria-valuemax="100">93.3%</div>
+                                    </div>
+                                    <div class="small">残り: 21.5時間 / 320.0時間</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <div class="info-title">工数提出率</div>
+                                    <div class="progress mb-2">
+                                        <div class="progress-bar bg-info" role="progressbar" style="width: 85%" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">85%</div>
+                                    </div>
+                                    <div class="small">17/20名提出済</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <div class="info-title">工数承認率</div>
+                                    <div class="progress mb-2">
+                                        <div class="progress-bar bg-success" role="progressbar" style="width: 60%" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60%</div>
+                                    </div>
+                                    <div class="small">12/20名承認済</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <div class="info-title">請求可能工数</div>
+                                    <div class="info-value">275.0<span class="info-unit">時間</span></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-box">
+                                    <div class="info-title">非請求工数</div>
+                                    <div class="info-value">23.5<span class="info-unit">時間</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右側：タスク種別工数グラフ -->
+            <div class="col-md-7">
+                <div class="card h-100">
+                    <div class="card-header">
+                        タスク種別工数分布
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="chart-container">
+                                    <canvas id="taskTypeChart"></canvas>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>タスク種別</th>
+                                            <th class="text-end">工数</th>
+                                            <th class="text-end">割合</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><span class="badge bg-primary">要件定義</span></td>
+                                            <td class="text-end">12.0時間</td>
+                                            <td class="text-end">4.0%</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-success">設計</span></td>
+                                            <td class="text-end">48.5時間</td>
+                                            <td class="text-end">16.2%</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-info">開発</span></td>
+                                            <td class="text-end">135.0時間</td>
+                                            <td class="text-end">45.2%</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-warning text-dark">テスト</span></td>
+                                            <td class="text-end">70.0時間</td>
+                                            <td class="text-end">23.5%</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-secondary">レビュー</span></td>
+                                            <td class="text-end">15.0時間</td>
+                                            <td class="text-end">5.0%</td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="badge bg-dark">会議</span></td>
+                                            <td class="text-end">18.0時間</td>
+                                            <td class="text-end">6.0%</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 工数一覧テーブル -->
+        <div class="card">
+            <div class="card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span>工数データ一覧</span>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-file-earmark-excel"></i> エクスポート
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th class="checkbox-column">
+                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                </th>
+                                <th>ID</th>
+                                <th>氏名</th>
+                                <th>役割</th>
+                                <th>ステータス</th>
+                                <th>合計工数</th>
+                                <th class="task-hour-cell">要件定義</th>
+                                <th class="task-hour-cell">設計</th>
+                                <th class="task-hour-cell">開発</th>
+                                <th class="task-hour-cell">テスト</th>
+                                <th class="task-hour-cell">レビュー</th>
+                                <th class="task-hour-cell">会議</th>
+                                <th class="task-hour-cell">請求可能</th>
+                                <th class="task-hour-cell">非請求</th>
+                                <th>提出日</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input" type="checkbox">
+                                </td>
+                                <td>E001</td>
+                                <td><a href="#">山田 太郎</a></td>
+                                <td>PG</td>
+                                <td><span class="status-badge status-submitted">提出済</span></td>
+                                <td>40.0</td>
+                                <td>0.0</td>
+                                <td>0.0</td>
+                                <td>32.0</td>
+                                <td>8.0</td>
+                                <td>0.0</td>
+                                <td>0.0</td>
+                                <td>40.0</td>
+                                <td>0.0</td>
+                                <td>2025/05/25</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary action-button">詳細</button>
+                                    <button class="btn btn-sm btn-success action-button">承認</button>
+                                    <button class="btn btn-sm btn-danger action-button">差戻</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input" type="checkbox">
+                                </td>
+                                <td>E003</td>
+                                <td><a href="#">鈴木 一郎</a></td>
+                                <td>SE</td>
+                                <td><span class="status-badge status-rejected">差戻</span></td>
+                                <td>37.5</td>
+                                <td>0.0</td>
+                                <td>20.0</td>
+                                <td>10.0</td>
+                                <td>2.5</td>
+                                <td>5.0</td>
+                                <td>0.0</td>
+                                <td>34.5</td>
+                                <td>3.0</td>
+                                <td>2025/05/24</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary action-button">詳細</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input" type="checkbox">
+                                </td>
+                                <td>E006</td>
+                                <td><a href="#">伊藤 雄太</a></td>
+                                <td>PG</td>
+                                <td><span class="status-badge status-submitted">提出済</span></td>
+                                <td>42.0</td>
+                                <td>0.0</td>
+                                <td>0.0</td>
+                                <td>30.0</td>
+                                <td>12.0</td>
+                                <td>0.0</td>
+                                <td>0.0</td>
+                                <td>42.0</td>
+                                <td>0.0</td>
+                                <td>2025/05/25</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary action-button">詳細</button>
+                                    <button class="btn btn-sm btn-success action-button">承認</button>
+                                    <button class="btn btn-sm btn-danger action-button">差戻</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input" type="checkbox">
+                                </td>
+                                <td>E009</td>
+                                <td><a href="#">加藤 修平</a></td>
+                                <td>SE</td>
+                                <td><span class="status-badge status-approved">承認済</span></td>
+                                <td>45.0</td>
+                                <td>8.0</td>
+                                <td>15.0</td>
+                                <td>10.0</td>
+                                <td>0.0</td>
+                                <td>6.0</td>
+                                <td>6.0</td>
+                                <td>42.0</td>
+                                <td>3.0</td>
+                                <td>2025/05/22</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary action-button">詳細</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input" type="checkbox">
+                                </td>
+                                <td>E011</td>
+                                <td><a href="#">佐々木 美香</a></td>
+                                <td>PG</td>
+                                <td><span class="status-badge status-submitted">提出済</span></td>
+                                <td>38.0</td>
+                                <td>0.0</td>
+                                <td>5.0</td>
+                                <td>25.0</td>
+                                <td>3.0</td>
+                                <td>2.0</td>
+                                <td>3.0</td>
+                                <td>33.0</td>
+                                <td>5.0</td>
+                                <td>2025/05/25</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary action-button">詳細</button>
+                                    <button class="btn btn-sm btn-success action-button">承認</button>
+                                    <button class="btn btn-sm btn-danger action-button">差戻</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input" type="checkbox">
+                                </td>
+                                <td>E013</td>
+                                <td><a href="#">中村 健二</a></td>
+                                <td>PM</td>
+                                <td><span class="status-badge status-approved">承認済</span></td>
+                                <td><span class="budget-exceeded">52.0</span> <i class="bi bi-exclamation-triangle-fill warning-icon"></i></td>
+                                <td>4.0</td>
+                                <td>8.0</td>
+                                <td>15.0</td>
+                                <td>10.0</td>
+                                <td>6.0</td>
+                                <td>9.0</td>
+                                <td>45.0</td>
+                                <td>7.0</td>
+                                <td>2025/05/20</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary action-button">詳細</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ページネーション -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        表示: 1-6 / 20件
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">前へ</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item"><a class="page-link" href="#">4</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">次へ</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- 承認操作部分 -->
+        <div class="card">
+            <div class="card-header">
+                承認操作
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="approvalComment" class="form-label">承認・差戻コメント</label>
+                            <textarea class="form-control" id="approvalComment" rows="3" placeholder="承認または差戻の際のコメントを入力してください"></textarea>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-success">
+                                <i class="bi bi-check-circle"></i> 一括承認
+                            </button>
+                            <button class="btn btn-danger">
+                                <i class="bi bi-x-circle"></i> 一括差戻
+                            </button>
+                            <button class="btn btn-outline-secondary">
+                                <i class="bi bi-envelope"></i> 未提出者リマインド
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            <strong>重要な注意事項:</strong>
+                            <ul class="mb-0 small">
+                                <li>承認後の工数データは請求・支払処理や原価管理の根拠となります</li>
+                                <li>予算を超過している工数データは詳細を確認してください</li>
+                                <li>差戻を行う場合は、具体的な修正指示をコメントに記載してください</li>
+                                <li>月末締め日: 5月31日</li>
+                            </ul>
+                        </div>
+                        <div class="d-flex justify-content-end gap-2 mt-3">
+                            <button class="btn btn-outline-primary">
+                                <i class="bi bi-file-earmark-excel"></i> 工数データエクスポート
+                            </button>
+                            <button class="btn btn-outline-secondary">
+                                <i class="bi bi-graph-up"></i> 工数集計画面へ
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // グラフの初期化
+        window.addEventListener('DOMContentLoaded', function() {
+            const ctx = document.getElementById('taskTypeChart').getContext('2d');
+            const taskTypeChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['要件定義', '設計', '開発', 'テスト', 'レビュー', '会議'],
+                    datasets: [{
+                        data: [12.0, 48.5, 135.0, 70.0, 15.0, 18.0],
+                        backgroundColor: [
+                            '#0d6efd', // primary
+                            '#198754', // success
+                            '#0dcaf0', // info
+                            '#ffc107', // warning
+                            '#6c757d', // secondary
+                            '#212529'  // dark
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: {
+                                boxWidth: 15,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw;
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = Math.round(value / total * 100);
+                                    return `${context.label}: ${value}時間 (${percentage}%)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        // 全選択チェックボックスの制御
+        document.getElementById('selectAll').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+
+        // 行選択時の背景色変更
+        document.querySelectorAll('tbody input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const row = this.closest('tr');
+                if (this.checked) {
+                    row.classList.add('table-active');
+                } else {
+                    row.classList.remove('table-active');
+                }
+            });
+        });
+    </script>
+</body>
+</html>

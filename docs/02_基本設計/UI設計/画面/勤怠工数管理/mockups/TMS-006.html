@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工数集計画面 | SES業務システム</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f5f7fa;
+        }
+        .card {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            border: none;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eaecf0;
+        }
+        .metrics-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .metrics-title {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        .metrics-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 5px;
+        }
+        .metrics-change {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+        .metrics-change.positive {
+            color: #198754;
+        }
+        .metrics-change.negative {
+            color: #dc3545;
+        }
+        .metrics-percentage {
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        .search-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            height: 250px;
+            position: relative;
+        }
+        .chart-container-lg {
+            height: 300px;
+            position: relative;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 500;
+        }
+        .nav-pills .nav-link {
+            color: #495057;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        .warning-cell {
+            color: #dc3545;
+            font-weight: 500;
+        }
+        .progress-xs {
+            height: 5px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            margin-right: 8px;
+        }
+        .form-label {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .project-banner {
+            background-color: #e9f2ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .project-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        .project-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            font-size: 0.9rem;
+        }
+        .project-info-item {
+            display: flex;
+            align-items: center;
+        }
+        .project-info-label {
+            color: #6c757d;
+            margin-right: 8px;
+        }
+        .period-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 4px;
+            background-color: #e9ecef;
+            color: #495057;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="mb-0">工数集計</h3>
+            <div>
+                <button class="btn btn-outline-primary btn-sm me-2">
+                    <i class="bi bi-star"></i> レポート保存
+                </button>
+                <button class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-question-circle"></i> ヘルプ
+                </button>
+            </div>
+        </div>
+
+        <!-- 集計条件部分 -->
+        <div class="card">
+            <div class="card-body search-section">
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <label class="form-label" for="periodType">期間タイプ</label>
+                        <select class="form-select" id="periodType">
+                            <option>日次</option>
+                            <option>週次</option>
+                            <option selected>月次</option>
+                            <option>四半期</option>
+                            <option>年次</option>
+                            <option>カスタム</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label" for="startPeriod">開始期間</label>
+                        <select class="form-select" id="startPeriod">
+                            <option>2025年3月</option>
+                            <option>2025年4月</option>
+                            <option selected>2025年5月</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label" for="endPeriod">終了期間</label>
+                        <select class="form-select" id="endPeriod">
+                            <option>2025年3月</option>
+                            <option>2025年4月</option>
+                            <option selected>2025年5月</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="projectSelect">プロジェクト</label>
+                        <select class="form-select" id="projectSelect">
+                            <option>すべてのプロジェクト</option>
+                            <option selected>A社：販売管理システム開発</option>
+                            <option>B社：社内基幹システム保守</option>
+                            <option>C社：WEBサイトリニューアル</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="groupBy">グループ化</label>
+                        <select class="form-select" id="groupBy">
+                            <option>全体</option>
+                            <option selected>プロジェクト別</option>
+                            <option>部門別</option>
+                            <option>顧客別</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-md-3">
+                        <label class="form-label">タスク種別</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="taskType1" checked>
+                                <label class="form-check-label" for="taskType1">要件定義</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="taskType2" checked>
+                                <label class="form-check-label" for="taskType2">設計</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="taskType3" checked>
+                                <label class="form-check-label" for="taskType3">開発</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="checkbox" id="taskType4" checked>
+                                <label class="form-check-label" for="taskType4">テスト</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">請求区分</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="billingType" id="billingAll" checked>
+                                <label class="form-check-label" for="billingAll">すべて</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="billingType" id="billingBillable">
+                                <label class="form-check-label" for="billingBillable">請求可能のみ</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="billingType" id="billingNonBillable">
+                                <label class="form-check-label" for="billingNonBillable">非請求のみ</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label" for="memberFilter">メンバー</label>
+                        <select class="form-select" id="memberFilter">
+                            <option selected>すべてのメンバー</option>
+                            <option>山田 太郎</option>
+                            <option>佐藤 花子</option>
+                            <option>鈴木 一郎</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> 集計実行
+                        </button>
+                        <button class="btn btn-outline-secondary me-2">
+                            <i class="bi bi-x-circle"></i> クリア
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- プロジェクト概要部分 -->
+        <div class="project-banner">
+            <div class="project-title">
+                A社：販売管理システム開発
+                <a href="#" class="btn btn-sm btn-outline-primary ms-2">詳細を表示</a>
+            </div>
+            <div class="project-info">
+                <div class="project-info-item">
+                    <span class="project-info-label">プロジェクトID:</span>
+                    <span>PRJ-2025-0023</span>
+                </div>
+                <div class="project-info-item">
+                    <span class="project-info-label">期間:</span>
+                    <span>2025/01/01 - 2025/12/31</span>
+                </div>
+                <div class="project-info-item">
+                    <span class="project-info-label">プロジェクト管理者:</span>
+                    <span>山本 雄二</span>
+                </div>
+                <div class="project-info-item">
+                    <span class="project-info-label">顧客:</span>
+                    <span>A株式会社</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 工数サマリー指標部分 -->
+        <div class="row mb-4">
+            <div class="col-md-2">
+                <div class="metrics-card">
+                    <div class="metrics-title">総工数</div>
+                    <div class="metrics-value">1,243.5h</div>
+                    <div class="metrics-change positive">
+                        <i class="bi bi-arrow-up-short me-1"></i> 5.2% vs 前月
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metrics-card">
+                    <div class="metrics-title">請求可能工数</div>
+                    <div class="metrics-value">1,158.0h</div>
+                    <div class="metrics-percentage">総工数の 93.1%</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metrics-card">
+                    <div class="metrics-title">非請求工数</div>
+                    <div class="metrics-value">85.5h</div>
+                    <div class="metrics-percentage">総工数の 6.9%</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metrics-card">
+                    <div class="metrics-title">予算消化率</div>
+                    <div class="metrics-value">87.2%</div>
+                    <div class="metrics-change positive">
+                        <i class="bi bi-arrow-up-short me-1"></i> 3.5% vs 前月
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metrics-card">
+                    <div class="metrics-title">プロジェクト進捗率</div>
+                    <div class="metrics-value">65.0%</div>
+                    <div class="metrics-change positive">
+                        <i class="bi bi-arrow-up-short me-1"></i> 8.2% vs 前月
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metrics-card">
+                    <div class="metrics-title">平均日次工数</div>
+                    <div class="metrics-value">7.5h</div>
+                    <div class="metrics-change negative">
+                        <i class="bi bi-arrow-down-short me-1"></i> 0.3h vs 前月
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- グラフ・チャート部分 -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>タスク種別工数分布</span>
+                        <div>
+                            <select class="form-select form-select-sm" style="width: 120px;">
+                                <option selected>円グラフ</option>
+                                <option>棒グラフ</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="taskTypeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>期間別工数推移</span>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-download"></i> グラフ保存
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="timelineChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>メンバー別工数分布</span>
+                        <div>
+                            <select class="form-select form-select-sm" style="width: 150px;">
+                                <option>上位5名</option>
+                                <option selected>上位10名</option>
+                                <option>すべて</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container-lg">
+                            <canvas id="memberChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>タスク種別別推移</span>
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-arrows-angle-expand"></i> 拡大表示
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container-lg">
+                            <canvas id="taskTimelineChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 詳細データ部分 -->
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-pills card-header-pills">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">プロジェクト別</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">タスク別</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">メンバー別</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">日付別</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>メンバーID</th>
+                                <th>氏名</th>
+                                <th>役割</th>
+                                <th>総工数</th>
+                                <th>要件定義</th>
+                                <th>設計</th>
+                                <th>開発</th>
+                                <th>テスト</th>
+                                <th>レビュー</th>
+                                <th>会議</th>
+                                <th>請求可能</th>
+                                <th>非請求</th>
+                                <th>詳細</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>E001</td>
+                                <td><a href="#">山田 太郎</a></td>
+                                <td>PG</td>
+                                <td>168.0h</td>
+                                <td>0.0h</td>
+                                <td>0.0h</td>
+                                <td>135.0h</td>
+                                <td>33.0h</td>
+                                <td>0.0h</td>
+                                <td>0.0h</td>
+                                <td>168.0h</td>
+                                <td>0.0h</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">詳細</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>E002</td>
+                                <td><a href="#">佐藤 花子</a></td>
+                                <td>PG</td>
+                                <td>152.0h</td>
+                                <td>0.0h</td>
+                                <td>0.0h</td>
+                                <td>120.0h</td>
+                                <td>32.0h</td>
+                                <td>0.0h</td>
+                                <td>0.0h</td>
+                                <td>152.0h</td>
+                                <td>0.0h</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">詳細</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>E003</td>
+                                <td><a href="#">鈴木 一郎</a></td>
+                                <td>SE</td>
+                                <td>160.0h</td>
+                                <td>0.0h</td>
+                                <td>72.0h</td>
+                                <td>48.0h</td>
+                                <td>16.0h</td>
+                                <td>24.0h</td>
+                                <td>0.0h</td>
+                                <td>152.0h</td>
+                                <td>8.0h</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">詳細</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>E004</td>
+                                <td><a href="#">田中 健太</a></td>
+                                <td>PG</td>
+                                <td>144.0h</td>
+                                <td>0.0h</td>
+                                <td>0.0h</td>
+                                <td>104.0h</td>
+                                <td>40.0h</td>
+                                <td>0.0h</td>
+                                <td>0.0h</td>
+                                <td>144.0h</td>
+                                <td>0.0h</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">詳細</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>E005</td>
+                                <td><a href="#">高橋 美咲</a></td>
+                                <td>デザイナー</td>
+                                <td>128.0h</td>
+                                <td>8.0h</td>
+                                <td>112.0h</td>
+                                <td>8.0h</td>
+                                <td>0.0h</td>
+                                <td>0.0h</td>
+                                <td>0.0h</td>
+                                <td>120.0h</td>
+                                <td>8.0h</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">詳細</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>E009</td>
+                                <td><a href="#">加藤 修平</a></td>
+                                <td>SE</td>
+                                <td>168.0h</td>
+                                <td>40.0h</td>
+                                <td>80.0h</td>
+                                <td>16.0h</td>
+                                <td>0.0h</td>
+                                <td>16.0h</td>
+                                <td>16.0h</td>
+                                <td>152.0h</td>
+                                <td>16.0h</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">詳細</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>E013</td>
+                                <td><a href="#">中村 健二</a></td>
+                                <td>PM</td>
+                                <td>176.0h</td>
+                                <td>32.0h</td>
+                                <td>24.0h</td>
+                                <td>24.0h</td>
+                                <td>48.0h</td>
+                                <td>16.0h</td>
+                                <td>32.0h</td>
+                                <td>160.0h</td>
+                                <td>16.0h</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">詳細</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-secondary">
+                                <td colspan="3"><strong>合計</strong></td>
+                                <td><strong>1,096.0h</strong></td>
+                                <td><strong>80.0h</strong></td>
+                                <td><strong>288.0h</strong></td>
+                                <td><strong>455.0h</strong></td>
+                                <td><strong>169.0h</strong></td>
+                                <td><strong>56.0h</strong></td>
+                                <td><strong>48.0h</strong></td>
+                                <td><strong>1,048.0h</strong></td>
+                                <td><strong>48.0h</strong></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="mt-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted">表示: 1-7 / 12件</span>
+                        <div class="btn-group ms-2">
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary me-2">
+                            <i class="bi bi-file-earmark-excel"></i> エクスポート
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-arrow-right"></i> 請求データ連携
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // グラフ描画用のスクリプト
+        window.addEventListener('DOMContentLoaded', function() {
+            // タスク種別工数分布
+            const taskTypeCtx = document.getElementById('taskTypeChart').getContext('2d');
+            const taskTypeChart = new Chart(taskTypeCtx, {
+                type: 'pie',
+                data: {
+                    labels: ['要件定義', '設計', '開発', 'テスト', 'レビュー', '会議'],
+                    datasets: [{
+                        data: [80, 288, 455, 169, 56, 48],
+                        backgroundColor: [
+                            '#0d6efd',
+                            '#198754',
+                            '#0dcaf0',
+                            '#ffc107',
+                            '#6c757d',
+                            '#212529'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                boxWidth: 12,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 期間別工数推移
+            const timelineCtx = document.getElementById('timelineChart').getContext('2d');
+            const timelineChart = new Chart(timelineCtx, {
+                type: 'line',
+                data: {
+                    labels: ['5/1週', '5/2週', '5/3週', '5/4週', '5/5週'],
+                    datasets: [
+                        {
+                            label: '総工数',
+                            data: [240, 265, 278, 232, 225],
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: '請求可能工数',
+                            data: [225, 248, 260, 220, 215],
+                            borderColor: '#198754',
+                            backgroundColor: 'transparent',
+                            tension: 0.4,
+                            borderDash: [5, 5]
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '工数 (時間)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // メンバー別工数分布
+            const memberCtx = document.getElementById('memberChart').getContext('2d');
+            const memberChart = new Chart(memberCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['中村 健二', '山田 太郎', '鈴木 一郎', '佐藤 花子', '田中 健太', '高橋 美咲', '加藤 修平'],
+                    datasets: [
+                        {
+                            label: '請求可能工数',
+                            data: [160, 168, 152, 152, 144, 120, 152],
+                            backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                            borderColor: 'rgb(25, 135, 84)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '非請求工数',
+                            data: [16, 0, 8, 0, 0, 8, 16],
+                            backgroundColor: 'rgba(108, 117, 125, 0.7)',
+                            borderColor: 'rgb(108, 117, 125)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: '工数 (時間)'
+                            }
+                        },
+                        y: {
+                            stacked: true
+                        }
+                    }
+                }
+            });
+
+            // タスク種別別推移
+            const taskTimelineCtx = document.getElementById('taskTimelineChart').getContext('2d');
+            const taskTimelineChart = new Chart(taskTimelineCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['5/1週', '5/2週', '5/3週', '5/4週', '5/5週'],
+                    datasets: [
+                        {
+                            label: '要件定義',
+                            data: [35, 25, 15, 5, 0],
+                            backgroundColor: 'rgba(13, 110, 253, 0.7)',
+                            borderColor: 'rgb(13, 110, 253)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '設計',
+                            data: [95, 75, 65, 35, 18],
+                            backgroundColor: 'rgba(25, 135, 84, 0.7)',
+                            borderColor: 'rgb(25, 135, 84)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '開発',
+                            data: [60, 95, 120, 110, 70],
+                            backgroundColor: 'rgba(13, 202, 240, 0.7)',
+                            borderColor: 'rgb(13, 202, 240)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'テスト',
+                            data: [10, 25, 38, 55, 41],
+                            backgroundColor: 'rgba(255, 193, 7, 0.7)',
+                            borderColor: 'rgb(255, 193, 7)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'レビュー',
+                            data: [5, 10, 15, 12, 14],
+                            backgroundColor: 'rgba(108, 117, 125, 0.7)',
+                            borderColor: 'rgb(108, 117, 125)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '会議',
+                            data: [15, 12, 8, 7, 6],
+                            backgroundColor: 'rgba(33, 37, 41, 0.7)',
+                            borderColor: 'rgb(33, 37, 41)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: '工数 (時間)'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勤怠集計画面 | SES業務システム</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: #f5f7fa;
+        }
+        .card {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            border: none;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eaecf0;
+        }
+        .metrics-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .metrics-title {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        .metrics-value {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 5px;
+        }
+        .metrics-change {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+        }
+        .metrics-change.positive {
+            color: #198754;
+        }
+        .metrics-change.negative {
+            color: #dc3545;
+        }
+        .search-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 500;
+        }
+        .nav-pills .nav-link {
+            color: #495057;
+        }
+        .nav-pills .nav-link.active {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        .warning-cell {
+            color: #dc3545;
+            font-weight: 500;
+        }
+        .progress-xs {
+            height: 5px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 5px;
+            font-size: 0.8rem;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            margin-right: 8px;
+        }
+        .form-label {
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .period-badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            border-radius: 4px;
+            background-color: #e9ecef;
+            color: #495057;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="mb-0">勤怠集計</h3>
+            <div>
+                <button class="btn btn-outline-primary btn-sm me-2">
+                    <i class="bi bi-star"></i> レポート保存
+                </button>
+                <button class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-question-circle"></i> ヘルプ
+                </button>
+            </div>
+        </div>
+
+        <!-- 集計条件部分 -->
+        <div class="card">
+            <div class="card-body search-section">
+                <div class="row g-3">
+                    <div class="col-md-2">
+                        <label class="form-label" for="periodType">期間タイプ</label>
+                        <div class="d-flex">
+                            <select class="form-select" id="periodType">
+                                <option>月次</option>
+                                <option selected>四半期</option>
+                                <option>年次</option>
+                                <option>カスタム</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label" for="startPeriod">開始期間</label>
+                        <select class="form-select" id="startPeriod">
+                            <option>2024年Q4</option>
+                            <option selected>2025年Q1</option>
+                            <option>2025年Q2</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label" for="endPeriod">終了期間</label>
+                        <select class="form-select" id="endPeriod">
+                            <option>2024年Q4</option>
+                            <option>2025年Q1</option>
+                            <option selected>2025年Q2</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">期間比較</label>
+                        <div class="d-flex align-items-center">
+                            <div class="form-check me-3">
+                                <input class="form-check-input" type="checkbox" id="compareCheck" checked>
+                                <label class="form-check-label" for="compareCheck">比較する</label>
+                            </div>
+                            <select class="form-select" id="comparePeriod">
+                                <option>前年同期</option>
+                                <option selected>前期</option>
+                                <option>カスタム</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="organizationLevel">組織レベル</label>
+                        <select class="form-select" id="organizationLevel">
+                            <option>全社</option>
+                            <option selected>部門</option>
+                            <option>グループ</option>
+                            <option>個人</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-2">
+                    <div class="col-md-3">
+                        <label class="form-label" for="organization">組織選択</label>
+                        <select class="form-select" id="organization">
+                            <option>全部門</option>
+                            <option selected>システム開発部</option>
+                            <option>インフラ構築部</option>
+                            <option>デザイン部</option>
+                            <option>営業部</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="axis">集計軸</label>
+                        <select class="form-select" id="axis">
+                            <option>部門別</option>
+                            <option selected>役職別</option>
+                            <option>年代別</option>
+                            <option>勤務地別</option>
+                            <option>雇用形態別</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6 d-flex align-items-end">
+                        <button class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> 集計実行
+                        </button>
+                        <button class="btn btn-outline-secondary me-2">
+                            <i class="bi bi-x-circle"></i> クリア
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-info mb-3">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            <strong>集計結果:</strong> システム開発部の役職別集計データ（2025年Q1〜2025年Q2）
+            <span class="period-badge">前期比較: 2024年Q4〜2025年Q1</span>
+        </div>
+
+        <!-- サマリー指標部分 -->
+        <div class="row mb-4">
+            <div class="col-md-2">
+                <div class="metrics-card">
+                    <div class="metrics-title">平均出勤率</div>
+                    <div class="metrics-value">94.3%</div>
+                    <div class="metrics-change positive">
+                        <i class="bi bi-arrow-up-short me-1"></i> 2.1% vs 前期
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metrics-card">
+                    <div class="metrics-title">平均残業時間</div>
+                    <div class="metrics-value">12.5h</div>
+                    <div class="metrics-change negative">
+                        <i class="bi bi-arrow-up-short me-1"></i> 3.2h vs 前期
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metrics-card">
+                    <div class="metrics-title">有給休暇取得率</div>
+                    <div class="metrics-value">47.5%</div>
+                    <div class="metrics-change positive">
+                        <i class="bi bi-arrow-up-short me-1"></i> 5.2% vs 前期
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metrics-card">
+                    <div class="metrics-title">平均稼働率</div>
+                    <div class="metrics-value">85.2%</div>
+                    <div class="metrics-change positive">
+                        <i class="bi bi-arrow-up-short me-1"></i> 1.8% vs 前期
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metrics-card">
+                    <div class="metrics-title">深夜・休日勤務率</div>
+                    <div class="metrics-value">3.8%</div>
+                    <div class="metrics-change negative">
+                        <i class="bi bi-arrow-up-short me-1"></i> 0.5% vs 前期
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="metrics-card">
+                    <div class="metrics-title">欠勤率</div>
+                    <div class="metrics-value">0.8%</div>
+                    <div class="metrics-change positive">
+                        <i class="bi bi-arrow-down-short me-1"></i> 0.3% vs 前期
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- グラフ・チャート部分 -->
+        <div class="row mb-4">
+            <div class="col-md-8">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>期間別勤怠推移（月単位）</span>
+                        <div>
+                            <select class="form-select form-select-sm" style="width: 200px;">
+                                <option>出勤率推移</option>
+                                <option selected>残業時間推移</option>
+                                <option>有給取得率推移</option>
+                                <option>稼働率推移</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>組織比較（役職別）</span>
+                        <div>
+                            <select class="form-select form-select-sm" style="width: 150px;">
+                                <option>棒グラフ</option>
+                                <option selected>レーダーチャート</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="comparisonChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <span>残業時間分布</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="overtimeDistribution"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>勤怠状況（役職別）</span>
+                        <div>
+                            <button class="btn btn-sm btn-outline-secondary me-1">
+                                <i class="bi bi-download"></i> グラフ保存
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary">
+                                <i class="bi bi-arrows-angle-expand"></i> 拡大表示
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="attendanceStatusChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 詳細データ部分 -->
+        <div class="card">
+            <div class="card-header">
+                <ul class="nav nav-pills card-header-pills">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">役職別</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">グループ別</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">個人別</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">期間別</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="table-container">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th>役職</th>
+                                <th>人数</th>
+                                <th>平均出勤率</th>
+                                <th>平均残業時間</th>
+                                <th>有給休暇取得率</th>
+                                <th>平均稼働率</th>
+                                <th>深夜・休日勤務率</th>
+                                <th>欠勤率</th>
+                                <th>詳細</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>部長</td>
+                                <td>1</td>
+                                <td>97.5%</td>
+                                <td class="warning-cell">26.5h</td>
+                                <td>32.5%</td>
+                                <td>92.8%</td>
+                                <td>5.5%</td>
+                                <td>0.0%</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">詳細</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>課長</td>
+                                <td>3</td>
+                                <td>96.2%</td>
+                                <td class="warning-cell">22.8h</td>
+                                <td>40.2%</td>
+                                <td>91.5%</td>
+                                <td>4.2%</td>
+                                <td>0.1%</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">詳細</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>主任</td>
+                                <td>8</td>
+                                <td>94.8%</td>
+                                <td>15.4h</td>
+                                <td>45.6%</td>
+                                <td>89.2%</td>
+                                <td>3.8%</td>
+                                <td>0.5%</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">詳細</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>一般社員</td>
+                                <td>24</td>
+                                <td>93.5%</td>
+                                <td>8.5h</td>
+                                <td>52.3%</td>
+                                <td>83.1%</td>
+                                <td>2.1%</td>
+                                <td>1.2%</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">詳細</a>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>契約社員</td>
+                                <td>6</td>
+                                <td>95.1%</td>
+                                <td>4.2h</td>
+                                <td>42.8%</td>
+                                <td>85.9%</td>
+                                <td>0.5%</td>
+                                <td>0.9%</td>
+                                <td>
+                                    <a href="#" class="btn btn-sm btn-outline-primary">詳細</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-secondary">
+                                <td><strong>合計/平均</strong></td>
+                                <td><strong>42</strong></td>
+                                <td><strong>94.3%</strong></td>
+                                <td><strong>12.5h</strong></td>
+                                <td><strong>47.5%</strong></td>
+                                <td><strong>85.2%</strong></td>
+                                <td><strong>3.8%</strong></td>
+                                <td><strong>0.8%</strong></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div class="mt-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="text-muted">表示: 1-5 / 5件</span>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary me-2">
+                            <i class="bi bi-file-earmark-excel"></i> エクスポート
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-printer"></i> 帳票出力
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-warning mt-4">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>注意:</strong> 部長・課長クラスの残業時間が規定値（20時間/月）を超えています。労働時間の適正化を検討してください。
+        </div>
+    </div>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // グラフ描画用のスクリプト
+        window.addEventListener('DOMContentLoaded', function() {
+            // 残業時間推移グラフ
+            const trendCtx = document.getElementById('trendChart').getContext('2d');
+            const trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['2025年1月', '2025年2月', '2025年3月', '2025年4月', '2025年5月', '2025年6月'],
+                    datasets: [
+                        {
+                            label: '当期残業時間',
+                            data: [10.5, 11.2, 12.8, 13.5, 12.2, 11.8],
+                            borderColor: '#0d6efd',
+                            backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                            borderWidth: 2,
+                            fill: true,
+                            tension: 0.3
+                        },
+                        {
+                            label: '前期残業時間',
+                            data: [9.2, 8.5, 9.8, 10.5, 11.2, 10.8],
+                            borderColor: '#6c757d',
+                            backgroundColor: 'rgba(108, 117, 125, 0.1)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            tension: 0.3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '残業時間 (時間)'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 役職別レーダーチャート
+            const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
+            const comparisonChart = new Chart(comparisonCtx, {
+                type: 'radar',
+                data: {
+                    labels: ['出勤率', '稼働率', '有給取得', '残業時間', '欠勤率'],
+                    datasets: [
+                        {
+                            label: '部長・課長',
+                            data: [96, 92, 38, 24, 0.1],
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            borderColor: 'rgb(255, 99, 132)',
+                            pointBackgroundColor: 'rgb(255, 99, 132)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgb(255, 99, 132)'
+                        },
+                        {
+                            label: '主任',
+                            data: [95, 89, 46, 15, 0.5],
+                            backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                            borderColor: 'rgb(54, 162, 235)',
+                            pointBackgroundColor: 'rgb(54, 162, 235)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgb(54, 162, 235)'
+                        },
+                        {
+                            label: '一般・契約',
+                            data: [94, 84, 50, 7, 1.1],
+                            backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                            borderColor: 'rgb(255, 206, 86)',
+                            pointBackgroundColor: 'rgb(255, 206, 86)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgb(255, 206, 86)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    }
+                }
+            });
+
+            // 残業時間分布
+            const overtimeCtx = document.getElementById('overtimeDistribution').getContext('2d');
+            const overtimeChart = new Chart(overtimeCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['0-5h', '5-10h', '10-15h', '15-20h', '20-25h', '25h以上'],
+                    datasets: [
+                        {
+                            label: '技術者数',
+                            data: [10, 12, 8, 6, 4, 2],
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false,
+                        },
+                        title: {
+                            display: true,
+                            text: '月間残業時間帯別人数分布'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: '人数'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: '残業時間帯'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // 勤怠状況チャート
+            const statusCtx = document.getElementById('attendanceStatusChart').getContext('2d');
+            const statusChart = new Chart(statusCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['部長', '課長', '主任', '一般社員', '契約社員'],
+                    datasets: [
+                        {
+                            label: '出勤日数',
+                            data: [55, 53, 52, 51, 52],
+                            backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1,
+                            stack: 'Stack 0',
+                        },
+                        {
+                            label: '有給休暇',
+                            data: [3, 4, 5, 6, 4],
+                            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1,
+                            stack: 'Stack 0',
+                        },
+                        {
+                            label: '特別休暇',
+                            data: [1, 1, 1, 1, 1],
+                            backgroundColor: 'rgba(153, 102, 255, 0.6)',
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            borderWidth: 1,
+                            stack: 'Stack 0',
+                        },
+                        {
+                            label: '欠勤',
+                            data: [0, 1, 2, 2, 3],
+                            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            borderWidth: 1,
+                            stack: 'Stack 0',
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: '役職別勤怠内訳（60営業日中）'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            stacked: true,
+                        },
+                        y: {
+                            stacked: true,
+                            title: {
+                                display: true,
+                                text: '日数'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

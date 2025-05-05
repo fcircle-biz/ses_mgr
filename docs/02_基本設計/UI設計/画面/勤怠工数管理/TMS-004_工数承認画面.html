@@ -3,42 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>工数承認画面 | 勤怠・工数管理</title>
+    <title>SES業務システム 工数承認画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
             line-height: 1.6;
             color: #333;
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f9f9f9;
         }
-        h1, h2, h3, h4 {
+        h1, h2, h3, h4, h5, h6 {
             color: #2c3e50;
-            margin-top: 30px;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
         }
         h1 {
+            font-size: 28px;
             text-align: center;
-            padding-bottom: 20px;
+            margin-top: 1em;
             border-bottom: 2px solid #3498db;
-            margin-bottom: 30px;
+            padding-bottom: 10px;
         }
-        .section {
-            background-color: white;
-            border-radius: 5px;
-            padding: 20px;
-            margin-bottom: 30px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+            margin-top: 20px;
         }
         table {
-            width: 100%;
             border-collapse: collapse;
+            width: 100%;
             margin-bottom: 20px;
         }
         th, td {
             border: 1px solid #ddd;
-            padding: 10px;
+            padding: 8px 12px;
             text-align: left;
         }
         th {
@@ -46,71 +58,70 @@
             font-weight: bold;
         }
         tr:nth-child(even) {
-            background-color: #f9f9f9;
-        }
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-        .screen-info {
-            display: flex;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        .screen-info div {
-            flex: 1;
-            min-width: 200px;
-            margin-bottom: 10px;
-        }
-        .screen-info .label {
-            font-weight: bold;
-            color: #7f8c8d;
-            margin-right: 8px;
+            background-color: #f8f9fa;
         }
         .wireframe {
             border: 1px solid #ddd;
-            border-radius: 5px;
             padding: 20px;
-            text-align: center;
-            background-color: #f5f5f5;
-            margin-bottom: 20px;
-        }
-        .wireframe p {
-            color: #7f8c8d;
-            font-style: italic;
-        }
-        .nav-links {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-        a {
-            text-decoration: none;
-            color: #3498db;
-            font-weight: bold;
-        }
-        a:hover {
-            text-decoration: underline;
-            color: #2980b9;
-        }
-        .notes {
-            background-color: #fff9e6;
-            border-left: 4px solid #f1c40f;
-            padding: 15px;
             margin: 20px 0;
-        }
-        .notes h3 {
-            color: #f39c12;
-            margin-top: 0;
-        }
-        footer {
+            background-color: #f9f9f9;
             text-align: center;
+        }
+        .wireframe img {
+            max-width: 100%;
+            height: auto;
+        }
+        .wireframe-placeholder {
+            width: 100%;
+            height: 400px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f2f2f2;
+            border: 2px dashed #ccc;
+            font-style: italic;
+            color: #666;
+        }
+        .footer {
             margin-top: 50px;
             padding-top: 20px;
             border-top: 1px solid #eee;
-            color: #7f8c8d;
-            font-size: 0.9em;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
+        .breadcrumb {
+            display: flex;
+            flex-wrap: wrap;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: flex;
+            align-items: center;
+        }
+        .breadcrumb li a {
+            color: #007bff;
+            text-decoration: none;
+            padding: 8px 12px;
+        }
+        .breadcrumb li:not(:first-child)::before {
+            content: "›";
+            padding: 0 8px;
+            color: #6c757d;
+        }
+        .breadcrumb li.active {
+            padding: 8px 12px;
+            color: #6c757d;
         }
         .req-label {
             display: inline-block;
@@ -172,450 +183,442 @@
     </style>
 </head>
 <body>
-    <h1>工数承認画面</h1>
+    <nav>
+        <ul class="breadcrumb">
+            <li><a href="../../勤怠工数管理画面設計.html">勤怠・工数管理画面設計</a></li>
+            <li class="active">工数承認画面</li>
+        </ul>
+    </nav>
 
-    <div class="section">
-        <h2>画面概要</h2>
-        <div class="screen-info">
-            <div><span class="label">画面ID:</span> TMS-004</div>
-            <div><span class="label">画面名:</span> 工数承認画面</div>
-            <div><span class="label">対象ユーザー:</span> プロジェクトマネージャー、管理者</div>
-            <div><span class="label">前画面:</span> ダッシュボード、プロジェクト管理画面</div>
-            <div><span class="label">次画面:</span> 工数詳細画面、工数集計画面（TMS-006）</div>
-        </div>
-        <p>
-            工数承認画面は、プロジェクトマネージャーや管理者がメンバーの提出した工数データを確認し、承認または差戻を行うための画面です。
-            案件ごとの工数を一覧で確認でき、予算管理や進捗管理の観点から適切かどうかを判断します。
-            この画面での承認は、請求処理や原価管理の根拠となるため、工数の妥当性や案件への正確な配賦を確認することが重要です。
-        </p>
+    <h1>TMS-004: 工数承認画面</h1>
+    
+    <h2>画面概要</h2>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>画面ID</td>
+            <td>TMS-004</td>
+        </tr>
+        <tr>
+            <td>画面名</td>
+            <td>工数承認画面</td>
+        </tr>
+        <tr>
+            <td>概要</td>
+            <td>プロジェクトマネージャーや管理者がメンバーの提出した工数データを確認し、承認または差戻を行うための画面</td>
+        </tr>
+        <tr>
+            <td>対象ユーザー</td>
+            <td>プロジェクトマネージャー、管理者</td>
+        </tr>
+        <tr>
+            <td>前画面</td>
+            <td>ダッシュボード、プロジェクト管理画面</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>工数詳細画面、工数集計画面（TMS-006）</td>
+        </tr>
+    </table>
+
+    <h2>画面レイアウト</h2>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="effort-approval-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
-    <div class="section">
-        <h2>画面レイアウト</h2>
-        <div class="wireframe">
-            <p>[工数承認画面のワイヤーフレーム表示位置]</p>
-            <p>検索・フィルタリング条件部分、案件概要部分、工数一覧テーブル、承認操作部分から構成される画面</p>
-        </div>
-        <p>
-            画面は主に以下の4つのエリアで構成されます：
-        </p>
-        <ol>
-            <li><strong>検索・フィルタリング部分</strong>：年月選択、プロジェクト選択、ステータスフィルターなど</li>
-            <li><strong>案件概要部分</strong>：案件情報、予算・実績サマリー、工数集計グラフなど</li>
-            <li><strong>工数一覧テーブル</strong>：メンバー別の工数データ一覧（タスク別工数、承認ステータスなど）</li>
-            <li><strong>承認操作部分</strong>：承認・差戻ボタン、コメント入力欄など</li>
-        </ol>
-    </div>
+    <h2>画面構成要素</h2>
+    <h3>1. 検索・フィルタリング部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>tms_app_001</td>
+            <td>年月選択</td>
+            <td>ドロップダウン</td>
+            <td>過去12ヶ月～当月</td>
+            <td><span class="req-label required">必須</span></td>
+            <td>表示する工数データの年月を選択</td>
+        </tr>
+        <tr>
+            <td>tms_app_002</td>
+            <td>プロジェクト選択</td>
+            <td>ドロップダウン</td>
+            <td>-</td>
+            <td><span class="req-label required">必須</span></td>
+            <td>承認対象のプロジェクトを選択</td>
+        </tr>
+        <tr>
+            <td>tms_app_003</td>
+            <td>ステータスフィルタ</td>
+            <td>チェックボックス群</td>
+            <td>-</td>
+            <td><span class="req-label optional">任意</span></td>
+            <td>特定のステータスの工数データに絞り込み</td>
+        </tr>
+        <tr>
+            <td>tms_app_004</td>
+            <td>メンバー検索</td>
+            <td>テキスト入力</td>
+            <td>50文字以内</td>
+            <td><span class="req-label optional">任意</span></td>
+            <td>特定のメンバーの工数データを検索</td>
+        </tr>
+        <tr>
+            <td>tms_app_005</td>
+            <td>タスク種別フィルタ</td>
+            <td>ドロップダウン（複数選択）</td>
+            <td>-</td>
+            <td><span class="req-label optional">任意</span></td>
+            <td>特定のタスク種別の工数に絞り込み</td>
+        </tr>
+        <tr>
+            <td>tms_app_006</td>
+            <td>検索ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索条件に基づいて一覧を更新</td>
+        </tr>
+        <tr>
+            <td>tms_app_007</td>
+            <td>クリアボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>検索条件をクリア</td>
+        </tr>
+    </table>
 
-    <div class="section">
-        <h2>画面項目定義</h2>
-        
-        <h3>1. 検索・フィルタリング部分</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>項目ID</th>
-                    <th>項目名</th>
-                    <th>種類</th>
-                    <th>入力制限</th>
-                    <th>必須</th>
-                    <th>説明</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>F01</td>
-                    <td>年月選択</td>
-                    <td>ドロップダウン</td>
-                    <td>過去12ヶ月～当月</td>
-                    <td><span class="req-label required">必須</span></td>
-                    <td>表示する工数データの年月を選択</td>
-                </tr>
-                <tr>
-                    <td>F02</td>
-                    <td>プロジェクト選択</td>
-                    <td>ドロップダウン</td>
-                    <td>-</td>
-                    <td><span class="req-label required">必須</span></td>
-                    <td>承認対象のプロジェクトを選択</td>
-                </tr>
-                <tr>
-                    <td>F03</td>
-                    <td>ステータスフィルタ</td>
-                    <td>チェックボックス群</td>
-                    <td>-</td>
-                    <td><span class="req-label optional">任意</span></td>
-                    <td>特定のステータスの工数データに絞り込み</td>
-                </tr>
-                <tr>
-                    <td>F04</td>
-                    <td>メンバー検索</td>
-                    <td>テキスト入力</td>
-                    <td>50文字以内</td>
-                    <td><span class="req-label optional">任意</span></td>
-                    <td>特定のメンバーの工数データを検索</td>
-                </tr>
-                <tr>
-                    <td>F05</td>
-                    <td>タスク種別フィルタ</td>
-                    <td>ドロップダウン（複数選択）</td>
-                    <td>-</td>
-                    <td><span class="req-label optional">任意</span></td>
-                    <td>特定のタスク種別の工数に絞り込み</td>
-                </tr>
-                <tr>
-                    <td>F06</td>
-                    <td>検索ボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>検索条件に基づいて一覧を更新</td>
-                </tr>
-                <tr>
-                    <td>F07</td>
-                    <td>クリアボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>検索条件をクリア</td>
-                </tr>
-            </tbody>
-        </table>
+    <h3>2. 案件概要部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>tms_app_008</td>
+            <td>案件ID・名称</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>選択中の案件ID・名称</td>
+        </tr>
+        <tr>
+            <td>tms_app_009</td>
+            <td>案件期間</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件の契約期間</td>
+        </tr>
+        <tr>
+            <td>tms_app_010</td>
+            <td>月次予算工数</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>当月の予算工数（人時/人日）</td>
+        </tr>
+        <tr>
+            <td>tms_app_011</td>
+            <td>月次実績工数</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>当月の実績工数（人時/人日）</td>
+        </tr>
+        <tr>
+            <td>tms_app_012</td>
+            <td>予算進捗率</td>
+            <td>プログレスバー+テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>予算に対する実績の割合</td>
+        </tr>
+        <tr>
+            <td>tms_app_013</td>
+            <td>工数提出率</td>
+            <td>プログレスバー+テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>メンバーの工数提出率</td>
+        </tr>
+        <tr>
+            <td>tms_app_014</td>
+            <td>工数承認率</td>
+            <td>プログレスバー+テキスト</td>
+            <td>-</td>
+            <td>-</td>
+            <td>提出工数の承認率</td>
+        </tr>
+        <tr>
+            <td>tms_app_015</td>
+            <td>タスク種別工数グラフ</td>
+            <td>グラフ表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>タスク種別ごとの工数分布を表すグラフ</td>
+        </tr>
+        <tr>
+            <td>tms_app_016</td>
+            <td>請求可能工数/非請求工数</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>請求可能と非請求の工数内訳</td>
+        </tr>
+        <tr>
+            <td>tms_app_017</td>
+            <td>案件詳細リンク</td>
+            <td>リンク</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件の詳細情報画面へのリンク</td>
+        </tr>
+    </table>
 
-        <h3>2. 案件概要部分</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>項目ID</th>
-                    <th>項目名</th>
-                    <th>種類</th>
-                    <th>入力制限</th>
-                    <th>必須</th>
-                    <th>説明</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>P01</td>
-                    <td>案件ID・名称</td>
-                    <td>テキスト表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>選択中の案件ID・名称</td>
-                </tr>
-                <tr>
-                    <td>P02</td>
-                    <td>案件期間</td>
-                    <td>テキスト表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>案件の契約期間</td>
-                </tr>
-                <tr>
-                    <td>P03</td>
-                    <td>月次予算工数</td>
-                    <td>テキスト表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>当月の予算工数（人時/人日）</td>
-                </tr>
-                <tr>
-                    <td>P04</td>
-                    <td>月次実績工数</td>
-                    <td>テキスト表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>当月の実績工数（人時/人日）</td>
-                </tr>
-                <tr>
-                    <td>P05</td>
-                    <td>予算進捗率</td>
-                    <td>プログレスバー+テキスト</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>予算に対する実績の割合</td>
-                </tr>
-                <tr>
-                    <td>P06</td>
-                    <td>工数提出率</td>
-                    <td>プログレスバー+テキスト</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>メンバーの工数提出率</td>
-                </tr>
-                <tr>
-                    <td>P07</td>
-                    <td>工数承認率</td>
-                    <td>プログレスバー+テキスト</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>提出工数の承認率</td>
-                </tr>
-                <tr>
-                    <td>P08</td>
-                    <td>タスク種別工数グラフ</td>
-                    <td>グラフ表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>タスク種別ごとの工数分布を表すグラフ</td>
-                </tr>
-                <tr>
-                    <td>P09</td>
-                    <td>請求可能工数/非請求工数</td>
-                    <td>テキスト表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>請求可能と非請求の工数内訳</td>
-                </tr>
-                <tr>
-                    <td>P10</td>
-                    <td>案件詳細リンク</td>
-                    <td>リンク</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>案件の詳細情報画面へのリンク</td>
-                </tr>
-            </tbody>
-        </table>
+    <h3>3. 工数一覧テーブル</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>tms_app_018</td>
+            <td>選択チェックボックス</td>
+            <td>チェックボックス</td>
+            <td>-</td>
+            <td>-</td>
+            <td>一括操作のための選択用チェックボックス</td>
+        </tr>
+        <tr>
+            <td>tms_app_019</td>
+            <td>技術者ID</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>技術者の識別ID</td>
+        </tr>
+        <tr>
+            <td>tms_app_020</td>
+            <td>氏名</td>
+            <td>テキスト表示（リンク）</td>
+            <td>-</td>
+            <td>-</td>
+            <td>技術者氏名（クリックで詳細画面へ）</td>
+        </tr>
+        <tr>
+            <td>tms_app_021</td>
+            <td>役割</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>案件内での役割（PG/SE/PMなど）</td>
+        </tr>
+        <tr>
+            <td>tms_app_022</td>
+            <td>ステータス</td>
+            <td>ステータスラベル</td>
+            <td>-</td>
+            <td>-</td>
+            <td>工数データの状態（未提出/提出済/承認済/差戻）</td>
+        </tr>
+        <tr>
+            <td>tms_app_023</td>
+            <td>合計工数</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>当月の案件に対する合計工数</td>
+        </tr>
+        <tr>
+            <td>tms_app_024</td>
+            <td>タスク種別別工数</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>各タスク種別（要件定義/設計/開発など）の工数</td>
+        </tr>
+        <tr>
+            <td>tms_app_025</td>
+            <td>請求可能工数</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>請求可能として登録された工数</td>
+        </tr>
+        <tr>
+            <td>tms_app_026</td>
+            <td>非請求工数</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>非請求として登録された工数</td>
+        </tr>
+        <tr>
+            <td>tms_app_027</td>
+            <td>提出日</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>工数データの提出日時</td>
+        </tr>
+        <tr>
+            <td>tms_app_028</td>
+            <td>更新日</td>
+            <td>テキスト表示</td>
+            <td>-</td>
+            <td>-</td>
+            <td>工数データの最終更新日時</td>
+        </tr>
+        <tr>
+            <td>tms_app_029</td>
+            <td>詳細ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>工数詳細画面へ遷移するボタン</td>
+        </tr>
+    </table>
 
-        <h3>3. 工数一覧テーブル</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>項目ID</th>
-                    <th>項目名</th>
-                    <th>種類</th>
-                    <th>入力制限</th>
-                    <th>必須</th>
-                    <th>説明</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>T01</td>
-                    <td>選択チェックボックス</td>
-                    <td>チェックボックス</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>一括操作のための選択用チェックボックス</td>
-                </tr>
-                <tr>
-                    <td>T02</td>
-                    <td>技術者ID</td>
-                    <td>テキスト表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>技術者の識別ID</td>
-                </tr>
-                <tr>
-                    <td>T03</td>
-                    <td>氏名</td>
-                    <td>テキスト表示（リンク）</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>技術者氏名（クリックで詳細画面へ）</td>
-                </tr>
-                <tr>
-                    <td>T04</td>
-                    <td>役割</td>
-                    <td>テキスト表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>案件内での役割（PG/SE/PMなど）</td>
-                </tr>
-                <tr>
-                    <td>T05</td>
-                    <td>ステータス</td>
-                    <td>ステータスラベル</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>工数データの状態（未提出/提出済/承認済/差戻）</td>
-                </tr>
-                <tr>
-                    <td>T06</td>
-                    <td>合計工数</td>
-                    <td>テキスト表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>当月の案件に対する合計工数</td>
-                </tr>
-                <tr>
-                    <td>T07-n</td>
-                    <td>タスク種別別工数</td>
-                    <td>テキスト表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>各タスク種別（要件定義/設計/開発など）の工数</td>
-                </tr>
-                <tr>
-                    <td>T08</td>
-                    <td>請求可能工数</td>
-                    <td>テキスト表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>請求可能として登録された工数</td>
-                </tr>
-                <tr>
-                    <td>T09</td>
-                    <td>非請求工数</td>
-                    <td>テキスト表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>非請求として登録された工数</td>
-                </tr>
-                <tr>
-                    <td>T10</td>
-                    <td>提出日</td>
-                    <td>テキスト表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>工数データの提出日時</td>
-                </tr>
-                <tr>
-                    <td>T11</td>
-                    <td>更新日</td>
-                    <td>テキスト表示</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>工数データの最終更新日時</td>
-                </tr>
-                <tr>
-                    <td>T12</td>
-                    <td>詳細ボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>工数詳細画面へ遷移するボタン</td>
-                </tr>
-            </tbody>
-        </table>
+    <h3>4. 承認操作部分</h3>
+    <table>
+        <tr>
+            <th>項目ID</th>
+            <th>項目名</th>
+            <th>種類</th>
+            <th>入力制限</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>tms_app_030</td>
+            <td>一括承認ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>選択した工数データを一括承認</td>
+        </tr>
+        <tr>
+            <td>tms_app_031</td>
+            <td>一括差戻ボタン</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>選択した工数データを一括差戻</td>
+        </tr>
+        <tr>
+            <td>tms_app_032</td>
+            <td>コメント入力欄</td>
+            <td>テキストエリア</td>
+            <td>500文字以内</td>
+            <td><span class="req-label optional">任意</span></td>
+            <td>承認・差戻時のコメント</td>
+        </tr>
+        <tr>
+            <td>tms_app_033</td>
+            <td>未提出者リマインド</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>未提出者にリマインドメールを送信</td>
+        </tr>
+        <tr>
+            <td>tms_app_034</td>
+            <td>工数データエクスポート</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>工数データをCSV/Excelでエクスポート</td>
+        </tr>
+        <tr>
+            <td>tms_app_035</td>
+            <td>工数集計画面へ</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>工数集計画面（TMS-006）へ遷移</td>
+        </tr>
+        <tr>
+            <td>tms_app_036</td>
+            <td>全員一括承認</td>
+            <td>ボタン</td>
+            <td>-</td>
+            <td>-</td>
+            <td>表示中の全ての提出済工数を一括承認</td>
+        </tr>
+    </table>
 
-        <h3>4. 承認操作部分</h3>
-        <table>
-            <thead>
-                <tr>
-                    <th>項目ID</th>
-                    <th>項目名</th>
-                    <th>種類</th>
-                    <th>入力制限</th>
-                    <th>必須</th>
-                    <th>説明</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>A01</td>
-                    <td>一括承認ボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>選択した工数データを一括承認</td>
-                </tr>
-                <tr>
-                    <td>A02</td>
-                    <td>一括差戻ボタン</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>選択した工数データを一括差戻</td>
-                </tr>
-                <tr>
-                    <td>A03</td>
-                    <td>コメント入力欄</td>
-                    <td>テキストエリア</td>
-                    <td>500文字以内</td>
-                    <td><span class="req-label optional">任意</span></td>
-                    <td>承認・差戻時のコメント</td>
-                </tr>
-                <tr>
-                    <td>A04</td>
-                    <td>未提出者リマインド</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>未提出者にリマインドメールを送信</td>
-                </tr>
-                <tr>
-                    <td>A05</td>
-                    <td>工数データエクスポート</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>工数データをCSV/Excelでエクスポート</td>
-                </tr>
-                <tr>
-                    <td>A06</td>
-                    <td>工数集計画面へ</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>工数集計画面（TMS-006）へ遷移</td>
-                </tr>
-                <tr>
-                    <td>A07</td>
-                    <td>全員一括承認</td>
-                    <td>ボタン</td>
-                    <td>-</td>
-                    <td>-</td>
-                    <td>表示中の全ての提出済工数を一括承認</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+    <h2>画面動作仕様</h2>
 
-    <div class="section">
-        <h2>画面動作仕様</h2>
+    <h3>1. 初期表示</h3>
+    <ul>
+        <li>初期表示時は当月かつログインユーザーが管理するプロジェクトのうち最新のものを選択</li>
+        <li>プロジェクトメンバーの工数データを一覧表示</li>
+        <li>案件概要情報（予算・実績、進捗率など）を表示</li>
+        <li>タスク種別ごとの工数分布をグラフで表示</li>
+        <li>工数データはステータス順にソート（未提出 → 提出済 → 差戻 → 承認済）</li>
+    </ul>
 
-        <h3>1. 初期表示</h3>
-        <ul>
-            <li>初期表示時は当月かつログインユーザーが管理するプロジェクトのうち最新のものを選択</li>
-            <li>プロジェクトメンバーの工数データを一覧表示</li>
-            <li>案件概要情報（予算・実績、進捗率など）を表示</li>
-            <li>タスク種別ごとの工数分布をグラフで表示</li>
-            <li>工数データはステータス順にソート（未提出 → 提出済 → 差戻 → 承認済）</li>
-        </ul>
+    <h3>2. 検索・フィルタリング</h3>
+    <ul>
+        <li>年月を変更すると、該当月の工数データを再読込</li>
+        <li>プロジェクトを変更すると、選択したプロジェクトの工数データと案件概要情報を再表示</li>
+        <li>ステータスフィルタを選択すると、該当するステータスの工数データにフィルタリング</li>
+        <li>メンバー検索は技術者名、技術者IDに対して部分一致検索</li>
+        <li>タスク種別フィルタを選択すると、選択したタスク種別の工数が多いメンバーを優先表示</li>
+    </ul>
 
-        <h3>2. 検索・フィルタリング</h3>
-        <ul>
-            <li>年月を変更すると、該当月の工数データを再読込</li>
-            <li>プロジェクトを変更すると、選択したプロジェクトの工数データと案件概要情報を再表示</li>
-            <li>ステータスフィルタを選択すると、該当するステータスの工数データにフィルタリング</li>
-            <li>メンバー検索は技術者名、技術者IDに対して部分一致検索</li>
-            <li>タスク種別フィルタを選択すると、選択したタスク種別の工数が多いメンバーを優先表示</li>
-        </ul>
+    <h3>3. 工数データ操作</h3>
+    <ul>
+        <li>技術者氏名をクリックすると、その技術者の工数詳細画面に遷移</li>
+        <li>詳細ボタンをクリックすると、各メンバーの日次工数入力内容を確認できる画面に遷移</li>
+        <li>各メンバーの工数データを選択（チェックボックス）し、一括承認または一括差戻が可能</li>
+    </ul>
 
-        <h3>3. 工数データ操作</h3>
-        <ul>
-            <li>技術者氏名をクリックすると、その技術者の工数詳細画面に遷移</li>
-            <li>詳細ボタンをクリックすると、各メンバーの日次工数入力内容を確認できる画面に遷移</li>
-            <li>各メンバーの工数データを選択（チェックボックス）し、一括承認または一括差戻が可能</li>
-        </ul>
+    <h3>4. 承認・差戻処理</h3>
+    <ul>
+        <li>工数データの選択（チェックボックス）を行い、一括承認ボタンをクリックすると確認ダイアログを表示</li>
+        <li>確認後、選択した工数データのステータスを「承認済」に変更</li>
+        <li>工数データの選択（チェックボックス）を行い、一括差戻ボタンをクリックするとコメント必須の確認ダイアログを表示</li>
+        <li>コメント入力後、選択した工数データのステータスを「差戻」に変更し、該当メンバーに通知</li>
+        <li>全員一括承認ボタンをクリックすると、表示中の全ての提出済工数データを一括で承認（警告ダイアログあり）</li>
+    </ul>
 
-        <h3>4. 承認・差戻処理</h3>
-        <ul>
-            <li>工数データの選択（チェックボックス）を行い、一括承認ボタンをクリックすると確認ダイアログを表示</li>
-            <li>確認後、選択した工数データのステータスを「承認済」に変更</li>
-            <li>工数データの選択（チェックボックス）を行い、一括差戻ボタンをクリックするとコメント必須の確認ダイアログを表示</li>
-            <li>コメント入力後、選択した工数データのステータスを「差戻」に変更し、該当メンバーに通知</li>
-            <li>全員一括承認ボタンをクリックすると、表示中の全ての提出済工数データを一括で承認（警告ダイアログあり）</li>
-        </ul>
+    <h3>5. その他の機能</h3>
+    <ul>
+        <li>未提出者リマインドボタンをクリックすると、工数未提出者にリマインドメールを送信</li>
+        <li>工数データエクスポートボタンをクリックすると、表示中の工数データをCSV/Excel形式でダウンロード</li>
+        <li>工数集計画面へボタンをクリックすると、現在選択中のプロジェクトの工数集計画面（TMS-006）に遷移</li>
+    </ul>
 
-        <h3>5. その他の機能</h3>
-        <ul>
-            <li>未提出者リマインドボタンをクリックすると、工数未提出者にリマインドメールを送信</li>
-            <li>工数データエクスポートボタンをクリックすると、表示中の工数データをCSV/Excel形式でダウンロード</li>
-            <li>工数集計画面へボタンをクリックすると、現在選択中のプロジェクトの工数集計画面（TMS-006）に遷移</li>
-        </ul>
+    <h3>6. 警告・通知</h3>
+    <ul>
+        <li>予算を超過した工数データがある場合、該当セルを赤色で強調表示</li>
+        <li>締め日が近づいている未提出・未承認データがある場合、警告通知を表示</li>
+        <li>タスク種別の偏りが大きい場合（例：テストの工数が極端に少ないなど）、警告アイコンを表示</li>
+    </ul>
 
-        <h3>6. 警告・通知</h3>
-        <ul>
-            <li>予算を超過した工数データがある場合、該当セルを赤色で強調表示</li>
-            <li>締め日が近づいている未提出・未承認データがある場合、警告通知を表示</li>
-            <li>タスク種別の偏りが大きい場合（例：テストの工数が極端に少ないなど）、警告アイコンを表示</li>
-        </ul>
-    </div>
-
-    <div class="notes">
+    <div class="note">
         <h3>特記事項・注意点</h3>
         <ul>
             <li>工数承認は案件の請求処理や原価管理に直結するため、内容を十分確認した上で行うこと</li>
@@ -628,13 +631,30 @@
         </ul>
     </div>
 
-    <div class="nav-links">
-        <a href="TMS-003_勤怠管理画面.html">← 前の画面：勤怠管理画面</a>
-        <a href="TMS-005_勤怠集計画面.html">次の画面：勤怠集計画面 →</a>
+    <div class="footer">
+        <p>作成日: 2025年5月5日<br>
+        バージョン: 1.0</p>
     </div>
-
-    <footer>
-        <p>SES業務システム 勤怠・工数管理 画面設計書 | 最終更新日: 2025年5月4日</p>
-    </footer>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 工数承認画面モックアップの設定
+            new MockupViewer('effort-approval-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '600px',
+                mockups: [
+                    {
+                        name: '工数承認画面',
+                        path: 'mockups/TMS-004.html',
+                        description: '検索・フィルタリング条件部分、案件概要部分、工数一覧テーブル、承認操作部分から構成される画面です。プロジェクトマネージャーや管理者がメンバーの提出した工数データを確認し、承認または差戻を行うことができます。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>

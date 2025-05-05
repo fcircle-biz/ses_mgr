@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>工数入力画面 | SES業務システム</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f5f7fa;
+        }
+        .card {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            border: none;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eaecf0;
+        }
+        .summary-card {
+            background-color: #f1f8ff;
+            border-left: 4px solid #0d6efd;
+        }
+        .warning-card {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+        }
+        .table th {
+            background-color: #f8f9fa;
+        }
+        .time-display {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: #0d6efd;
+        }
+        .time-display.warning {
+            color: #dc3545;
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .required-label::after {
+            content: "*";
+            color: red;
+            margin-left: 3px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .status-work {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-leave {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .status-remote {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        .delete-row {
+            color: #dc3545;
+            cursor: pointer;
+        }
+        .add-row {
+            color: #28a745;
+            cursor: pointer;
+        }
+        .btn-icon {
+            padding: 0.25rem 0.5rem;
+        }
+        .action-buttons {
+            white-space: nowrap;
+        }
+        tr.total-row {
+            background-color: #f8f9fa;
+            font-weight: bold;
+        }
+        .summary-box {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .summary-label {
+            font-weight: 500;
+            margin-right: 5px;
+            color: #6c757d;
+        }
+        .summary-value {
+            font-weight: 600;
+            color: #212529;
+        }
+        .template-actions {
+            display: flex;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <!-- ヘッダー部分 -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <button class="btn btn-outline-secondary btn-sm me-2" title="前日">
+                                <i class="bi bi-arrow-left"></i>
+                            </button>
+                            <input type="date" class="form-control form-control-sm me-2" style="width: 200px;" value="2025-05-06">
+                            <button class="btn btn-outline-secondary btn-sm me-2" title="翌日" disabled>
+                                <i class="bi bi-arrow-right"></i>
+                            </button>
+                            <button class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-calendar-week"></i> 週表示
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- 勤怠情報表示部分 -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="summary-card p-3">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-person-check me-2 text-primary"></i>
+                                        <div>
+                                            <div class="summary-label">勤怠状態</div>
+                                            <div class="summary-value">
+                                                <span class="status-badge status-remote">リモート勤務</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-clock me-2 text-primary"></i>
+                                        <div>
+                                            <div class="summary-label">実働時間</div>
+                                            <div class="summary-value">8.5 時間</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-outline-primary btn-sm">
+                                            <i class="bi bi-pencil"></i> 勤怠入力へ
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 工数入力テーブル -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">工数入力：2025年5月6日（火）</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 22%">案件</th>
+                                                <th style="width: 20%">タスク名</th>
+                                                <th style="width: 15%">タスク分類</th>
+                                                <th style="width: 10%">工数</th>
+                                                <th style="width: 8%">請求可</th>
+                                                <th style="width: 20%">作業内容</th>
+                                                <th style="width: 5%"></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>
+                                                    <select class="form-select">
+                                                        <option selected>A社：販売管理システム開発</option>
+                                                        <option>B社：社内基幹システム保守</option>
+                                                        <option>C社：WEBサイトリニューアル</option>
+                                                        <option>社内：スキル研修</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="form-control" value="バックエンド実装">
+                                                </td>
+                                                <td>
+                                                    <select class="form-select">
+                                                        <option>要件定義</option>
+                                                        <option>設計</option>
+                                                        <option selected>開発</option>
+                                                        <option>テスト</option>
+                                                        <option>レビュー</option>
+                                                        <option>会議</option>
+                                                        <option>調査</option>
+                                                        <option>保守</option>
+                                                        <option>その他</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="number" class="form-control" value="4.5" step="0.1" min="0.1" max="24.0">
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check d-flex justify-content-center">
+                                                        <input class="form-check-input" type="checkbox" checked>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="form-control" value="APIの実装と単体テスト">
+                                                </td>
+                                                <td class="text-center">
+                                                    <i class="bi bi-trash delete-row"></i>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <select class="form-select">
+                                                        <option>A社：販売管理システム開発</option>
+                                                        <option selected>B社：社内基幹システム保守</option>
+                                                        <option>C社：WEBサイトリニューアル</option>
+                                                        <option>社内：スキル研修</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="form-control" value="障害対応">
+                                                </td>
+                                                <td>
+                                                    <select class="form-select">
+                                                        <option>要件定義</option>
+                                                        <option>設計</option>
+                                                        <option>開発</option>
+                                                        <option>テスト</option>
+                                                        <option>レビュー</option>
+                                                        <option>会議</option>
+                                                        <option>調査</option>
+                                                        <option selected>保守</option>
+                                                        <option>その他</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="number" class="form-control" value="2.0" step="0.1" min="0.1" max="24.0">
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check d-flex justify-content-center">
+                                                        <input class="form-check-input" type="checkbox" checked>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="form-control" value="ログイン時のエラー調査">
+                                                </td>
+                                                <td class="text-center">
+                                                    <i class="bi bi-trash delete-row"></i>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>
+                                                    <select class="form-select">
+                                                        <option>A社：販売管理システム開発</option>
+                                                        <option>B社：社内基幹システム保守</option>
+                                                        <option>C社：WEBサイトリニューアル</option>
+                                                        <option selected>社内：スキル研修</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="form-control" value="技術研修">
+                                                </td>
+                                                <td>
+                                                    <select class="form-select">
+                                                        <option>要件定義</option>
+                                                        <option>設計</option>
+                                                        <option>開発</option>
+                                                        <option>テスト</option>
+                                                        <option>レビュー</option>
+                                                        <option>会議</option>
+                                                        <option>調査</option>
+                                                        <option>保守</option>
+                                                        <option selected>その他</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="number" class="form-control" value="2.0" step="0.1" min="0.1" max="24.0">
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="form-check d-flex justify-content-center">
+                                                        <input class="form-check-input" type="checkbox">
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <input type="text" class="form-control" value="フレームワーク学習">
+                                                </td>
+                                                <td class="text-center">
+                                                    <i class="bi bi-trash delete-row"></i>
+                                                </td>
+                                            </tr>
+                                            <tr class="total-row">
+                                                <td colspan="3" class="text-end">合計</td>
+                                                <td>8.5</td>
+                                                <td colspan="3"></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="d-flex justify-content-end mt-2">
+                                    <button class="btn btn-outline-success btn-sm">
+                                        <i class="bi bi-plus-circle"></i> 行追加
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 差分表示と合計 -->
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="summary-card p-3">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="summary-label">実働時間</div>
+                                    <div class="time-display">8.5 時間</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="summary-label">工数合計</div>
+                                    <div class="time-display">8.5 時間</div>
+                                </div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-md-12">
+                                    <div class="summary-label">差分</div>
+                                    <div class="time-display">0.0 時間</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="template-actions">
+                            <button class="btn btn-outline-secondary">
+                                <i class="bi bi-folder-plus"></i> テンプレート保存
+                            </button>
+                            <button class="btn btn-outline-secondary">
+                                <i class="bi bi-folder"></i> テンプレート読込
+                            </button>
+                            <button class="btn btn-outline-secondary">
+                                <i class="bi bi-arrow-left"></i> 前日コピー
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ボタン類 -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="d-flex justify-content-between">
+                            <button type="button" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> キャンセル
+                            </button>
+                            <button type="button" class="btn btn-primary">
+                                <i class="bi bi-save"></i> 保存
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 行削除機能の簡易的なスクリプト
+        document.querySelectorAll('.delete-row').forEach(icon => {
+            icon.addEventListener('click', function() {
+                const row = this.closest('tr');
+                if (!row.classList.contains('total-row')) {
+                    row.remove();
+                    updateTotals();
+                }
+            });
+        });
+        
+        // 行追加ボタンの処理
+        document.querySelector('.btn-outline-success').addEventListener('click', function() {
+            const tbody = document.querySelector('tbody');
+            const totalRow = document.querySelector('.total-row');
+            const newRow = document.createElement('tr');
+            
+            newRow.innerHTML = `
+                <td>
+                    <select class="form-select">
+                        <option>A社：販売管理システム開発</option>
+                        <option>B社：社内基幹システム保守</option>
+                        <option>C社：WEBサイトリニューアル</option>
+                        <option>社内：スキル研修</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="text" class="form-control" value="">
+                </td>
+                <td>
+                    <select class="form-select">
+                        <option>要件定義</option>
+                        <option>設計</option>
+                        <option>開発</option>
+                        <option>テスト</option>
+                        <option>レビュー</option>
+                        <option>会議</option>
+                        <option>調査</option>
+                        <option>保守</option>
+                        <option>その他</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="number" class="form-control" value="0.0" step="0.1" min="0.1" max="24.0">
+                </td>
+                <td class="text-center">
+                    <div class="form-check d-flex justify-content-center">
+                        <input class="form-check-input" type="checkbox" checked>
+                    </div>
+                </td>
+                <td>
+                    <input type="text" class="form-control" value="">
+                </td>
+                <td class="text-center">
+                    <i class="bi bi-trash delete-row"></i>
+                </td>
+            `;
+            
+            tbody.insertBefore(newRow, totalRow);
+            
+            // 新しく追加した行の削除アイコンにイベントリスナーを設定
+            newRow.querySelector('.delete-row').addEventListener('click', function() {
+                newRow.remove();
+                updateTotals();
+            });
+            
+            // 新しく追加した行の工数入力フィールドにイベントリスナーを設定
+            newRow.querySelector('input[type="number"]').addEventListener('change', updateTotals);
+        });
+        
+        // 工数入力フィールドの変更を監視
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('change', updateTotals);
+        });
+        
+        // 合計と差分を更新する関数
+        function updateTotals() {
+            const inputs = document.querySelectorAll('tbody tr:not(.total-row) input[type="number"]');
+            let total = 0;
+            
+            inputs.forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+            
+            // 合計を更新
+            document.querySelector('.total-row td:nth-child(2)').textContent = total.toFixed(1);
+            document.querySelector('.time-display:nth-child(4)').textContent = total.toFixed(1) + ' 時間';
+            
+            // 実働時間との差分を計算
+            const workHours = parseFloat(document.querySelector('.time-display:nth-child(2)').textContent);
+            const diff = workHours - total;
+            
+            // 差分を更新
+            const diffDisplay = document.querySelector('.time-display:nth-child(6)');
+            diffDisplay.textContent = Math.abs(diff).toFixed(1) + ' 時間';
+            
+            // 差分がある場合は警告色にする
+            if (diff !== 0) {
+                diffDisplay.classList.add('warning');
+            } else {
+                diffDisplay.classList.remove('warning');
+            }
+        }
+    </script>
+</body>
+</html>

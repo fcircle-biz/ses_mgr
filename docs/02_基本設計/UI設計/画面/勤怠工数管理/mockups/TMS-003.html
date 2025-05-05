@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>勤怠管理画面 | SES業務システム</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f5f7fa;
+        }
+        .card {
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            border: none;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eaecf0;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 500;
+        }
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            display: inline-block;
+        }
+        .status-draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .status-submitted {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .status-approved {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .status-rejected {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .status-confirmed {
+            background-color: #e0cffc;
+            color: #3b0764;
+        }
+        .progress {
+            height: 0.8rem;
+        }
+        .summary-box {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            height: 100%;
+        }
+        .summary-title {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-bottom: 5px;
+        }
+        .summary-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #212529;
+        }
+        .summary-unit {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-left: 4px;
+        }
+        .warning-icon {
+            color: #dc3545;
+            font-size: 1.2rem;
+        }
+        .action-buttons {
+            white-space: nowrap;
+        }
+        .action-button {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        .overtime-warning {
+            color: #dc3545;
+            font-weight: 500;
+        }
+        .checkbox-column {
+            width: 40px;
+        }
+        .search-panel {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .form-label {
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        .table-responsive {
+            min-height: 450px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid py-4">
+        <h3 class="mb-4">勤怠管理</h3>
+
+        <!-- 検索・フィルタリング部分 -->
+        <div class="card">
+            <div class="card-body search-panel">
+                <form>
+                    <div class="row g-3 align-items-end">
+                        <div class="col-md-2">
+                            <label class="form-label" for="yearMonth">年月</label>
+                            <select class="form-select" id="yearMonth">
+                                <option>2025年5月</option>
+                                <option>2025年4月</option>
+                                <option>2025年3月</option>
+                                <option>2025年2月</option>
+                                <option>2025年1月</option>
+                                <option>2024年12月</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="department">部門</label>
+                            <select class="form-select" id="department">
+                                <option>全部門</option>
+                                <option>システム開発部</option>
+                                <option>インフラ構築部</option>
+                                <option>デザイン部</option>
+                                <option>営業部</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label" for="project">プロジェクト</label>
+                            <select class="form-select" id="project">
+                                <option>全プロジェクト</option>
+                                <option>A社：販売管理システム開発</option>
+                                <option>B社：社内基幹システム保守</option>
+                                <option>C社：WEBサイトリニューアル</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="keyword">キーワード検索</label>
+                            <input type="text" class="form-control" id="keyword" placeholder="氏名やIDで検索">
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-2 align-items-end">
+                        <div class="col-md-6">
+                            <label class="form-label">ステータス</label>
+                            <div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="statusDraft" checked>
+                                    <label class="form-check-label" for="statusDraft">作成中</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="statusSubmitted" checked>
+                                    <label class="form-check-label" for="statusSubmitted">提出済</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="statusApproved" checked>
+                                    <label class="form-check-label" for="statusApproved">承認済</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="statusRejected" checked>
+                                    <label class="form-check-label" for="statusRejected">差戻</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="checkbox" id="statusConfirmed" checked>
+                                    <label class="form-check-label" for="statusConfirmed">確定</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="abnormalOnly">
+                                <label class="form-check-label" for="abnormalOnly">異常値のみ表示</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-end">
+                            <button type="button" class="btn btn-primary">
+                                <i class="bi bi-search"></i> 検索
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary ms-2">
+                                <i class="bi bi-x-circle"></i> クリア
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 勤怠サマリー部分 -->
+        <div class="row mb-4">
+            <div class="col-md-2">
+                <div class="summary-box">
+                    <div class="summary-title">対象人数</div>
+                    <div class="summary-value">42<span class="summary-unit">名</span></div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="summary-box">
+                    <div class="summary-title">提出率</div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar" role="progressbar" style="width: 85%;" aria-valuenow="85" aria-valuemin="0" aria-valuemax="100">85%</div>
+                    </div>
+                    <div class="small">36/42名提出済</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="summary-box">
+                    <div class="summary-title">承認率</div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 70%;" aria-valuenow="70" aria-valuemin="0" aria-valuemax="100">70%</div>
+                    </div>
+                    <div class="small">30/42名承認済</div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="summary-box">
+                    <div class="summary-title">平均稼働時間</div>
+                    <div class="summary-value">168.5<span class="summary-unit">時間</span></div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="summary-box">
+                    <div class="summary-title">平均残業時間</div>
+                    <div class="summary-value">12.3<span class="summary-unit">時間</span></div>
+                </div>
+            </div>
+            <div class="col-md-2">
+                <div class="summary-box">
+                    <div class="summary-title">有給取得率</div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: 45%;" aria-valuenow="45" aria-valuemin="0" aria-valuemax="100">45%</div>
+                    </div>
+                    <div class="small">年間平均6.3日</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 勤怠一覧テーブル -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span>勤怠データ一覧</span>
+                <div>
+                    <button class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-file-earmark-excel"></i> エクスポート
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary ms-2">
+                        <i class="bi bi-printer"></i> 帳票出力
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover table-sm">
+                        <thead>
+                            <tr>
+                                <th class="checkbox-column">
+                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                </th>
+                                <th>技術者ID</th>
+                                <th>氏名</th>
+                                <th>所属部門</th>
+                                <th>主担当案件</th>
+                                <th>ステータス</th>
+                                <th>出勤日数</th>
+                                <th>欠勤日数</th>
+                                <th>有給日数</th>
+                                <th>総稼働時間</th>
+                                <th>残業時間</th>
+                                <th>深夜時間</th>
+                                <th>休日時間</th>
+                                <th>提出日</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input" type="checkbox">
+                                </td>
+                                <td>E001</td>
+                                <td><a href="#">山田 太郎</a></td>
+                                <td>システム開発部</td>
+                                <td>A社：販売管理システム開発</td>
+                                <td><span class="status-badge status-submitted">提出済</span></td>
+                                <td>20</td>
+                                <td>0</td>
+                                <td>1</td>
+                                <td>168.0</td>
+                                <td>10.0</td>
+                                <td>0.0</td>
+                                <td>0.0</td>
+                                <td>2025/05/25</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary action-button">詳細</button>
+                                    <button class="btn btn-sm btn-success action-button">承認</button>
+                                    <button class="btn btn-sm btn-danger action-button">差戻</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input" type="checkbox">
+                                </td>
+                                <td>E002</td>
+                                <td><a href="#">佐藤 花子</a></td>
+                                <td>システム開発部</td>
+                                <td>B社：社内基幹システム保守</td>
+                                <td><span class="status-badge status-approved">承認済</span></td>
+                                <td>21</td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>172.5</td>
+                                <td>14.5</td>
+                                <td>2.0</td>
+                                <td>0.0</td>
+                                <td>2025/05/23</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary action-button">詳細</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input" type="checkbox">
+                                </td>
+                                <td>E003</td>
+                                <td><a href="#">鈴木 一郎</a></td>
+                                <td>システム開発部</td>
+                                <td>A社：販売管理システム開発</td>
+                                <td><span class="status-badge status-rejected">差戻</span></td>
+                                <td>18</td>
+                                <td>0</td>
+                                <td>2</td>
+                                <td>151.0</td>
+                                <td>7.0</td>
+                                <td>0.0</td>
+                                <td>0.0</td>
+                                <td>2025/05/24</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary action-button">詳細</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input" type="checkbox">
+                                </td>
+                                <td>E004</td>
+                                <td><a href="#">田中 健太</a></td>
+                                <td>インフラ構築部</td>
+                                <td>C社：WEBサイトリニューアル</td>
+                                <td><span class="status-badge status-draft">作成中</span></td>
+                                <td>15</td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>120.0</td>
+                                <td>0.0</td>
+                                <td>0.0</td>
+                                <td>0.0</td>
+                                <td>-</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary action-button">詳細</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input" type="checkbox">
+                                </td>
+                                <td>E005</td>
+                                <td><a href="#">高橋 美咲</a></td>
+                                <td>デザイン部</td>
+                                <td>C社：WEBサイトリニューアル</td>
+                                <td><span class="status-badge status-confirmed">確定</span></td>
+                                <td>22</td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>176.0</td>
+                                <td><span class="overtime-warning">48.0</span> <i class="bi bi-exclamation-triangle-fill warning-icon"></i></td>
+                                <td>5.0</td>
+                                <td>8.0</td>
+                                <td>2025/05/20</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary action-button">詳細</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input" type="checkbox">
+                                </td>
+                                <td>E006</td>
+                                <td><a href="#">伊藤 雄太</a></td>
+                                <td>システム開発部</td>
+                                <td>A社：販売管理システム開発</td>
+                                <td><span class="status-badge status-submitted">提出済</span></td>
+                                <td>19</td>
+                                <td>1</td>
+                                <td>1</td>
+                                <td>159.5</td>
+                                <td>9.5</td>
+                                <td>0.0</td>
+                                <td>0.0</td>
+                                <td>2025/05/25</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary action-button">詳細</button>
+                                    <button class="btn btn-sm btn-success action-button">承認</button>
+                                    <button class="btn btn-sm btn-danger action-button">差戻</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input" type="checkbox">
+                                </td>
+                                <td>E007</td>
+                                <td><a href="#">渡辺 真由</a></td>
+                                <td>システム開発部</td>
+                                <td>B社：社内基幹システム保守</td>
+                                <td><span class="status-badge status-approved">承認済</span></td>
+                                <td>21</td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>170.0</td>
+                                <td>10.0</td>
+                                <td>0.0</td>
+                                <td>0.0</td>
+                                <td>2025/05/22</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary action-button">詳細</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input" type="checkbox">
+                                </td>
+                                <td>E008</td>
+                                <td><a href="#">小林 龍太</a></td>
+                                <td>インフラ構築部</td>
+                                <td>B社：社内基幹システム保守</td>
+                                <td><span class="status-badge status-draft">作成中</span></td>
+                                <td>10</td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>80.0</td>
+                                <td>0.0</td>
+                                <td>0.0</td>
+                                <td>0.0</td>
+                                <td>-</td>
+                                <td class="action-buttons">
+                                    <button class="btn btn-sm btn-outline-primary action-button">詳細</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- ページネーション -->
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                        表示: 1-8 / 42件
+                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination pagination-sm mb-0">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#" tabindex="-1" aria-disabled="true">前へ</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item"><a class="page-link" href="#">4</a></li>
+                            <li class="page-item"><a class="page-link" href="#">5</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">次へ</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+
+        <!-- 一括操作部分 -->
+        <div class="card">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <button class="btn btn-success me-2">
+                            <i class="bi bi-check-circle"></i> 一括承認
+                        </button>
+                        <button class="btn btn-danger me-2">
+                            <i class="bi bi-x-circle"></i> 一括差戻
+                        </button>
+                        <button class="btn btn-outline-secondary me-2">
+                            <i class="bi bi-envelope"></i> 未提出リマインド送信
+                        </button>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <button class="btn btn-outline-primary">
+                            <i class="bi bi-file-earmark-excel"></i> 勤怠データエクスポート
+                        </button>
+                        <button class="btn btn-outline-secondary ms-2">
+                            <i class="bi bi-file-earmark-pdf"></i> 帳票出力
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // 全選択チェックボックスの制御
+        document.getElementById('selectAll').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+        });
+
+        // 行選択時の背景色変更
+        document.querySelectorAll('tbody input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const row = this.closest('tr');
+                if (this.checked) {
+                    row.classList.add('table-active');
+                } else {
+                    row.classList.remove('table-active');
+                }
+            });
+        });
+        
+        // 「異常値のみ表示」チェックボックスの制御
+        document.getElementById('abnormalOnly').addEventListener('change', function() {
+            const rows = document.querySelectorAll('tbody tr');
+            if (this.checked) {
+                rows.forEach(row => {
+                    const hasWarning = row.querySelector('.warning-icon');
+                    if (!hasWarning) {
+                        row.style.display = 'none';
+                    }
+                });
+            } else {
+                rows.forEach(row => {
+                    row.style.display = '';
+                });
+            }
+        });
+    </script>
+</body>
+</html>
