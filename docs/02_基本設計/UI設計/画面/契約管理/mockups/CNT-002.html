@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム - 契約作成</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        /* ステータスバッジのスタイル */
+        .badge-draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .badge-proposal {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .badge-active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .badge-contracted {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .badge-completed {
+            background-color: #d3d3d3;
+            color: #444;
+        }
+        .badge-cancelled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* カスタムスタイル */
+        .form-label.required::after {
+            content: "*";
+            color: #dc3545;
+            margin-left: 4px;
+        }
+        .form-text {
+            font-size: 80%;
+            color: #6c757d;
+        }
+        .card-body .row {
+            margin-bottom: 1rem;
+        }
+        .upload-area {
+            border: 2px dashed #dee2e6;
+            border-radius: 4px;
+            padding: 20px;
+            text-align: center;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .upload-area:hover {
+            border-color: #adb5bd;
+            background-color: #e9ecef;
+        }
+        .file-list {
+            margin-top: 15px;
+        }
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            background-color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">契約管理</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">SI</div>
+                            <span>佐藤 一郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">契約管理</a></li>
+                <li class="breadcrumb-item"><a href="#">契約一覧</a></li>
+                <li class="breadcrumb-item active" aria-current="page">契約作成</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">新規契約作成</h2>
+        </div>
+
+        <!-- フォーム -->
+        <form id="contractForm">
+            <!-- 基本情報 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">基本情報</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="contractTemplate" class="form-label required">契約テンプレート</label>
+                            <select class="form-select" id="contractTemplate" required>
+                                <option value="">テンプレートを選択してください</option>
+                                <option value="1">標準業務委託契約書</option>
+                                <option value="2">SES契約書</option>
+                                <option value="3">請負契約書</option>
+                                <option value="4">準委任契約書</option>
+                                <option value="5">基本契約書</option>
+                            </select>
+                            <div class="form-text">使用する契約書のテンプレートを選択してください</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="contractName" class="form-label required">契約名</label>
+                            <input type="text" class="form-control" id="contractName" placeholder="例: 〇〇社 システム開発支援契約" required maxlength="100">
+                            <div class="form-text">契約の名称（100文字以内）</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="contractType" class="form-label required">契約種別</label>
+                            <select class="form-select" id="contractType" required>
+                                <option value="">契約種別を選択してください</option>
+                                <option value="1">業務委託</option>
+                                <option value="2">派遣</option>
+                                <option value="3">請負</option>
+                                <option value="4">準委任</option>
+                                <option value="5">その他</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 契約先情報 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">契約先情報</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="clientCompany" class="form-label required">顧客企業</label>
+                            <select class="form-select" id="clientCompany" required>
+                                <option value="">顧客企業を選択してください</option>
+                                <option value="1">株式会社テクノソリューション</option>
+                                <option value="2">ABCシステムズ株式会社</option>
+                                <option value="3">NTSデジタル株式会社</option>
+                                <option value="4">株式会社フューチャーテック</option>
+                                <option value="5">グローバルITソリューションズ</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="clientContact" class="form-label required">顧客担当者</label>
+                            <select class="form-select" id="clientContact" required>
+                                <option value="">顧客担当者を選択してください</option>
+                                <option value="1">田中 太郎（株式会社テクノソリューション）</option>
+                                <option value="2">佐藤 次郎（ABCシステムズ株式会社）</option>
+                                <option value="3">鈴木 三郎（NTSデジタル株式会社）</option>
+                            </select>
+                            <div class="form-text">
+                                <button type="button" class="btn btn-link btn-sm p-0" data-bs-toggle="modal" data-bs-target="#addContactModal">
+                                    <i class="bi bi-plus-circle"></i> 新規担当者を追加
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="ourContact" class="form-label required">自社担当者</label>
+                            <select class="form-select" id="ourContact" required>
+                                <option value="">自社担当者を選択してください</option>
+                                <option value="1">佐藤 一郎</option>
+                                <option value="2">鈴木 健太</option>
+                                <option value="3">田中 美咲</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 契約期間 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">契約期間</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="startDate" class="form-label required">契約開始日</label>
+                            <input type="date" class="form-control" id="startDate" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="endDate" class="form-label" id="endDateLabel">契約終了日</label>
+                            <input type="date" class="form-control" id="endDate">
+                            <div class="form-text">自動更新の場合は省略可能です</div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="autoRenewal">
+                                <label class="form-check-label" for="autoRenewal">
+                                    自動更新
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6" id="notificationDaysContainer" style="display: none;">
+                            <label for="notificationDays" class="form-label required">更新通知日数</label>
+                            <input type="number" class="form-control" id="notificationDays" min="1" max="365" placeholder="30">
+                            <div class="form-text">契約終了の何日前に通知するか（1〜365）</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 金額・支払い条件 -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">金額・支払い条件</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="contractAmount" class="form-label required">契約金額</label>
+                            <div class="input-group">
+                                <span class="input-group-text">¥</span>
+                                <input type="number" class="form-control" id="contractAmount" min="0" required placeholder="例: 1000000">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label required">金額単位</label>
+                            <div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="amountUnit" id="monthlyUnit" value="monthly" checked>
+                                    <label class="form-check-label" for="monthlyUnit">月額</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="amountUnit" id="totalUnit" value="total">
+                                    <label class="form-check-label" for="totalUnit">総額</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="amountUnit" id="hourlyUnit" value="hourly">
+                                    <label class="form-check-label" for="hourlyUnit">時間単価</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="taxType" class="form-label required">税区分</label>
+                            <select class="form-select" id="taxType" required>
+                                <option value="1">税抜</option>
+                                <option value="2">税込</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="paymentTerms" class="form-label required">支払条件</label>
+                            <select class="form-select" id="paymentTerms" required>
+                                <option value="1">翌月末払い</option>
+                                <option value="2">翌々月末払い</option>
+                                <option value="3">締め日払い</option>
+                                <option value="4">検収後30日以内</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row" id="paymentDayContainer" style="display: none;">
+                        <div class="col-md-6">
+                            <label for="paymentDay" class="form-label required">支払日</label>
+                            <input type="number" class="form-control" id="paymentDay" min="1" max="31" placeholder="例: 25">
+                            <div class="form-text">締め日払いの場合の支払日（1〜31）</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 特記事項・添付ファイル -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">特記事項・添付ファイル</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="notes" class="form-label">特記事項</label>
+                            <textarea class="form-control" id="notes" rows="4" maxlength="1000" placeholder="契約に関する特記事項があれば入力してください"></textarea>
+                            <div class="form-text">1000文字以内</div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" id="useESignature">
+                                <label class="form-check-label" for="useESignature">
+                                    電子署名を使用する
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-12">
+                            <label class="form-label">添付ファイル</label>
+                            <div class="upload-area" id="dropArea">
+                                <i class="bi bi-cloud-arrow-up fs-3"></i>
+                                <p class="mb-0">クリックまたはファイルをドラッグ＆ドロップ</p>
+                                <p class="small text-muted">（最大20MB）</p>
+                                <input type="file" id="fileInput" multiple style="display: none;">
+                            </div>
+                            <div class="file-list" id="fileList">
+                                <!-- ファイルアイテムがここに追加されます -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ボタン -->
+            <div class="d-flex justify-content-between mb-5">
+                <button type="button" class="btn btn-secondary" id="cancelButton">キャンセル</button>
+                <div>
+                    <button type="button" class="btn btn-outline-secondary me-2" id="saveButton">下書き保存</button>
+                    <button type="button" class="btn btn-outline-secondary me-2" id="previewButton">プレビュー</button>
+                    <button type="submit" class="btn btn-primary" id="submitButton">承認依頼</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- 新規担当者追加モーダル -->
+    <div class="modal fade" id="addContactModal" tabindex="-1" aria-labelledby="addContactModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addContactModalLabel">新規担当者を追加</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newContactForm">
+                        <div class="mb-3">
+                            <label for="contactName" class="form-label required">担当者名</label>
+                            <input type="text" class="form-control" id="contactName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contactEmail" class="form-label required">メールアドレス</label>
+                            <input type="email" class="form-control" id="contactEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="contactPhone" class="form-label">電話番号</label>
+                            <input type="tel" class="form-control" id="contactPhone">
+                        </div>
+                        <div class="mb-3">
+                            <label for="contactPosition" class="form-label">役職</label>
+                            <input type="text" class="form-control" id="contactPosition">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary" id="saveContactButton">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 確認モーダル -->
+    <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="confirmModalLabel">確認</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    入力内容が保存されていません。このページを離れますか？
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary" id="confirmLeaveButton">はい、離れます</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    
+    <!-- カスタムJavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 自動更新チェックボックスの変更イベント
+            const autoRenewalCheckbox = document.getElementById('autoRenewal');
+            const endDateLabel = document.getElementById('endDateLabel');
+            const endDateInput = document.getElementById('endDate');
+            const notificationDaysContainer = document.getElementById('notificationDaysContainer');
+            const notificationDaysInput = document.getElementById('notificationDays');
+            
+            autoRenewalCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    endDateLabel.classList.remove('required');
+                    endDateInput.required = false;
+                    notificationDaysContainer.style.display = 'block';
+                    notificationDaysInput.required = true;
+                } else {
+                    endDateLabel.classList.add('required');
+                    endDateInput.required = true;
+                    notificationDaysContainer.style.display = 'none';
+                    notificationDaysInput.required = false;
+                }
+            });
+            
+            // 支払条件の変更イベント
+            const paymentTermsSelect = document.getElementById('paymentTerms');
+            const paymentDayContainer = document.getElementById('paymentDayContainer');
+            const paymentDayInput = document.getElementById('paymentDay');
+            
+            paymentTermsSelect.addEventListener('change', function() {
+                if (this.value === '3') { // 締め日払いを選択した場合
+                    paymentDayContainer.style.display = 'block';
+                    paymentDayInput.required = true;
+                } else {
+                    paymentDayContainer.style.display = 'none';
+                    paymentDayInput.required = false;
+                }
+            });
+            
+            // ファイルアップロード処理
+            const dropArea = document.getElementById('dropArea');
+            const fileInput = document.getElementById('fileInput');
+            const fileList = document.getElementById('fileList');
+            
+            dropArea.addEventListener('click', function() {
+                fileInput.click();
+            });
+            
+            dropArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('bg-light');
+            });
+            
+            dropArea.addEventListener('dragleave', function() {
+                this.classList.remove('bg-light');
+            });
+            
+            dropArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('bg-light');
+                handleFiles(e.dataTransfer.files);
+            });
+            
+            fileInput.addEventListener('change', function() {
+                handleFiles(this.files);
+            });
+            
+            function handleFiles(files) {
+                for (let file of files) {
+                    // ファイルサイズのチェック (20MB以内)
+                    if (file.size > 20 * 1024 * 1024) {
+                        alert('ファイルサイズは20MB以下である必要があります');
+                        continue;
+                    }
+                    
+                    addFileToList(file);
+                }
+            }
+            
+            function addFileToList(file) {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                
+                // ファイル情報部分
+                const fileInfo = document.createElement('div');
+                
+                // ファイルのアイコンと名前
+                const fileName = document.createElement('div');
+                fileName.innerHTML = `<i class="bi bi-file-earmark me-2"></i>${file.name}`;
+                
+                // ファイルサイズ
+                const fileSize = document.createElement('small');
+                fileSize.className = 'text-muted';
+                fileSize.textContent = formatFileSize(file.size);
+                
+                fileInfo.appendChild(fileName);
+                fileInfo.appendChild(fileSize);
+                
+                // 削除ボタン
+                const removeButton = document.createElement('button');
+                removeButton.className = 'btn btn-sm btn-outline-danger';
+                removeButton.innerHTML = '<i class="bi bi-x"></i>';
+                removeButton.onclick = function() {
+                    fileList.removeChild(fileItem);
+                };
+                
+                fileItem.appendChild(fileInfo);
+                fileItem.appendChild(removeButton);
+                
+                fileList.appendChild(fileItem);
+            }
+            
+            function formatFileSize(bytes) {
+                if (bytes < 1024) return bytes + ' B';
+                else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+                else return (bytes / 1048576).toFixed(1) + ' MB';
+            }
+            
+            // フォーム送信の処理
+            const contractForm = document.getElementById('contractForm');
+            const saveButton = document.getElementById('saveButton');
+            const previewButton = document.getElementById('previewButton');
+            const submitButton = document.getElementById('submitButton');
+            const cancelButton = document.getElementById('cancelButton');
+            const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
+            const confirmLeaveButton = document.getElementById('confirmLeaveButton');
+            
+            // 下書き保存
+            saveButton.addEventListener('click', function() {
+                // 基本的なバリデーションのみ
+                const contractName = document.getElementById('contractName').value;
+                if (!contractName) {
+                    alert('契約名を入力してください');
+                    return;
+                }
+                
+                console.log('下書き保存処理');
+                alert('契約情報が下書き保存されました');
+            });
+            
+            // プレビュー
+            previewButton.addEventListener('click', function() {
+                if (!contractForm.checkValidity()) {
+                    contractForm.reportValidity();
+                    return;
+                }
+                
+                console.log('プレビュー処理');
+                alert('契約書プレビュー画面に遷移します');
+            });
+            
+            // 承認依頼
+            contractForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                if (!this.checkValidity()) {
+                    this.reportValidity();
+                    return;
+                }
+                
+                console.log('承認依頼処理');
+                alert('承認依頼が送信されました');
+            });
+            
+            // キャンセル
+            cancelButton.addEventListener('click', function() {
+                // フォームに入力があればモーダル表示
+                if (hasFormInput()) {
+                    confirmModal.show();
+                } else {
+                    // 入力がなければ直接戻る
+                    console.log('契約一覧画面に戻ります');
+                    window.location.href = '#'; // 実際は契約一覧画面へのリンク
+                }
+            });
+            
+            // モーダルで「はい」を選んだ場合
+            confirmLeaveButton.addEventListener('click', function() {
+                console.log('契約一覧画面に戻ります');
+                confirmModal.hide();
+                window.location.href = '#'; // 実際は契約一覧画面へのリンク
+            });
+            
+            // 新規担当者追加
+            const saveContactButton = document.getElementById('saveContactButton');
+            const addContactModal = new bootstrap.Modal(document.getElementById('addContactModal'));
+            
+            saveContactButton.addEventListener('click', function() {
+                const newContactForm = document.getElementById('newContactForm');
+                
+                if (!newContactForm.checkValidity()) {
+                    newContactForm.reportValidity();
+                    return;
+                }
+                
+                const contactName = document.getElementById('contactName').value;
+                
+                // セレクトボックスに追加
+                const clientContactSelect = document.getElementById('clientContact');
+                const newOption = document.createElement('option');
+                newOption.value = 'new';
+                newOption.text = contactName + '（新規追加）';
+                newOption.selected = true;
+                clientContactSelect.add(newOption);
+                
+                addContactModal.hide();
+                alert('担当者情報が追加されました');
+                
+                // フォームをリセット
+                newContactForm.reset();
+            });
+            
+            // フォームに入力があるかチェック
+            function hasFormInput() {
+                const inputs = contractForm.querySelectorAll('input, select, textarea');
+                for (let input of inputs) {
+                    if (input.type === 'checkbox' || input.type === 'radio') {
+                        if (input.checked) return true;
+                    } else if (input.value) {
+                        return true;
+                    }
+                }
+                return fileList.children.length > 0;
+            }
+        });
+    </script>
+</body>
+</html>

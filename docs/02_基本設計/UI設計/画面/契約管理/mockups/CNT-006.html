@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム - 契約テンプレート管理</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        /* ステータスバッジのスタイル */
+        .badge-draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .badge-proposal {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .badge-active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .badge-contracted {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .badge-completed {
+            background-color: #d3d3d3;
+            color: #444;
+        }
+        .badge-cancelled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* カスタムスタイル */
+        .template-status {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        .template-status.active {
+            background-color: #28a745;
+        }
+        .template-status.inactive {
+            background-color: #dc3545;
+        }
+        .editor-toolbar {
+            border: 1px solid #dee2e6;
+            border-bottom: none;
+            border-radius: 0.25rem 0.25rem 0 0;
+            padding: 0.5rem;
+            background-color: #f8f9fa;
+        }
+        .editor-toolbar .btn-group {
+            margin-right: 0.5rem;
+        }
+        .editor-content {
+            border: 1px solid #dee2e6;
+            border-radius: 0 0 0.25rem 0.25rem;
+            padding: 1rem;
+            min-height: 300px;
+            background-color: white;
+        }
+        .variable-tag {
+            display: inline-block;
+            background-color: #e9ecef;
+            color: #495057;
+            border-radius: 0.25rem;
+            padding: 0.2rem 0.5rem;
+            margin: 0.2rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .template-list-item {
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+        .template-list-item:hover {
+            background-color: #f8f9fa;
+            border-left-color: #0d6efd;
+        }
+        .template-list-item.active {
+            background-color: #f0f7ff;
+            border-left-color: #0d6efd;
+        }
+        .nav-tabs .nav-link {
+            color: #6c757d;
+        }
+        .nav-tabs .nav-link.active {
+            color: #0d6efd;
+            font-weight: 600;
+        }
+        .list-group-item-action {
+            transition: all 0.2s;
+        }
+        .list-group-item-action:hover {
+            background-color: #f8f9fa;
+        }
+        .list-group-item-action.active {
+            background-color: #e9ecef;
+            color: #495057;
+            border-color: #dee2e6;
+        }
+        .template-preview {
+            border: 1px solid #dee2e6;
+            padding: 2rem;
+            background-color: white;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .variable-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .drag-handle {
+            cursor: move;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">契約管理</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">SI</div>
+                            <span>佐藤 一郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">契約管理</a></li>
+                <li class="breadcrumb-item active" aria-current="page">契約テンプレート管理</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">契約テンプレート管理</h2>
+            <div>
+                <a href="#" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-arrow-left me-1"></i>契約一覧に戻る
+                </a>
+                <button type="button" class="btn btn-primary" id="newTemplateBtn">
+                    <i class="bi bi-plus-lg me-1"></i>新規テンプレート作成
+                </button>
+            </div>
+        </div>
+
+        <!-- 一覧と詳細のコンテナ -->
+        <div class="row">
+            <!-- テンプレート一覧 -->
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">テンプレート一覧</h5>
+                            <div class="input-group input-group-sm" style="width: 150px;">
+                                <input type="text" class="form-control" placeholder="検索..." id="templateSearch">
+                                <button class="btn btn-outline-secondary" type="button">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush">
+                            <a href="#" class="list-group-item list-group-item-action template-list-item active" data-template-id="1">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">標準業務委託契約書</h6>
+                                    <small><span class="template-status active"></span>有効</small>
+                                </div>
+                                <p class="mb-1 text-muted small">業務委託</p>
+                                <small class="text-muted">最終更新: 2025/02/15</small>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action template-list-item" data-template-id="2">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">SES契約書</h6>
+                                    <small><span class="template-status active"></span>有効</small>
+                                </div>
+                                <p class="mb-1 text-muted small">派遣</p>
+                                <small class="text-muted">最終更新: 2025/03/10</small>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action template-list-item" data-template-id="3">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">請負契約書</h6>
+                                    <small><span class="template-status active"></span>有効</small>
+                                </div>
+                                <p class="mb-1 text-muted small">請負</p>
+                                <small class="text-muted">最終更新: 2025/02/20</small>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action template-list-item" data-template-id="4">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">準委任契約書</h6>
+                                    <small><span class="template-status active"></span>有効</small>
+                                </div>
+                                <p class="mb-1 text-muted small">準委任</p>
+                                <small class="text-muted">最終更新: 2025/03/01</small>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action template-list-item" data-template-id="5">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">基本契約書</h6>
+                                    <small><span class="template-status active"></span>有効</small>
+                                </div>
+                                <p class="mb-1 text-muted small">その他</p>
+                                <small class="text-muted">最終更新: 2025/01/25</small>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action template-list-item" data-template-id="6">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">秘密保持契約書</h6>
+                                    <small><span class="template-status inactive"></span>無効</small>
+                                </div>
+                                <p class="mb-1 text-muted small">その他</p>
+                                <small class="text-muted">最終更新: 2024/11/05</small>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- テンプレート詳細・編集 -->
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header">
+                        <ul class="nav nav-tabs card-header-tabs" id="templateTabs">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="details-tab" data-bs-toggle="tab" href="#details">基本情報</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="editor-tab" data-bs-toggle="tab" href="#editor">テンプレート編集</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="variables-tab" data-bs-toggle="tab" href="#variables">入力項目定義</a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content" id="templateTabsContent">
+                            <!-- 基本情報タブ -->
+                            <div class="tab-pane fade show active" id="details" role="tabpanel" aria-labelledby="details-tab">
+                                <form id="templateDetailsForm">
+                                    <div class="row mb-4">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="templateName" class="form-label">テンプレート名</label>
+                                                <input type="text" class="form-control" id="templateName" value="標準業務委託契約書">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="templateType" class="form-label">契約種別</label>
+                                                <select class="form-select" id="templateType">
+                                                    <option value="1" selected>業務委託</option>
+                                                    <option value="2">派遣</option>
+                                                    <option value="3">請負</option>
+                                                    <option value="4">準委任</option>
+                                                    <option value="5">その他</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">状態</label>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="statusRadio" id="statusActive" checked>
+                                                    <label class="form-check-label" for="statusActive">
+                                                        有効
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="statusRadio" id="statusInactive">
+                                                    <label class="form-check-label" for="statusInactive">
+                                                        無効
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label for="templateDesc" class="form-label">説明</label>
+                                                <textarea class="form-control" id="templateDesc" rows="7">標準的な業務委託契約書のテンプレートです。システムエンジニアリングサービスを提供する際の基本的な条件を規定しています。主な内容：業務内容、契約期間、報酬、機密保持、権利義務等。</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">作成情報</label>
+                                                <p class="mb-1"><small class="text-muted">作成者: 山田 次郎</small></p>
+                                                <p class="mb-1"><small class="text-muted">作成日: 2024/10/01</small></p>
+                                                <p class="mb-0"><small class="text-muted">最終更新: 2025/02/15 (鈴木 三郎)</small></p>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="mb-3">
+                                                <label class="form-label">使用状況</label>
+                                                <p class="mb-1"><small class="text-muted">使用回数: 52回</small></p>
+                                                <p class="mb-0"><small class="text-muted">最終使用: 2025/04/15</small></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- テンプレート編集タブ -->
+                            <div class="tab-pane fade" id="editor" role="tabpanel" aria-labelledby="editor-tab">
+                                <div class="mb-3">
+                                    <label class="form-label">利用可能な変数</label>
+                                    <div class="d-flex flex-wrap mb-3">
+                                        <span class="variable-tag me-2">{契約名}</span>
+                                        <span class="variable-tag me-2">{契約ID}</span>
+                                        <span class="variable-tag me-2">{契約日}</span>
+                                        <span class="variable-tag me-2">{開始日}</span>
+                                        <span class="variable-tag me-2">{終了日}</span>
+                                        <span class="variable-tag me-2">{甲社名}</span>
+                                        <span class="variable-tag me-2">{甲住所}</span>
+                                        <span class="variable-tag me-2">{甲代表者}</span>
+                                        <span class="variable-tag me-2">{乙社名}</span>
+                                        <span class="variable-tag me-2">{乙住所}</span>
+                                        <span class="variable-tag me-2">{乙代表者}</span>
+                                        <span class="variable-tag me-2">{契約金額}</span>
+                                        <span class="variable-tag me-2">{支払条件}</span>
+                                    </div>
+                                </div>
+                                <div class="editor-toolbar">
+                                    <div class="d-flex">
+                                        <div class="btn-group me-2">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-type-bold"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-type-italic"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-type-underline"></i>
+                                            </button>
+                                        </div>
+                                        <div class="btn-group me-2">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-list-ul"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-list-ol"></i>
+                                            </button>
+                                        </div>
+                                        <div class="btn-group me-2">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-paragraph"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-justify-left"></i>
+                                            </button>
+                                        </div>
+                                        <div class="btn-group me-2">
+                                            <button type="button" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-table"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="editor-content" contenteditable="true">
+                                    <div style="text-align: center; margin-bottom: 2rem;">
+                                        <h2>業務委託契約書</h2>
+                                    </div>
+                                    <p>{甲社名}（以下「甲」という）と{乙社名}（以下「乙」という）とは、乙が甲に対して行うシステムエンジニアリングサービス（以下「本サービス」という）の提供に関し、次のとおり契約（以下「本契約」という）を締結する。</p>
+                                    
+                                    <h4>第1条（目的）</h4>
+                                    <p>本契約は、甲が乙に対して本サービスの提供を委託し、乙がこれを受託するにあたり、両者の権利義務関係を明確にすることを目的とする。</p>
+                                    
+                                    <h4>第2条（業務内容）</h4>
+                                    <p>乙は、甲のために以下の業務を行うものとする。</p>
+                                    <ol>
+                                        <li>システム開発に関する技術支援</li>
+                                        <li>プログラム設計・製造・テスト</li>
+                                        <li>技術文書の作成</li>
+                                        <li>その他、甲乙協議の上で合意した業務</li>
+                                    </ol>
+                                    
+                                    <h4>第3条（契約期間）</h4>
+                                    <p>本契約の有効期間は{開始日}から{終了日}までとする。但し、当該期間満了の1ヶ月前までに甲乙いずれからも書面による別段の意思表示がないときは、同一条件にて更に3ヶ月間延長されるものとし、以後も同様とする。</p>
+                                    
+                                    <h4>第4条（委託料及び支払方法）</h4>
+                                    <p>1. 甲は、乙に対し、本サービスの対価として月額{契約金額}円（税抜）を支払うものとする。</p>
+                                    <p>2. 乙は、毎月末日に当月分の本サービス提供に関する請求書を甲に提出する。</p>
+                                    <p>3. 甲は、前項の請求書を受領した月の翌月末日までに、乙の指定する銀行口座に振り込む方法により支払う。</p>
+                                    <p>4. 振込手数料は甲の負担とする。</p>
+                                    
+                                    <h4>第5条（秘密情報の取扱い）</h4>
+                                    <p>甲及び乙は、本契約に関連して知り得た相手方の技術上・営業上その他業務上の一切の情報を、相手方の事前の書面による承諾なくして第三者に開示・漏洩してはならない。</p>
+                                    
+                                    <div style="margin-top: 3rem;">
+                                        <p>本契約締結の証として本書2通を作成し、甲乙記名押印のうえ各1通を保有する。</p>
+                                        <p style="text-align: right;">{契約日}</p>
+                                        
+                                        <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                                            <div style="width: 45%;">
+                                                <p><strong>甲：</strong></p>
+                                                <p>{甲住所}</p>
+                                                <p>{甲社名}</p>
+                                                <p>{甲代表者}</p>
+                                                <div style="border-top: 1px solid black; margin-top: 50px;"></div>
+                                            </div>
+                                            
+                                            <div style="width: 45%;">
+                                                <p><strong>乙：</strong></p>
+                                                <p>{乙住所}</p>
+                                                <p>{乙社名}</p>
+                                                <p>{乙代表者}</p>
+                                                <div style="border-top: 1px solid black; margin-top: 50px;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 入力項目定義タブ -->
+                            <div class="tab-pane fade" id="variables" role="tabpanel" aria-labelledby="variables-tab">
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6>入力項目定義</h6>
+                                        <button type="button" class="btn btn-sm btn-outline-primary" id="addVariableBtn">
+                                            <i class="bi bi-plus-lg me-1"></i>入力項目追加
+                                        </button>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered table-hover" id="variablesTable">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 50px;">#</th>
+                                                    <th style="width: 150px;">変数名</th>
+                                                    <th>表示名</th>
+                                                    <th>タイプ</th>
+                                                    <th>必須</th>
+                                                    <th>デフォルト値</th>
+                                                    <th style="width: 100px;">操作</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><i class="bi bi-grip-vertical drag-handle"></i></td>
+                                                    <td>契約名</td>
+                                                    <td>契約名</td>
+                                                    <td>テキスト</td>
+                                                    <td><i class="bi bi-check-lg text-success"></i></td>
+                                                    <td>-</td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><i class="bi bi-grip-vertical drag-handle"></i></td>
+                                                    <td>契約ID</td>
+                                                    <td>契約ID</td>
+                                                    <td>テキスト</td>
+                                                    <td><i class="bi bi-check-lg text-success"></i></td>
+                                                    <td>自動生成</td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><i class="bi bi-grip-vertical drag-handle"></i></td>
+                                                    <td>契約日</td>
+                                                    <td>契約締結日</td>
+                                                    <td>日付</td>
+                                                    <td><i class="bi bi-check-lg text-success"></i></td>
+                                                    <td>当日</td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><i class="bi bi-grip-vertical drag-handle"></i></td>
+                                                    <td>開始日</td>
+                                                    <td>契約開始日</td>
+                                                    <td>日付</td>
+                                                    <td><i class="bi bi-check-lg text-success"></i></td>
+                                                    <td>-</td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><i class="bi bi-grip-vertical drag-handle"></i></td>
+                                                    <td>終了日</td>
+                                                    <td>契約終了日</td>
+                                                    <td>日付</td>
+                                                    <td><i class="bi bi-check-lg text-success"></i></td>
+                                                    <td>-</td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><i class="bi bi-grip-vertical drag-handle"></i></td>
+                                                    <td>甲社名</td>
+                                                    <td>顧客企業名</td>
+                                                    <td>テキスト</td>
+                                                    <td><i class="bi bi-check-lg text-success"></i></td>
+                                                    <td>-</td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><i class="bi bi-grip-vertical drag-handle"></i></td>
+                                                    <td>甲住所</td>
+                                                    <td>顧客企業住所</td>
+                                                    <td>テキストエリア</td>
+                                                    <td><i class="bi bi-check-lg text-success"></i></td>
+                                                    <td>-</td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td><i class="bi bi-grip-vertical drag-handle"></i></td>
+                                                    <td>甲代表者</td>
+                                                    <td>顧客企業代表者</td>
+                                                    <td>テキスト</td>
+                                                    <td><i class="bi bi-check-lg text-success"></i></td>
+                                                    <td>-</td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-sm btn-outline-secondary me-1">
+                                                            <i class="bi bi-pencil"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-sm btn-outline-danger">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer d-flex justify-content-between">
+                        <div>
+                            <button type="button" class="btn btn-danger me-2" id="deleteTemplateBtn">
+                                <i class="bi bi-trash me-1"></i>削除
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" id="duplicateTemplateBtn">
+                                <i class="bi bi-files me-1"></i>複製
+                            </button>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary me-2" id="previewTemplateBtn">
+                                <i class="bi bi-eye me-1"></i>プレビュー
+                            </button>
+                            <button type="button" class="btn btn-primary" id="saveTemplateBtn">
+                                <i class="bi bi-save me-1"></i>保存
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 入力項目追加モーダル -->
+    <div class="modal fade" id="addVariableModal" tabindex="-1" aria-labelledby="addVariableModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addVariableModalLabel">入力項目追加</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addVariableForm">
+                        <div class="mb-3">
+                            <label for="variableName" class="form-label">変数名</label>
+                            <input type="text" class="form-control" id="variableName" placeholder="例: 顧客名" required>
+                            <div class="form-text">テンプレート内で {変数名} の形式で使用されます</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="displayName" class="form-label">表示名</label>
+                            <input type="text" class="form-control" id="displayName" placeholder="例: 顧客企業名" required>
+                            <div class="form-text">入力フォームに表示されるラベル</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="variableType" class="form-label">データタイプ</label>
+                            <select class="form-select" id="variableType" required>
+                                <option value="text">テキスト</option>
+                                <option value="textarea">テキストエリア</option>
+                                <option value="number">数値</option>
+                                <option value="date">日付</option>
+                                <option value="select">選択肢</option>
+                                <option value="checkbox">チェックボックス</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="selectOptionsContainer" style="display: none;">
+                            <label for="selectOptions" class="form-label">選択肢（1行につき1項目）</label>
+                            <textarea class="form-control" id="selectOptions" rows="3" placeholder="例:&#10;選択肢1&#10;選択肢2&#10;選択肢3"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="defaultValue" class="form-label">デフォルト値</label>
+                            <input type="text" class="form-control" id="defaultValue" placeholder="例: 株式会社○○">
+                            <div class="form-text">空白の場合はデフォルト値なし</div>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="requiredCheck" checked>
+                            <label class="form-check-label" for="requiredCheck">必須項目</label>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="validateCheck">
+                            <label class="form-check-label" for="validateCheck">入力検証を追加</label>
+                        </div>
+                        <div id="validationContainer" style="display: none;">
+                            <div class="mb-3">
+                                <label for="validationType" class="form-label">検証タイプ</label>
+                                <select class="form-select" id="validationType">
+                                    <option value="regex">正規表現</option>
+                                    <option value="email">メールアドレス</option>
+                                    <option value="phone">電話番号</option>
+                                    <option value="zipcode">郵便番号</option>
+                                </select>
+                            </div>
+                            <div class="mb-3" id="regexContainer">
+                                <label for="regexPattern" class="form-label">正規表現パターン</label>
+                                <input type="text" class="form-control" id="regexPattern" placeholder="例: ^[0-9]{7}$">
+                            </div>
+                            <div class="mb-3">
+                                <label for="errorMessage" class="form-label">エラーメッセージ</label>
+                                <input type="text" class="form-control" id="errorMessage" placeholder="例: 正しい形式で入力してください">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary" id="saveVariableBtn">追加</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- プレビューモーダル -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="previewModalLabel">テンプレートプレビュー</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="template-preview">
+                        <div style="text-align: center; margin-bottom: 2rem;">
+                            <h2>業務委託契約書</h2>
+                        </div>
+                        <p>株式会社テクノソリューション（以下「甲」という）とエスイーエス株式会社（以下「乙」という）とは、乙が甲に対して行うシステムエンジニアリングサービス（以下「本サービス」という）の提供に関し、次のとおり契約（以下「本契約」という）を締結する。</p>
+                        
+                        <h4>第1条（目的）</h4>
+                        <p>本契約は、甲が乙に対して本サービスの提供を委託し、乙がこれを受託するにあたり、両者の権利義務関係を明確にすることを目的とする。</p>
+                        
+                        <h4>第2条（業務内容）</h4>
+                        <p>乙は、甲のために以下の業務を行うものとする。</p>
+                        <ol>
+                            <li>システム開発に関する技術支援</li>
+                            <li>プログラム設計・製造・テスト</li>
+                            <li>技術文書の作成</li>
+                            <li>その他、甲乙協議の上で合意した業務</li>
+                        </ol>
+                        
+                        <h4>第3条（契約期間）</h4>
+                        <p>本契約の有効期間は2025年4月1日から2025年9月30日までとする。但し、当該期間満了の1ヶ月前までに甲乙いずれからも書面による別段の意思表示がないときは、同一条件にて更に3ヶ月間延長されるものとし、以後も同様とする。</p>
+                        
+                        <h4>第4条（委託料及び支払方法）</h4>
+                        <p>1. 甲は、乙に対し、本サービスの対価として月額980,000円（税抜）を支払うものとする。</p>
+                        <p>2. 乙は、毎月末日に当月分の本サービス提供に関する請求書を甲に提出する。</p>
+                        <p>3. 甲は、前項の請求書を受領した月の翌月末日までに、乙の指定する銀行口座に振り込む方法により支払う。</p>
+                        <p>4. 振込手数料は甲の負担とする。</p>
+                        
+                        <h4>第5条（秘密情報の取扱い）</h4>
+                        <p>甲及び乙は、本契約に関連して知り得た相手方の技術上・営業上その他業務上の一切の情報を、相手方の事前の書面による承諾なくして第三者に開示・漏洩してはならない。</p>
+                        
+                        <div style="margin-top: 3rem;">
+                            <p>本契約締結の証として本書2通を作成し、甲乙記名押印のうえ各1通を保有する。</p>
+                            <p style="text-align: right;">2025年3月25日</p>
+                            
+                            <div style="display: flex; justify-content: space-between; margin-top: 2rem;">
+                                <div style="width: 45%;">
+                                    <p><strong>甲：</strong></p>
+                                    <p>東京都千代田区丸の内1-1-1</p>
+                                    <p>株式会社テクノソリューション</p>
+                                    <p>代表取締役 山田 太郎</p>
+                                    <div style="border-top: 1px solid black; margin-top: 50px;"></div>
+                                </div>
+                                
+                                <div style="width: 45%;">
+                                    <p><strong>乙：</strong></p>
+                                    <p>東京都新宿区西新宿2-2-2</p>
+                                    <p>エスイーエス株式会社</p>
+                                    <p>代表取締役 鈴木 一郎</p>
+                                    <div style="border-top: 1px solid black; margin-top: 50px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary me-2" id="downloadPreviewBtn">
+                        <i class="bi bi-download me-1"></i>PDFダウンロード
+                    </button>
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 削除確認モーダル -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">テンプレート削除確認</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>「標準業務委託契約書」テンプレートを削除しますか？</p>
+                    <div class="alert alert-danger mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        この操作は取り消せません。また、このテンプレートを使用している既存の契約には影響しません。
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-danger" id="confirmDeleteBtn">削除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    
+    <!-- カスタムJavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 変数の初期化
+            const newTemplateBtn = document.getElementById('newTemplateBtn');
+            const saveTemplateBtn = document.getElementById('saveTemplateBtn');
+            const previewTemplateBtn = document.getElementById('previewTemplateBtn');
+            const duplicateTemplateBtn = document.getElementById('duplicateTemplateBtn');
+            const deleteTemplateBtn = document.getElementById('deleteTemplateBtn');
+            const addVariableBtn = document.getElementById('addVariableBtn');
+            const saveVariableBtn = document.getElementById('saveVariableBtn');
+            const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+            const downloadPreviewBtn = document.getElementById('downloadPreviewBtn');
+            
+            const templateListItems = document.querySelectorAll('.template-list-item');
+            const variableTypeSelect = document.getElementById('variableType');
+            const selectOptionsContainer = document.getElementById('selectOptionsContainer');
+            const validateCheck = document.getElementById('validateCheck');
+            const validationContainer = document.getElementById('validationContainer');
+            const validationType = document.getElementById('validationType');
+            const regexContainer = document.getElementById('regexContainer');
+            
+            const addVariableModal = new bootstrap.Modal(document.getElementById('addVariableModal'));
+            const previewModal = new bootstrap.Modal(document.getElementById('previewModal'));
+            const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            
+            // テンプレート一覧項目のクリックイベント
+            templateListItems.forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    templateListItems.forEach(i => i.classList.remove('active'));
+                    this.classList.add('active');
+                    // 実際のアプリケーションでは、ここでテンプレートデータを取得し表示
+                });
+            });
+            
+            // 新規テンプレート作成ボタン
+            newTemplateBtn.addEventListener('click', function() {
+                // 実際のアプリケーションでは、ここで新規作成モードの処理
+                alert('新規テンプレート作成モードになります');
+            });
+            
+            // テンプレート保存ボタン
+            saveTemplateBtn.addEventListener('click', function() {
+                // 入力チェック（実際のアプリケーションではより厳密なバリデーション）
+                const templateName = document.getElementById('templateName').value;
+                if (!templateName) {
+                    alert('テンプレート名を入力してください');
+                    return;
+                }
+                
+                // 保存処理（実際のアプリケーションではAPIリクエストなど）
+                alert('テンプレートが保存されました');
+            });
+            
+            // プレビューボタン
+            previewTemplateBtn.addEventListener('click', function() {
+                previewModal.show();
+            });
+            
+            // テンプレート複製ボタン
+            duplicateTemplateBtn.addEventListener('click', function() {
+                alert('テンプレートを複製しました');
+                // 実際のアプリケーションでは、ここで複製処理
+            });
+            
+            // テンプレート削除ボタン
+            deleteTemplateBtn.addEventListener('click', function() {
+                deleteModal.show();
+            });
+            
+            // 削除確認ボタン
+            confirmDeleteBtn.addEventListener('click', function() {
+                alert('テンプレートを削除しました');
+                deleteModal.hide();
+                // 実際のアプリケーションでは、ここで削除処理
+            });
+            
+            // 入力項目追加ボタン
+            addVariableBtn.addEventListener('click', function() {
+                addVariableModal.show();
+            });
+            
+            // データタイプの変更イベント
+            variableTypeSelect.addEventListener('change', function() {
+                if (this.value === 'select') {
+                    selectOptionsContainer.style.display = 'block';
+                } else {
+                    selectOptionsContainer.style.display = 'none';
+                }
+            });
+            
+            // 入力検証チェックボックスの変更イベント
+            validateCheck.addEventListener('change', function() {
+                if (this.checked) {
+                    validationContainer.style.display = 'block';
+                } else {
+                    validationContainer.style.display = 'none';
+                }
+            });
+            
+            // 検証タイプの変更イベント
+            validationType.addEventListener('change', function() {
+                if (this.value === 'regex') {
+                    regexContainer.style.display = 'block';
+                } else {
+                    regexContainer.style.display = 'none';
+                }
+            });
+            
+            // 変数追加保存ボタン
+            saveVariableBtn.addEventListener('click', function() {
+                // 入力チェック（実際のアプリケーションではより厳密なバリデーション）
+                const variableName = document.getElementById('variableName').value;
+                const displayName = document.getElementById('displayName').value;
+                
+                if (!variableName || !displayName) {
+                    alert('必須項目を入力してください');
+                    return;
+                }
+                
+                // テーブルに行を追加（実際のアプリケーションではもっと洗練された処理）
+                const table = document.getElementById('variablesTable').getElementsByTagName('tbody')[0];
+                const newRow = table.insertRow();
+                
+                newRow.innerHTML = `
+                    <td><i class="bi bi-grip-vertical drag-handle"></i></td>
+                    <td>${variableName}</td>
+                    <td>${displayName}</td>
+                    <td>${document.getElementById('variableType').options[document.getElementById('variableType').selectedIndex].text}</td>
+                    <td><i class="bi bi-check-lg text-success"></i></td>
+                    <td>${document.getElementById('defaultValue').value || '-'}</td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-secondary me-1">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </td>
+                `;
+                
+                addVariableModal.hide();
+                
+                // フォームをリセット
+                document.getElementById('addVariableForm').reset();
+                selectOptionsContainer.style.display = 'none';
+                validationContainer.style.display = 'none';
+                
+                alert('入力項目が追加されました');
+            });
+            
+            // プレビューのPDFダウンロードボタン
+            downloadPreviewBtn.addEventListener('click', function() {
+                alert('プレビューをPDF形式でダウンロードします');
+                // 実際のアプリケーションではPDFダウンロード処理
+            });
+            
+            // 変数タグのクリックイベント
+            document.querySelectorAll('.variable-tag').forEach(tag => {
+                tag.addEventListener('click', function() {
+                    const variableName = this.textContent;
+                    const editor = document.querySelector('.editor-content');
+                    
+                    // 現在の選択範囲にテキストを挿入
+                    const selection = window.getSelection();
+                    if (selection.rangeCount) {
+                        const range = selection.getRangeAt(0);
+                        range.deleteContents();
+                        range.insertNode(document.createTextNode(variableName));
+                    } else {
+                        // 選択範囲がない場合はエディタの末尾に追加
+                        editor.append(document.createTextNode(variableName));
+                    }
+                });
+            });
+            
+            // リッチテキストエディタツールバーのボタンイベント
+            document.querySelectorAll('.editor-toolbar button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const command = this.querySelector('i').className.split('-').pop();
+                    let format = '';
+                    
+                    switch(command) {
+                        case 'bold':
+                            format = 'bold';
+                            break;
+                        case 'italic':
+                            format = 'italic';
+                            break;
+                        case 'underline':
+                            format = 'underline';
+                            break;
+                        case 'ul':
+                            format = 'insertUnorderedList';
+                            break;
+                        case 'ol':
+                            format = 'insertOrderedList';
+                            break;
+                        case 'paragraph':
+                            format = 'formatBlock';
+                            break;
+                        case 'left':
+                            format = 'justifyLeft';
+                            break;
+                        case 'table':
+                            format = 'insertHTML';
+                            break;
+                    }
+                    
+                    if (format) {
+                        document.execCommand(format, false, format === 'formatBlock' ? 'p' : null);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム - 契約書プレビュー</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        /* ステータスバッジのスタイル */
+        .badge-draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .badge-proposal {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .badge-active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .badge-contracted {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .badge-completed {
+            background-color: #d3d3d3;
+            color: #444;
+        }
+        .badge-cancelled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* カスタムスタイル */
+        .preview-container {
+            height: calc(100vh - 200px);
+            min-height: 500px;
+            position: relative;
+            background: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .preview-header {
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #dee2e6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .preview-controls {
+            display: flex;
+            align-items: center;
+        }
+        .preview-controls .form-control {
+            width: 70px;
+            margin: 0 10px;
+        }
+        .preview-content {
+            height: calc(100% - 53px);
+            overflow: auto;
+            padding: 20px;
+            position: relative;
+        }
+        .document-page {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 20px;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            padding: 40px;
+            min-height: 1100px;
+            position: relative;
+        }
+        .edit-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.03);
+            z-index: 10;
+            display: none;
+        }
+        .edit-mode .edit-overlay {
+            display: none;
+        }
+        .edit-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 20;
+        }
+        .contract-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+        .contract-subtitle {
+            text-align: center;
+            font-size: 18px;
+            margin-bottom: 40px;
+        }
+        .contract-section {
+            margin-bottom: 20px;
+        }
+        .contract-section h3 {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .contract-section p, .contract-section li {
+            font-size: 14px;
+            line-height: 1.6;
+            text-align: justify;
+        }
+        .contract-section ul, .contract-section ol {
+            padding-left: 20px;
+        }
+        .contract-footer {
+            margin-top: 60px;
+        }
+        .signature-area {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+        }
+        .signature-block {
+            width: 45%;
+        }
+        .signature-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+        .signature-line {
+            border-top: 1px solid #000;
+            margin: 40px 0 5px;
+        }
+        .signature-name {
+            font-size: 14px;
+        }
+        .signature-date {
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        .signature-date span {
+            display: inline-block;
+            min-width: 30px;
+            border-bottom: 1px solid #000;
+            text-align: center;
+        }
+        .page-number {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            font-size: 12px;
+            color: #777;
+        }
+        .editable {
+            border: 1px dashed transparent;
+            padding: 2px;
+            transition: all 0.3s;
+        }
+        .edit-mode .editable:hover {
+            border-color: #007bff;
+            background-color: rgba(0,123,255,0.05);
+            cursor: pointer;
+        }
+        .edit-mode .editable.editing {
+            border-color: #007bff;
+            background-color: rgba(0,123,255,0.1);
+        }
+        .toolbar {
+            position: absolute;
+            top: -40px;
+            left: 0;
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 5px;
+            display: flex;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            z-index: 100;
+            transition: top 0.3s;
+        }
+        .toolbar.show {
+            top: -1px;
+        }
+        .toolbar button {
+            margin: 0 2px;
+            padding: 2px 5px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">契約管理</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">SI</div>
+                            <span>佐藤 一郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">契約管理</a></li>
+                <li class="breadcrumb-item"><a href="#">契約詳細</a></li>
+                <li class="breadcrumb-item active" aria-current="page">契約書プレビュー</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">契約書プレビュー - 株式会社テクノソリューション Javaエンジニア派遣契約</h2>
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="editModeSwitch">
+                <label class="form-check-label" for="editModeSwitch">編集モード</label>
+            </div>
+        </div>
+
+        <!-- プレビューコントロール -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <a href="#" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>契約詳細に戻る
+                </a>
+            </div>
+            <div>
+                <button type="button" class="btn btn-outline-secondary me-2" id="pdfButton">
+                    <i class="bi bi-file-pdf me-1"></i>PDFダウンロード
+                </button>
+                <button type="button" class="btn btn-outline-secondary me-2" id="wordButton">
+                    <i class="bi bi-file-earmark-word me-1"></i>Wordダウンロード
+                </button>
+                <button type="button" class="btn btn-outline-secondary me-2" id="printButton">
+                    <i class="bi bi-printer me-1"></i>印刷
+                </button>
+                <button type="button" class="btn btn-primary" id="saveButton">
+                    <i class="bi bi-save me-1"></i>保存
+                </button>
+            </div>
+        </div>
+
+        <!-- プレビューコンテンツ -->
+        <div class="preview-container">
+            <div class="preview-header">
+                <div class="preview-title">
+                    <strong>契約書</strong> - CNT-2025-0001
+                </div>
+                <div class="preview-controls">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="zoomOut">
+                        <i class="bi bi-dash"></i>
+                    </button>
+                    <input type="text" class="form-control form-control-sm" id="zoomLevel" value="100%" readonly>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="zoomIn">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="preview-content" id="previewContent">
+                <!-- 編集モード切替オーバーレイ -->
+                <div class="edit-overlay"></div>
+                
+                <!-- ツールバー（エディット時に表示） -->
+                <div class="toolbar" id="editToolbar">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-format="bold">
+                        <i class="bi bi-type-bold"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-format="italic">
+                        <i class="bi bi-type-italic"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-format="underline">
+                        <i class="bi bi-type-underline"></i>
+                    </button>
+                </div>
+                
+                <!-- 契約書1ページ目 -->
+                <div class="document-page" id="page1">
+                    <div class="contract-title editable" data-id="title">業務委託契約書</div>
+                    <div class="contract-subtitle editable" data-id="subtitle">（派遣型）</div>
+                    
+                    <div class="contract-section">
+                        <p class="editable" data-id="parties">株式会社テクノソリューション（以下「甲」という）と、エスイーエス株式会社（以下「乙」という）とは、乙が甲に対して行うシステムエンジニアリングサービス（以下「本サービス」という）の提供に関し、次のとおり契約（以下「本契約」という）を締結する。</p>
+                    </div>
+                    
+                    <div class="contract-section">
+                        <h3 class="editable" data-id="article1">第1条（目的）</h3>
+                        <p class="editable" data-id="article1-content">本契約は、甲が乙に対して本サービスの提供を委託し、乙がこれを受託するにあたり、両者の権利義務関係を明確にすることを目的とする。</p>
+                    </div>
+                    
+                    <div class="contract-section">
+                        <h3 class="editable" data-id="article2">第2条（業務内容）</h3>
+                        <p class="editable" data-id="article2-content">乙は、Javaを用いたWebアプリケーション開発業務を行うものとする。具体的には以下の業務を含む。</p>
+                        <ul>
+                            <li class="editable" data-id="article2-item1">要件定義および基本設計のレビュー</li>
+                            <li class="editable" data-id="article2-item2">詳細設計書の作成</li>
+                            <li class="editable" data-id="article2-item3">コーディング</li>
+                            <li class="editable" data-id="article2-item4">単体テスト・結合テストの実施</li>
+                            <li class="editable" data-id="article2-item5">バグ修正</li>
+                            <li class="editable" data-id="article2-item6">ドキュメント作成</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="contract-section">
+                        <h3 class="editable" data-id="article3">第3条（契約期間）</h3>
+                        <p class="editable" data-id="article3-content">本契約の有効期間は2025年4月1日から2025年9月30日までとする。但し、当該期間満了の1ヶ月前までに甲乙いずれからも書面による別段の意思表示がないときは、同一条件にて更に6ヶ月間延長されるものとし、以後も同様とする。</p>
+                    </div>
+                    
+                    <div class="contract-section">
+                        <h3 class="editable" data-id="article4">第4条（契約金額と支払方法）</h3>
+                        <p class="editable" data-id="article4-content">1. 甲は、乙に対し、本サービスの対価として月額980,000円（税抜）を支払うものとする。</p>
+                        <p class="editable" data-id="article4-2">2. 乙は、毎月末日に当月分の本サービス提供に関する請求書を甲に提出する。</p>
+                        <p class="editable" data-id="article4-3">3. 甲は、前項の請求書を受領した月の翌月末日までに、乙の指定する銀行口座に振り込む方法により支払う。</p>
+                        <p class="editable" data-id="article4-4">4. 振込手数料は甲の負担とする。</p>
+                    </div>
+                    
+                    <div class="page-number">1/2</div>
+                </div>
+                
+                <!-- 契約書2ページ目 -->
+                <div class="document-page" id="page2">
+                    <div class="contract-section">
+                        <h3 class="editable" data-id="article5">第5条（機密保持）</h3>
+                        <p class="editable" data-id="article5-content">甲及び乙は、本契約に関連して知り得た相手方の技術上・営業上その他業務上の一切の情報（以下「機密情報」という）を、相手方の事前の書面による承諾なくして第三者に開示・漏洩してはならない。また、本契約の目的以外に使用してはならない。</p>
+                    </div>
+                    
+                    <div class="contract-section">
+                        <h3 class="editable" data-id="article6">第6条（権利義務の譲渡禁止）</h3>
+                        <p class="editable" data-id="article6-content">甲及び乙は、相手方の事前の書面による承諾なくして、本契約上の地位及び本契約に基づく権利義務を第三者に譲渡し、又は担保に供してはならない。</p>
+                    </div>
+                    
+                    <div class="contract-section">
+                        <h3 class="editable" data-id="article7">第7条（解除）</h3>
+                        <p class="editable" data-id="article7-content">甲又は乙は、相手方が次の各号のいずれかに該当した場合、何らの催告なくして直ちに本契約の全部又は一部を解除することができる。</p>
+                        <ol>
+                            <li class="editable" data-id="article7-item1">本契約の条項に違反し、相当の期間を定めて催告したにもかかわらず、当該期間内に違反が是正されないとき</li>
+                            <li class="editable" data-id="article7-item2">差押、仮差押、仮処分、強制執行、競売の申立て、又は公租公課の滞納処分を受けたとき</li>
+                            <li class="editable" data-id="article7-item3">破産手続開始、民事再生手続開始、会社更生手続開始、特別清算開始の申立てがあったとき、又は清算に入ったとき</li>
+                            <li class="editable" data-id="article7-item4">監督官庁から営業の許可取消処分又は停止処分を受けたとき</li>
+                            <li class="editable" data-id="article7-item5">相手方が暴力団、暴力団員、暴力団関係企業、総会屋、社会運動標ぼうゴロ、政治運動標ぼうゴロ、特殊知能暴力集団等の反社会的勢力（以下「反社会的勢力」という）であること、又は反社会的勢力と関係を有することが判明したとき</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="contract-section">
+                        <h3 class="editable" data-id="article8">第8条（協議事項）</h3>
+                        <p class="editable" data-id="article8-content">本契約に定めのない事項又は本契約の解釈に疑義が生じた事項については、甲乙誠意をもって協議のうえ解決するものとする。</p>
+                    </div>
+                    
+                    <div class="contract-footer">
+                        <p class="editable" data-id="footer">本契約締結の証として本書2通を作成し、甲乙記名押印のうえ各1通を保有する。</p>
+                        
+                        <p class="editable" data-id="date">2025年3月25日</p>
+                        
+                        <div class="signature-area">
+                            <div class="signature-block">
+                                <p class="signature-title editable" data-id="client-title">甲：</p>
+                                <p class="editable" data-id="client-address">東京都千代田区丸の内1-1-1<br>丸の内ビル10階</p>
+                                <p class="editable" data-id="client-name">株式会社テクノソリューション</p>
+                                <p class="editable" data-id="client-rep">代表取締役社長 山田 太郎</p>
+                                <div class="signature-line"></div>
+                            </div>
+                            
+                            <div class="signature-block">
+                                <p class="signature-title editable" data-id="provider-title">乙：</p>
+                                <p class="editable" data-id="provider-address">東京都新宿区西新宿2-2-2<br>新宿ビル5階</p>
+                                <p class="editable" data-id="provider-name">エスイーエス株式会社</p>
+                                <p class="editable" data-id="provider-rep">代表取締役 鈴木 一郎</p>
+                                <div class="signature-line"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="page-number">2/2</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 編集確認モーダル -->
+    <div class="modal fade" id="editConfirmModal" tabindex="-1" aria-labelledby="editConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editConfirmModalLabel">変更内容の保存</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>契約書の内容が変更されました。変更内容を保存しますか？</p>
+                    <p class="text-danger">※変更履歴が記録され、承認フローが再開始される場合があります。</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-danger" id="discardButton">破棄</button>
+                    <button type="button" class="btn btn-primary" id="confirmSaveButton">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    
+    <!-- カスタムJavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 変数の初期化
+            const previewContent = document.getElementById('previewContent');
+            const editModeSwitch = document.getElementById('editModeSwitch');
+            const editToolbar = document.getElementById('editToolbar');
+            const zoomInBtn = document.getElementById('zoomIn');
+            const zoomOutBtn = document.getElementById('zoomOut');
+            const zoomLevelInput = document.getElementById('zoomLevel');
+            const pdfButton = document.getElementById('pdfButton');
+            const wordButton = document.getElementById('wordButton');
+            const printButton = document.getElementById('printButton');
+            const saveButton = document.getElementById('saveButton');
+            const editConfirmModal = new bootstrap.Modal(document.getElementById('editConfirmModal'));
+            const confirmSaveButton = document.getElementById('confirmSaveButton');
+            const discardButton = document.getElementById('discardButton');
+            
+            let zoomLevel = 100;
+            let isEditing = false;
+            let hasChanges = false;
+            let activeElement = null;
+            
+            // 編集モード切り替え
+            editModeSwitch.addEventListener('change', function() {
+                if (this.checked) {
+                    // 編集モードON
+                    previewContent.classList.add('edit-mode');
+                    enableEditing();
+                } else {
+                    // 編集モードOFF
+                    if (hasChanges) {
+                        // 変更があれば確認モーダルを表示
+                        editConfirmModal.show();
+                    } else {
+                        previewContent.classList.remove('edit-mode');
+                        disableEditing();
+                    }
+                }
+            });
+            
+            // 拡大・縮小機能
+            zoomInBtn.addEventListener('click', function() {
+                if (zoomLevel < 200) {
+                    zoomLevel += 10;
+                    updateZoom();
+                }
+            });
+            
+            zoomOutBtn.addEventListener('click', function() {
+                if (zoomLevel > 50) {
+                    zoomLevel -= 10;
+                    updateZoom();
+                }
+            });
+            
+            function updateZoom() {
+                zoomLevelInput.value = zoomLevel + '%';
+                document.querySelectorAll('.document-page').forEach(page => {
+                    page.style.transform = `scale(${zoomLevel / 100})`;
+                    page.style.transformOrigin = 'top center';
+                    page.style.marginBottom = (zoomLevel / 100) * 20 + 'px';
+                });
+            }
+            
+            // 編集可能要素の処理
+            function enableEditing() {
+                document.querySelectorAll('.editable').forEach(element => {
+                    element.contentEditable = true;
+                    element.addEventListener('focus', handleFocus);
+                    element.addEventListener('blur', handleBlur);
+                    element.addEventListener('input', () => {
+                        hasChanges = true;
+                    });
+                });
+            }
+            
+            function disableEditing() {
+                document.querySelectorAll('.editable').forEach(element => {
+                    element.contentEditable = false;
+                    element.removeEventListener('focus', handleFocus);
+                    element.removeEventListener('blur', handleBlur);
+                });
+                hideToolbar();
+            }
+            
+            function handleFocus(e) {
+                activeElement = e.target;
+                activeElement.classList.add('editing');
+                showToolbar(activeElement);
+            }
+            
+            function handleBlur(e) {
+                e.target.classList.remove('editing');
+                // すぐに非表示にするとクリックが効かなくなるため、遅延を設ける
+                setTimeout(() => {
+                    if (!e.relatedTarget || !e.relatedTarget.closest('#editToolbar')) {
+                        hideToolbar();
+                    }
+                }, 100);
+            }
+            
+            // ツールバー制御
+            function showToolbar(element) {
+                const rect = element.getBoundingClientRect();
+                const containerRect = previewContent.getBoundingClientRect();
+                
+                editToolbar.style.left = (rect.left - containerRect.left) + 'px';
+                editToolbar.style.top = (rect.top - containerRect.top) + 'px';
+                editToolbar.classList.add('show');
+            }
+            
+            function hideToolbar() {
+                editToolbar.classList.remove('show');
+            }
+            
+            // ツールバーボタンのイベント
+            document.querySelectorAll('#editToolbar button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const format = this.getAttribute('data-format');
+                    document.execCommand(format, false, null);
+                    if (activeElement) {
+                        activeElement.focus();
+                    }
+                });
+            });
+            
+            // 各種ボタンの処理
+            pdfButton.addEventListener('click', function() {
+                alert('契約書をPDF形式でダウンロードします');
+                // 実際のアプリケーションではPDFダウンロード処理を実装
+            });
+            
+            wordButton.addEventListener('click', function() {
+                alert('契約書をWord形式でダウンロードします');
+                // 実際のアプリケーションではWordダウンロード処理を実装
+            });
+            
+            printButton.addEventListener('click', function() {
+                window.print();
+            });
+            
+            saveButton.addEventListener('click', function() {
+                if (hasChanges) {
+                    editConfirmModal.show();
+                } else {
+                    alert('変更はありません');
+                }
+            });
+            
+            // モーダルでの確認処理
+            confirmSaveButton.addEventListener('click', function() {
+                alert('変更内容を保存しました');
+                hasChanges = false;
+                editConfirmModal.hide();
+                editModeSwitch.checked = false;
+                previewContent.classList.remove('edit-mode');
+                disableEditing();
+            });
+            
+            discardButton.addEventListener('click', function() {
+                alert('変更内容を破棄しました');
+                // 実際のアプリケーションでは元のコンテンツに戻す処理を実装
+                hasChanges = false;
+                editConfirmModal.hide();
+                editModeSwitch.checked = false;
+                previewContent.classList.remove('edit-mode');
+                disableEditing();
+            });
+            
+            // 戻るボタンの処理
+            document.querySelector('.btn-outline-secondary').addEventListener('click', function(e) {
+                if (hasChanges) {
+                    e.preventDefault();
+                    editConfirmModal.show();
+                }
+                // 変更がなければそのまま戻る（実際のアプリケーションではhref属性を設定）
+            });
+            
+            // PDFを印刷するための特別なスタイルの設定（実際の印刷用）
+            window.addEventListener('beforeprint', function() {
+                document.body.classList.add('printing');
+            });
+            
+            window.addEventListener('afterprint', function() {
+                document.body.classList.remove('printing');
+            });
+        });
+    </script>
+</body>
+</html>

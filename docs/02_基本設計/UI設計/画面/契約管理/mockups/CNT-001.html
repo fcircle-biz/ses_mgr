@@ -35,15 +35,15 @@
             background-color: #e9ecef;
             color: #495057;
         }
-        .badge-pending {
+        .badge-proposal {
             background-color: #fff3cd;
             color: #856404;
         }
-        .badge-signed {
+        .badge-active {
             background-color: #d1e7dd;
             color: #0f5132;
         }
-        .badge-active {
+        .badge-contracted {
             background-color: #cff4fc;
             color: #055160;
         }
@@ -73,6 +73,37 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
+        }
+        /* カスタムスタイル */
+        .status-badge {
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .status-badge.draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .status-badge.pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-badge.active {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .status-badge.signed {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .status-badge.expired {
+            background-color: #d3d3d3;
+            color: #444;
+        }
+        .status-badge.cancelled {
+            background-color: #f8d7da;
+            color: #842029;
         }
     </style>
 </head>
@@ -150,11 +181,14 @@
             <h2 class="h4 mb-0">契約一覧</h2>
             <div>
                 <button class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-upload me-1"></i>CSVインポート
+                </button>
+                <button class="btn btn-outline-secondary me-2">
                     <i class="bi bi-download me-1"></i>CSVエクスポート
                 </button>
-                <a href="#" class="btn btn-primary">
+                <button class="btn btn-primary">
                     <i class="bi bi-plus-lg me-1"></i>新規契約作成
-                </a>
+                </button>
             </div>
         </div>
 
@@ -168,57 +202,61 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label for="keyword" class="form-label">キーワード</label>
-                            <input type="text" class="form-control" id="keyword" placeholder="契約番号、顧客名、案件名など">
+                            <input type="text" class="form-control" id="keyword" placeholder="契約名、契約ID、顧客名など">
                         </div>
                         <div class="col-md-4">
-                            <label for="status" class="form-label">ステータス</label>
-                            <select class="form-select" id="status">
-                                <option value="">すべて</option>
-                                <option value="draft">下書き</option>
-                                <option value="pending" selected>署名待ち</option>
-                                <option value="signed">署名済み</option>
-                                <option value="active">有効</option>
-                                <option value="completed">完了</option>
-                                <option value="cancelled">キャンセル</option>
+                            <label for="contract-type" class="form-label">契約種別</label>
+                            <select class="form-select" id="contract-type" multiple>
+                                <option selected>すべて</option>
+                                <option>業務委託</option>
+                                <option>派遣</option>
+                                <option>請負</option>
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="client" class="form-label">顧客企業</label>
-                            <select class="form-select" id="client">
-                                <option value="">すべて</option>
-                                <option value="1">株式会社テクノロジーパートナーズ</option>
-                                <option value="2">ITソリューションズ株式会社</option>
-                                <option value="3">グローバルシステム株式会社</option>
-                                <option value="4">デジタルイノベーション株式会社</option>
+                            <label for="status" class="form-label">契約ステータス</label>
+                            <select class="form-select" id="status" multiple>
+                                <option selected>すべて</option>
+                                <option>下書き</option>
+                                <option>承認待ち</option>
+                                <option>締結済み</option>
+                                <option>終了</option>
+                                <option>キャンセル</option>
                             </select>
                         </div>
                         <div class="col-md-4">
-                            <label for="contractType" class="form-label">契約種別</label>
-                            <select class="form-select" id="contractType">
-                                <option value="">すべて</option>
-                                <option value="project">プロジェクト契約</option>
-                                <option value="individual">個人契約</option>
-                                <option value="maintenance">保守契約</option>
-                                <option value="framework">基本契約</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="assignee" class="form-label">担当者</label>
-                            <select class="form-select" id="assignee">
-                                <option value="">すべて</option>
-                                <option value="1">佐藤 一郎</option>
-                                <option value="2">鈴木 次郎</option>
-                                <option value="3">田中 三郎</option>
-                                <option value="4">山本 四郎</option>
-                            </select>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="period" class="form-label">契約期間</label>
+                            <label for="start-date" class="form-label">契約期間（開始）</label>
                             <div class="input-group">
-                                <input type="date" class="form-control" placeholder="開始日">
-                                <span class="input-group-text">〜</span>
-                                <input type="date" class="form-control" placeholder="終了日">
+                                <input type="date" class="form-control" id="start-date-from">
+                                <span class="input-group-text">～</span>
+                                <input type="date" class="form-control" id="start-date-to">
                             </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="end-date" class="form-label">契約期間（終了）</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="end-date-from">
+                                <span class="input-group-text">～</span>
+                                <input type="date" class="form-control" id="end-date-to">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="client" class="form-label">顧客名</label>
+                            <select class="form-select" id="client">
+                                <option selected>すべて</option>
+                                <option>株式会社テクノソリューション</option>
+                                <option>ABCシステムズ株式会社</option>
+                                <option>NTSデジタル株式会社</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="manager" class="form-label">担当者</label>
+                            <select class="form-select" id="manager">
+                                <option selected>すべて</option>
+                                <option>佐藤 一郎</option>
+                                <option>鈴木 健太</option>
+                                <option>田中 美咲</option>
+                            </select>
                         </div>
                         <div class="col-12 text-end">
                             <button type="button" class="btn btn-outline-secondary me-2">クリア</button>
@@ -229,38 +267,40 @@
             </div>
         </div>
 
-        <!-- 検索結果一覧 -->
+        <!-- 一覧表示 -->
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="card-title mb-0">検索結果</h5>
-                <span class="text-muted">全28件中 1-10件を表示</span>
+                <span class="text-muted">全25件中 1-10件を表示</span>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
                     <table class="table table-hover mb-0">
                         <thead>
                             <tr>
-                                <th>契約番号</th>
+                                <th>契約ID</th>
                                 <th>契約名</th>
-                                <th>顧客名</th>
                                 <th>契約種別</th>
                                 <th>ステータス</th>
-                                <th>契約開始日</th>
-                                <th>契約終了日</th>
+                                <th>顧客名</th>
+                                <th>契約期間</th>
+                                <th>契約金額</th>
                                 <th>担当者</th>
+                                <th>最終更新</th>
                                 <th style="width: 120px;">操作</th>
                             </tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td><a href="#">CNT-2025-0123</a></td>
-                                <td><a href="#">次世代ECサイトリニューアル契約</a></td>
-                                <td>株式会社テクノロジーパートナーズ</td>
-                                <td>プロジェクト契約</td>
-                                <td><span class="badge rounded-pill badge-pending">署名待ち</span></td>
-                                <td>2025/06/01</td>
-                                <td>2025/12/31</td>
+                                <td><a href="#">CNT-2025-0001</a></td>
+                                <td><a href="#">株式会社テクノソリューション Javaエンジニア派遣契約</a></td>
+                                <td>派遣</td>
+                                <td><span class="status-badge active">締結済み</span></td>
+                                <td>株式会社テクノソリューション</td>
+                                <td>2025/04/01 - 2025/09/30</td>
+                                <td>¥980,000</td>
                                 <td>佐藤 一郎</td>
+                                <td>2025/04/01</td>
                                 <td>
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
@@ -269,21 +309,22 @@
                                         <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="署名依頼">
-                                            <i class="bi bi-pen"></i>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="PDF">
+                                            <i class="bi bi-file-pdf"></i>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
                             <tr>
-                                <td><a href="#">CNT-2025-0122</a></td>
-                                <td><a href="#">基幹システム刷新プロジェクト契約</a></td>
-                                <td>ITソリューションズ株式会社</td>
-                                <td>プロジェクト契約</td>
-                                <td><span class="badge rounded-pill badge-signed">署名済み</span></td>
-                                <td>2025/05/15</td>
-                                <td>2026/03/31</td>
-                                <td>鈴木 次郎</td>
+                                <td><a href="#">CNT-2025-0002</a></td>
+                                <td><a href="#">ABCシステムズ株式会社 インフラエンジニア業務委託</a></td>
+                                <td>業務委託</td>
+                                <td><span class="status-badge active">締結済み</span></td>
+                                <td>ABCシステムズ株式会社</td>
+                                <td>2025/04/01 - 2026/03/31</td>
+                                <td>¥1,200,000</td>
+                                <td>鈴木 健太</td>
+                                <td>2025/03/28</td>
                                 <td>
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
@@ -292,21 +333,22 @@
                                         <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="ダウンロード">
-                                            <i class="bi bi-download"></i>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="PDF">
+                                            <i class="bi bi-file-pdf"></i>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
                             <tr>
-                                <td><a href="#">CNT-2025-0121</a></td>
-                                <td><a href="#">クラウド移行支援契約</a></td>
-                                <td>グローバルシステム株式会社</td>
-                                <td>保守契約</td>
-                                <td><span class="badge rounded-pill badge-draft">下書き</span></td>
-                                <td>2025/07/01</td>
-                                <td>2025/10/31</td>
-                                <td>田中 三郎</td>
+                                <td><a href="#">CNT-2025-0003</a></td>
+                                <td><a href="#">NTSデジタル株式会社 PMO支援契約</a></td>
+                                <td>請負</td>
+                                <td><span class="status-badge pending">承認待ち</span></td>
+                                <td>NTSデジタル株式会社</td>
+                                <td>2025/05/01 - 2025/08/31</td>
+                                <td>¥2,400,000</td>
+                                <td>田中 美咲</td>
+                                <td>2025/04/15</td>
                                 <td>
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
@@ -315,67 +357,22 @@
                                         <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="削除">
-                                            <i class="bi bi-trash"></i>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="PDF">
+                                            <i class="bi bi-file-pdf"></i>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
                             <tr>
-                                <td><a href="#">CNT-2025-0120</a></td>
-                                <td><a href="#">営業支援システム開発契約</a></td>
-                                <td>デジタルイノベーション株式会社</td>
-                                <td>プロジェクト契約</td>
-                                <td><span class="badge rounded-pill badge-active">有効</span></td>
-                                <td>2025/06/15</td>
-                                <td>2025/12/15</td>
-                                <td>山本 四郎</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="ダウンロード">
-                                            <i class="bi bi-download"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><a href="#">CNT-2025-0119</a></td>
-                                <td><a href="#">IoTデバイス管理システム構築契約</a></td>
-                                <td>未来テクノロジー株式会社</td>
-                                <td>プロジェクト契約</td>
-                                <td><span class="badge rounded-pill badge-pending">署名待ち</span></td>
-                                <td>2025/07/01</td>
-                                <td>2026/01/31</td>
-                                <td>伊藤 五郎</td>
-                                <td>
-                                    <div class="btn-group">
-                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
-                                            <i class="bi bi-eye"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
-                                            <i class="bi bi-pencil"></i>
-                                        </button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="署名依頼">
-                                            <i class="bi bi-pen"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td><a href="#">CNT-2025-0118</a></td>
-                                <td><a href="#">顧客管理アプリ保守契約</a></td>
-                                <td>株式会社テクノロジーパートナーズ</td>
-                                <td>保守契約</td>
-                                <td><span class="badge rounded-pill badge-active">有効</span></td>
-                                <td>2025/05/01</td>
-                                <td>2026/04/30</td>
+                                <td><a href="#">CNT-2025-0004</a></td>
+                                <td><a href="#">株式会社フューチャーテック Webアプリ開発</a></td>
+                                <td>請負</td>
+                                <td><span class="status-badge draft">下書き</span></td>
+                                <td>株式会社フューチャーテック</td>
+                                <td>2025/06/01 - 2025/11/30</td>
+                                <td>¥3,500,000</td>
                                 <td>佐藤 一郎</td>
+                                <td>2025/04/18</td>
                                 <td>
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
@@ -384,31 +381,32 @@
                                         <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="ダウンロード">
-                                            <i class="bi bi-download"></i>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="PDF">
+                                            <i class="bi bi-file-pdf"></i>
                                         </button>
                                     </div>
                                 </td>
                             </tr>
                             <tr>
-                                <td><a href="#">CNT-2025-0117</a></td>
-                                <td><a href="#">データ分析基盤構築契約</a></td>
-                                <td>ITソリューションズ株式会社</td>
-                                <td>プロジェクト契約</td>
-                                <td><span class="badge rounded-pill badge-completed">完了</span></td>
-                                <td>2025/03/01</td>
-                                <td>2025/05/31</td>
-                                <td>鈴木 次郎</td>
+                                <td><a href="#">CNT-2025-0005</a></td>
+                                <td><a href="#">グローバルITソリューションズ クラウド移行</a></td>
+                                <td>業務委託</td>
+                                <td><span class="status-badge expired">終了</span></td>
+                                <td>グローバルITソリューションズ</td>
+                                <td>2025/01/01 - 2025/03/31</td>
+                                <td>¥4,800,000</td>
+                                <td>鈴木 健太</td>
+                                <td>2025/04/02</td>
                                 <td>
                                     <div class="btn-group">
                                         <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
                                             <i class="bi bi-eye"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集" disabled>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
                                             <i class="bi bi-pencil"></i>
                                         </button>
-                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="ダウンロード">
-                                            <i class="bi bi-download"></i>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="PDF">
+                                            <i class="bi bi-file-pdf"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -418,7 +416,7 @@
                 </div>
             </div>
             <div class="card-footer d-flex justify-content-between align-items-center">
-                <div class="text-muted">全28件中 1-10件を表示</div>
+                <div class="text-muted">全25件中 1-10件を表示</div>
                 <nav aria-label="Page navigation">
                     <ul class="pagination mb-0">
                         <li class="page-item disabled">
@@ -443,5 +441,50 @@
     <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    
+    <!-- カスタムJavaScript -->
+    <script>
+        // 初期化処理とイベントリスナー
+        document.addEventListener('DOMContentLoaded', function() {
+            // 検索条件クリアボタンの処理
+            document.querySelector('button[type="button"].btn-outline-secondary').addEventListener('click', function() {
+                const form = document.querySelector('form');
+                form.reset();
+            });
+            
+            // 検索ボタンクリック時の処理
+            document.querySelector('button[type="submit"]').addEventListener('click', function(e) {
+                e.preventDefault();
+                // 実際の実装では、ここでAPIリクエストを行いデータを取得
+                console.log('検索条件を適用しました');
+            });
+            
+            // アクションボタンのイベント
+            document.querySelectorAll('.action-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const action = this.getAttribute('title');
+                    const row = this.closest('tr');
+                    const contractId = row.querySelector('td:first-child a').textContent;
+                    console.log(`${action} action for contract ${contractId}`);
+                    
+                    // アクションに応じた処理を実装
+                    switch(action) {
+                        case '詳細':
+                            // 詳細画面へ遷移
+                            console.log('詳細画面へ遷移');
+                            break;
+                        case '編集':
+                            // 編集モードで開く
+                            console.log('編集モードで開く');
+                            break;
+                        case 'PDF':
+                            // PDF表示
+                            console.log('PDF表示');
+                            break;
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
