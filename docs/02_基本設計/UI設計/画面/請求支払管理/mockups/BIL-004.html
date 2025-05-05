@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム - 請求書プレビュー</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* カスタムスタイル */
+        .toolbar {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 58px;
+            z-index: 100;
+        }
+        .toolbar-left, .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .preview-container {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 1rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 800px;
+        }
+        .invoice-document {
+            background-color: white;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            padding: 2rem;
+            width: 210mm;
+            min-height: 297mm;
+            position: relative;
+        }
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .zoom-value {
+            min-width: 3rem;
+            text-align: center;
+        }
+        .company-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        .company-logo {
+            background-color: #f8f9fa;
+            padding: 0.5rem;
+            border: 1px solid #dee2e6;
+            width: 150px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #6c757d;
+        }
+        .company-info {
+            text-align: right;
+            font-size: 0.9rem;
+        }
+        .invoice-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-bottom: 3px double #dee2e6;
+            padding-bottom: 0.75rem;
+        }
+        .invoice-meta {
+            margin-bottom: 2rem;
+        }
+        .invoice-meta-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+        .invoice-meta-label {
+            font-weight: bold;
+            width: 7rem;
+        }
+        .customer-info {
+            margin-bottom: 2rem;
+        }
+        .customer-name {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .customer-address {
+            margin-bottom: 1rem;
+        }
+        .payment-info {
+            text-align: right;
+            margin-bottom: 2rem;
+        }
+        .payment-amount {
+            font-size: 1.2rem;
+            font-weight: bold;
+            border: 1px solid #000;
+            display: inline-block;
+            padding: 0.5rem 1rem;
+        }
+        .invoice-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+        .invoice-table th, .invoice-table td {
+            border: 1px solid #dee2e6;
+            padding: 0.5rem;
+        }
+        .invoice-table th {
+            background-color: #f8f9fa;
+            text-align: center;
+        }
+        .invoice-table .amount-column {
+            text-align: right;
+        }
+        .invoice-summary {
+            width: 40%;
+            margin-left: auto;
+            margin-bottom: 2rem;
+        }
+        .invoice-summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .invoice-summary-row.total {
+            font-weight: bold;
+            font-size: 1.1rem;
+            border-bottom: double 3px #000;
+            border-top: 1px solid #dee2e6;
+        }
+        .bank-info {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border: 1px solid #dee2e6;
+            background-color: #f8f9fa;
+        }
+        .bank-info-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .notes {
+            margin-bottom: 2rem;
+        }
+        .notes-title {
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+        .stamp-area {
+            position: absolute;
+            top: 6rem;
+            right: 2rem;
+            border: 1px dashed #dee2e6;
+            width: 100px;
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+        .page-number {
+            text-align: center;
+            margin-top: 2rem;
+            color: #6c757d;
+            font-size: 0.8rem;
+        }
+        .email-dialog .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            請求・支払管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">請求一覧</a></li>
+                            <li><a class="dropdown-item" href="#">請求書作成</a></li>
+                            <li><a class="dropdown-item" href="#">請求書詳細</a></li>
+                            <li><a class="dropdown-item active" href="#">請求書プレビュー</a></li>
+                            <li><a class="dropdown-item" href="#">入金管理</a></li>
+                            <li><a class="dropdown-item" href="#">支払一覧</a></li>
+                            <li><a class="dropdown-item" href="#">支払登録</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">KT</div>
+                            <span>経理 太郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">請求・支払管理</a></li>
+                <li class="breadcrumb-item"><a href="#">請求一覧</a></li>
+                <li class="breadcrumb-item"><a href="#">請求書詳細</a></li>
+                <li class="breadcrumb-item active" aria-current="page">請求書プレビュー</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ツールバー -->
+        <div class="toolbar">
+            <div class="toolbar-left">
+                <select class="form-select form-select-sm" style="width: 180px;">
+                    <option selected>標準テンプレート</option>
+                    <option>シンプルテンプレート</option>
+                    <option>詳細テンプレート</option>
+                    <option>カスタムテンプレート</option>
+                </select>
+                <div class="zoom-controls">
+                    <button class="btn btn-sm btn-outline-secondary" title="縮小">
+                        <i class="bi bi-dash"></i>
+                    </button>
+                    <span class="zoom-value">100%</span>
+                    <button class="btn btn-sm btn-outline-secondary" title="拡大">
+                        <i class="bi bi-plus"></i>
+                    </button>
+                </div>
+                <span class="text-muted ms-3">ページ: 1/1</span>
+            </div>
+            <div class="toolbar-right">
+                <button class="btn btn-sm btn-outline-secondary me-1" title="印刷">
+                    <i class="bi bi-printer me-1"></i>印刷
+                </button>
+                <button class="btn btn-sm btn-outline-secondary me-1" title="PDFダウンロード">
+                    <i class="bi bi-file-earmark-pdf me-1"></i>PDFダウンロード
+                </button>
+                <button class="btn btn-sm btn-outline-secondary me-1" title="メール送信" data-bs-toggle="modal" data-bs-target="#emailModal">
+                    <i class="bi bi-envelope me-1"></i>メール送信
+                </button>
+                <button class="btn btn-sm btn-primary" title="詳細に戻る">
+                    <i class="bi bi-arrow-left me-1"></i>詳細に戻る
+                </button>
+            </div>
+        </div>
+
+        <!-- プレビュー表示エリア -->
+        <div class="preview-container">
+            <div class="invoice-document">
+                <!-- 会社ヘッダー -->
+                <div class="company-header">
+                    <div class="company-logo">
+                        COMPANY LOGO
+                    </div>
+                    <div class="company-info">
+                        <div class="mb-1"><strong>株式会社ジョウホウシステム</strong></div>
+                        <div>〒100-0005</div>
+                        <div>東京都千代田区丸の内1-2-3 ITビル 10階</div>
+                        <div>TEL: 03-1234-5678　FAX: 03-1234-5679</div>
+                    </div>
+                </div>
+
+                <!-- 捺印エリア -->
+                <div class="stamp-area">
+                    捺印欄
+                </div>
+
+                <!-- 請求書タイトル -->
+                <div class="invoice-title">
+                    請　求　書
+                </div>
+
+                <!-- 請求日・請求番号 -->
+                <div class="invoice-meta">
+                    <div class="invoice-meta-row">
+                        <div class="invoice-meta-label">請求番号:</div>
+                        <div>INV-2025-0001</div>
+                    </div>
+                    <div class="invoice-meta-row">
+                        <div class="invoice-meta-label">請求日:</div>
+                        <div>2025年5月1日</div>
+                    </div>
+                    <div class="invoice-meta-row">
+                        <div class="invoice-meta-label">支払期限:</div>
+                        <div>2025年5月31日</div>
+                    </div>
+                </div>
+
+                <!-- 顧客情報 -->
+                <div class="customer-info">
+                    <div class="customer-name">株式会社テクノソリューション　御中</div>
+                    <div class="customer-address">
+                        〒100-0001 東京都千代田区丸の内1-1-1<br>
+                        IT戦略部　山田 太郎 様
+                    </div>
+                    <div>
+                        下記の通り、ご請求申し上げます。
+                    </div>
+                </div>
+
+                <!-- 請求金額 -->
+                <div class="payment-info">
+                    <div class="mb-2">ご請求金額</div>
+                    <div class="payment-amount">¥990,000（税込）</div>
+                </div>
+
+                <!-- 請求明細 -->
+                <table class="invoice-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 5%;">No.</th>
+                            <th style="width: 45%;">項目</th>
+                            <th style="width: 10%;">数量</th>
+                            <th style="width: 15%;">単価</th>
+                            <th style="width: 10%;">税率</th>
+                            <th style="width: 15%;">金額</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="text-center">1</td>
+                            <td>Javaエンジニア（鈴木 花子）<br>2025年5月分</td>
+                            <td class="text-center">1.0</td>
+                            <td class="amount-column">¥900,000</td>
+                            <td class="text-center">10%</td>
+                            <td class="amount-column">¥900,000</td>
+                        </tr>
+                        <tr>
+                            <td class="text-center">2</td>
+                            <td>交通費<br>2025年5月分 実費精算</td>
+                            <td class="text-center">1</td>
+                            <td class="amount-column">¥10,000</td>
+                            <td class="text-center">10%</td>
+                            <td class="amount-column">¥10,000</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <!-- 請求金額サマリー -->
+                <div class="invoice-summary">
+                    <div class="invoice-summary-row">
+                        <div>小計:</div>
+                        <div>¥910,000</div>
+                    </div>
+                    <div class="invoice-summary-row">
+                        <div>消費税 (10%):</div>
+                        <div>¥91,000</div>
+                    </div>
+                    <div class="invoice-summary-row total">
+                        <div>合計:</div>
+                        <div>¥1,001,000</div>
+                    </div>
+                </div>
+
+                <!-- 振込先情報 -->
+                <div class="bank-info">
+                    <div class="bank-info-title">振込先情報:</div>
+                    <div>銀行名: みずほ銀行 丸の内支店</div>
+                    <div>口座種別: 普通</div>
+                    <div>口座番号: 1234567</div>
+                    <div>口座名義: カ）ジョウホウシステム</div>
+                </div>
+
+                <!-- 備考 -->
+                <div class="notes">
+                    <div class="notes-title">備考:</div>
+                    <div>
+                        ・支払期限日までに上記口座にお振込みください。<br>
+                        ・振込手数料は貴社負担でお願いいたします。<br>
+                        ・本請求書に関するお問い合わせは、担当：経理部 経理太郎（TEL: 03-1234-5678）までご連絡ください。
+                    </div>
+                </div>
+
+                <!-- ページ番号 -->
+                <div class="page-number">
+                    1 / 1
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- メール送信モーダル -->
+    <div class="modal fade" id="emailModal" tabindex="-1" aria-labelledby="emailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="emailModalLabel">請求書をメールで送信</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="mb-3">
+                            <label for="email-to" class="form-label">宛先</label>
+                            <input type="email" class="form-control" id="email-to" value="yamada.taro@technosolution.co.jp">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email-cc" class="form-label">CC</label>
+                            <input type="email" class="form-control" id="email-cc" value="accounting@technosolution.co.jp">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email-subject" class="form-label">件名</label>
+                            <input type="text" class="form-control" id="email-subject" value="【株式会社ジョウホウシステム】請求書（2025年5月分）">
+                        </div>
+                        <div class="mb-3">
+                            <label for="email-body" class="form-label">本文</label>
+                            <textarea class="form-control" id="email-body" rows="10">株式会社テクノソリューション
+IT戦略部
+山田 太郎 様
+
+お世話になっております。
+株式会社ジョウホウシステム 経理部の経理 太郎でございます。
+
+2025年5月分の請求書を添付いたしましたので、ご確認ください。
+支払期限は2025年5月31日となっております。
+
+なお、ご不明な点がございましたら、お気軽にご連絡くださいませ。
+
+今後ともよろしくお願い申し上げます。
+------------------------------
+株式会社ジョウホウシステム
+経理部 経理 太郎
+TEL: 03-1234-5678
+Email: keiri.taro@johosystem.co.jp
+------------------------------</textarea>
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="attach-pdf" checked>
+                                <label class="form-check-label" for="attach-pdf">
+                                    請求書をPDFで添付する
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">添付ファイル</label>
+                            <div class="d-flex align-items-center p-2 bg-light rounded">
+                                <i class="bi bi-file-earmark-pdf me-2 text-danger"></i>
+                                <span>請求書_INV-2025-0001.pdf</span>
+                                <span class="ms-2 text-muted">(248KB)</span>
+                                <button type="button" class="btn btn-sm btn-link ms-auto">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary">送信</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    
+    <!-- カスタムJavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 拡大・縮小コントロール
+            const zoomValue = document.querySelector('.zoom-value');
+            const zoomInButton = document.querySelector('.zoom-controls button:nth-child(3)');
+            const zoomOutButton = document.querySelector('.zoom-controls button:nth-child(1)');
+            const invoiceDocument = document.querySelector('.invoice-document');
+            
+            // 現在のズーム値（パーセント）
+            let currentZoom = 100;
+            
+            // 拡大ボタンのクリックイベント
+            zoomInButton.addEventListener('click', function() {
+                if (currentZoom < 200) {
+                    currentZoom += 10;
+                    updateZoom();
+                }
+            });
+            
+            // 縮小ボタンのクリックイベント
+            zoomOutButton.addEventListener('click', function() {
+                if (currentZoom > 50) {
+                    currentZoom -= 10;
+                    updateZoom();
+                }
+            });
+            
+            // ズーム値の更新と適用
+            function updateZoom() {
+                zoomValue.textContent = `${currentZoom}%`;
+                invoiceDocument.style.transform = `scale(${currentZoom / 100})`;
+                invoiceDocument.style.transformOrigin = 'top center';
+            }
+            
+            // テンプレート選択ドロップダウンのイベント
+            const templateSelect = document.querySelector('.toolbar-left select');
+            templateSelect.addEventListener('change', function() {
+                console.log(`テンプレートを「${this.value}」に変更しました`);
+                // 実際のアプリケーションでは、選択されたテンプレートを適用
+                alert(`テンプレートを「${this.value}」に変更しました（デモでは実装省略）`);
+            });
+            
+            // 印刷ボタンのイベント
+            const printButton = document.querySelector('.toolbar-right button:nth-child(1)');
+            printButton.addEventListener('click', function() {
+                console.log('請求書を印刷します');
+                // 実際のアプリケーションでは、印刷ダイアログを表示
+                window.print();
+            });
+            
+            // PDFダウンロードボタンのイベント
+            const pdfButton = document.querySelector('.toolbar-right button:nth-child(2)');
+            pdfButton.addEventListener('click', function() {
+                console.log('請求書をPDFでダウンロードします');
+                // 実際のアプリケーションでは、PDFファイルをダウンロード
+                alert('請求書をPDFでダウンロードします（デモでは実装省略）');
+            });
+            
+            // 詳細に戻るボタンのイベント
+            const backButton = document.querySelector('.toolbar-right button:nth-child(4)');
+            backButton.addEventListener('click', function() {
+                console.log('請求書詳細画面に戻ります');
+                // 実際のアプリケーションでは、請求書詳細画面に戻る
+                history.back();
+            });
+            
+            // メール送信ダイアログの送信ボタンのイベント
+            const emailSubmitButton = document.querySelector('#emailModal .modal-footer .btn-primary');
+            emailSubmitButton.addEventListener('click', function() {
+                // フォームの値を取得
+                const toEmail = document.getElementById('email-to').value;
+                const ccEmail = document.getElementById('email-cc').value;
+                const subject = document.getElementById('email-subject').value;
+                const body = document.getElementById('email-body').value;
+                const attachPDF = document.getElementById('attach-pdf').checked;
+                
+                // 入力のバリデーション
+                if (!toEmail) {
+                    alert('宛先メールアドレスを入力してください。');
+                    return;
+                }
+                
+                console.log('メールを送信します');
+                console.log(`宛先: ${toEmail}`);
+                console.log(`CC: ${ccEmail}`);
+                console.log(`件名: ${subject}`);
+                console.log(`本文: ${body}`);
+                console.log(`PDF添付: ${attachPDF}`);
+                
+                // 実際のアプリケーションでは、メール送信処理
+                alert('メールが送信されました（デモでは実装省略）');
+                
+                // モーダルを閉じる
+                const modal = bootstrap.Modal.getInstance(document.getElementById('emailModal'));
+                modal.hide();
+            });
+        });
+    </script>
+</body>
+</html>

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム 入金管理画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -175,11 +177,8 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [入金管理画面のワイヤーフレーム]
-        </div>
-    </div>
+    <!-- モックアップビューワー -->
+    <div id="mockup-viewer"></div>
 
     <h2>画面構成要素</h2>
     <h3>1. 請求情報セクション</h3>
@@ -471,5 +470,22 @@
         <p>作成日: 2025年5月4日<br>
         バージョン: 1.0</p>
     </div>
+
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // モックアップビューワーの初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            new MockupViewer('mockup-viewer', {
+                defaultHeight: '700px',
+                mockups: [
+                    {
+                        name: '入金管理画面',
+                        path: 'mockups/BIL-005.html'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>

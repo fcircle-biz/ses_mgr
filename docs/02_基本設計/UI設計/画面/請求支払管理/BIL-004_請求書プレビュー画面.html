@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム 請求書プレビュー画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -186,34 +188,32 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="toolbar">
-        <div class="toolbar-left">
-            <select class="template-selector">
-                <option value="standard">標準テンプレート</option>
-                <option value="simple">シンプルテンプレート</option>
-                <option value="detailed">詳細テンプレート</option>
-                <option value="custom">カスタムテンプレート</option>
-            </select>
-            <span>ページ: 1/1</span>
-        </div>
-        <div class="toolbar-right">
-            <button>印刷</button>
-            <button>PDFダウンロード</button>
-            <button>メール送信</button>
-            <button>詳細に戻る</button>
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="invoice-preview-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [請求書のプレビュー表示]
-            <br><br>
-            請求書テンプレートに基づいた実際の請求書のプレビューが表示されます。
-            <br><br>
-            会社ロゴ、請求書番号、請求日、支払期限、顧客情報、請求明細、
-            <br>
-            金額情報（小計、消費税、合計）、振込先情報、備考などが含まれます。
-        </div>
-    </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('invoice-preview-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '800px',
+                mockups: [
+                    {
+                        name: '請求書プレビュー',
+                        path: 'mockups/BIL-004.html',
+                        description: '生成された請求書のプレビュー表示画面です。上部のツールバーでは表示テンプレートの選択や、ズームイン・ズームアウト、ページ送りといった表示操作が可能です。また、印刷、PDFダウンロード、メール送信、詳細画面への戻りといった機能にもアクセスできます。メイン部分には選択されたテンプレートに基づいた請求書が表示されており、会社ロゴ、請求書番号、請求日付、支払期限、顧客情報、請求明細、金額情報、振込先情報、備考などの情報が含まれています。メール送信ボタンをクリックすると、請求書をPDFファイルとして添付したメール送信ダイアログが表示され、宛先や件名、本文などを編集して送信することができます。これにより、顧客への請求書送付がシステム内で完結します。'
+                    }
+                ]
+            });
+        });
+    </script>
 
     <h2>画面構成要素</h2>
     <h3>1. ツールバー部分</h3>
