@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム 契約テンプレート管理画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -322,5 +324,27 @@
         <p>作成日: 2025年5月4日<br>
         バージョン: 1.0</p>
     </div>
+
+    <!-- モックアップビューワーの初期化 -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ワイヤーフレームプレースホルダーをモックアップビューワーに置き換え
+        document.addEventListener('DOMContentLoaded', function() {
+            const wireframe = document.querySelector('.wireframe-placeholder');
+            if (wireframe) {
+                const container = document.createElement('div');
+                container.id = 'mockup-viewer';
+                wireframe.parentNode.replaceChild(container, wireframe);
+                
+                new MockupViewer('mockup-viewer', {
+                    mockupPath: 'mockups',
+                    mockups: [{
+                        name: '契約テンプレート管理',
+                        path: 'CNT-006.html'
+                    }]
+                });
+            }
+        });
+    </script>
 </body>
 </html>
