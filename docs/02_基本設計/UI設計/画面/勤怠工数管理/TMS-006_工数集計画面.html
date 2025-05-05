@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>工数集計画面 | 勤怠・工数管理</title>
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
+    <script src="../../js/mockup-viewer.js" defer></script>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -66,17 +68,14 @@
             color: #7f8c8d;
             margin-right: 8px;
         }
-        .wireframe {
+        .mockup-viewer-container {
             border: 1px solid #ddd;
             border-radius: 5px;
             padding: 20px;
             text-align: center;
             background-color: #f5f5f5;
             margin-bottom: 20px;
-        }
-        .wireframe p {
-            color: #7f8c8d;
-            font-style: italic;
+            min-height: 600px;
         }
         .nav-links {
             display: flex;
@@ -171,9 +170,34 @@
             color: #28a745;
             margin-top: 5px;
         }
+        .breadcrumb {
+            padding: 10px 0;
+            margin-bottom: 20px;
+            list-style: none;
+            background-color: transparent;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: inline-block;
+        }
+        .breadcrumb li + li:before {
+            padding: 0 5px;
+            color: #ccc;
+            content: "/\00a0";
+        }
+        .breadcrumb li a {
+            color: #3498db;
+        }
     </style>
 </head>
 <body>
+    <!-- パンくずリスト -->
+    <ul class="breadcrumb">
+        <li><a href="../../index.html">ホーム</a></li>
+        <li><a href="../勤怠工数管理画面設計.html">勤怠工数管理</a></li>
+        <li class="active">工数集計画面</li>
+    </ul>
+    
     <h1>工数集計画面</h1>
 
     <div class="section">
@@ -196,9 +220,9 @@
 
     <div class="section">
         <h2>画面レイアウト</h2>
-        <div class="wireframe">
-            <p>[工数集計画面のワイヤーフレーム表示位置]</p>
-            <p>集計条件選択部分、プロジェクト概要部分、工数サマリー指標表示部分、グラフ・チャート表示部分、詳細データ表示部分から構成される画面</p>
+        <!-- モックアップビューワーのコンテナ -->
+        <div id="effort-summary-mockup" class="mockup-viewer-container">
+            <!-- モックアップビューワーがここに表示されます -->
         </div>
         <p>
             画面は主に以下の5つのエリアで構成されます：
@@ -229,7 +253,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>C01</td>
+                    <td>tms_eff_sum_001</td>
                     <td>期間タイプ</td>
                     <td>ラジオボタン</td>
                     <td>日次/週次/月次/四半期/年次/カスタム</td>
@@ -237,7 +261,7 @@
                     <td>集計期間の種類を選択</td>
                 </tr>
                 <tr>
-                    <td>C02</td>
+                    <td>tms_eff_sum_002</td>
                     <td>期間選択（開始）</td>
                     <td>日付選択</td>
                     <td>過去24ヶ月～当月</td>
@@ -245,7 +269,7 @@
                     <td>集計の開始期間</td>
                 </tr>
                 <tr>
-                    <td>C03</td>
+                    <td>tms_eff_sum_003</td>
                     <td>期間選択（終了）</td>
                     <td>日付選択</td>
                     <td>過去24ヶ月～当月</td>
@@ -253,7 +277,7 @@
                     <td>集計の終了期間</td>
                 </tr>
                 <tr>
-                    <td>C04</td>
+                    <td>tms_eff_sum_004</td>
                     <td>比較期間チェック</td>
                     <td>チェックボックス</td>
                     <td>-</td>
@@ -261,7 +285,7 @@
                     <td>期間比較を行うか</td>
                 </tr>
                 <tr>
-                    <td>C05</td>
+                    <td>tms_eff_sum_005</td>
                     <td>プロジェクト選択</td>
                     <td>ドロップダウン（複数選択）</td>
                     <td>-</td>
@@ -269,7 +293,7 @@
                     <td>集計対象プロジェクトを選択</td>
                 </tr>
                 <tr>
-                    <td>C06</td>
+                    <td>tms_eff_sum_006</td>
                     <td>グループ化選択</td>
                     <td>ドロップダウン</td>
                     <td>全体/プロジェクト別/部門別/顧客別</td>
@@ -277,7 +301,7 @@
                     <td>データのグループ化方法</td>
                 </tr>
                 <tr>
-                    <td>C07</td>
+                    <td>tms_eff_sum_007</td>
                     <td>タスク種別フィルタ</td>
                     <td>チェックボックス群</td>
                     <td>-</td>
@@ -285,7 +309,7 @@
                     <td>特定のタスク種別に絞り込み</td>
                 </tr>
                 <tr>
-                    <td>C08</td>
+                    <td>tms_eff_sum_008</td>
                     <td>請求区分フィルタ</td>
                     <td>ラジオボタン</td>
                     <td>全て/請求可能のみ/非請求のみ</td>
@@ -293,7 +317,7 @@
                     <td>請求可能/非請求で絞り込み</td>
                 </tr>
                 <tr>
-                    <td>C09</td>
+                    <td>tms_eff_sum_009</td>
                     <td>メンバーフィルタ</td>
                     <td>ドロップダウン（複数選択）</td>
                     <td>-</td>
@@ -301,7 +325,7 @@
                     <td>特定のメンバーに絞り込み</td>
                 </tr>
                 <tr>
-                    <td>C10</td>
+                    <td>tms_eff_sum_010</td>
                     <td>集計ボタン</td>
                     <td>ボタン</td>
                     <td>-</td>
@@ -309,7 +333,7 @@
                     <td>条件に基づいて集計実行</td>
                 </tr>
                 <tr>
-                    <td>C11</td>
+                    <td>tms_eff_sum_011</td>
                     <td>クリアボタン</td>
                     <td>ボタン</td>
                     <td>-</td>
@@ -317,7 +341,7 @@
                     <td>条件をクリア</td>
                 </tr>
                 <tr>
-                    <td>C12</td>
+                    <td>tms_eff_sum_012</td>
                     <td>レポート保存ボタン</td>
                     <td>ボタン</td>
                     <td>-</td>
@@ -341,7 +365,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>P01</td>
+                    <td>tms_eff_sum_013</td>
                     <td>プロジェクトID・名称</td>
                     <td>テキスト表示</td>
                     <td>-</td>
@@ -349,7 +373,7 @@
                     <td>選択中のプロジェクトID・名称</td>
                 </tr>
                 <tr>
-                    <td>P02</td>
+                    <td>tms_eff_sum_014</td>
                     <td>プロジェクト期間</td>
                     <td>テキスト表示</td>
                     <td>-</td>
@@ -357,7 +381,7 @@
                     <td>プロジェクトの期間</td>
                 </tr>
                 <tr>
-                    <td>P03</td>
+                    <td>tms_eff_sum_015</td>
                     <td>プロジェクト管理者</td>
                     <td>テキスト表示</td>
                     <td>-</td>
@@ -365,7 +389,7 @@
                     <td>PM/責任者名</td>
                 </tr>
                 <tr>
-                    <td>P04</td>
+                    <td>tms_eff_sum_016</td>
                     <td>顧客名</td>
                     <td>テキスト表示</td>
                     <td>-</td>
@@ -373,7 +397,7 @@
                     <td>クライアント名</td>
                 </tr>
                 <tr>
-                    <td>P05</td>
+                    <td>tms_eff_sum_017</td>
                     <td>プロジェクト詳細リンク</td>
                     <td>リンク</td>
                     <td>-</td>
@@ -397,7 +421,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>S01</td>
+                    <td>tms_eff_sum_018</td>
                     <td>総工数</td>
                     <td>メトリクスカード</td>
                     <td>-</td>
@@ -405,7 +429,7 @@
                     <td>期間内の総工数と前期比</td>
                 </tr>
                 <tr>
-                    <td>S02</td>
+                    <td>tms_eff_sum_019</td>
                     <td>請求可能工数</td>
                     <td>メトリクスカード</td>
                     <td>-</td>
@@ -413,7 +437,7 @@
                     <td>請求可能な工数と割合</td>
                 </tr>
                 <tr>
-                    <td>S03</td>
+                    <td>tms_eff_sum_020</td>
                     <td>非請求工数</td>
                     <td>メトリクスカード</td>
                     <td>-</td>
@@ -421,7 +445,7 @@
                     <td>非請求工数と割合</td>
                 </tr>
                 <tr>
-                    <td>S04</td>
+                    <td>tms_eff_sum_021</td>
                     <td>予算消化率</td>
                     <td>メトリクスカード</td>
                     <td>-</td>
@@ -429,7 +453,7 @@
                     <td>予算に対する実績の割合</td>
                 </tr>
                 <tr>
-                    <td>S05</td>
+                    <td>tms_eff_sum_022</td>
                     <td>プロジェクト進捗率</td>
                     <td>メトリクスカード</td>
                     <td>-</td>
@@ -437,7 +461,7 @@
                     <td>計画に対する進捗の割合</td>
                 </tr>
                 <tr>
-                    <td>S06</td>
+                    <td>tms_eff_sum_023</td>
                     <td>平均日次工数</td>
                     <td>メトリクスカード</td>
                     <td>-</td>
@@ -479,7 +503,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>G01</td>
+                    <td>tms_eff_sum_024</td>
                     <td>タスク種別工数分布</td>
                     <td>円グラフ/棒グラフ</td>
                     <td>-</td>
@@ -487,7 +511,7 @@
                     <td>タスク種別ごとの工数分布</td>
                 </tr>
                 <tr>
-                    <td>G02</td>
+                    <td>tms_eff_sum_025</td>
                     <td>期間別工数推移</td>
                     <td>折れ線グラフ</td>
                     <td>-</td>
@@ -495,7 +519,7 @@
                     <td>期間ごとの工数推移</td>
                 </tr>
                 <tr>
-                    <td>G03</td>
+                    <td>tms_eff_sum_026</td>
                     <td>メンバー別工数分布</td>
                     <td>水平棒グラフ</td>
                     <td>-</td>
@@ -503,7 +527,7 @@
                     <td>メンバーごとの工数内訳</td>
                 </tr>
                 <tr>
-                    <td>G04</td>
+                    <td>tms_eff_sum_027</td>
                     <td>タスク種別別推移</td>
                     <td>積み上げ棒グラフ</td>
                     <td>-</td>
@@ -511,7 +535,7 @@
                     <td>期間ごとのタスク種別工数推移</td>
                 </tr>
                 <tr>
-                    <td>G05</td>
+                    <td>tms_eff_sum_028</td>
                     <td>請求/非請求推移</td>
                     <td>積み上げ折れ線グラフ</td>
                     <td>-</td>
@@ -519,7 +543,7 @@
                     <td>請求/非請求工数の推移</td>
                 </tr>
                 <tr>
-                    <td>G06</td>
+                    <td>tms_eff_sum_029</td>
                     <td>グラフタイプ選択</td>
                     <td>ドロップダウン</td>
                     <td>-</td>
@@ -527,7 +551,7 @@
                     <td>グラフの種類を変更</td>
                 </tr>
                 <tr>
-                    <td>G07</td>
+                    <td>tms_eff_sum_030</td>
                     <td>グラフダウンロード</td>
                     <td>ボタン</td>
                     <td>-</td>
@@ -535,7 +559,7 @@
                     <td>グラフを画像としてダウンロード</td>
                 </tr>
                 <tr>
-                    <td>G08</td>
+                    <td>tms_eff_sum_031</td>
                     <td>グラフ拡大表示</td>
                     <td>ボタン</td>
                     <td>-</td>
@@ -563,7 +587,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>D01</td>
+                    <td>tms_eff_sum_032</td>
                     <td>集計データテーブル</td>
                     <td>テーブル</td>
                     <td>-</td>
@@ -571,7 +595,7 @@
                     <td>集計結果の詳細データを表形式で表示</td>
                 </tr>
                 <tr>
-                    <td>D02</td>
+                    <td>tms_eff_sum_033</td>
                     <td>テーブルビュー切替</td>
                     <td>タブ</td>
                     <td>プロジェクト別/タスク別/メンバー別/日付別</td>
@@ -579,7 +603,7 @@
                     <td>テーブル表示の切り口を変更</td>
                 </tr>
                 <tr>
-                    <td>D03</td>
+                    <td>tms_eff_sum_034</td>
                     <td>ドリルダウンリンク</td>
                     <td>テキストリンク</td>
                     <td>-</td>
@@ -587,7 +611,7 @@
                     <td>詳細データへドリルダウン</td>
                 </tr>
                 <tr>
-                    <td>D04</td>
+                    <td>tms_eff_sum_035</td>
                     <td>ソート機能</td>
                     <td>クリック操作</td>
                     <td>-</td>
@@ -595,7 +619,7 @@
                     <td>列ヘッダーのクリックでソート</td>
                 </tr>
                 <tr>
-                    <td>D05</td>
+                    <td>tms_eff_sum_036</td>
                     <td>フィルタ機能</td>
                     <td>フィルタUI</td>
                     <td>-</td>
@@ -603,7 +627,7 @@
                     <td>列ごとのフィルタリング</td>
                 </tr>
                 <tr>
-                    <td>D06</td>
+                    <td>tms_eff_sum_037</td>
                     <td>ページネーション</td>
                     <td>ページ切替UI</td>
                     <td>-</td>
@@ -611,7 +635,7 @@
                     <td>大量データの場合のページ切替</td>
                 </tr>
                 <tr>
-                    <td>D07</td>
+                    <td>tms_eff_sum_038</td>
                     <td>データエクスポート</td>
                     <td>ボタン</td>
                     <td>-</td>
@@ -619,7 +643,7 @@
                     <td>テーブルデータをCSV/Excelでエクスポート</td>
                 </tr>
                 <tr>
-                    <td>D08</td>
+                    <td>tms_eff_sum_039</td>
                     <td>請求データ連携</td>
                     <td>ボタン</td>
                     <td>-</td>
@@ -706,7 +730,37 @@
     </div>
 
     <footer>
-        <p>SES業務システム 勤怠・工数管理 画面設計書 | 最終更新日: 2025年5月4日</p>
+        <p>SES業務システム 勤怠・工数管理 画面設計書 | 最終更新日: 2025年5月5日</p>
     </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップビューワーの初期化
+            initMockupViewer('effort-summary-mockup', 'mockups/TMS-006.html');
+        });
+
+        // モックアップビューワー初期化関数
+        function initMockupViewer(containerId, mockupPath) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const iframe = document.createElement('iframe');
+            iframe.width = '100%';
+            iframe.height = '600px';
+            iframe.style.border = '1px solid #ddd';
+            iframe.src = mockupPath;
+            
+            container.appendChild(iframe);
+            
+            // 説明テキストを追加
+            const description = document.createElement('p');
+            description.textContent = '集計条件選択部分、プロジェクト概要部分、工数サマリー指標表示部分、グラフ・チャート表示部分、詳細データ表示部分から構成される画面';
+            description.style.fontStyle = 'italic';
+            description.style.color = '#7f8c8d';
+            description.style.marginTop = '10px';
+            
+            container.appendChild(description);
+        }
+    </script>
 </body>
 </html>

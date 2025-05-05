@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>勤怠集計画面 | 勤怠・工数管理</title>
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
+    <script src="../../js/mockup-viewer.js" defer></script>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, sans-serif;
@@ -66,13 +68,14 @@
             color: #7f8c8d;
             margin-right: 8px;
         }
-        .wireframe {
+        .mockup-viewer-container {
             border: 1px solid #ddd;
             border-radius: 5px;
             padding: 20px;
             text-align: center;
             background-color: #f5f5f5;
             margin-bottom: 20px;
+            min-height: 600px;
         }
         .wireframe p {
             color: #7f8c8d;
@@ -143,9 +146,34 @@
             color: #7f8c8d;
             font-style: italic;
         }
+        .breadcrumb {
+            padding: 10px 0;
+            margin-bottom: 20px;
+            list-style: none;
+            background-color: transparent;
+            border-radius: 4px;
+        }
+        .breadcrumb li {
+            display: inline-block;
+        }
+        .breadcrumb li + li:before {
+            padding: 0 5px;
+            color: #ccc;
+            content: "/\00a0";
+        }
+        .breadcrumb li a {
+            color: #3498db;
+        }
     </style>
 </head>
 <body>
+    <!-- パンくずリスト -->
+    <ul class="breadcrumb">
+        <li><a href="../../index.html">ホーム</a></li>
+        <li><a href="../勤怠工数管理画面設計.html">勤怠工数管理</a></li>
+        <li class="active">勤怠集計画面</li>
+    </ul>
+    
     <h1>勤怠集計画面</h1>
 
     <div class="section">
@@ -167,9 +195,9 @@
 
     <div class="section">
         <h2>画面レイアウト</h2>
-        <div class="wireframe">
-            <p>[勤怠集計画面のワイヤーフレーム表示位置]</p>
-            <p>集計条件選択部分、サマリー指標表示部分、グラフ・チャート表示部分、詳細データ表示部分から構成される画面</p>
+        <!-- モックアップビューワーのコンテナ -->
+        <div id="attendance-summary-mockup" class="mockup-viewer-container">
+            <!-- モックアップビューワーがここに表示されます -->
         </div>
         <p>
             画面は主に以下の4つのエリアで構成されます：
@@ -199,7 +227,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>C01</td>
+                    <td>tms_sum_001</td>
                     <td>期間タイプ</td>
                     <td>ラジオボタン</td>
                     <td>月次/四半期/年次/カスタム</td>
@@ -207,7 +235,7 @@
                     <td>集計期間の種類を選択</td>
                 </tr>
                 <tr>
-                    <td>C02</td>
+                    <td>tms_sum_002</td>
                     <td>期間選択（開始）</td>
                     <td>日付選択</td>
                     <td>過去24ヶ月～当月</td>
@@ -215,7 +243,7 @@
                     <td>集計の開始期間</td>
                 </tr>
                 <tr>
-                    <td>C03</td>
+                    <td>tms_sum_003</td>
                     <td>期間選択（終了）</td>
                     <td>日付選択</td>
                     <td>過去24ヶ月～当月</td>
@@ -223,7 +251,7 @@
                     <td>集計の終了期間</td>
                 </tr>
                 <tr>
-                    <td>C04</td>
+                    <td>tms_sum_004</td>
                     <td>比較期間チェック</td>
                     <td>チェックボックス</td>
                     <td>-</td>
@@ -231,7 +259,7 @@
                     <td>期間比較を行うか</td>
                 </tr>
                 <tr>
-                    <td>C05</td>
+                    <td>tms_sum_005</td>
                     <td>比較期間選択</td>
                     <td>ドロップダウン</td>
                     <td>前年同期/前期/カスタム</td>
@@ -239,7 +267,7 @@
                     <td>比較する期間の種類</td>
                 </tr>
                 <tr>
-                    <td>C06</td>
+                    <td>tms_sum_006</td>
                     <td>組織レベル</td>
                     <td>ドロップダウン</td>
                     <td>全社/部門/グループ/個人</td>
@@ -247,7 +275,7 @@
                     <td>集計の組織レベル</td>
                 </tr>
                 <tr>
-                    <td>C07</td>
+                    <td>tms_sum_007</td>
                     <td>組織選択</td>
                     <td>ツリー選択</td>
                     <td>-</td>
@@ -255,7 +283,7 @@
                     <td>特定の組織単位を選択（複数選択可）</td>
                 </tr>
                 <tr>
-                    <td>C08</td>
+                    <td>tms_sum_008</td>
                     <td>集計軸選択</td>
                     <td>ドロップダウン（複数選択）</td>
                     <td>-</td>
@@ -263,7 +291,7 @@
                     <td>集計の軸（部門別/役職別/年代別など）</td>
                 </tr>
                 <tr>
-                    <td>C09</td>
+                    <td>tms_sum_009</td>
                     <td>集計ボタン</td>
                     <td>ボタン</td>
                     <td>-</td>
@@ -271,7 +299,7 @@
                     <td>条件に基づいて集計実行</td>
                 </tr>
                 <tr>
-                    <td>C10</td>
+                    <td>tms_sum_010</td>
                     <td>クリアボタン</td>
                     <td>ボタン</td>
                     <td>-</td>
@@ -279,7 +307,7 @@
                     <td>条件をクリア</td>
                 </tr>
                 <tr>
-                    <td>C11</td>
+                    <td>tms_sum_011</td>
                     <td>レポート保存ボタン</td>
                     <td>ボタン</td>
                     <td>-</td>
@@ -303,7 +331,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>S01</td>
+                    <td>tms_sum_012</td>
                     <td>平均出勤率</td>
                     <td>メトリクスカード</td>
                     <td>-</td>
@@ -311,7 +339,7 @@
                     <td>期間内の平均出勤率と前期比</td>
                 </tr>
                 <tr>
-                    <td>S02</td>
+                    <td>tms_sum_013</td>
                     <td>平均残業時間</td>
                     <td>メトリクスカード</td>
                     <td>-</td>
@@ -319,7 +347,7 @@
                     <td>期間内の平均残業時間と前期比</td>
                 </tr>
                 <tr>
-                    <td>S03</td>
+                    <td>tms_sum_014</td>
                     <td>有給休暇取得率</td>
                     <td>メトリクスカード</td>
                     <td>-</td>
@@ -327,7 +355,7 @@
                     <td>期間内の有給休暇取得率と前期比</td>
                 </tr>
                 <tr>
-                    <td>S04</td>
+                    <td>tms_sum_015</td>
                     <td>平均稼働率</td>
                     <td>メトリクスカード</td>
                     <td>-</td>
@@ -335,7 +363,7 @@
                     <td>期間内の平均稼働率と前期比</td>
                 </tr>
                 <tr>
-                    <td>S05</td>
+                    <td>tms_sum_016</td>
                     <td>深夜・休日勤務率</td>
                     <td>メトリクスカード</td>
                     <td>-</td>
@@ -343,7 +371,7 @@
                     <td>期間内の深夜・休日勤務の割合と前期比</td>
                 </tr>
                 <tr>
-                    <td>S06</td>
+                    <td>tms_sum_017</td>
                     <td>欠勤率</td>
                     <td>メトリクスカード</td>
                     <td>-</td>
@@ -351,7 +379,7 @@
                     <td>期間内の欠勤率と前期比</td>
                 </tr>
                 <tr>
-                    <td>S07</td>
+                    <td>tms_sum_018</td>
                     <td>カスタム指標表示</td>
                     <td>メトリクスカード</td>
                     <td>-</td>
@@ -375,7 +403,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>G01</td>
+                    <td>tms_sum_019</td>
                     <td>主要グラフ表示</td>
                     <td>グラフ</td>
                     <td>-</td>
@@ -383,7 +411,7 @@
                     <td>選択した指標の主要グラフ表示</td>
                 </tr>
                 <tr>
-                    <td>G02</td>
+                    <td>tms_sum_020</td>
                     <td>グラフタイプ選択</td>
                     <td>ドロップダウン</td>
                     <td>棒/折れ線/円/散布図など</td>
@@ -391,7 +419,7 @@
                     <td>グラフの種類を選択</td>
                 </tr>
                 <tr>
-                    <td>G03</td>
+                    <td>tms_sum_021</td>
                     <td>表示指標選択</td>
                     <td>ドロップダウン（複数選択）</td>
                     <td>-</td>
@@ -399,7 +427,7 @@
                     <td>グラフに表示する指標を選択</td>
                 </tr>
                 <tr>
-                    <td>G04</td>
+                    <td>tms_sum_022</td>
                     <td>期間トレンドグラフ</td>
                     <td>折れ線グラフ</td>
                     <td>-</td>
@@ -407,7 +435,7 @@
                     <td>期間ごとの指標推移を表示</td>
                 </tr>
                 <tr>
-                    <td>G05</td>
+                    <td>tms_sum_023</td>
                     <td>組織比較グラフ</td>
                     <td>棒グラフ/レーダーチャート</td>
                     <td>-</td>
@@ -415,7 +443,7 @@
                     <td>組織間の指標比較を表示</td>
                 </tr>
                 <tr>
-                    <td>G06</td>
+                    <td>tms_sum_024</td>
                     <td>残業時間分布</td>
                     <td>ヒストグラム</td>
                     <td>-</td>
@@ -423,7 +451,7 @@
                     <td>残業時間の分布を表示</td>
                 </tr>
                 <tr>
-                    <td>G07</td>
+                    <td>tms_sum_025</td>
                     <td>グラフダウンロード</td>
                     <td>ボタン</td>
                     <td>-</td>
@@ -431,7 +459,7 @@
                     <td>グラフを画像としてダウンロード</td>
                 </tr>
                 <tr>
-                    <td>G08</td>
+                    <td>tms_sum_026</td>
                     <td>グラフ拡大表示</td>
                     <td>ボタン</td>
                     <td>-</td>
@@ -459,7 +487,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>D01</td>
+                    <td>tms_sum_027</td>
                     <td>データテーブル表示</td>
                     <td>テーブル</td>
                     <td>-</td>
@@ -467,7 +495,7 @@
                     <td>集計結果の詳細データを表形式で表示</td>
                 </tr>
                 <tr>
-                    <td>D02</td>
+                    <td>tms_sum_028</td>
                     <td>ソート機能</td>
                     <td>クリック操作</td>
                     <td>-</td>
@@ -475,7 +503,7 @@
                     <td>列ヘッダーのクリックでソート</td>
                 </tr>
                 <tr>
-                    <td>D03</td>
+                    <td>tms_sum_029</td>
                     <td>フィルタ機能</td>
                     <td>フィルタUI</td>
                     <td>-</td>
@@ -483,7 +511,7 @@
                     <td>列ごとのフィルタリング</td>
                 </tr>
                 <tr>
-                    <td>D04</td>
+                    <td>tms_sum_030</td>
                     <td>ページネーション</td>
                     <td>ページ切替UI</td>
                     <td>-</td>
@@ -491,7 +519,7 @@
                     <td>大量データの場合のページ切替</td>
                 </tr>
                 <tr>
-                    <td>D05</td>
+                    <td>tms_sum_031</td>
                     <td>データエクスポート</td>
                     <td>ボタン</td>
                     <td>-</td>
@@ -499,7 +527,7 @@
                     <td>テーブルデータをCSV/Excelでエクスポート</td>
                 </tr>
                 <tr>
-                    <td>D06</td>
+                    <td>tms_sum_032</td>
                     <td>詳細データリンク</td>
                     <td>リンク</td>
                     <td>-</td>
@@ -507,7 +535,7 @@
                     <td>各行のデータ詳細へのリンク</td>
                 </tr>
                 <tr>
-                    <td>D07</td>
+                    <td>tms_sum_033</td>
                     <td>異常値ハイライト</td>
                     <td>スタイル</td>
                     <td>-</td>
@@ -588,7 +616,37 @@
     </div>
 
     <footer>
-        <p>SES業務システム 勤怠・工数管理 画面設計書 | 最終更新日: 2025年5月4日</p>
+        <p>SES業務システム 勤怠・工数管理 画面設計書 | 最終更新日: 2025年5月5日</p>
     </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップビューワーの初期化
+            initMockupViewer('attendance-summary-mockup', 'mockups/TMS-005.html');
+        });
+
+        // モックアップビューワー初期化関数
+        function initMockupViewer(containerId, mockupPath) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            const iframe = document.createElement('iframe');
+            iframe.width = '100%';
+            iframe.height = '600px';
+            iframe.style.border = '1px solid #ddd';
+            iframe.src = mockupPath;
+            
+            container.appendChild(iframe);
+            
+            // 説明テキストを追加
+            const description = document.createElement('p');
+            description.textContent = '集計条件選択部分、サマリー指標表示部分、グラフ・チャート表示部分、詳細データ表示部分から構成される画面';
+            description.style.fontStyle = 'italic';
+            description.style.color = '#7f8c8d';
+            description.style.marginTop = '10px';
+            
+            container.appendChild(description);
+        }
+    </script>
 </body>
 </html>
