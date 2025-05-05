@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 国際化機能 基本設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム 国際化機能 基本設計書</h1>
+
+    <h2>1. はじめに</h2>
+    <p>本書は、SES業務システムにおける国際化（i18n）および地域化（l10n）機能の基本設計を定義したものである。
+    システム全体で一貫した多言語対応を実現するための機能設計および実装方針について記述する。</p>
+
+    <h2>2. 機能概要</h2>
+    <p>国際化機能は、SES業務システムを異なる言語や地域で利用できるようにするための共通機能である。
+    画面表示テキスト、エラーメッセージ、日付・時刻・数値の表示形式などをユーザーの言語設定や地域設定に
+    応じて適切に表示する機能を提供する。</p>
+
+    <h2>3. 対応言語・地域</h2>
+
+    <h3>3.1 対応言語</h3>
+    <p>初期リリースでは以下の言語をサポートする：</p>
+    <ul>
+        <li><strong>日本語（ja）</strong>: 主要言語</li>
+        <li><strong>英語（en）</strong>: 補助言語</li>
+    </ul>
+    <p>将来的に以下の言語をサポート予定：</p>
+    <ul>
+        <li>中国語（繁体字/簡体字）（zh-TW/zh-CN）</li>
+        <li>韓国語（ko）</li>
+    </ul>
+
+    <h3>3.2 対応地域</h3>
+    <p>以下の地域設定をサポートする：</p>
+    <ul>
+        <li><strong>日本（ja-JP）</strong>: 日本国内向け</li>
+        <li><strong>アメリカ合衆国（en-US）</strong>: 北米地域向け</li>
+        <li><strong>イギリス（en-GB）</strong>: 欧州地域向け</li>
+    </ul>
+
+    <h3>3.3 地域に依存する表示形式</h3>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>ja-JP</th>
+            <th>en-US</th>
+            <th>en-GB</th>
+        </tr>
+        <tr>
+            <td>日付形式</td>
+            <td>yyyy/MM/dd</td>
+            <td>MM/dd/yyyy</td>
+            <td>dd/MM/yyyy</td>
+        </tr>
+        <tr>
+            <td>時刻形式</td>
+            <td>HH:mm</td>
+            <td>h:mm a</td>
+            <td>HH:mm</td>
+        </tr>
+        <tr>
+            <td>数値形式</td>
+            <td>1,234.56</td>
+            <td>1,234.56</td>
+            <td>1,234.56</td>
+        </tr>
+        <tr>
+            <td>通貨形式</td>
+            <td>¥1,234</td>
+            <td>$1,234.56</td>
+            <td>£1,234.56</td>
+        </tr>
+    </table>
+
+    <h2>4. システムアーキテクチャ</h2>
+
+    <h3>4.1 全体アーキテクチャ</h3>
+    <p>国際化機能の実装アーキテクチャ概要：</p>
+    <ul>
+        <li><strong>リソースバンドル</strong>: 言語ごとのメッセージリソース管理</li>
+        <li><strong>ロケール解決</strong>: ユーザーのロケール（言語・地域）の決定</li>
+        <li><strong>メッセージ解決</strong>: ロケールに応じたメッセージの取得</li>
+        <li><strong>フォーマッタ</strong>: 日付・時刻・数値のロケール依存フォーマット</li>
+        <li><strong>言語スイッチャー</strong>: ユーザーによる言語切り替え機能</li>
+    </ul>
+
+    <h3>4.2 コンポーネント設計</h3>
+
+    <h4>4.2.1 バックエンド（Spring）</h4>
+    <ul>
+        <li><strong>MessageSource</strong>: メッセージリソースへのアクセス</li>
+        <li><strong>LocaleResolver</strong>: リクエストからのロケール解決</li>
+        <li><strong>LocaleChangeInterceptor</strong>: ロケール変更の検出</li>
+        <li><strong>MessageSourceAccessor</strong>: コード内でのメッセージ参照簡素化</li>
+    </ul>
+
+    <h4>4.2.2 フロントエンド（React）</h4>
+    <ul>
+        <li><strong>i18nコンテキスト</strong>: 言語リソースと翻訳関数の提供</li>
+        <li><strong>言語プロバイダー</strong>: 言語状態と切り替え機能の提供</li>
+        <li><strong>翻訳フック</strong>: コンポーネント内での翻訳利用</li>
+        <li><strong>フォーマットコンポーネント</strong>: 日付・通貨などのフォーマット表示</li>
+    </ul>
+
+    <h3>4.3 メッセージリソース管理</h3>
+    <p>メッセージリソースの編成方法：</p>
+    <ul>
+        <li><strong>階層的な名前空間</strong>: モジュール・画面・セクションごとの分類</li>
+        <li><strong>ファイル分割</strong>: 機能モジュールごとにリソースファイルを分割</li>
+        <li><strong>共通リソース</strong>: 全モジュールで共有するメッセージを共通ファイルに定義</li>
+        <li><strong>モジュールリソース</strong>: 各機能モジュール固有のメッセージをモジュール別ファイルに定義</li>
+    </ul>
+
+    <h2>5. 詳細設計</h2>
+
+    <h3>5.1 ロケール管理</h3>
+
+    <h4>5.1.1 ロケール解決方法</h4>
+    <p>以下の優先順位でユーザーのロケールを解決する：</p>
+    <ol>
+        <li>ユーザー設定（データベースに保存された個人設定）</li>
+        <li>セッション内の言語設定</li>
+        <li>リクエストパラメータ（<code>?lang=ja</code>）</li>
+        <li>リクエストヘッダー（<code>Accept-Language</code>）</li>
+        <li>デフォルト言語（日本語）</li>
+    </ol>
+
+    <h4>5.1.2 ロケールの保存</h4>
+    <p>ロケール選択の永続化：</p>
+    <ul>
+        <li><strong>認証済みユーザー</strong>: ユーザープロファイルにロケール設定を保存</li>
+        <li><strong>未認証ユーザー</strong>: Cookieにロケール情報を保存（有効期間: 1年）</li>
+    </ul>
+
+    <h3>5.2 リソースバンドル設計</h3>
+
+    <h4>5.2.1 ファイル構成</h4>
+    <p>Spring用のリソースバンドル構成：</p>
+    <pre><code>src/main/resources/
+  ├── i18n/
+  │   ├── common_ja.properties     # 共通メッセージ（日本語）
+  │   ├── common_en.properties     # 共通メッセージ（英語）
+  │   ├── validation_ja.properties # 検証メッセージ（日本語）
+  │   ├── validation_en.properties # 検証メッセージ（英語）
+  │   ├── error_ja.properties      # エラーメッセージ（日本語）
+  │   ├── error_en.properties      # エラーメッセージ（英語）
+  │   ├── project_ja.properties    # 案件管理メッセージ（日本語）
+  │   ├── project_en.properties    # 案件管理メッセージ（英語）
+  │   ├── engineer_ja.properties   # 技術者管理メッセージ（日本語）
+  │   ├── engineer_en.properties   # 技術者管理メッセージ（英語）
+  │   ├── ...
+</code></pre>
+
+    <p>React用のリソースファイル構成：</p>
+    <pre><code>src/i18n/
+  ├── locales/
+  │   ├── ja/
+  │   │   ├── common.json   # 共通メッセージ（日本語）
+  │   │   ├── validation.json  # 検証メッセージ（日本語）
+  │   │   ├── project.json  # 案件管理メッセージ（日本語）
+  │   │   ├── engineer.json # 技術者管理メッセージ（日本語）
+  │   │   ├── ...
+  │   ├── en/
+  │   │   ├── common.json   # 共通メッセージ（英語）
+  │   │   ├── validation.json  # 検証メッセージ（英語）
+  │   │   ├── project.json  # 案件管理メッセージ（英語）
+  │   │   ├── engineer.json # 技術者管理メッセージ（英語）
+  │   │   ├── ...
+  ├── config.ts     # i18n設定ファイル
+  ├── index.ts      # i18n機能のエクスポート
+</code></pre>
+
+    <h4>5.2.2 メッセージキー命名規則</h4>
+    <p>メッセージキーの命名規則：</p>
+    <pre><code>// 基本形式
+[モジュール].[カテゴリ].[要素].[詳細]
+
+// 例:
+common.button.save = 保存
+common.button.cancel = キャンセル
+project.label.projectName = 案件名
+project.validation.projectName.required = 案件名は必須です
+engineer.placeholder.searchSkill = スキルで検索
+error.notFound.project = 指定された案件が見つかりません
+</code></pre>
+
+    <h4>5.2.3 パラメータ置換</h4>
+    <p>メッセージ内のパラメータ置換：</p>
+    <pre><code>// 春のMessageSourceでのパラメータ置換
+project.validation.dateRange = {0}は{1}より前の日付を指定してください
+
+// React i18nextでのパラメータ置換
+project.validation.dateRange = {{startDate}}は{{endDate}}より前の日付を指定してください
+</code></pre>
+
+    <h3>5.3 日付・時刻の国際化</h3>
+
+    <h4>5.3.1 日付・時刻フォーマット定義</h4>
+    <table>
+        <tr>
+            <th>フォーマットタイプ</th>
+            <th>フォーマットID</th>
+            <th>ja-JP</th>
+            <th>en-US</th>
+        </tr>
+        <tr>
+            <td>日付（標準）</td>
+            <td>date.default</td>
+            <td>2025/05/05</td>
+            <td>05/05/2025</td>
+        </tr>
+        <tr>
+            <td>日付（短）</td>
+            <td>date.short</td>
+            <td>25/05/05</td>
+            <td>5/5/25</td>
+        </tr>
+        <tr>
+            <td>日付（長）</td>
+            <td>date.long</td>
+            <td>2025年5月5日</td>
+            <td>May 5, 2025</td>
+        </tr>
+        <tr>
+            <td>日付（曜日）</td>
+            <td>date.weekday</td>
+            <td>2025年5月5日（月）</td>
+            <td>Monday, May 5, 2025</td>
+        </tr>
+        <tr>
+            <td>時刻（標準）</td>
+            <td>time.default</td>
+            <td>14:30</td>
+            <td>2:30 PM</td>
+        </tr>
+        <tr>
+            <td>時刻（秒）</td>
+            <td>time.seconds</td>
+            <td>14:30:25</td>
+            <td>2:30:25 PM</td>
+        </tr>
+        <tr>
+            <td>日時（標準）</td>
+            <td>datetime.default</td>
+            <td>2025/05/05 14:30</td>
+            <td>05/05/2025 2:30 PM</td>
+        </tr>
+        <tr>
+            <td>月年</td>
+            <td>month.year</td>
+            <td>2025年5月</td>
+            <td>May 2025</td>
+        </tr>
+    </table>
+
+    <h4>5.3.2 バックエンド実装</h4>
+    <p>Springでの日付フォーマット設定例：</p>
+    <pre><code>@Configuration
+public class DateTimeFormatConfig {
+    
+    @Bean
+    public FormattingConversionService conversionService() {
+        DefaultFormattingConversionService conversionService = 
+            new DefaultFormattingConversionService(false);
+        
+        // DateTimeFormatterを登録
+        DateTimeFormatterRegistrar registrar = new DateTimeFormatterRegistrar();
+        registrar.setDateFormatter(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        registrar.setDateTimeFormatter(DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss"));
+        registrar.registerFormatters(conversionService);
+        
+        // 他のConverter、Formatterを登録
+        
+        return conversionService;
+    }
+    
+    @Bean
+    public LocaleContextMessageInterpolator messageInterpolator() {
+        return new LocaleContextMessageInterpolator();
+    }
+}
+
+// カスタムフォーマッタ例
+@Component
+public class DateFormatter {
+    
+    @Autowired
+    private MessageSource messageSource;
+    
+    public String format(LocalDate date, String formatType, Locale locale) {
+        String pattern = getPattern(formatType, locale);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern, locale);
+        return date.format(formatter);
+    }
+    
+    public String format(LocalDateTime dateTime, String formatType, Locale locale) {
+        String pattern = getPattern(formatType, locale);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern, locale);
+        return dateTime.format(formatter);
+    }
+    
+    private String getPattern(String formatType, Locale locale) {
+        return messageSource.getMessage("format." + formatType, null, locale);
+    }
+}</code></pre>
+
+    <h4>5.3.3 フロントエンド実装</h4>
+    <p>Reactでの日付フォーマット実装例（react-intl使用）：</p>
+    <pre><code>// DateFormatter.tsx
+import React from 'react';
+import { FormattedDate, FormattedTime, FormattedRelativeTime } from 'react-intl';
+
+type DateFormatterProps = {
+  value: string | Date;
+  format?: 'default' | 'short' | 'long' | 'weekday';
+};
+
+export const DateFormatter: React.FC<DateFormatterProps> = ({ 
+  value, 
+  format = 'default' 
+}) => {
+  const date = typeof value === 'string' ? new Date(value) : value;
+  
+  let formatConfig = {};
+  
+  switch (format) {
+    case 'short':
+      formatConfig = { 
+        year: '2-digit', 
+        month: 'numeric', 
+        day: 'numeric' 
+      };
+      break;
+    case 'long':
+      formatConfig = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric' 
+      };
+      break;
+    case 'weekday':
+      formatConfig = { 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        weekday: 'long'
+      };
+      break;
+    default:
+      formatConfig = { 
+        year: 'numeric', 
+        month: 'numeric', 
+        day: 'numeric' 
+      };
+  }
+  
+  return <FormattedDate value={date} {...formatConfig} />;
+};
+
+// 使用例
+import { DateFormatter } from './DateFormatter';
+
+const ProjectDisplay = ({ project }) => {
+  return (
+    <div>
+      <h3>{project.name}</h3>
+      <p>開始日: <DateFormatter value={project.startDate} format="long" /></p>
+      <p>終了日: <DateFormatter value={project.endDate} format="long" /></p>
+    </div>
+  );
+};</code></pre>
+
+    <h3>5.4 数値・通貨の国際化</h3>
+
+    <h4>5.4.1 数値・通貨フォーマット定義</h4>
+    <table>
+        <tr>
+            <th>フォーマットタイプ</th>
+            <th>フォーマットID</th>
+            <th>ja-JP</th>
+            <th>en-US</th>
+        </tr>
+        <tr>
+            <td>整数（標準）</td>
+            <td>number.integer</td>
+            <td>1,234</td>
+            <td>1,234</td>
+        </tr>
+        <tr>
+            <td>小数（標準）</td>
+            <td>number.decimal</td>
+            <td>1,234.56</td>
+            <td>1,234.56</td>
+        </tr>
+        <tr>
+            <td>割合</td>
+            <td>number.percent</td>
+            <td>12.34%</td>
+            <td>12.34%</td>
+        </tr>
+        <tr>
+            <td>通貨（標準）</td>
+            <td>currency.default</td>
+            <td>¥1,234</td>
+            <td>$1,234.00</td>
+        </tr>
+        <tr>
+            <td>通貨（千円/ドル単位）</td>
+            <td>currency.thousands</td>
+            <td>¥1,234K</td>
+            <td>$1.23K</td>
+        </tr>
+        <tr>
+            <td>通貨（百万円/ドル単位）</td>
+            <td>currency.millions</td>
+            <td>¥1.23M</td>
+            <td>$1.23M</td>
+        </tr>
+    </table>
+
+    <h4>5.4.2 バックエンド実装</h4>
+    <p>Springでの数値フォーマット設定例：</p>
+    <pre><code>@Configuration
+public class NumberFormatConfig implements WebMvcConfigurer {
+    
+    @Override
+    public void addFormatters(FormatterRegistry registry) {
+        // カスタムフォーマッタの登録
+        registry.addFormatter(new CurrencyFormatter());
+        registry.addFormatter(new PercentFormatter());
+    }
+}
+
+@Component
+public class NumberFormatter {
+    
+    public String formatCurrency(BigDecimal amount, Locale locale) {
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(locale);
+        return currencyFormat.format(amount);
+    }
+    
+    public String formatNumber(Number number, Locale locale) {
+        NumberFormat numberFormat = NumberFormat.getNumberInstance(locale);
+        return numberFormat.format(number);
+    }
+    
+    public String formatPercent(BigDecimal value, Locale locale) {
+        NumberFormat percentFormat = NumberFormat.getPercentInstance(locale);
+        return percentFormat.format(value);
+    }
+}</code></pre>
+
+    <h4>5.4.3 フロントエンド実装</h4>
+    <p>Reactでの数値フォーマット実装例：</p>
+    <pre><code>// NumberFormatter.tsx
+import React from 'react';
+import { FormattedNumber } from 'react-intl';
+
+type CurrencyFormatterProps = {
+  value: number;
+  format?: 'default' | 'thousands' | 'millions';
+  currency?: string;
+};
+
+export const CurrencyFormatter: React.FC<CurrencyFormatterProps> = ({ 
+  value, 
+  format = 'default',
+  currency = 'JPY'
+}) => {
+  let formattedValue = value;
+  let suffix = '';
+  
+  switch (format) {
+    case 'thousands':
+      formattedValue = value / 1000;
+      suffix = 'K';
+      break;
+    case 'millions':
+      formattedValue = value / 1000000;
+      suffix = 'M';
+      break;
+    default:
+      break;
+  }
+  
+  return (
+    <>
+      <FormattedNumber
+        value={formattedValue}
+        style="currency"
+        currency={currency}
+      />
+      {suffix}
+    </>
+  );
+};
+
+// 使用例
+import { CurrencyFormatter } from './NumberFormatter';
+
+const ProjectBudget = ({ budget }) => {
+  return (
+    <div>
+      <p>予算: <CurrencyFormatter value={budget} format="default" /></p>
+    </div>
+  );
+};</code></pre>
+
+    <h3>5.5 多言語対応UI設計</h3>
+
+    <h4>5.5.1 言語切り替えUI</h4>
+    <ul>
+        <li><strong>言語切り替えドロップダウン</strong>: 
+            <ul>
+                <li>位置: ヘッダー部分（ユーザーメニューのそば）</li>
+                <li>表示: 各言語名を当該言語で表示（例: 「日本語」「English」）</li>
+                <li>現在の選択言語を強調表示</li>
+            </ul>
+        </li>
+        <li><strong>言語切り替え後の挙動</strong>: 
+            <ul>
+                <li>ページのリロードなしで即時に言語を切り替え</li>
+                <li>現在のページコンテキストを維持したまま表示言語のみ変更</li>
+                <li>選択した言語をユーザー設定に保存（認証済みの場合）</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h4>5.5.2 多言語レイアウト考慮事項</h4>
+    <ul>
+        <li><strong>テキスト長の違い</strong>: 
+            <ul>
+                <li>英語は日本語より文字列長が約1.5倍になる傾向がある</li>
+                <li>レイアウトはテキスト長の変化に対応できる柔軟な設計</li>
+                <li>ボタンやラベルは最長テキストを想定した幅を確保</li>
+            </ul>
+        </li>
+        <li><strong>文字サイズの違い</strong>: 
+            <ul>
+                <li>言語によって最適な文字サイズが異なる可能性を考慮</li>
+                <li>相対サイズ指定（rem/em）を利用し柔軟に対応</li>
+            </ul>
+        </li>
+        <li><strong>ソート順</strong>: 
+            <ul>
+                <li>言語によってソート順が異なることを考慮</li>
+                <li>日本語：あいうえお順</li>
+                <li>英語：アルファベット順</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>5.6 データベース多言語対応</h3>
+
+    <h4>5.6.1 多言語データモデル</h4>
+    <p>多言語対応が必要なデータのモデル設計：</p>
+    <p><strong>方式1: カラム方式（少数の言語・単純な項目向け）</strong></p>
+    <pre><code>CREATE TABLE skill_categories (
+    id UUID PRIMARY KEY,
+    name_ja VARCHAR(100) NOT NULL,
+    name_en VARCHAR(100) NOT NULL,
+    description_ja TEXT,
+    description_en TEXT,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
+);</code></pre>
+
+    <p><strong>方式2: 翻訳テーブル方式（多数の言語・複雑な項目向け）</strong></p>
+    <pre><code>CREATE TABLE projects (
+    id UUID PRIMARY KEY,
+    code VARCHAR(20) NOT NULL UNIQUE,
+    status VARCHAR(20) NOT NULL,
+    start_date DATE,
+    end_date DATE,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
+);
+
+CREATE TABLE project_translations (
+    project_id UUID NOT NULL REFERENCES projects(id),
+    locale VARCHAR(10) NOT NULL,
+    name VARCHAR(200) NOT NULL,
+    description TEXT,
+    remarks TEXT,
+    PRIMARY KEY (project_id, locale)
+);</code></pre>
+
+    <h4>5.6.2 データアクセス実装</h4>
+    <p>多言語対応データアクセスの実装例：</p>
+    <pre><code>@Entity
+@Table(name = "projects")
+public class Project {
+    @Id
+    private UUID id;
+    
+    @Column(nullable = false, unique = true)
+    private String code;
+    
+    @Column(nullable = false)
+    private String status;
+    
+    private LocalDate startDate;
+    
+    private LocalDate endDate;
+    
+    @CreatedDate
+    private LocalDateTime createdAt;
+    
+    @LastModifiedDate
+    private LocalDateTime updatedAt;
+    
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "project_id")
+    @MapKey(name = "locale")
+    private Map<String, ProjectTranslation> translations = new HashMap<>();
+    
+    // ゲッター、セッター
+    
+    // 翻訳取得ヘルパーメソッド
+    public ProjectTranslation getTranslation(String locale) {
+        return translations.getOrDefault(locale, 
+                translations.getOrDefault(DEFAULT_LOCALE, null));
+    }
+}
+
+@Entity
+@Table(name = "project_translations")
+public class ProjectTranslation {
+    @Id
+    @Column(name = "project_id")
+    private UUID projectId;
+    
+    @Id
+    @Column(name = "locale")
+    private String locale;
+    
+    @Column(nullable = false)
+    private String name;
+    
+    private String description;
+    
+    private String remarks;
+    
+    // ゲッター、セッター
+}
+
+@Repository
+public interface ProjectRepository extends JpaRepository<Project, UUID> {
+    // カスタムクエリメソッド
+}
+
+@Service
+public class ProjectService {
+    
+    @Autowired
+    private ProjectRepository projectRepository;
+    
+    @Autowired
+    private LocaleResolver localeResolver;
+    
+    public ProjectDTO findById(UUID id, HttpServletRequest request) {
+        Project project = projectRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+        
+        Locale locale = localeResolver.resolveLocale(request);
+        String localeCode = locale.toString();
+        
+        ProjectTranslation translation = project.getTranslation(localeCode);
+        
+        ProjectDTO dto = new ProjectDTO();
+        // 基本情報のマッピング
+        dto.setId(project.getId());
+        dto.setCode(project.getCode());
+        dto.setStatus(project.getStatus());
+        dto.setStartDate(project.getStartDate());
+        dto.setEndDate(project.getEndDate());
+        
+        // 翻訳情報のマッピング
+        if (translation != null) {
+            dto.setName(translation.getName());
+            dto.setDescription(translation.getDescription());
+            dto.setRemarks(translation.getRemarks());
+        }
+        
+        return dto;
+    }
+}</code></pre>
+
+    <h2>6. フロントエンド実装</h2>
+
+    <h3>6.1 React i18n設定</h3>
+    <p>React/Typescript環境での国際化実装：</p>
+    <pre><code>// src/i18n/config.ts
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
+import Backend from 'i18next-xhr-backend';
+import LanguageDetector from 'i18next-browser-languagedetector';
+
+// 言語リソース
+import commonJa from './locales/ja/common.json';
+import commonEn from './locales/en/common.json';
+import projectJa from './locales/ja/project.json';
+import projectEn from './locales/en/project.json';
+
+// 言語リソースをまとめる
+const resources = {
+  ja: {
+    common: commonJa,
+    project: projectJa,
+  },
+  en: {
+    common: commonEn,
+    project: projectEn,
+  }
+};
+
+i18n
+  // 言語検出プラグイン
+  .use(LanguageDetector)
+  // バックエンドプラグイン（動的ロード時に使用）
+  .use(Backend)
+  // Reactと統合するプラグイン
+  .use(initReactI18next)
+  // 初期化
+  .init({
+    resources,
+    lng: 'ja', // デフォルト言語
+    fallbackLng: 'ja', // フォールバック言語
+    ns: ['common', 'project'], // 名前空間
+    defaultNS: 'common', // デフォルト名前空間
+    interpolation: {
+      escapeValue: false, // Reactの場合はエスケープ不要
+    },
+    detection: {
+      order: ['localStorage', 'cookie', 'navigator'],
+      lookupCookie: 'i18n_lang',
+      lookupLocalStorage: 'i18n_lang',
+      caches: ['localStorage', 'cookie'],
+    },
+  });
+
+export default i18n;
+
+// src/i18n/useI18n.ts
+import { useTranslation } from 'react-i18next';
+import { useIntl } from 'react-intl';
+import { MessageKey } from './types';
+
+export const useI18n = () => {
+  const { t } = useTranslation();
+  const intl = useIntl();
+  
+  return {
+    t: (key: MessageKey, options?: object) => t(key, options),
+    
+    formatDate: (date: Date | string, options?: Intl.DateTimeFormatOptions) => {
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      return intl.formatDate(dateObj, options);
+    },
+    
+    formatNumber: (value: number, options?: Intl.NumberFormatOptions) => {
+      return intl.formatNumber(value, options);
+    },
+    
+    formatCurrency: (value: number, currency?: string, options?: Intl.NumberFormatOptions) => {
+      return intl.formatNumber(value, {
+        style: 'currency',
+        currency: currency || 'JPY',
+        ...options,
+      });
+    },
+  };
+};
+
+// src/i18n/types.ts
+export type MessageKey = 
+  | 'common.button.save'
+  | 'common.button.cancel'
+  | 'project.label.projectName'
+  | 'project.validation.projectName.required'
+  // ... 他のメッセージキー
+  ;</code></pre>
+
+    <h3>6.2 I18nコンテキストプロバイダー</h3>
+    <p>アプリケーション全体への国際化コンテキスト提供：</p>
+    <pre><code>// src/i18n/I18nProvider.tsx
+import React, { useState, useEffect, createContext } from 'react';
+import { IntlProvider } from 'react-intl';
+import i18n from './config';
+import { Locale } from './types';
+
+type I18nContextType = {
+  locale: Locale;
+  changeLocale: (locale: Locale) => void;
+};
+
+export const I18nContext = createContext<I18nContextType>({
+  locale: 'ja',
+  changeLocale: () => {},
+});
+
+export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [locale, setLocale] = useState<Locale>('ja');
+  
+  useEffect(() => {
+    // 初期言語の設定
+    const initialLocale = i18n.language as Locale;
+    setLocale(initialLocale);
+  }, []);
+  
+  const changeLocale = (newLocale: Locale) => {
+    i18n.changeLanguage(newLocale);
+    setLocale(newLocale);
+    // ローカルストレージに保存
+    localStorage.setItem('i18n_lang', newLocale);
+    // APIに設定を保存（認証済みの場合）
+    if (isAuthenticated()) {
+      saveUserLocale(newLocale);
+    }
+  };
+  
+  return (
+    <I18nContext.Provider value={{ locale, changeLocale }}>
+      <IntlProvider
+        locale={locale}
+        defaultLocale="ja"
+        messages={getMessagesForLocale(locale)}
+      >
+        {children}
+      </IntlProvider>
+    </I18nContext.Provider>
+  );
+};
+
+// メッセージの取得関数
+const getMessagesForLocale = (locale: Locale) => {
+  // i18nextからIntlProvider用のメッセージ形式に変換
+  const resources = i18n.getResourceBundle(locale, 'common');
+  const projectResources = i18n.getResourceBundle(locale, 'project');
+  
+  return {
+    ...resources,
+    ...projectResources,
+  };
+};
+
+// ユーザー設定の保存
+const saveUserLocale = async (locale: Locale) => {
+  try {
+    await fetch('/api/v1/users/preferences/locale', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ locale }),
+    });
+  } catch (error) {
+    console.error('Failed to save locale preference', error);
+  }
+};</code></pre>
+
+    <h3>6.3 言語切り替えコンポーネント</h3>
+    <p>言語切り替えUIの実装：</p>
+    <pre><code>// src/components/LanguageSwitcher.tsx
+import React, { useContext } from 'react';
+import { I18nContext } from '../i18n/I18nProvider';
+import { useI18n } from '../i18n/useI18n';
+import { Locale } from '../i18n/types';
+
+const LanguageSwitcher: React.FC = () => {
+  const { locale, changeLocale } = useContext(I18nContext);
+  const { t } = useI18n();
+  
+  const languages = [
+    { code: 'ja', name: '日本語' },
+    { code: 'en', name: 'English' },
+  ];
+  
+  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    changeLocale(e.target.value as Locale);
+  };
+  
+  return (
+    <div className="language-switcher">
+      <select value={locale} onChange={handleChange} aria-label={t('common.accessibility.languageSelector')}>
+        {languages.map(lang => (
+          <option key={lang.code} value={lang.code}>
+            {lang.name}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+};
+
+export default LanguageSwitcher;</code></pre>
+
+    <h3>6.4 使用例</h3>
+    <p>コンポーネント内での翻訳機能の使用例：</p>
+    <pre><code>// src/pages/project/CreateProject.tsx
+import React, { useState } from 'react';
+import { useI18n } from '../../i18n/useI18n';
+
+const CreateProject: React.FC = () => {
+  const { t, formatDate, formatCurrency } = useI18n();
+  const [project, setProject] = useState({
+    name: '',
+    startDate: '',
+    endDate: '',
+    budget: 0,
+  });
+  
+  // 省略...
+  
+  return (
+    <div className="create-project">
+      <h1>{t('project.heading.createProject')}</h1>
+      <form onSubmit={handleSubmit}>
+        <div className="form-group">
+          <label htmlFor="name">{t('project.label.projectName')}</label>
+          <input
+            id="name"
+            name="name"
+            value={project.name}
+            onChange={handleChange}
+            placeholder={t('project.placeholder.projectName')}
+            required
+          />
+        </div>
+        
+        <div className="form-group">
+          <label htmlFor="startDate">{t('project.label.startDate')}</label>
+          <input
+            id="startDate"
+            name="startDate"
+            type="date"
+            value={project.startDate}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        
+        <div className="form-group">
+          <label htmlFor="endDate">{t('project.label.endDate')}</label>
+          <input
+            id="endDate"
+            name="endDate"
+            type="date"
+            value={project.endDate}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        
+        <div className="form-group">
+          <label htmlFor="budget">{t('project.label.budget')}</label>
+          <input
+            id="budget"
+            name="budget"
+            type="number"
+            value={project.budget}
+            onChange={handleChange}
+            required
+          />
+          <span className="helper-text">
+            {formatCurrency(project.budget)}
+          </span>
+        </div>
+        
+        <div className="form-actions">
+          <button type="submit" className="btn-primary">
+            {t('common.button.save')}
+          </button>
+          <button type="button" className="btn-secondary" onClick={handleCancel}>
+            {t('common.button.cancel')}
+          </button>
+        </div>
+      </form>
+    </div>
+  );
+};</code></pre>
+
+    <h2>7. バックエンド実装</h2>
+
+    <h3>7.1 Spring国際化設定</h3>
+    <p>Spring Boot 国際化設定：</p>
+    <pre><code>@Configuration
+public class I18nConfig implements WebMvcConfigurer {
+    
+    @Bean
+    public LocaleResolver localeResolver() {
+        CookieLocaleResolver resolver = new CookieLocaleResolver();
+        resolver.setCookieName("i18n_lang");
+        resolver.setCookieMaxAge(Duration.ofDays(365)); // 1年間有効
+        resolver.setDefaultLocale(Locale.JAPANESE);
+        return resolver;
+    }
+    
+    @Bean
+    public LocaleChangeInterceptor localeChangeInterceptor() {
+        LocaleChangeInterceptor interceptor = new LocaleChangeInterceptor();
+        interceptor.setParamName("lang"); // 言語パラメータ名
+        return interceptor;
+    }
+    
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(localeChangeInterceptor());
+    }
+    
+    @Bean
+    public MessageSource messageSource() {
+        ReloadableResourceBundleMessageSource messageSource = 
+            new ReloadableResourceBundleMessageSource();
+        messageSource.setBasenames(
+            "classpath:i18n/common",
+            "classpath:i18n/validation",
+            "classpath:i18n/error",
+            "classpath:i18n/project",
+            "classpath:i18n/engineer"
+        );
+        messageSource.setDefaultEncoding("UTF-8");
+        messageSource.setCacheSeconds(3600); // 1時間キャッシュ
+        return messageSource;
+    }
+    
+    @Bean
+    public MessageSourceAccessor messageSourceAccessor(MessageSource messageSource) {
+        return new MessageSourceAccessor(messageSource);
+    }
+    
+    @Bean
+    public LocalValidatorFactoryBean validator() {
+        LocalValidatorFactoryBean bean = new LocalValidatorFactoryBean();
+        bean.setValidationMessageSource(messageSource());
+        return bean;
+    }
+}</code></pre>
+
+    <h3>7.2 メッセージの使用例</h3>
+    <p>Springコントローラーでのメッセージ使用例：</p>
+    <pre><code>@RestController
+@RequestMapping("/api/v1/projects")
+public class ProjectController {
+    
+    @Autowired
+    private ProjectService projectService;
+    
+    @Autowired
+    private MessageSource messageSource;
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponse<ProjectDTO>> getProject(
+            @PathVariable UUID id, 
+            HttpServletRequest request) {
+        try {
+            ProjectDTO project = projectService.findById(id, request);
+            return ResponseEntity.ok(ApiResponse.success(project));
+        } catch (ResourceNotFoundException e) {
+            Locale locale = LocaleContextHolder.getLocale();
+            String message = messageSource.getMessage(
+                "error.project.notFound", 
+                new Object[]{id}, 
+                locale
+            );
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(message));
+        }
+    }
+    
+    @PostMapping
+    public ResponseEntity<ApiResponse<ProjectDTO>> createProject(
+            @Valid @RequestBody ProjectCreateRequest request,
+            HttpServletRequest httpRequest) {
+        ProjectDTO project = projectService.createProject(request, httpRequest);
+        
+        // 成功メッセージ取得
+        Locale locale = LocaleContextHolder.getLocale();
+        String message = messageSource.getMessage(
+            "success.project.created", 
+            new Object[]{project.getName()}, 
+            locale
+        );
+        
+        return ResponseEntity.status(HttpStatus.CREATED)
+            .body(ApiResponse.success(project, message));
+    }
+}</code></pre>
+
+    <h3>7.3 ロケール対応レスポンス</h3>
+    <p>バックエンドからのレスポンス構造：</p>
+    <pre><code>public class ApiResponse<T> {
+    private final String status;
+    private final T data;
+    private final String message;
+    private final Map<String, Object> meta;
+    
+    private ApiResponse(String status, T data, String message, Map<String, Object> meta) {
+        this.status = status;
+        this.data = data;
+        this.message = message;
+        this.meta = meta;
+    }
+    
+    public static <T> ApiResponse<T> success(T data) {
+        return success(data, null);
+    }
+    
+    public static <T> ApiResponse<T> success(T data, String message) {
+        return new ApiResponse<>("success", data, message, null);
+    }
+    
+    public static <T> ApiResponse<T> error(String message) {
+        return new ApiResponse<>("error", null, message, null);
+    }
+    
+    public static <T> ApiResponse<T> error(String message, Map<String, Object> meta) {
+        return new ApiResponse<>("error", null, message, meta);
+    }
+    
+    // ゲッター
+    
+    public String getStatus() {
+        return status;
+    }
+    
+    public T getData() {
+        return data;
+    }
+    
+    public String getMessage() {
+        return message;
+    }
+    
+    public Map<String, Object> getMeta() {
+        return meta;
+    }
+}</code></pre>
+
+    <h2>8. ローカライズテスト</h2>
+
+    <h3>8.1 テスト方法</h3>
+    <ul>
+        <li><strong>単体テスト</strong>: 
+            <ul>
+                <li>メッセージリソースのロード確認</li>
+                <li>異なるロケールでのメッセージ解決の確認</li>
+                <li>パラメータ置換の確認</li>
+                <li>日付・数値フォーマットの確認</li>
+            </ul>
+        </li>
+        <li><strong>統合テスト</strong>: 
+            <ul>
+                <li>APIからの多言語レスポンスの確認</li>
+                <li>ロケール変更の反映確認</li>
+            </ul>
+        </li>
+        <li><strong>UIテスト</strong>: 
+            <ul>
+                <li>画面表示テキストの多言語対応確認</li>
+                <li>言語切り替え機能の動作確認</li>
+                <li>レイアウトの崩れがないことの確認</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>8.2 テストコード例</h3>
+    <p>メッセージリソースのテスト例：</p>
+    <pre><code>@RunWith(SpringRunner.class)
+@SpringBootTest
+public class I18nMessageTest {
+    
+    @Autowired
+    private MessageSource messageSource;
+    
+    @Test
+    public void testJapaneseMessages() {
+        Locale locale = Locale.JAPANESE;
+        
+        // 基本メッセージの確認
+        assertEquals("保存", messageSource.getMessage("common.button.save", null, locale));
+        assertEquals("キャンセル", messageSource.getMessage("common.button.cancel", null, locale));
+        
+        // パラメータ置換の確認
+        String message = messageSource.getMessage(
+            "project.validation.dateRange", 
+            new Object[]{"開始日", "終了日"}, 
+            locale
+        );
+        assertEquals("開始日は終了日より前の日付を指定してください", message);
+    }
+    
+    @Test
+    public void testEnglishMessages() {
+        Locale locale = Locale.ENGLISH;
+        
+        // 基本メッセージの確認
+        assertEquals("Save", messageSource.getMessage("common.button.save", null, locale));
+        assertEquals("Cancel", messageSource.getMessage("common.button.cancel", null, locale));
+        
+        // パラメータ置換の確認
+        String message = messageSource.getMessage(
+            "project.validation.dateRange", 
+            new Object[]{"Start date", "End date"}, 
+            locale
+        );
+        assertEquals("Start date must be before End date", message);
+    }
+}</code></pre>
+
+    <h2>9. 運用・保守</h2>
+
+    <h3>9.1 リソース管理</h3>
+    <ul>
+        <li><strong>リソース追加プロセス</strong>: 
+            <ul>
+                <li>新機能追加時には同時に多言語リソースを追加</li>
+                <li>すべての対応言語でリソースを追加（日本語・英語）</li>
+                <li>リソースキーの命名規則を遵守</li>
+            </ul>
+        </li>
+        <li><strong>リソース更新プロセス</strong>: 
+            <ul>
+                <li>文言変更時にはすべての言語版を同時に更新</li>
+                <li>使われなくなったリソースキーの削除</li>
+            </ul>
+        </li>
+        <li><strong>品質管理</strong>: 
+            <ul>
+                <li>翻訳の一貫性確認</li>
+                <li>コンテキストに応じた自然な表現の採用</li>
+                <li>専門用語の統一</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>9.2 パフォーマンス最適化</h3>
+    <ul>
+        <li><strong>キャッシュ戦略</strong>: 
+            <ul>
+                <li>サーバーサイドでのメッセージキャッシュ</li>
+                <li>クライアントサイドでのリソースバンドル分割と動的ロード</li>
+            </ul>
+        </li>
+        <li><strong>バンドルサイズ最適化</strong>: 
+            <ul>
+                <li>不要なリソースの削除</li>
+                <li>モジュール別のリソース分割</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>10. 制約・課題</h2>
+    <ul>
+        <li><strong>翻訳品質</strong>: 技術的な翻訳の品質確保</li>
+        <li><strong>リソース管理の複雑さ</strong>: 多言語対応によるメンテナンス工数の増加</li>
+        <li><strong>UI設計上の制約</strong>: テキスト長の変化に対応するレイアウト設計の複雑化</li>
+        <li><strong>パフォーマンス影響</strong>: 多言語リソースによるバンドルサイズ増加</li>
+        <li><strong>テスト工数の増加</strong>: 各言語での動作確認の必要性</li>
+    </ul>
+
+    <div class="navigation">
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1007 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム ユーザー管理機能 基本設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム ユーザー管理機能 基本設計書</h1>
+
+    <h2>1. はじめに</h2>
+    <p>本書は、SES業務システムにおけるユーザー管理機能の基本設計を定義したものである。
+    システム全体のユーザー、ロール、権限の管理方法およびユーザーのライフサイクル管理に関する実装方針について記述する。</p>
+
+    <h2>2. 機能概要</h2>
+    <p>ユーザー管理機能は、SES業務システムにおけるユーザーアカウントの作成、編集、無効化、ロール割り当てなどを担当する
+    基盤的な共通機能である。本機能により、システム管理者は適切なユーザー管理とアクセス制御を実現できる。</p>
+
+    <h2>3. ユーザー管理機能設計</h2>
+
+    <h3>3.1 機能構成</h3>
+    <p>ユーザー管理機能は以下のサブ機能で構成される：</p>
+    <ol>
+        <li><strong>ユーザーアカウント管理</strong>: ユーザーの登録・編集・無効化</li>
+        <li><strong>ロール管理</strong>: ロールの定義・権限設定</li>
+        <li><strong>権限割り当て</strong>: ユーザーへのロール割り当て</li>
+        <li><strong>組織階層管理</strong>: 部門構造と所属管理</li>
+        <li><strong>アカウントセキュリティ管理</strong>: パスワードリセット・アカウントロック解除</li>
+    </ol>
+
+    <h3>3.2 ユーザーアカウント管理</h3>
+
+    <h4>3.2.1 ユーザーモデル</h4>
+    <p>ユーザーは以下の属性で管理される：</p>
+    <table>
+        <tr>
+            <th>属性</th>
+            <th>型</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>id</td>
+            <td>UUID</td>
+            <td>ユーザーの一意識別子</td>
+        </tr>
+        <tr>
+            <td>userId</td>
+            <td>String</td>
+            <td>ユーザーID（ログイン用）</td>
+        </tr>
+        <tr>
+            <td>email</td>
+            <td>String</td>
+            <td>メールアドレス</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>String</td>
+            <td>氏名</td>
+        </tr>
+        <tr>
+            <td>department</td>
+            <td>String</td>
+            <td>所属部門</td>
+        </tr>
+        <tr>
+            <td>position</td>
+            <td>String</td>
+            <td>役職</td>
+        </tr>
+        <tr>
+            <td>phone</td>
+            <td>String</td>
+            <td>電話番号</td>
+        </tr>
+        <tr>
+            <td>passwordHash</td>
+            <td>String</td>
+            <td>パスワードハッシュ値</td>
+        </tr>
+        <tr>
+            <td>mfaEnabled</td>
+            <td>Boolean</td>
+            <td>多要素認証の有効/無効</td>
+        </tr>
+        <tr>
+            <td>status</td>
+            <td>Enum</td>
+            <td>アカウント状態（有効/無効/ロック中）</td>
+        </tr>
+        <tr>
+            <td>lastLoginAt</td>
+            <td>DateTime</td>
+            <td>最終ログイン日時</td>
+        </tr>
+        <tr>
+            <td>loginAttempts</td>
+            <td>Integer</td>
+            <td>連続ログイン失敗回数</td>
+        </tr>
+        <tr>
+            <td>passwordExpiresAt</td>
+            <td>DateTime</td>
+            <td>パスワード有効期限</td>
+        </tr>
+        <tr>
+            <td>createdAt</td>
+            <td>DateTime</td>
+            <td>アカウント作成日時</td>
+        </tr>
+        <tr>
+            <td>updatedAt</td>
+            <td>DateTime</td>
+            <td>アカウント更新日時</td>
+        </tr>
+    </table>
+
+    <h4>3.2.2 アカウントライフサイクル</h4>
+    <p>ユーザーアカウントのライフサイクルは以下のステータスで管理される：</p>
+    <ol>
+        <li><strong>作成</strong>: システム管理者によるアカウント作成</li>
+        <li><strong>有効化</strong>: アカウントの有効化と初回パスワード設定</li>
+        <li><strong>アクティブ</strong>: 通常の利用状態</li>
+        <li><strong>ロック</strong>: 連続したログイン失敗や不正アクセス検知によるロック</li>
+        <li><strong>無効化</strong>: 退職や長期不使用によるアカウント無効化</li>
+        <li><strong>削除</strong>: 物理削除（監査のため基本的には実行しない）</li>
+    </ol>
+
+    <h4>3.2.3 管理機能</h4>
+    <p>ユーザーアカウント管理では以下の機能を提供する：</p>
+    <ul>
+        <li><strong>ユーザー検索</strong>: ID、名前、メールアドレス、ロール、ステータスによる検索</li>
+        <li><strong>一覧表示</strong>: ページング機能付きのユーザー一覧表示</li>
+        <li><strong>新規登録</strong>: 新規ユーザーの登録</li>
+        <li><strong>編集</strong>: 既存ユーザー情報の更新</li>
+        <li><strong>ステータス変更</strong>: アカウントの有効化/無効化</li>
+        <li><strong>ロール割り当て</strong>: ユーザーへのロール付与/削除</li>
+        <li><strong>パスワードリセット</strong>: 仮パスワード発行とメール送信</li>
+    </ul>
+
+    <h3>3.3 ロール管理機能</h3>
+
+    <h4>3.3.1 ロールモデル</h4>
+    <p>ロールは以下の属性で管理される：</p>
+    <table>
+        <tr>
+            <th>属性</th>
+            <th>型</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>id</td>
+            <td>UUID</td>
+            <td>ロールの一意識別子</td>
+        </tr>
+        <tr>
+            <td>roleId</td>
+            <td>String</td>
+            <td>ロールID</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>String</td>
+            <td>ロール名称</td>
+        </tr>
+        <tr>
+            <td>description</td>
+            <td>String</td>
+            <td>ロールの説明</td>
+        </tr>
+        <tr>
+            <td>roleType</td>
+            <td>Enum</td>
+            <td>ロール区分（システム/業務）</td>
+        </tr>
+        <tr>
+            <td>createdAt</td>
+            <td>DateTime</td>
+            <td>ロール作成日時</td>
+        </tr>
+        <tr>
+            <td>updatedAt</td>
+            <td>DateTime</td>
+            <td>ロール更新日時</td>
+        </tr>
+    </table>
+
+    <h4>3.3.2 ロール区分</h4>
+    <p>ロールは以下の区分に分類される：</p>
+    <ol>
+        <li><strong>システムロール</strong>: システム管理機能へのアクセス権限を定義
+            <ul>
+                <li>システム管理者</li>
+                <li>セキュリティ管理者</li>
+                <li>監査者</li>
+            </ul>
+        </li>
+        <li><strong>業務ロール</strong>: 業務機能へのアクセス権限を定義
+            <ul>
+                <li>営業管理者</li>
+                <li>人事管理者</li>
+                <li>経理管理者</li>
+                <li>営業担当者</li>
+                <li>人事担当者</li>
+                <li>経理担当者</li>
+                <li>マッチング担当者</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h4>3.3.3 プリセットロール</h4>
+    <p>システムには以下のプリセットロールを提供する：</p>
+    <table>
+        <tr>
+            <th>ロール</th>
+            <th>説明</th>
+            <th>主な権限</th>
+        </tr>
+        <tr>
+            <td>システム管理者</td>
+            <td>システム全体の管理権限</td>
+            <td>すべての機能への完全アクセス</td>
+        </tr>
+        <tr>
+            <td>セキュリティ管理者</td>
+            <td>セキュリティ関連の管理権限</td>
+            <td>ユーザー管理（参照、ロック/ロック解除）、監査ログ管理、セキュリティ設定</td>
+        </tr>
+        <tr>
+            <td>監査者</td>
+            <td>監査・参照権限</td>
+            <td>すべての機能への参照のみアクセス</td>
+        </tr>
+        <tr>
+            <td>営業管理者</td>
+            <td>営業部門の管理権限</td>
+            <td>案件管理機能の管理、営業データの参照/更新</td>
+        </tr>
+        <tr>
+            <td>人事管理者</td>
+            <td>人事部門の管理権限</td>
+            <td>技術者管理機能の管理、人事データの参照/更新</td>
+        </tr>
+        <tr>
+            <td>経理管理者</td>
+            <td>経理部門の管理権限</td>
+            <td>請求支払機能の管理、経理データの参照/更新</td>
+        </tr>
+        <tr>
+            <td>営業担当者</td>
+            <td>営業担当の基本権限</td>
+            <td>案件情報の登録/更新、担当案件の参照</td>
+        </tr>
+        <tr>
+            <td>人事担当者</td>
+            <td>人事担当の基本権限</td>
+            <td>技術者情報の登録/更新、担当技術者の参照</td>
+        </tr>
+        <tr>
+            <td>経理担当者</td>
+            <td>経理担当の基本権限</td>
+            <td>請求書の作成、入金情報の登録</td>
+        </tr>
+        <tr>
+            <td>マッチング担当者</td>
+            <td>マッチング担当の基本権限</td>
+            <td>マッチング機能の利用、提案書作成</td>
+        </tr>
+    </table>
+
+    <h4>3.3.4 管理機能</h4>
+    <p>ロール管理では以下の機能を提供する：</p>
+    <ul>
+        <li><strong>ロール一覧表示</strong>: システムに定義されたロールの一覧表示</li>
+        <li><strong>ロール新規作成</strong>: 新しいロールの定義</li>
+        <li><strong>ロール編集</strong>: 既存ロールの更新</li>
+        <li><strong>ロール削除</strong>: 不要なロールの削除</li>
+        <li><strong>ロール複製</strong>: 既存ロールを基にした新規ロール作成</li>
+        <li><strong>権限設定</strong>: ロールに対する権限の設定</li>
+    </ul>
+
+    <h3>3.4 権限管理機能</h3>
+
+    <h4>3.4.1 権限モデル</h4>
+    <p>権限は以下の属性で管理される：</p>
+    <table>
+        <tr>
+            <th>属性</th>
+            <th>型</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>id</td>
+            <td>UUID</td>
+            <td>権限の一意識別子</td>
+        </tr>
+        <tr>
+            <td>permissionId</td>
+            <td>String</td>
+            <td>権限ID</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>String</td>
+            <td>権限名称</td>
+        </tr>
+        <tr>
+            <td>description</td>
+            <td>String</td>
+            <td>権限の説明</td>
+        </tr>
+        <tr>
+            <td>resourceType</td>
+            <td>String</td>
+            <td>リソース種別（機能グループ）</td>
+        </tr>
+        <tr>
+            <td>resourceName</td>
+            <td>String</td>
+            <td>リソース名（機能）</td>
+        </tr>
+        <tr>
+            <td>action</td>
+            <td>String</td>
+            <td>アクション（参照/編集/実行）</td>
+        </tr>
+    </table>
+
+    <h4>3.4.2 権限階層</h4>
+    <p>権限は以下の階層構造で管理される：</p>
+    <ol>
+        <li><strong>機能グループ</strong>: 関連する機能の集合（案件管理、技術者管理など）</li>
+        <li><strong>機能</strong>: 特定の機能単位（案件登録、案件検索など）</li>
+        <li><strong>アクション</strong>: 機能に対する操作（参照、編集、削除など）</li>
+    </ol>
+
+    <h4>3.4.3 ロール・権限関連付け</h4>
+    <p>ロールと権限の関連付けは以下のモデルで管理される：</p>
+    <table>
+        <tr>
+            <th>属性</th>
+            <th>型</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>roleId</td>
+            <td>UUID</td>
+            <td>ロールID（外部キー）</td>
+        </tr>
+        <tr>
+            <td>permissionId</td>
+            <td>UUID</td>
+            <td>権限ID（外部キー）</td>
+        </tr>
+        <tr>
+            <td>accessLevel</td>
+            <td>Enum</td>
+            <td>アクセスレベル（なし/閲覧/編集）</td>
+        </tr>
+    </table>
+
+    <h4>3.4.4 管理機能</h4>
+    <p>権限管理では以下の機能を提供する：</p>
+    <ul>
+        <li><strong>権限一覧表示</strong>: システムに定義された権限の一覧表示</li>
+        <li><strong>権限グループ管理</strong>: 機能グループの階層構造管理</li>
+        <li><strong>ロールへの権限割り当て</strong>: ロールに対する権限の付与/削除</li>
+        <li><strong>アクセスレベル設定</strong>: 各権限に対するアクセスレベル（なし/閲覧/編集）の設定</li>
+    </ul>
+
+    <h3>3.5 ユーザー・ロール関連付け</h3>
+
+    <h4>3.5.1 ユーザー・ロール関連モデル</h4>
+    <p>ユーザーとロールの関連付けは以下のモデルで管理される：</p>
+    <table>
+        <tr>
+            <th>属性</th>
+            <th>型</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>userId</td>
+            <td>UUID</td>
+            <td>ユーザーID（外部キー）</td>
+        </tr>
+        <tr>
+            <td>roleId</td>
+            <td>UUID</td>
+            <td>ロールID（外部キー）</td>
+        </tr>
+        <tr>
+            <td>assignedAt</td>
+            <td>DateTime</td>
+            <td>割り当て日時</td>
+        </tr>
+        <tr>
+            <td>assignedBy</td>
+            <td>UUID</td>
+            <td>割り当てを行ったユーザーID</td>
+        </tr>
+        <tr>
+            <td>expiresAt</td>
+            <td>DateTime</td>
+            <td>有効期限（一時的な権限付与の場合）</td>
+        </tr>
+    </table>
+
+    <h4>3.5.2 管理機能</h4>
+    <p>ユーザー・ロール関連付け管理では以下の機能を提供する：</p>
+    <ul>
+        <li><strong>ユーザーへのロール割り当て</strong>: ユーザーに対するロールの付与</li>
+        <li><strong>ユーザーからのロール削除</strong>: ユーザーからのロールの削除</li>
+        <li><strong>一時的なロール付与</strong>: 期限付きでのロール付与</li>
+        <li><strong>ロール割り当て履歴</strong>: ロール割り当ての変更履歴表示</li>
+    </ul>
+
+    <h2>4. UI設計</h2>
+
+    <h3>4.1 ユーザー管理画面</h3>
+
+    <p>ユーザー管理画面（ADM-001）は以下の構成を持つ：</p>
+
+    <ul>
+        <li><strong>検索条件部</strong>:
+            <ul>
+                <li>ユーザーID</li>
+                <li>ユーザー名</li>
+                <li>メールアドレス</li>
+                <li>ロール</li>
+                <li>ステータス（有効/無効/すべて）</li>
+                <li>検索ボタン</li>
+                <li>クリアボタン</li>
+            </ul>
+        </li>
+        <li><strong>ユーザー一覧部</strong>:
+            <ul>
+                <li>新規登録ボタン</li>
+                <li>一括操作ドロップダウン（有効化/無効化/ロック解除）</li>
+                <li>ユーザー一覧（ID、名前、メールアドレス、ロール、所属部門、ステータス、最終ログイン日時）</li>
+                <li>各ユーザーに対する操作（編集/パスワードリセット/有効化・無効化）</li>
+                <li>ページング</li>
+            </ul>
+        </li>
+        <li><strong>ユーザー登録/編集モーダル</strong>:
+            <ul>
+                <li>ユーザーID</li>
+                <li>氏名</li>
+                <li>メールアドレス</li>
+                <li>パスワード（新規登録時のみ）</li>
+                <li>ロール</li>
+                <li>所属部門</li>
+                <li>電話番号</li>
+                <li>多要素認証</li>
+                <li>アカウントロック（編集時のみ）</li>
+                <li>保存ボタン</li>
+                <li>キャンセルボタン</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>4.2 ロール管理画面</h3>
+
+    <p>ロール管理画面（ADM-002）は以下の構成を持つ：</p>
+
+    <ul>
+        <li><strong>ロール一覧部</strong>:
+            <ul>
+                <li>新規ロール作成ボタン</li>
+                <li>ロール一覧（ID、名前、説明、ユーザー数、作成日時、最終更新日時）</li>
+                <li>各ロールに対する操作（編集/削除/複製）</li>
+                <li>ページング</li>
+            </ul>
+        </li>
+        <li><strong>ロール登録/編集モーダル</strong>:
+            <ul>
+                <li><strong>基本情報タブ</strong>:
+                    <ul>
+                        <li>ロールID</li>
+                        <li>ロール名</li>
+                        <li>説明</li>
+                        <li>ロール区分（システム/業務）</li>
+                    </ul>
+                </li>
+                <li><strong>権限設定タブ</strong>:
+                    <ul>
+                        <li>機能グループのツリービュー</li>
+                        <li>各機能項目に対するアクセス権限設定（なし/閲覧/編集）</li>
+                        <li>一括選択/解除ボタン</li>
+                    </ul>
+                </li>
+                <li><strong>共通操作ボタン</strong>:
+                    <ul>
+                        <li>保存ボタン</li>
+                        <li>キャンセルボタン</li>
+                    </ul>
+                </li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>5. API設計</h2>
+
+    <h3>5.1 ユーザー管理API</h3>
+
+    <table>
+        <tr>
+            <th>エンドポイント</th>
+            <th>メソッド</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users</td>
+            <td>GET</td>
+            <td>ユーザー一覧取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users/{id}</td>
+            <td>GET</td>
+            <td>ユーザー詳細取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users</td>
+            <td>POST</td>
+            <td>ユーザー新規作成</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users/{id}</td>
+            <td>PUT</td>
+            <td>ユーザー情報更新</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users/{id}/status</td>
+            <td>PUT</td>
+            <td>ユーザーステータス更新</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users/{id}/password/reset</td>
+            <td>POST</td>
+            <td>パスワードリセット</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users/{id}/unlock</td>
+            <td>POST</td>
+            <td>アカウントロック解除</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users/bulk-status</td>
+            <td>PUT</td>
+            <td>複数ユーザーのステータス一括更新</td>
+        </tr>
+    </table>
+
+    <h3>5.2 ロール管理API</h3>
+
+    <table>
+        <tr>
+            <th>エンドポイント</th>
+            <th>メソッド</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/roles</td>
+            <td>GET</td>
+            <td>ロール一覧取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/roles/{id}</td>
+            <td>GET</td>
+            <td>ロール詳細取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/roles</td>
+            <td>POST</td>
+            <td>ロール新規作成</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/roles/{id}</td>
+            <td>PUT</td>
+            <td>ロール情報更新</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/roles/{id}</td>
+            <td>DELETE</td>
+            <td>ロール削除</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/roles/{id}/clone</td>
+            <td>POST</td>
+            <td>ロール複製</td>
+        </tr>
+    </table>
+
+    <h3>5.3 権限管理API</h3>
+
+    <table>
+        <tr>
+            <th>エンドポイント</th>
+            <th>メソッド</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/permissions</td>
+            <td>GET</td>
+            <td>権限一覧取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/permissions/groups</td>
+            <td>GET</td>
+            <td>権限グループ階層取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/roles/{roleId}/permissions</td>
+            <td>GET</td>
+            <td>ロールの権限一覧取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/roles/{roleId}/permissions</td>
+            <td>PUT</td>
+            <td>ロールの権限更新</td>
+        </tr>
+    </table>
+
+    <h3>5.4 ユーザーロール管理API</h3>
+
+    <table>
+        <tr>
+            <th>エンドポイント</th>
+            <th>メソッド</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users/{userId}/roles</td>
+            <td>GET</td>
+            <td>ユーザーのロール一覧取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users/{userId}/roles</td>
+            <td>PUT</td>
+            <td>ユーザーのロール更新</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users/{userId}/roles/{roleId}</td>
+            <td>POST</td>
+            <td>ユーザーにロールを付与</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users/{userId}/roles/{roleId}</td>
+            <td>DELETE</td>
+            <td>ユーザーからロールを削除</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/roles/{roleId}/users</td>
+            <td>GET</td>
+            <td>ロールが付与されたユーザー一覧取得</td>
+        </tr>
+    </table>
+
+    <h2>6. 技術的実装</h2>
+
+    <h3>6.1 使用技術</h3>
+
+    <ul>
+        <li><strong>フレームワーク</strong>: Spring Boot + Spring Security</li>
+        <li><strong>ORM</strong>: Spring Data JPA</li>
+        <li><strong>UI</strong>: Thymeleaf + Bootstrap</li>
+    </ul>
+
+    <h3>6.2 データモデル設計</h3>
+
+    <p>以下のエンティティを実装する：</p>
+
+    <pre><code>// Userエンティティ
+@Entity
+@Table(name = "users")
+public class User {
+    @Id
+    private UUID id;
+    
+    @Column(unique = true, nullable = false)
+    private String userId;
+    
+    @Column(unique = true, nullable = false)
+    private String email;
+    
+    @Column(nullable = false)
+    private String name;
+    
+    private String department;
+    
+    private String position;
+    
+    private String phone;
+    
+    @Column(nullable = false)
+    private String passwordHash;
+    
+    private boolean mfaEnabled;
+    
+    @Enumerated(EnumType.STRING)
+    private UserStatus status;
+    
+    private LocalDateTime lastLoginAt;
+    
+    private int loginAttempts;
+    
+    private LocalDateTime passwordExpiresAt;
+    
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+    
+    @ManyToMany
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles = new HashSet<>();
+}
+
+// Roleエンティティ
+@Entity
+@Table(name = "roles")
+public class Role {
+    @Id
+    private UUID id;
+    
+    @Column(unique = true, nullable = false)
+    private String roleId;
+    
+    @Column(nullable = false)
+    private String name;
+    
+    private String description;
+    
+    @Enumerated(EnumType.STRING)
+    private RoleType roleType;
+    
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+    
+    @ManyToMany(mappedBy = "roles")
+    private Set<User> users = new HashSet<>();
+    
+    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<RolePermission> rolePermissions = new HashSet<>();
+}
+
+// Permissionエンティティ
+@Entity
+@Table(name = "permissions")
+public class Permission {
+    @Id
+    private UUID id;
+    
+    @Column(unique = true, nullable = false)
+    private String permissionId;
+    
+    @Column(nullable = false)
+    private String name;
+    
+    private String description;
+    
+    @Column(nullable = false)
+    private String resourceType;
+    
+    @Column(nullable = false)
+    private String resourceName;
+    
+    @Column(nullable = false)
+    private String action;
+    
+    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<RolePermission> rolePermissions = new HashSet<>();
+}
+
+// RolePermissionエンティティ（関連テーブル）
+@Entity
+@Table(name = "role_permissions")
+public class RolePermission {
+    @EmbeddedId
+    private RolePermissionId id;
+    
+    @ManyToOne
+    @MapsId("roleId")
+    private Role role;
+    
+    @ManyToOne
+    @MapsId("permissionId")
+    private Permission permission;
+    
+    @Enumerated(EnumType.STRING)
+    private AccessLevel accessLevel;
+}
+
+// UserRoleHistoryエンティティ（監査用）
+@Entity
+@Table(name = "user_role_history")
+public class UserRoleHistory {
+    @Id
+    private UUID id;
+    
+    @Column(nullable = false)
+    private UUID userId;
+    
+    @Column(nullable = false)
+    private UUID roleId;
+    
+    @Enumerated(EnumType.STRING)
+    private OperationType operationType;
+    
+    @Column(nullable = false)
+    private UUID performedBy;
+    
+    @CreationTimestamp
+    private LocalDateTime performedAt;
+}</code></pre>
+
+    <h3>6.3 サービス実装</h3>
+
+    <p>以下の主要サービスを実装する：</p>
+
+    <pre><code>// UserServiceインターフェース
+public interface UserService {
+    List<UserDTO> findAll(UserSearchCriteria criteria, Pageable pageable);
+    UserDTO findById(UUID id);
+    UserDTO create(UserCreateDTO userCreateDTO);
+    UserDTO update(UUID id, UserUpdateDTO userUpdateDTO);
+    void updateStatus(UUID id, UserStatus status);
+    void resetPassword(UUID id);
+    void unlockAccount(UUID id);
+    void bulkUpdateStatus(List<UUID> ids, UserStatus status);
+}
+
+// RoleServiceインターフェース
+public interface RoleService {
+    List<RoleDTO> findAll(Pageable pageable);
+    RoleDTO findById(UUID id);
+    RoleDTO create(RoleCreateDTO roleCreateDTO);
+    RoleDTO update(UUID id, RoleUpdateDTO roleUpdateDTO);
+    void delete(UUID id);
+    RoleDTO clone(UUID id, String newRoleId);
+}
+
+// PermissionServiceインターフェース
+public interface PermissionService {
+    List<PermissionDTO> findAll();
+    List<PermissionGroupDTO> findAllGroups();
+    List<RolePermissionDTO> findByRoleId(UUID roleId);
+    void updateRolePermissions(UUID roleId, List<RolePermissionUpdateDTO> permissions);
+}
+
+// UserRoleServiceインターフェース
+public interface UserRoleService {
+    List<RoleDTO> findRolesByUserId(UUID userId);
+    void updateUserRoles(UUID userId, List<UUID> roleIds);
+    void assignRoleToUser(UUID userId, UUID roleId);
+    void removeRoleFromUser(UUID userId, UUID roleId);
+    List<UserDTO> findUsersByRoleId(UUID roleId, Pageable pageable);
+}</code></pre>
+
+    <h2>7. セキュリティ対策</h2>
+
+    <ul>
+        <li><strong>パスワードセキュリティ</strong>:
+            <ul>
+                <li>パスワードは平文で保存せず、bcryptでハッシュ化</li>
+                <li>強力なパスワードポリシーの適用</li>
+                <li>定期的なパスワード変更の強制</li>
+                <li>過去のパスワード再利用防止</li>
+            </ul>
+        </li>
+        <li><strong>アカウントロック</strong>:
+            <ul>
+                <li>一定回数のログイン失敗でアカウントを自動ロック</li>
+                <li>管理者のみがロック解除可能</li>
+                <li>ロック解除時にセキュリティログを記録</li>
+            </ul>
+        </li>
+        <li><strong>アクセス制御</strong>:
+            <ul>
+                <li>最小権限の原則に基づく権限付与</li>
+                <li>不要になった権限の迅速な削除</li>
+                <li>定期的な権限レビュー</li>
+            </ul>
+        </li>
+        <li><strong>監査ログ</strong>:
+            <ul>
+                <li>ユーザー登録・変更・削除の監査ログ記録</li>
+                <li>ロール割り当て・変更の監査ログ記録</li>
+                <li>権限変更の監査ログ記録</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>8. 課題と制限事項</h2>
+
+    <ul>
+        <li><strong>大量ユーザー管理</strong>: 大量のユーザーを管理する場合のパフォーマンス最適化が必要</li>
+        <li><strong>複雑な組織階層</strong>: 複雑な組織階層を持つ企業での運用には工夫が必要</li>
+        <li><strong>柔軟なアクセス制御</strong>: 特定の条件下での一時的な権限付与などの柔軟な制御</li>
+        <li><strong>外部システム連携</strong>: 外部認証システムとの連携</li>
+    </ul>
+
+    <div class="navigation">
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>

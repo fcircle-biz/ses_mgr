@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム ファイル管理機能 基本設計書 - 業務モジュール統合</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+        .document-sections {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f0f4ff;
+            border-radius: 5px;
+            border-left: 4px solid #2b4acb;
+        }
+        .document-sections h3 {
+            margin-top: 5px;
+            color: #1e429f;
+        }
+        .document-sections ul {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム ファイル管理機能 基本設計書 - 業務モジュール統合</h1>
+
+    <div class="document-sections">
+        <h3>ドキュメント構成</h3>
+        <ul>
+            <li><strong>Part 1:</strong> <a href="ファイル管理機能設計_01_概要とアーキテクチャ.html">概要とアーキテクチャ設計</a></li>
+            <li><strong>Part 2:</strong> <a href="ファイル管理機能設計_02_データモデル.html">データモデル設計</a></li>
+            <li><strong>Part 3:</strong> <a href="ファイル管理機能設計_03_サービスインターフェース.html">サービスインターフェース設計</a></li>
+            <li><strong>Part 4:</strong> <a href="ファイル管理機能設計_04_API設計.html">API設計</a></li>
+            <li><strong>Part 5:</strong> <a href="ファイル管理機能設計_05_アクセス制御とセキュリティ.html">アクセス制御とセキュリティ</a></li>
+            <li><strong>Part 6:</strong> <a href="ファイル管理機能設計_06_業務モジュール統合.html">業務モジュール統合</a> (現在のページ)</li>
+            <li><strong>Part 7:</strong> <a href="ファイル管理機能設計_07_パフォーマンスと運用設計.html">パフォーマンスと運用設計</a></li>
+        </ul>
+    </div>
+
+    <h2>8. 業務モジュールとの統合</h2>
+
+    <h3>8.1 統合パターン</h3>
+
+    <p>業務モジュールとファイル管理機能の統合には、以下のパターンを使用する：</p>
+
+    <ol>
+        <li><strong>直接API呼び出し</strong>：
+            <ul>
+                <li>RESTful APIを通じた直接的な統合</li>
+                <li>マルチパートフォームでのファイルアップロード</li>
+            </ul>
+        </li>
+        <li><strong>サービス呼び出し</strong>：
+            <ul>
+                <li>依存性注入を使用した内部サービス呼び出し</li>
+                <li>同一JVM内での効率的な連携</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>8.2 統合例：契約書の添付</h3>
+
+    <p>契約管理モジュールとファイル管理機能の統合例：</p>
+
+    <pre><code>@Service
+public class ContractServiceImpl implements ContractService {
+    
+    @Autowired
+    private ContractRepository contractRepository;
+    
+    @Autowired
+    private FileService fileService;
+    
+    @Override
+    @Transactional
+    public ContractDto createContract(ContractCreateRequest request, MultipartFile contractFile) {
+        // 契約エンティティの作成と保存
+        Contract contract = new Contract();
+        contract.setTitle(request.getTitle());
+        contract.setContractType(request.getContractType());
+        contract.setStartDate(request.getStartDate());
+        contract.setEndDate(request.getEndDate());
+        contract.setClientId(request.getClientId());
+        contract.setAmount(request.getAmount());
+        contract.setStatus(ContractStatus.DRAFT);
+        contract.setCreatedBy(SecurityUtils.getCurrentUser());
+        contract.setCreatedAt(LocalDateTime.now());
+        
+        contract = contractRepository.save(contract);
+        
+        // 契約書ファイルがある場合、アップロード
+        if (contractFile != null && !contractFile.isEmpty()) {
+            try {
+                FileDto fileDto = fileService.saveFile(
+                    contractFile,
+                    FileType.CONTRACT,
+                    contract.getId().toString(),
+                    "契約書：" + contract.getTitle(),
+                    Set.of("契約書", contract.getContractType().toString()),
+                    false,
+                    contract.getEndDate().plusYears(7).atStartOfDay(), // 契約終了後7年保存
+                    SecurityUtils.getCurrentUsername()
+                );
+                
+                // 契約書ファイルIDを契約に紐づける
+                contract.setContractFileId(UUID.fromString(fileDto.getId()));
+                contract = contractRepository.save(contract);
+                
+            } catch (Exception e) {
+                // エラーハンドリング
+                throw new FileUploadException("Failed to upload contract file", e);
+            }
+        }
+        
+        return contractMapper.toDto(contract);
+    }
+    
+    @Override
+    public Resource downloadContractFile(Long contractId) {
+        Contract contract = contractRepository.findById(contractId)
+            .orElseThrow(() -> new ResourceNotFoundException("Contract not found"));
+            
+        if (contract.getContractFileId() == null) {
+            throw new ResourceNotFoundException("Contract file not found");
+        }
+        
+        // ファイルサービスからファイルを取得
+        return fileService.getFileResource(
+            contract.getContractFileId(),
+            SecurityUtils.getCurrentUsername()
+        );
+    }
+}</code></pre>
+
+    <h3>8.3 統合例：スキルシートの管理</h3>
+
+    <p>技術者管理モジュールとファイル管理機能の統合例：</p>
+
+    <pre><code>@Service
+public class EngineerServiceImpl implements EngineerService {
+    
+    @Autowired
+    private EngineerRepository engineerRepository;
+    
+    @Autowired
+    private FileService fileService;
+    
+    @Override
+    @Transactional
+    public void uploadSkillSheet(Long engineerId, MultipartFile skillSheetFile) {
+        Engineer engineer = engineerRepository.findById(engineerId)
+            .orElseThrow(() -> new ResourceNotFoundException("Engineer not found"));
+        
+        // スキルシートのアップロード
+        try {
+            FileDto fileDto = fileService.saveFile(
+                skillSheetFile,
+                FileType.SKILL_SHEET,
+                "engineer-" + engineerId,
+                engineer.getName() + "のスキルシート",
+                Set.of("スキルシート", "技術者情報"),
+                false,
+                null, // 有効期限なし
+                SecurityUtils.getCurrentUsername()
+            );
+            
+            // 過去のスキルシートがある場合は非アクティブ化
+            if (engineer.getActiveSkillSheetId() != null) {
+                Engineer finalEngineer = engineer;
+                fileService.getFileMetadata(engineer.getActiveSkillSheetId(), SecurityUtils.getCurrentUsername())
+                    .ifPresent(oldFile -> {
+                        Set<String> tags = new HashSet<>(oldFile.getTags());
+                        tags.add("旧バージョン");
+                        oldFile.setTags(tags);
+                        // タグを更新
+                        fileService.updateFileTags(oldFile.getId(), tags, SecurityUtils.getCurrentUsername());
+                    });
+            }
+            
+            // 新しいスキルシートをアクティブに設定
+            engineer.setActiveSkillSheetId(UUID.fromString(fileDto.getId()));
+            engineer.setSkillSheetUpdatedAt(LocalDateTime.now());
+            engineerRepository.save(engineer);
+            
+        } catch (Exception e) {
+            throw new FileUploadException("Failed to upload skill sheet", e);
+        }
+    }
+    
+    @Override
+    public List<FileDto> getEngineerSkillSheets(Long engineerId) {
+        // 技術者が存在するか確認
+        if (!engineerRepository.existsById(engineerId)) {
+            throw new ResourceNotFoundException("Engineer not found");
+        }
+        
+        // 技術者に関連する全てのスキルシートを取得
+        return fileService.searchFiles(
+            FileType.SKILL_SHEET,
+            "engineer-" + engineerId,
+            null,
+            false,
+            null,
+            PageRequest.of(0, 100, Sort.by(Sort.Direction.DESC, "createdAt")),
+            SecurityUtils.getCurrentUsername()
+        ).getContent();
+    }
+}</code></pre>
+
+    <div class="navigation">
+        <a href="ファイル管理機能設計_05_アクセス制御とセキュリティ.html">前へ：アクセス制御とセキュリティ</a> |
+        <a href="ファイル管理機能設計_07_パフォーマンスと運用設計.html">次へ：パフォーマンスと運用設計</a> |
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム ファイル管理機能 基本設計書 - サービスインターフェース設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+        .document-sections {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f0f4ff;
+            border-radius: 5px;
+            border-left: 4px solid #2b4acb;
+        }
+        .document-sections h3 {
+            margin-top: 5px;
+            color: #1e429f;
+        }
+        .document-sections ul {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム ファイル管理機能 基本設計書 - サービスインターフェース設計</h1>
+
+    <div class="document-sections">
+        <h3>ドキュメント構成</h3>
+        <ul>
+            <li><strong>Part 1:</strong> <a href="ファイル管理機能設計_01_概要とアーキテクチャ.html">概要とアーキテクチャ設計</a></li>
+            <li><strong>Part 2:</strong> <a href="ファイル管理機能設計_02_データモデル.html">データモデル設計</a></li>
+            <li><strong>Part 3:</strong> <a href="ファイル管理機能設計_03_サービスインターフェース.html">サービスインターフェース設計</a> (現在のページ)</li>
+            <li><strong>Part 4:</strong> <a href="ファイル管理機能設計_04_API設計.html">API設計</a></li>
+            <li><strong>Part 5:</strong> <a href="ファイル管理機能設計_05_アクセス制御とセキュリティ.html">アクセス制御とセキュリティ</a></li>
+            <li><strong>Part 6:</strong> <a href="ファイル管理機能設計_06_業務モジュール統合.html">業務モジュール統合</a></li>
+            <li><strong>Part 7:</strong> <a href="ファイル管理機能設計_07_パフォーマンスと運用設計.html">パフォーマンスと運用設計</a></li>
+        </ul>
+    </div>
+
+    <h2>4. サービスインターフェース設計</h2>
+
+    <h3>4.1 ファイルサービス（FileService）</h3>
+
+    <p>ファイルの基本操作を提供するサービス</p>
+
+    <pre><code>public interface FileService {
+    // ファイルの保存
+    FileDto saveFile(
+        MultipartFile file,
+        FileType fileType,
+        String resourceId,
+        String description,
+        Set<String> tags,
+        boolean isPublic,
+        LocalDateTime expiryDate,
+        String username
+    );
+    
+    // ファイルの取得
+    Resource getFileResource(UUID fileId, String username);
+    
+    // ファイルメタデータの取得
+    FileDto getFileMetadata(UUID fileId, String username);
+    
+    // ファイルの論理削除
+    void deleteFile(UUID fileId, String username, boolean permanent);
+    
+    // ファイルの検索
+    Page<FileDto> searchFiles(
+        FileType fileType,
+        String resourceId,
+        Set<String> tags,
+        boolean includeDeleted,
+        String searchText,
+        Pageable pageable,
+        String username
+    );
+    
+    // ファイルの一括取得
+    List<FileDto> getFilesByResourceId(String resourceId, String username);
+    
+    // 期限切れファイルのクリーンアップ
+    int cleanupExpiredFiles();
+    
+    // 論理削除されたファイルのアーカイブ
+    int archiveDeletedFiles(int daysAfterDeletion);
+}</code></pre>
+
+    <h3>4.2 ファイルストレージサービス（FileStorageService）</h3>
+
+    <p>ファイルの物理的な保存と取得を担当するサービス</p>
+
+    <pre><code>public interface FileStorageService {
+    // ファイルの保存
+    String storeFile(
+        InputStream fileContent,
+        String contentType,
+        long contentLength,
+        FileType fileType
+    );
+    
+    // ファイルの取得
+    Resource retrieveFile(String filePath);
+    
+    // ファイルの物理削除
+    void deleteFile(String filePath);
+    
+    // ファイルのアーカイブ
+    String archiveFile(String filePath);
+    
+    // SHA-256ハッシュ値の計算
+    String calculateSha256(InputStream inputStream) throws IOException;
+}</code></pre>
+
+    <h3>4.3 ファイルアクセス管理サービス（FileAccessService）</h3>
+
+    <p>ファイルのアクセス権限を管理するサービス</p>
+
+    <pre><code>public interface FileAccessService {
+    // アクセス権限の付与
+    void grantAccess(UUID fileId, String username, AccessType accessType);
+    
+    // ロールへのアクセス権限付与
+    void grantAccessToRole(UUID fileId, String roleName, AccessType accessType);
+    
+    // アクセス権限の取り消し
+    void revokeAccess(UUID fileId, String username, AccessType accessType);
+    
+    // ユーザーのアクセス権限確認
+    boolean hasAccess(UUID fileId, String username, AccessType accessType);
+    
+    // ファイルへのアクセス権限を持つユーザー一覧取得
+    List<UserDto> getUsersWithAccess(UUID fileId, AccessType accessType);
+    
+    // ファイルアクセス権限のリセット（デフォルト設定に戻す）
+    void resetAccessToDefault(UUID fileId);
+}</code></pre>
+
+    <h3>4.4 ファイル検証サービス（FileValidationService）</h3>
+
+    <p>アップロードされるファイルの検証を担当するサービス</p>
+
+    <pre><code>public interface FileValidationService {
+    // MIME Type検証
+    boolean isValidMimeType(String mimeType);
+    
+    // ファイルサイズ検証
+    boolean isValidFileSize(long size);
+    
+    // ファイル内容の検証（マルウェアスキャンなど）
+    ValidationResult validateFileContent(InputStream content);
+    
+    // ファイル名検証
+    boolean isValidFileName(String fileName);
+    
+    // 検証結果を表す内部クラス
+    class ValidationResult {
+        private boolean valid;
+        private String errorCode;
+        private String errorMessage;
+        
+        // getters, setters, etc.
+    }
+}</code></pre>
+
+    <div class="navigation">
+        <a href="ファイル管理機能設計_02_データモデル.html">前へ：データモデル設計</a> |
+        <a href="ファイル管理機能設計_04_API設計.html">次へ：API設計</a> |
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム ファイル管理機能 基本設計書 - アクセス制御とセキュリティ</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+        .document-sections {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f0f4ff;
+            border-radius: 5px;
+            border-left: 4px solid #2b4acb;
+        }
+        .document-sections h3 {
+            margin-top: 5px;
+            color: #1e429f;
+        }
+        .document-sections ul {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム ファイル管理機能 基本設計書 - アクセス制御とセキュリティ</h1>
+
+    <div class="document-sections">
+        <h3>ドキュメント構成</h3>
+        <ul>
+            <li><strong>Part 1:</strong> <a href="ファイル管理機能設計_01_概要とアーキテクチャ.html">概要とアーキテクチャ設計</a></li>
+            <li><strong>Part 2:</strong> <a href="ファイル管理機能設計_02_データモデル.html">データモデル設計</a></li>
+            <li><strong>Part 3:</strong> <a href="ファイル管理機能設計_03_サービスインターフェース.html">サービスインターフェース設計</a></li>
+            <li><strong>Part 4:</strong> <a href="ファイル管理機能設計_04_API設計.html">API設計</a></li>
+            <li><strong>Part 5:</strong> <a href="ファイル管理機能設計_05_アクセス制御とセキュリティ.html">アクセス制御とセキュリティ</a> (現在のページ)</li>
+            <li><strong>Part 6:</strong> <a href="ファイル管理機能設計_06_業務モジュール統合.html">業務モジュール統合</a></li>
+            <li><strong>Part 7:</strong> <a href="ファイル管理機能設計_07_パフォーマンスと運用設計.html">パフォーマンスと運用設計</a></li>
+        </ul>
+    </div>
+
+    <h2>6. ファイルアクセス制御</h2>
+
+    <h3>6.1 基本アクセス制御ルール</h3>
+
+    <table>
+        <tr>
+            <th>ファイルの種類</th>
+            <th>アクセス権限を持つユーザー</th>
+        </tr>
+        <tr>
+            <td>contract</td>
+            <td>契約の作成者、契約に関連する取引先担当者、契約管理権限を持つユーザー、システム管理者</td>
+        </tr>
+        <tr>
+            <td>invoice</td>
+            <td>請求書の作成者、請求書に関連する取引先担当者、経理担当者、システム管理者</td>
+        </tr>
+        <tr>
+            <td>skill_sheet</td>
+            <td>スキルシートの所有者（技術者）、技術者の直属マネージャー、マッチング担当者、システム管理者</td>
+        </tr>
+        <tr>
+            <td>project_document</td>
+            <td>案件の作成者、案件に関連するプロジェクトメンバー、マッチング担当者、システム管理者</td>
+        </tr>
+        <tr>
+            <td>common</td>
+            <td>全ての認証済みユーザー</td>
+        </tr>
+    </table>
+
+    <h3>6.2 アクセス権限の実装方法</h3>
+
+    <p>アクセス制御の実装には、以下の2つの方法を組み合わせて使用する：</p>
+
+    <ol>
+        <li><strong>リソースベースのアクセス制御</strong>:
+            <ul>
+                <li>関連リソース（契約、請求書など）に対するアクセス権限をチェックする</li>
+                <li>リソースへのアクセス権限があれば、関連ファイルにもアクセスできる</li>
+            </ul>
+        </li>
+        <li><strong>明示的なアクセス制御</strong>:
+            <ul>
+                <li><code>file_access</code>テーブルで定義された明示的なアクセス権限をチェックする</li>
+                <li>ユーザーまたはロールに対して付与された権限に基づいてアクセスを制御する</li>
+            </ul>
+        </li>
+    </ol>
+
+    <pre><code>@Service
+public class FileAccessServiceImpl implements FileAccessService {
+    
+    @Autowired
+    private FileRepository fileRepository;
+    
+    @Autowired
+    private FileAccessRepository fileAccessRepository;
+    
+    @Autowired
+    private ResourceAccessService resourceAccessService;
+    
+    @Override
+    public boolean hasAccess(UUID fileId, String username, AccessType accessType) {
+        // ファイルが存在するか確認
+        File file = fileRepository.findById(fileId)
+            .orElseThrow(() -> new ResourceNotFoundException("File not found"));
+            
+        // システム管理者は常にアクセス可能
+        if (isSystemAdmin(username)) {
+            return true;
+        }
+        
+        // 公開ファイルの場合、READ権限があれば全ユーザーアクセス可能
+        if (file.isPublic() && accessType == AccessType.READ) {
+            return true;
+        }
+        
+        // ファイル作成者は常にアクセス可能
+        if (file.getCreatedBy().getUsername().equals(username)) {
+            return true;
+        }
+        
+        // 関連リソースへのアクセス権があるかチェック
+        if (file.getResourceId() != null) {
+            boolean hasResourceAccess = resourceAccessService.hasAccess(
+                file.getFileType().toString().toLowerCase(),
+                file.getResourceId(),
+                username,
+                convertToResourceAccessType(accessType)
+            );
+            
+            if (hasResourceAccess) {
+                return true;
+            }
+        }
+        
+        // 明示的に付与されたアクセス権をチェック
+        return fileAccessRepository.existsByFileIdAndUserUsernameAndAccessType(
+            fileId, username, accessType);
+    }
+    
+    // その他のメソッド実装...
+}</code></pre>
+
+    <h2>7. セキュリティと暗号化</h2>
+
+    <h3>7.1 ファイルの暗号化方法</h3>
+
+    <p>ファイルセキュリティを確保するため、以下の暗号化方法を適用する：</p>
+
+    <ol>
+        <li><strong>保存時の暗号化</strong>：
+            <ul>
+                <li>AES-256-GCM暗号化アルゴリズムを使用</li>
+                <li>ファイルごとに一意の暗号化キーを生成</li>
+                <li>暗号化キーは鍵管理サービスで保護</li>
+            </ul>
+        </li>
+        <li><strong>転送時の暗号化</strong>：
+            <ul>
+                <li>TLS 1.2以上による通信の暗号化</li>
+                <li>HTTPS通信の強制</li>
+            </ul>
+        </li>
+        <li><strong>ハッシュ値による整合性検証</strong>：
+            <ul>
+                <li>SHA-256ハッシュアルゴリズムによるファイル整合性の確認</li>
+                <li>ダウンロード時にハッシュ値を検証し、改ざんを検知</li>
+            </ul>
+        </li>
+    </ol>
+
+    <pre><code>@Service
+public class FileEncryptionServiceImpl implements FileEncryptionService {
+    
+    @Autowired
+    private KeyManagementService keyManagementService;
+    
+    @Override
+    public InputStream encrypt(InputStream inputStream, UUID fileId) throws IOException {
+        // ファイルごとに一意の暗号化キーを生成
+        SecretKey key = keyManagementService.generateKey();
+        
+        // 生成したキーをKMSに保存（ファイルIDと関連付け）
+        keyManagementService.storeKey(fileId, key);
+        
+        // 初期化ベクトル（IV）の生成
+        byte[] iv = new byte[12]; // GCMモードでは12バイトのIVを使用
+        SecureRandom random = new SecureRandom();
+        random.nextBytes(iv);
+        
+        try {
+            // AES-GCM暗号化の設定
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            GCMParameterSpec spec = new GCMParameterSpec(128, iv);
+            cipher.init(Cipher.ENCRYPT_MODE, key, spec);
+            
+            // 入力ストリームを暗号化
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            // IVを先頭に書き込む
+            out.write(iv);
+            
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            
+            // CipherOutputStreamを使用して暗号化
+            try (CipherOutputStream cipherOut = new CipherOutputStream(out, cipher)) {
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    cipherOut.write(buffer, 0, bytesRead);
+                }
+            }
+            
+            return new ByteArrayInputStream(out.toByteArray());
+        } catch (Exception e) {
+            throw new IOException("Encryption failed", e);
+        }
+    }
+    
+    @Override
+    public InputStream decrypt(InputStream encryptedStream, UUID fileId) throws IOException {
+        try {
+            // KMSから暗号化キーを取得
+            SecretKey key = keyManagementService.retrieveKey(fileId);
+            
+            // 先頭からIVを読み込む
+            byte[] iv = new byte[12];
+            if (encryptedStream.read(iv) != iv.length) {
+                throw new IOException("Invalid encrypted data");
+            }
+            
+            // AES-GCM復号化の設定
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            GCMParameterSpec spec = new GCMParameterSpec(128, iv);
+            cipher.init(Cipher.DECRYPT_MODE, key, spec);
+            
+            // 復号化ストリームを返す
+            return new CipherInputStream(encryptedStream, cipher);
+        } catch (Exception e) {
+            throw new IOException("Decryption failed", e);
+        }
+    }
+}</code></pre>
+
+    <h3>7.2 ウイルススキャン</h3>
+
+    <p>アップロードされるファイルに対して、セキュリティリスクを軽減するためのウイルススキャンを実施する：</p>
+
+    <ol>
+        <li><strong>スキャンのタイミング</strong>：
+            <ul>
+                <li>ファイルアップロード時に即時スキャン</li>
+                <li>バックグラウンドでの定期的な再スキャン</li>
+            </ul>
+        </li>
+        <li><strong>スキャン方法</strong>：
+            <ul>
+                <li>ClamAVなどのオープンソースウイルススキャンエンジンを使用</li>
+                <li>マルウェア検出シグネチャの定期的な更新</li>
+            </ul>
+        </li>
+    </ol>
+
+    <pre><code>@Service
+public class VirusScanServiceImpl implements VirusScanService {
+    
+    private static final Logger logger = LoggerFactory.getLogger(VirusScanServiceImpl.class);
+    
+    @Value("${app.virus-scan.clamav.host}")
+    private String clamavHost;
+    
+    @Value("${app.virus-scan.clamav.port}")
+    private int clamavPort;
+    
+    @Override
+    public ScanResult scanFile(InputStream inputStream) {
+        try {
+            // ClamAVサーバーへの接続
+            try (Socket socket = new Socket(clamavHost, clamavPort);
+                 OutputStream out = socket.getOutputStream();
+                 InputStream in = socket.getInputStream()) {
+                
+                // INSTREAM コマンドを送信
+                out.write("zINSTREAM\0".getBytes(StandardCharsets.US_ASCII));
+                out.flush();
+                
+                // ファイル内容を送信
+                byte[] buffer = new byte[2048];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    // チャンクサイズをネットワークバイトオーダーで送信
+                    byte[] size = ByteBuffer.allocate(4).putInt(bytesRead).array();
+                    out.write(size);
+                    out.write(buffer, 0, bytesRead);
+                }
+                
+                // 0バイトのチャンクを送信して終了
+                out.write(ByteBuffer.allocate(4).putInt(0).array());
+                out.flush();
+                
+                // レスポンスの読み取り
+                ByteArrayOutputStream responseBuffer = new ByteArrayOutputStream();
+                while ((bytesRead = in.read(buffer)) != -1) {
+                    responseBuffer.write(buffer, 0, bytesRead);
+                }
+                
+                String response = responseBuffer.toString(StandardCharsets.US_ASCII);
+                
+                // レスポンスの解析
+                if (response.contains("OK")) {
+                    return new ScanResult(true, null);
+                } else {
+                    String virusName = response.substring(response.indexOf(": ") + 2, response.indexOf(" FOUND"));
+                    return new ScanResult(false, virusName);
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Virus scan failed", e);
+            return new ScanResult(false, "Scan error: " + e.getMessage());
+        }
+    }
+}</code></pre>
+
+    <div class="navigation">
+        <a href="ファイル管理機能設計_04_API設計.html">前へ：API設計</a> |
+        <a href="ファイル管理機能設計_06_業務モジュール統合.html">次へ：業務モジュール統合</a> |
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>

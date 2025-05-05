@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 通知機能 基本設計書 - フロントエンドと業務モジュール統合</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+        .document-sections {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f0f4ff;
+            border-radius: 5px;
+            border-left: 4px solid #2b4acb;
+        }
+        .document-sections h3 {
+            margin-top: 5px;
+            color: #1e429f;
+        }
+        .document-sections ul {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム 通知機能 基本設計書 - フロントエンドと業務モジュール統合</h1>
+
+    <div class="document-sections">
+        <h3>ドキュメント構成</h3>
+        <ul>
+            <li><strong>Part 1:</strong> <a href="通知機能設計_01_概要とアーキテクチャ.html">概要とアーキテクチャ</a></li>
+            <li><strong>Part 2:</strong> <a href="通知機能設計_02_データモデル.html">データモデル</a></li>
+            <li><strong>Part 3:</strong> <a href="通知機能設計_03_サービスとAPI.html">サービスインターフェースとAPI</a></li>
+            <li><strong>Part 4:</strong> <a href="通知機能設計_04_フロントエンドと業務モジュール統合.html">フロントエンドと業務モジュール統合</a> (現在のページ)</li>
+            <li><strong>Part 5:</strong> <a href="通知機能設計_05_セキュリティと運用.html">セキュリティと運用</a></li>
+        </ul>
+    </div>
+
+    <h2>6. フロントエンド統合</h2>
+
+    <h3>6.1 通知コンポーネント</h3>
+
+    <p>フロントエンドでは以下の通知関連コンポーネントを実装する：</p>
+
+    <ol>
+        <li><strong>通知ヘッダーアイコン</strong>
+            <ul>
+                <li>ヘッダーバーに表示される通知アイコン</li>
+                <li>未読通知数をバッジで表示</li>
+                <li>クリックでドロップダウンメニューを表示</li>
+            </ul>
+        </li>
+        <li><strong>通知ドロップダウン</strong>
+            <ul>
+                <li>最新の未読通知を表示（3〜5件程度）</li>
+                <li>「すべての通知を見る」リンク</li>
+                <li>「すべて既読にする」ボタン</li>
+            </ul>
+        </li>
+        <li><strong>通知一覧画面</strong>
+            <ul>
+                <li>タブによる通知種類の切り替え</li>
+                <li>フィルタリングと検索機能</li>
+                <li>ページネーション</li>
+            </ul>
+        </li>
+        <li><strong>通知詳細モーダル</strong>
+            <ul>
+                <li>通知の詳細情報表示</li>
+                <li>関連アクションへのリンク</li>
+                <li>既読/未読切り替え、削除機能</li>
+            </ul>
+        </li>
+        <li><strong>通知設定画面</strong>
+            <ul>
+                <li>通知タイプごとの設定</li>
+                <li>メール通知の有効/無効</li>
+                <li>アプリ内通知の有効/無効</li>
+                <li>保持期間の設定</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>6.2 リアルタイム通知の実装</h3>
+
+    <p>フロントエンドでのリアルタイム通知の実装例：</p>
+
+    <pre><code>// SSEを使用した通知ストリームの購読
+class NotificationService {
+  private eventSource: EventSource | null = null;
+
+  subscribeToNotifications() {
+    if (this.eventSource) {
+      this.eventSource.close();
+    }
+
+    this.eventSource = new EventSource('/api/v1/common/notifications/stream');
+    
+    this.eventSource.addEventListener('notification', (event) => {
+      const notification = JSON.parse(event.data);
+      this.addNotification(notification);
+      this.showNotificationAlert(notification);
+    });
+
+    this.eventSource.onerror = (error) => {
+      console.error('EventSource failed:', error);
+      this.eventSource?.close();
+      // 再接続ロジック
+      setTimeout(() => this.subscribeToNotifications(), 5000);
+    };
+  }
+
+  private addNotification(notification: Notification) {
+    // ストアに通知を追加
+    store.dispatch(addNotification(notification));
+  }
+
+  private showNotificationAlert(notification: Notification) {
+    // トースト通知を表示
+    toastService.show({
+      title: notification.title,
+      body: notification.body,
+      type: notification.type,
+      duration: 5000,
+      onClick: () => this.navigateToNotification(notification)
+    });
+  }
+
+  private navigateToNotification(notification: Notification) {
+    // 通知関連ページへ遷移
+    if (notification.metadata && notification.metadata.action_url) {
+      router.navigate(notification.metadata.action_url);
+    } else {
+      router.navigate(`/notifications/${notification.id}`);
+    }
+  }
+}</code></pre>
+
+    <h2>7. 業務モジュールとの統合</h2>
+
+    <h3>7.1 統合パターン</h3>
+
+    <p>業務モジュールは以下のパターンで通知機能と統合する：</p>
+
+    <ol>
+        <li><strong>イベント発行パターン</strong>
+            <ul>
+                <li>Spring ApplicationEventを使用</li>
+                <li>業務ロジックと通知ロジックの分離</li>
+                <li>疎結合な設計</li>
+            </ul>
+        </li>
+        <li><strong>サービス直接呼び出しパターン</strong>
+            <ul>
+                <li>NotificationServiceの直接注入</li>
+                <li>細かい制御が必要な場合に使用</li>
+                <li>強結合だが直接的な制御が可能</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>7.2 統合例</h3>
+
+    <h4>7.2.1 案件管理モジュールとの統合例</h4>
+
+    <p>案件の状態変更時に通知を発行する例：</p>
+
+    <pre><code>@Service
+public class ProjectServiceImpl implements ProjectService {
+
+    private final ApplicationEventPublisher eventPublisher;
+    
+    @Autowired
+    public ProjectServiceImpl(ApplicationEventPublisher eventPublisher) {
+        this.eventPublisher = eventPublisher;
+    }
+    
+    @Override
+    @Transactional
+    public Project createProject(ProjectDto projectDto) {
+        // 案件の作成ロジック
+        Project project = projectMapper.toEntity(projectDto);
+        project = projectRepository.save(project);
+        
+        // イベント発行
+        eventPublisher.publishEvent(new ProjectCreatedEvent(project));
+        
+        return project;
+    }
+    
+    @Override
+    @Transactional
+    public Project updateProjectStatus(Long projectId, ProjectStatus newStatus) {
+        Project project = projectRepository.findById(projectId)
+            .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+            
+        ProjectStatus oldStatus = project.getStatus();
+        project.setStatus(newStatus);
+        project = projectRepository.save(project);
+        
+        // 状態変更イベント発行
+        eventPublisher.publishEvent(
+            new ProjectStatusChangedEvent(project, oldStatus, newStatus)
+        );
+        
+        return project;
+    }
+}</code></pre>
+
+    <p>対応するイベントリスナー：</p>
+
+    <pre><code>@Component
+public class ProjectNotificationListener {
+
+    private final NotificationService notificationService;
+    private final UserService userService;
+    
+    @Autowired
+    public ProjectNotificationListener(
+            NotificationService notificationService,
+            UserService userService) {
+        this.notificationService = notificationService;
+        this.userService = userService;
+    }
+    
+    @EventListener
+    public void handleProjectCreatedEvent(ProjectCreatedEvent event) {
+        Project project = event.getProject();
+        
+        // 通知対象ユーザーの特定
+        List<User> recipients = userService.findUsersByRole("ROLE_PROJECT_MANAGER");
+        
+        // メタデータの作成
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("project_id", project.getId());
+        metadata.put("project_name", project.getName());
+        metadata.put("client_name", project.getClient().getName());
+        metadata.put("project_type", project.getType().name());
+        metadata.put("action_url", "/projects/" + project.getId());
+        
+        // 通知の作成
+        notificationService.createNotification(
+            NotificationType.EVENT,
+            recipients,
+            "新しい案件が登録されました",
+            String.format("「%s」という新しい案件が登録されました。詳細を確認してください。", project.getName()),
+            metadata
+        );
+    }
+    
+    @EventListener
+    public void handleProjectStatusChangedEvent(ProjectStatusChangedEvent event) {
+        Project project = event.getProject();
+        ProjectStatus oldStatus = event.getOldStatus();
+        ProjectStatus newStatus = event.getNewStatus();
+        
+        // 特定の状態変更のみ通知する
+        if (newStatus == ProjectStatus.READY_FOR_MATCHING) {
+            // マッチング担当者に通知
+            List<User> recipients = userService.findUsersByRole("ROLE_MATCHER");
+            
+            Map<String, Object> metadata = new HashMap<>();
+            metadata.put("project_id", project.getId());
+            metadata.put("project_name", project.getName());
+            metadata.put("old_status", oldStatus.name());
+            metadata.put("new_status", newStatus.name());
+            metadata.put("action_url", "/matching/" + project.getId());
+            
+            notificationService.createNotification(
+                NotificationType.TASK,
+                recipients,
+                "マッチング待ちの案件があります",
+                String.format("案件「%s」がマッチング待ち状態になりました。技術者のマッチングを行ってください。", project.getName()),
+                metadata
+            );
+        }
+    }
+}</code></pre>
+
+    <h4>7.2.2 請求管理モジュールとの統合例</h4>
+
+    <p>請求書の承認依頼時に通知を発行する例：</p>
+
+    <pre><code>@Service
+public class InvoiceServiceImpl implements InvoiceService {
+
+    private final NotificationService notificationService;
+    private final UserService userService;
+    
+    @Autowired
+    public InvoiceServiceImpl(
+            NotificationService notificationService,
+            UserService userService) {
+        this.notificationService = notificationService;
+        this.userService = userService;
+    }
+    
+    @Override
+    @Transactional
+    public Invoice requestApproval(Long invoiceId) {
+        Invoice invoice = invoiceRepository.findById(invoiceId)
+            .orElseThrow(() -> new ResourceNotFoundException("Invoice not found"));
+            
+        invoice.setStatus(InvoiceStatus.WAITING_APPROVAL);
+        invoice.setRequestedAt(LocalDateTime.now());
+        invoice = invoiceRepository.save(invoice);
+        
+        // 承認者を取得
+        User approver = invoice.getProject().getApprover();
+        List<User> recipients = Collections.singletonList(approver);
+        
+        // 期限の設定（3営業日後）
+        LocalDate deadlineDate = LocalDate.now().plusDays(3); 
+        // 休日調整などのロジックは省略
+        
+        // メタデータの作成
+        Map<String, Object> metadata = new HashMap<>();
+        metadata.put("invoice_id", invoice.getId());
+        metadata.put("invoice_number", invoice.getInvoiceNumber());
+        metadata.put("project_id", invoice.getProject().getId());
+        metadata.put("project_name", invoice.getProject().getName());
+        metadata.put("client_name", invoice.getClient().getName());
+        metadata.put("amount", invoice.getTotalAmount());
+        metadata.put("deadline_date", deadlineDate.toString());
+        metadata.put("action_url", "/invoices/" + invoice.getId() + "/approve");
+        metadata.put("importance", "high");
+        
+        // 通知の作成（直接呼び出し）
+        notificationService.createNotification(
+            NotificationType.TASK,
+            recipients,
+            "請求書の承認依頼があります",
+            String.format("案件「%s」の請求書（%s）が発行され、あなたの承認待ちです。%sまでに対応してください。", 
+                invoice.getProject().getName(), 
+                invoice.getInvoiceNumber(),
+                deadlineDate.format(DateTimeFormatter.ofPattern("M月d日"))),
+            metadata
+        );
+        
+        return invoice;
+    }
+}</code></pre>
+
+    <div class="navigation">
+        <a href="通知機能設計_03_サービスとAPI.html">前へ：サービスインターフェースとAPI</a> |
+        <a href="通知機能設計_05_セキュリティと運用.html">次へ：セキュリティと運用</a> |
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>

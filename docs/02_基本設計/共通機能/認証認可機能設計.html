@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 認証・認可機能 基本設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム 認証・認可機能 基本設計書</h1>
+
+    <h2>1. はじめに</h2>
+    <p>本書は、SES業務システムにおける認証・認可機能の基本設計を定義したものである。
+    システム全体のセキュリティを確保するための認証・認可の仕組みおよび実装方針について記述する。</p>
+
+    <h2>2. 機能概要</h2>
+    <p>認証・認可機能は、SES業務システムにおけるユーザー認証、アクセス制御、セッション管理を担当する
+    基盤的な共通機能である。本機能により、正当なユーザーのみがシステムにアクセスでき、
+    かつユーザーの権限に応じた適切なリソースアクセス制御を実現する。</p>
+
+    <h2>3. 認証設計</h2>
+
+    <h3>3.1 認証基本方針</h3>
+    <p>SES業務システムでは、以下の認証方式を採用する：</p>
+    <ul>
+        <li><strong>認証プロトコル</strong>: OAuth2.0 + OpenID Connect</li>
+        <li><strong>認証方式</strong>: ユーザーID/パスワード認証 + 多要素認証（MFA）</li>
+        <li><strong>セッション管理</strong>: JWTトークンによるステートレスセッション</li>
+        <li><strong>アカウントロック</strong>: 5回連続ログイン失敗でアカウントロック（30分）</li>
+    </ul>
+
+    <h3>3.2 JWT認証フロー</h3>
+    <ol>
+        <li>ユーザーがログイン情報を送信</li>
+        <li>認証成功時、アクセストークンとリフレッシュトークンを発行</li>
+        <li>以降のAPIリクエストには、Authorization ヘッダーにアクセストークンを付与</li>
+        <li>アクセストークンの有効期限が切れた場合、リフレッシュトークンを使用して再取得</li>
+    </ol>
+
+    <h4>3.2.1 トークン仕様</h4>
+    <ul>
+        <li><strong>アクセストークン</strong>:
+            <ul>
+                <li>形式: JWT (JSON Web Token)</li>
+                <li>署名アルゴリズム: RS256 (RSA-SHA256)</li>
+                <li>有効期限: 30分</li>
+                <li>含む情報: ユーザーID、ロール、権限、発行時間、有効期限</li>
+            </ul>
+        </li>
+        <li><strong>リフレッシュトークン</strong>:
+            <ul>
+                <li>形式: JWT</li>
+                <li>署名アルゴリズム: RS256</li>
+                <li>有効期限: 2週間（remember_me=true の場合は30日）</li>
+                <li>含む情報: ユーザーID、トークンID、発行時間、有効期限</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>3.3 パスワード管理</h3>
+    <p>パスワードポリシーとして以下の要件を設定する：</p>
+    <ul>
+        <li>最小長: 8文字以上</li>
+        <li>文字種: 英大文字、英小文字、数字、記号のうち3種類以上を使用</li>
+        <li>履歴: 過去5回分のパスワードと同一のものは使用不可</li>
+        <li>有効期限: 90日間（期限切れ前7日間から更新可能）</li>
+        <li>ハッシュ化: bcryptアルゴリズムを使用（コストパラメータ: 12）</li>
+    </ul>
+
+    <h3>3.4 多要素認証（MFA）</h3>
+    <p>以下のユーザーには多要素認証を必須とする：</p>
+    <ul>
+        <li>システム管理者アカウント</li>
+        <li>経営管理者アカウント</li>
+        <li>特権操作を実行するユーザー</li>
+    </ul>
+    <p>対応する認証要素：</p>
+    <ul>
+        <li>SMSワンタイムパスワード</li>
+        <li>認証アプリケーション（Google Authenticator等）</li>
+        <li>生体認証（スマートフォン連携、WebAuthn/FIDO2対応）</li>
+    </ul>
+
+    <h3>3.5 認証アーキテクチャ</h3>
+    <p>認証サービスは独立したマイクロサービスとして実装し、以下の機能を提供する：</p>
+    <ul>
+        <li>集中認証サービス（Single Sign-On）</li>
+        <li>ユーザー管理・アカウントライフサイクル管理</li>
+        <li>トークン発行・検証</li>
+        <li>多要素認証（MFA）</li>
+        <li>アカウントロック管理</li>
+    </ul>
+
+    <h2>4. 認可設計</h2>
+
+    <h3>4.1 認可基本方針</h3>
+    <p>SES業務システムでは、以下の認可方式を採用する：</p>
+    <ul>
+        <li><strong>アクセス制御モデル</strong>: RBAC（Role-Based Access Control）+ ABAC（Attribute-Based Access Control）のハイブリッド</li>
+        <li><strong>権限管理</strong>: ロール単位での権限付与、組織階層に基づくアクセス制御</li>
+        <li><strong>API認可</strong>: OAuth2.0のスコープベースの認可 + JWT クレーム</li>
+    </ul>
+
+    <h3>4.2 ロール体系</h3>
+    <table>
+        <tr>
+            <th>ロール区分</th>
+            <th>ロール</th>
+            <th>主な権限</th>
+        </tr>
+        <tr>
+            <td>システム管理者</td>
+            <td>システム管理者（全体）</td>
+            <td>全機能の管理・設定変更</td>
+        </tr>
+        <tr>
+            <td>システム管理者</td>
+            <td>セキュリティ管理者</td>
+            <td>セキュリティ設定、監査ログ管理</td>
+        </tr>
+        <tr>
+            <td>業務管理者</td>
+            <td>営業管理者</td>
+            <td>案件管理機能の管理、営業データの参照/更新</td>
+        </tr>
+        <tr>
+            <td>業務管理者</td>
+            <td>人事管理者</td>
+            <td>技術者管理機能の管理、人事データの参照/更新</td>
+        </tr>
+        <tr>
+            <td>業務管理者</td>
+            <td>経理管理者</td>
+            <td>請求支払機能の管理、経理データの参照/更新</td>
+        </tr>
+        <tr>
+            <td>一般ユーザー</td>
+            <td>営業担当者</td>
+            <td>案件情報の登録/更新、担当案件の参照</td>
+        </tr>
+        <tr>
+            <td>一般ユーザー</td>
+            <td>人事担当者</td>
+            <td>技術者情報の登録/更新、担当技術者の参照</td>
+        </tr>
+        <tr>
+            <td>一般ユーザー</td>
+            <td>経理担当者</td>
+            <td>請求書の作成、入金情報の登録</td>
+        </tr>
+        <tr>
+            <td>一般ユーザー</td>
+            <td>マッチング担当者</td>
+            <td>マッチング機能の利用、提案書作成</td>
+        </tr>
+    </table>
+
+    <h3>4.3 権限定義</h3>
+    <p>権限は以下の粒度で定義する：</p>
+    <ul>
+        <li><strong>機能単位の権限</strong>: 各機能モジュールへのアクセス権限</li>
+        <li><strong>操作単位の権限</strong>: 参照、登録、更新、削除などの操作権限</li>
+        <li><strong>データ単位の権限</strong>: 担当案件、担当技術者などのデータ範囲指定</li>
+    </ul>
+
+    <h3>4.4 属性ベースのアクセス制御（ABAC）</h3>
+    <p>RBAC（ロールベース）だけでは表現できない複雑なアクセス制御ケースに対して、ABAC（属性ベース）のアプローチを併用する。以下の属性を考慮したアクセス制御を実装する：</p>
+    <ul>
+        <li><strong>ユーザー属性</strong>: 所属部署、役職、雇用形態など</li>
+        <li><strong>リソース属性</strong>: データの種類、機密レベル、所有者など</li>
+        <li><strong>環境属性</strong>: アクセス時間、アクセス元IPアドレス、デバイスタイプなど</li>
+        <li><strong>コンテキスト属性</strong>: 現在のワークフロー状態、関係性など</li>
+    </ul>
+
+    <h3>4.5 認可の実装方式</h3>
+    <p>認可の実装には、Spring Securityを採用し、以下のコンポーネントを実装する：</p>
+    <ul>
+        <li><strong>認可サービス（AuthorizationService）</strong>: ユーザーの権限チェックを担当</li>
+        <li><strong>セキュリティフィルター</strong>: リクエストごとの認証・認可チェック</li>
+        <li><strong>メソッドセキュリティ</strong>: アノテーションベースの細粒度アクセス制御</li>
+        <li><strong>データフィルタリング</strong>: ユーザーの権限に基づくデータアクセス制限</li>
+    </ul>
+
+    <h2>5. API仕様</h2>
+
+    <h3>5.1 認証API</h3>
+    <table>
+        <tr>
+            <th>エンドポイント</th>
+            <th>メソッド</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>/api/v1/auth/login</td>
+            <td>POST</td>
+            <td>ユーザーログイン認証</td>
+        </tr>
+        <tr>
+            <td>/api/v1/auth/logout</td>
+            <td>POST</td>
+            <td>ユーザーログアウト</td>
+        </tr>
+        <tr>
+            <td>/api/v1/auth/refresh-token</td>
+            <td>POST</td>
+            <td>アクセストークンの更新</td>
+        </tr>
+        <tr>
+            <td>/api/v1/auth/profile</td>
+            <td>GET</td>
+            <td>ログインユーザーのプロフィール取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/auth/profile</td>
+            <td>PUT</td>
+            <td>ログインユーザーのプロフィール更新</td>
+        </tr>
+        <tr>
+            <td>/api/v1/auth/password</td>
+            <td>PUT</td>
+            <td>パスワード変更</td>
+        </tr>
+        <tr>
+            <td>/api/v1/auth/password/reset-request</td>
+            <td>POST</td>
+            <td>パスワードリセット要求</td>
+        </tr>
+        <tr>
+            <td>/api/v1/auth/password/reset</td>
+            <td>POST</td>
+            <td>パスワードリセット実行</td>
+        </tr>
+    </table>
+
+    <h3>5.2 認可管理API</h3>
+    <table>
+        <tr>
+            <th>エンドポイント</th>
+            <th>メソッド</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users</td>
+            <td>GET</td>
+            <td>ユーザー一覧取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users/{id}</td>
+            <td>GET</td>
+            <td>ユーザー詳細取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users</td>
+            <td>POST</td>
+            <td>ユーザー新規作成</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users/{id}</td>
+            <td>PUT</td>
+            <td>ユーザー情報更新</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/users/{id}</td>
+            <td>DELETE</td>
+            <td>ユーザー削除</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/roles</td>
+            <td>GET</td>
+            <td>ロール一覧取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/roles/{id}</td>
+            <td>GET</td>
+            <td>ロール詳細取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/roles</td>
+            <td>POST</td>
+            <td>ロール新規作成</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/roles/{id}</td>
+            <td>PUT</td>
+            <td>ロール情報更新</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/roles/{id}</td>
+            <td>DELETE</td>
+            <td>ロール削除</td>
+        </tr>
+        <tr>
+            <td>/api/v1/admin/permissions</td>
+            <td>GET</td>
+            <td>権限一覧取得</td>
+        </tr>
+    </table>
+
+    <h2>6. 技術的実装</h2>
+
+    <h3>6.1 使用技術</h3>
+    <ul>
+        <li><strong>認証フレームワーク</strong>: Spring Security</li>
+        <li><strong>トークン管理</strong>: JJWT (Java JWT)</li>
+        <li><strong>パスワードハッシュ化</strong>: BCrypt</li>
+        <li><strong>多要素認証</strong>: Google Authenticator / WebAuthn</li>
+    </ul>
+
+    <h3>6.2 データモデル</h3>
+    <p><strong>User（ユーザー）</strong></p>
+    <pre><code>id: UUID (PK)
+email: String (一意)
+password_hash: String
+name: String
+department: String
+position: String
+phone: String
+role_id: UUID (FK -> Role)
+last_login_at: Timestamp
+mfa_enabled: Boolean
+mfa_secret: String (暗号化)
+account_locked: Boolean
+account_expires_at: Timestamp
+password_expires_at: Timestamp
+created_at: Timestamp
+updated_at: Timestamp</code></pre>
+
+    <p><strong>Role（ロール）</strong></p>
+    <pre><code>id: UUID (PK)
+name: String (一意)
+description: String
+created_at: Timestamp
+updated_at: Timestamp</code></pre>
+
+    <p><strong>Permission（権限）</strong></p>
+    <pre><code>id: UUID (PK)
+name: String (一意)
+description: String
+created_at: Timestamp
+updated_at: Timestamp</code></pre>
+
+    <p><strong>RolePermission（ロール権限関連）</strong></p>
+    <pre><code>role_id: UUID (PK, FK -> Role)
+permission_id: UUID (PK, FK -> Permission)
+created_at: Timestamp</code></pre>
+
+    <p><strong>RefreshToken（リフレッシュトークン）</strong></p>
+    <pre><code>id: UUID (PK)
+user_id: UUID (FK -> User)
+token_hash: String
+expires_at: Timestamp
+created_at: Timestamp
+revoked: Boolean
+revoked_at: Timestamp</code></pre>
+
+    <h3>6.3 クラス構成</h3>
+    <ul>
+        <li><strong>AuthController</strong>: 認証関連エンドポイントの制御</li>
+        <li><strong>UserController</strong>: ユーザー管理エンドポイントの制御</li>
+        <li><strong>RoleController</strong>: ロール管理エンドポイントの制御</li>
+        <li><strong>AuthService</strong>: 認証ロジックの実装</li>
+        <li><strong>UserService</strong>: ユーザー管理ロジックの実装</li>
+        <li><strong>RoleService</strong>: ロール管理ロジックの実装</li>
+        <li><strong>JwtTokenProvider</strong>: JWTトークン生成・検証</li>
+        <li><strong>CustomUserDetailsService</strong>: ユーザー詳細情報提供</li>
+        <li><strong>SecurityConfig</strong>: セキュリティ設定</li>
+        <li><strong>JwtAuthenticationFilter</strong>: JWT認証フィルター</li>
+        <li><strong>AuthorizationManager</strong>: 認可判定ロジック</li>
+    </ul>
+
+    <h2>7. セキュリティ対策</h2>
+    <ul>
+        <li><strong>CSRF対策</strong>: トークンベースの保護、SameSite Cookie設定</li>
+        <li><strong>XSS対策</strong>: 適切なエスケープ処理、Content-Security-Policy設定</li>
+        <li><strong>SQLインジェクション対策</strong>: PreparedStatement、パラメータバインディング</li>
+        <li><strong>サイドチャネル攻撃対策</strong>: 定数時間比較、レートリミット</li>
+        <li><strong>監査ログ</strong>: 認証・認可に関する全ての操作を記録</li>
+        <li><strong>セキュアコーディング</strong>: OWASP Top 10対策を実装</li>
+    </ul>
+
+    <h2>8. 拡張性と将来対応</h2>
+    <ul>
+        <li><strong>ソーシャルログイン</strong>: Google、GitHub等の外部IdPとの連携</li>
+        <li><strong>OAuth2.0 認可サーバー</strong>: 外部システム連携のためのOAuth2.0認可機能</li>
+        <li><strong>SAML対応</strong>: 企業向けシングルサインオン（SSO）対応</li>
+        <li><strong>リスクベース認証</strong>: ユーザー行動パターンに基づく適応型認証</li>
+        <li><strong>ユーザー行動分析</strong>: 不正アクセス検知のための行動ベースのセキュリティ</li>
+    </ul>
+
+    <h2>9. テスト計画</h2>
+    <ul>
+        <li><strong>単体テスト</strong>: 各サービスクラスの機能テスト</li>
+        <li><strong>統合テスト</strong>: 認証・認可フローの一貫したテスト</li>
+        <li><strong>セキュリティテスト</strong>: 脆弱性スキャン、ペネトレーションテスト</li>
+        <li><strong>パフォーマンステスト</strong>: 大量リクエスト時の認証・認可処理の応答性能</li>
+    </ul>
+
+    <div class="navigation">
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>

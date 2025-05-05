@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 検索機能 基本設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム 検索機能 基本設計書</h1>
+
+    <h2>1. はじめに</h2>
+    <p>本書は、SES業務システムにおける検索機能の基本設計を定義したものである。
+    システム全体で統一的な検索体験を提供するための検索機能の実装方針について記述する。</p>
+
+    <h2>2. 機能概要</h2>
+    <p>検索機能は、SES業務システム内の様々なデータ（案件情報、技術者情報、契約情報など）を
+    効率的に検索するための共通機能である。全文検索やファセット検索により、ユーザーは目的の
+    情報に素早くアクセスできる。</p>
+
+    <h2>3. 検索機能の種類</h2>
+
+    <h3>3.1 全文検索（Global Search）</h3>
+    <p>システム全体を横断した検索を提供する機能。</p>
+    <ul>
+        <li>単一の検索ボックスからシステム全体の情報を検索可能</li>
+        <li>検索結果は関連度順にソート</li>
+        <li>検索結果はカテゴリ（案件、技術者、契約など）ごとにグループ化</li>
+    </ul>
+
+    <h3>3.2 フィルタ検索（Filter Search）</h3>
+    <p>特定の画面内で条件を絞り込むための検索機能。</p>
+    <ul>
+        <li>複数の検索条件を組み合わせた高度な検索が可能</li>
+        <li>チェックボックス、選択リスト、日付範囲などの多様な入力形式</li>
+        <li>検索条件の保存と再利用機能</li>
+    </ul>
+
+    <h3>3.3 スマート検索（Smart Search）</h3>
+    <p>自然言語で検索できる機能（将来拡張）。</p>
+    <ul>
+        <li>自然言語による検索クエリの解析</li>
+        <li>例：「来月契約満了する技術者」「Java経験5年以上のPM」など</li>
+        <li>検索意図の推測と適切な検索結果の提供</li>
+    </ul>
+
+    <h2>4. 全文検索の設計</h2>
+
+    <h3>4.1 検索対象データ</h3>
+    <p>全文検索では以下のデータを対象とする：</p>
+    <table>
+        <tr>
+            <th>データ種別</th>
+            <th>検索対象フィールド</th>
+            <th>重み付け</th>
+        </tr>
+        <tr>
+            <td>案件情報</td>
+            <td>案件名、案件概要、スキル要件、備考</td>
+            <td>高</td>
+        </tr>
+        <tr>
+            <td>技術者情報</td>
+            <td>氏名、スキル、職務経歴、資格</td>
+            <td>高</td>
+        </tr>
+        <tr>
+            <td>契約情報</td>
+            <td>契約名、契約概要、備考</td>
+            <td>中</td>
+        </tr>
+        <tr>
+            <td>請求情報</td>
+            <td>請求先、請求項目、備考</td>
+            <td>中</td>
+        </tr>
+        <tr>
+            <td>ドキュメント</td>
+            <td>タイトル、内容</td>
+            <td>低</td>
+        </tr>
+    </table>
+
+    <h3>4.2 インデックス設計</h3>
+    <p>検索のためのインデックスを以下のように設計する：</p>
+    <ul>
+        <li><strong>インデックスタイプ</strong>：Elasticsearch逆インデックス</li>
+        <li><strong>インデックス更新タイミング</strong>：
+            <ul>
+                <li>データ更新時の非同期インデックス更新</li>
+                <li>定期的な全インデックス再構築（日次）</li>
+            </ul>
+        </li>
+        <li><strong>分析器設定</strong>：
+            <ul>
+                <li>日本語形態素解析（kuromoji）</li>
+                <li>N-gramトークナイザー（部分一致検索用）</li>
+                <li>同義語辞書の適用</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>4.3 検索クエリ処理</h3>
+    <p>検索クエリの処理フローは以下の通り：</p>
+    <ol>
+        <li>クエリ分析（スペース区切りでの複数キーワード分割）</li>
+        <li>クエリ拡張（同義語展開、スペルチェック）</li>
+        <li>検索実行（複数のインデックスに対する分散検索）</li>
+        <li>結果集約（重複排除、スコアリング）</li>
+        <li>アクセス権限フィルタリング</li>
+    </ol>
+
+    <h3>4.4 検索結果表示</h3>
+    <p>検索結果の表示方法：</p>
+    <ul>
+        <li><strong>グループ表示</strong>：データ種別ごとにグループ化</li>
+        <li><strong>ハイライト表示</strong>：検索キーワードの強調表示</li>
+        <li><strong>スニペット表示</strong>：検索結果の前後コンテキスト表示</li>
+        <li><strong>ページング</strong>：グループごとに「もっと見る」で展開</li>
+    </ul>
+
+    <h2>5. フィルタ検索の設計</h2>
+
+    <h3>5.1 フィルタの種類</h3>
+    <p>フィルタ検索で使用するフィルタの種類：</p>
+    <ul>
+        <li><strong>テキストフィルタ</strong>：キーワード検索（部分一致、完全一致）</li>
+        <li><strong>選択フィルタ</strong>：単一選択、複数選択</li>
+        <li><strong>日付フィルタ</strong>：期間指定、相対指定（今月、先月など）</li>
+        <li><strong>数値フィルタ</strong>：範囲指定、以上・以下</li>
+        <li><strong>階層フィルタ</strong>：ツリー構造での選択（組織など）</li>
+        <li><strong>位置フィルタ</strong>：地域、近接性</li>
+    </ul>
+
+    <h3>5.2 フィルタ構成例（モジュール別）</h3>
+
+    <h4>5.2.1 案件管理のフィルタ</h4>
+    <ul>
+        <li>案件名/キーワード（テキスト）</li>
+        <li>案件ステータス（選択）</li>
+        <li>案件種別（選択）</li>
+        <li>スキル要件（複数選択）</li>
+        <li>期間（日付範囲）</li>
+        <li>単価（数値範囲）</li>
+        <li>勤務地（選択）</li>
+    </ul>
+
+    <h4>5.2.2 技術者管理のフィルタ</h4>
+    <ul>
+        <li>氏名/キーワード（テキスト）</li>
+        <li>スキル（複数選択）</li>
+        <li>経験年数（数値範囲）</li>
+        <li>稼働状況（選択）</li>
+        <li>稼働可能日（日付）</li>
+        <li>単価レンジ（数値範囲）</li>
+    </ul>
+
+    <h3>5.3 フィルタ操作UI</h3>
+    <p>フィルタ操作のUI設計：</p>
+    <ul>
+        <li><strong>検索パネル</strong>：画面左側または上部に配置</li>
+        <li><strong>アコーディオン表示</strong>：カテゴリごとに折りたたみ可能</li>
+        <li><strong>クイックフィルタ</strong>：よく使うフィルタの即時表示</li>
+        <li><strong>アクティブフィルタ表示</strong>：適用中のフィルタをタグ形式で表示、個別解除可能</li>
+        <li><strong>フィルタプリセット</strong>：よく使う検索条件の保存と再利用</li>
+    </ul>
+
+    <h2>6. システムアーキテクチャ</h2>
+
+    <h3>6.1 全体アーキテクチャ</h3>
+    <p>検索機能のシステムアーキテクチャ：</p>
+    <ul>
+        <li><strong>フロントエンド</strong>：React検索コンポーネント</li>
+        <li><strong>バックエンド</strong>：検索APIサービス</li>
+        <li><strong>検索エンジン</strong>：Elasticsearch</li>
+        <li><strong>インデクサー</strong>：データベース更新を監視し検索インデックスを更新</li>
+        <li><strong>キャッシュ</strong>：頻出検索クエリの結果をキャッシュ</li>
+    </ul>
+
+    <h3>6.2 データフロー</h3>
+    <p>検索処理のデータフロー：</p>
+    <ol>
+        <li>ユーザーが検索クエリを入力</li>
+        <li>フロントエンドが検索APIにリクエスト送信</li>
+        <li>検索APIがクエリを前処理（権限チェック、クエリ変換）</li>
+        <li>検索エンジン（Elasticsearch）がクエリを実行</li>
+        <li>検索結果を後処理（フォーマット変換、ハイライト処理）</li>
+        <li>結果をフロントエンドに返却</li>
+        <li>フロントエンドが結果を表示</li>
+    </ol>
+
+    <h3>6.3 コンポーネント設計</h3>
+    <p>主要コンポーネントの設計：</p>
+
+    <h4>6.3.1 SearchService</h4>
+    <pre><code>@Service
+public class SearchService {
+    @Autowired
+    private ElasticsearchClient elasticsearchClient;
+    
+    @Autowired
+    private SearchAuthorizationService authService;
+    
+    @Autowired
+    private QueryBuilderService queryBuilder;
+    
+    @Autowired
+    private SearchResultProcessor resultProcessor;
+    
+    /**
+     * グローバル検索を実行する
+     */
+    public SearchResult globalSearch(String query, List<String> types, int page, int size) {
+        // 権限チェック
+        SearchContext context = authService.createSearchContext();
+        
+        // クエリビルド
+        SearchQuery searchQuery = queryBuilder.buildGlobalSearchQuery(query, types, context);
+        
+        // 検索実行
+        SearchResponse response = elasticsearchClient.search(searchQuery);
+        
+        // 結果処理
+        return resultProcessor.processGlobalSearchResults(response, context);
+    }
+    
+    /**
+     * フィルタ検索を実行する
+     */
+    public SearchResult filterSearch(String type, Map<String, Object> filters, 
+                                    String sortField, String sortOrder, 
+                                    int page, int size) {
+        // 権限チェック
+        SearchContext context = authService.createSearchContext();
+        
+        // クエリビルド
+        SearchQuery searchQuery = queryBuilder.buildFilterSearchQuery(
+            type, filters, sortField, sortOrder, context);
+        
+        // 検索実行
+        SearchResponse response = elasticsearchClient.search(searchQuery);
+        
+        // 結果処理
+        return resultProcessor.processFilterSearchResults(response, context);
+    }
+}
+</code></pre>
+
+    <h4>6.3.2 SearchHistoryService</h4>
+    <pre><code>@Service
+public class SearchHistoryService {
+    @Autowired
+    private SearchHistoryRepository repository;
+    
+    /**
+     * 検索履歴を保存する
+     */
+    @Async
+    public void saveSearchHistory(String userId, String query, 
+                                 SearchType searchType, int resultCount) {
+        SearchHistory history = new SearchHistory();
+        history.setId(UUID.randomUUID());
+        history.setUserId(userId);
+        history.setQuery(query);
+        history.setSearchType(searchType);
+        history.setResultCount(resultCount);
+        history.setSearchedAt(LocalDateTime.now());
+        
+        repository.save(history);
+    }
+    
+    /**
+     * ユーザーの検索履歴を取得する
+     */
+    public List<SearchHistory> getUserSearchHistory(String userId, int limit) {
+        return repository.findByUserIdOrderBySearchedAtDesc(userId, PageRequest.of(0, limit));
+    }
+    
+    /**
+     * 人気の検索キーワードを取得する
+     */
+    public List<PopularSearch> getPopularSearches(int days, int limit) {
+        LocalDateTime since = LocalDateTime.now().minusDays(days);
+        return repository.findPopularSearchesSince(since, limit);
+    }
+}
+</code></pre>
+
+    <h4>6.3.3 検索履歴エンティティ</h4>
+    <pre><code>@Entity
+@Table(name = "search_history")
+public class SearchHistory {
+    @Id
+    private UUID id;
+    
+    @Column(nullable = false)
+    private UUID userId;
+    
+    @Enumerated(EnumType.STRING)
+    private SearchType searchType;
+    
+    @Column(nullable = false)
+    private String query;
+    
+    private Integer resultCount;
+    
+    @Column(nullable = false)
+    private LocalDateTime searchedAt;
+    
+    // ゲッター、セッターなど
+}
+</code></pre>
+
+    <h2>7. UI設計</h2>
+
+    <h3>7.1 グローバル検索UI</h3>
+    <p>グローバル検索のUI設計：</p>
+    <ul>
+        <li><strong>検索ボックス</strong>：
+            <ul>
+                <li>位置：ヘッダー部分に常時表示</li>
+                <li>サイズ：十分な入力領域（最低30文字）</li>
+                <li>検索アイコン：虫眼鏡アイコンで視認性確保</li>
+            </ul>
+        </li>
+        <li><strong>検索サジェスト</strong>：
+            <ul>
+                <li>入力中に候補をドロップダウン表示</li>
+                <li>最近の検索履歴</li>
+                <li>人気の検索キーワード</li>
+                <li>コンテキストに応じた候補表示</li>
+            </ul>
+        </li>
+        <li><strong>検索結果画面</strong>：
+            <ul>
+                <li>カテゴリごとにグループ化（案件、技術者、契約など）</li>
+                <li>各グループは最初は上位3-5件表示し「もっと見る」で展開</li>
+                <li>検索キーワードのハイライト表示</li>
+                <li>結果アイテムには適切なアイコンと概要情報</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>7.2 フィルタ検索UI</h3>
+    <p>フィルタ検索のUI設計：</p>
+    <ul>
+        <li><strong>フィルタパネル</strong>：
+            <ul>
+                <li>位置：画面左側または上部</li>
+                <li>展開/縮小可能なアコーディオンスタイル</li>
+                <li>フィルタセクションごとにグループ化</li>
+            </ul>
+        </li>
+        <li><strong>フィルタコントロール</strong>：
+            <ul>
+                <li>テキスト入力：検索ボックス</li>
+                <li>選択式：チェックボックス、ラジオボタン、ドロップダウン</li>
+                <li>範囲：スライダー、日付ピッカー</li>
+            </ul>
+        </li>
+        <li><strong>アクティブフィルタ表示</strong>：
+            <ul>
+                <li>適用中のフィルタをタグ形式で表示</li>
+                <li>個別に削除可能なクローズボタン付き</li>
+                <li>「すべてクリア」ボタンで一括解除</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>8. API設計</h2>
+
+    <h3>8.1 検索API</h3>
+    <table>
+        <tr>
+            <th>エンドポイント</th>
+            <th>メソッド</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>/api/v1/search/global</td>
+            <td>GET</td>
+            <td>グローバル検索</td>
+        </tr>
+        <tr>
+            <td>/api/v1/search/{type}</td>
+            <td>GET</td>
+            <td>特定リソースタイプの検索</td>
+        </tr>
+        <tr>
+            <td>/api/v1/search/history</td>
+            <td>GET</td>
+            <td>検索履歴の取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/search/suggest</td>
+            <td>GET</td>
+            <td>検索サジェスト取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/search/popular</td>
+            <td>GET</td>
+            <td>人気の検索キーワード取得</td>
+        </tr>
+    </table>
+
+    <h3>8.2 グローバル検索API</h3>
+    <p>グローバル検索APIの仕様：</p>
+    <p><strong>リクエスト</strong>:</p>
+    <pre><code>GET /api/v1/search/global?q=Java&types=project,engineer&page=0&size=10</code></pre>
+    <p><strong>パラメータ</strong>:</p>
+    <ul>
+        <li><code>q</code>: 検索キーワード（必須）</li>
+        <li><code>types</code>: 検索対象タイプ（カンマ区切り、オプション）</li>
+        <li><code>page</code>: ページ番号（デフォルト: 0）</li>
+        <li><code>size</code>: ページサイズ（デフォルト: 10）</li>
+    </ul>
+    <p><strong>レスポンス</strong>:</p>
+    <pre><code>{
+  "query": "Java",
+  "totalHits": 45,
+  "groups": [
+    {
+      "type": "project",
+      "displayName": "案件",
+      "totalHits": 20,
+      "items": [
+        {
+          "id": "550e8400-e29b-41d4-a716-446655440000",
+          "title": "Java開発エンジニア募集",
+          "highlight": "...経験豊富な<em>Java</em>エンジニアを募集...",
+          "url": "/projects/550e8400-e29b-41d4-a716-446655440000"
+        },
+        // 他の案件...
+      ]
+    },
+    {
+      "type": "engineer",
+      "displayName": "技術者",
+      "totalHits": 25,
+      "items": [
+        {
+          "id": "38a52be4-9352-453e-af97-5c3b448652b0",
+          "title": "山田 太郎",
+          "highlight": "...<em>Java</em>でのWeb開発経験5年...",
+          "url": "/engineers/38a52be4-9352-453e-af97-5c3b448652b0"
+        },
+        // 他の技術者...
+      ]
+    }
+  ]
+}</code></pre>
+
+    <h3>8.3 フィルタ検索API</h3>
+    <p>フィルタ検索APIの仕様：</p>
+    <p><strong>リクエスト</strong>:</p>
+    <pre><code>GET /api/v1/search/projects?keyword=システム開発&status=募集中,提案中&skills=Java,AWS&min_price=600000&location=東京都&sort=created_at&order=desc&page=0&size=20</code></pre>
+    <p><strong>パラメータ</strong>:</p>
+    <ul>
+        <li><code>keyword</code>: 検索キーワード（オプション）</li>
+        <li><code>status</code>: 案件ステータス（カンマ区切り、オプション）</li>
+        <li><code>skills</code>: スキル要件（カンマ区切り、オプション）</li>
+        <li><code>min_price</code>: 最低単価（オプション）</li>
+        <li><code>location</code>: 勤務地（オプション）</li>
+        <li><code>sort</code>: ソートフィールド（オプション）</li>
+        <li><code>order</code>: ソート順（asc/desc、オプション）</li>
+        <li><code>page</code>: ページ番号（デフォルト: 0）</li>
+        <li><code>size</code>: ページサイズ（デフォルト: 20）</li>
+    </ul>
+    <p><strong>レスポンス</strong>:</p>
+    <pre><code>{
+  "data": {
+    "content": [
+      {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "システム開発プロジェクト",
+        "description": "金融系システム開発プロジェクト",
+        "status": "募集中",
+        "price": 800000,
+        "location": "東京都 千代田区",
+        "skills": ["Java", "Spring", "AWS"],
+        "startDate": "2025-07-01",
+        "endDate": "2026-06-30",
+        "createdAt": "2025-05-01T10:30:00Z"
+      },
+      // 他の案件...
+    ],
+    "totalElements": 45,
+    "totalPages": 3,
+    "number": 0,
+    "size": 20
+  },
+  "facets": {
+    "status": [
+      {"value": "募集中", "count": 30},
+      {"value": "提案中", "count": 15}
+    ],
+    "skills": [
+      {"value": "Java", "count": 40},
+      {"value": "AWS", "count": 25},
+      {"value": "Spring", "count": 22},
+      {"value": "React", "count": 18}
+    ],
+    "location": [
+      {"value": "東京都", "count": 35},
+      {"value": "大阪府", "count": 5},
+      {"value": "リモート", "count": 5}
+    ]
+  }
+}</code></pre>
+
+    <h2>9. 非機能要件</h2>
+
+    <h3>9.1 性能要件</h3>
+    <ul>
+        <li><strong>応答時間</strong>：
+            <ul>
+                <li>グローバル検索: 平均1秒以内</li>
+                <li>フィルタ検索: 平均500ms以内</li>
+            </ul>
+        </li>
+        <li><strong>同時実行数</strong>：最大100同時検索</li>
+        <li><strong>スケーラビリティ</strong>：
+            <ul>
+                <li>検索対象データ: 最大100万レコード</li>
+                <li>検索QPS: ピーク時20クエリ/秒</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h3>9.2 セキュリティ要件</h3>
+    <ul>
+        <li><strong>アクセス制御</strong>：ユーザーの権限に基づいた検索結果フィルタリング</li>
+        <li><strong>データ保護</strong>：機密情報の検索結果からの除外</li>
+        <li><strong>検索ログ</strong>：検索履歴の監査と保護</li>
+        <li><strong>インジェクション対策</strong>：検索クエリの適切な検証と処理</li>
+    </ul>
+
+    <h3>9.3 運用保守要件</h3>
+    <ul>
+        <li><strong>インデックスメンテナンス</strong>：
+            <ul>
+                <li>週次でのインデックス最適化</li>
+                <li>月次でのインデックス再構築</li>
+            </ul>
+        </li>
+        <li><strong>監視</strong>：
+            <ul>
+                <li>検索リクエスト数とレスポンスタイムのモニタリング</li>
+                <li>検索エラー率の監視</li>
+                <li>インデックスサイズと更新遅延の監視</li>
+            </ul>
+        </li>
+        <li><strong>障害対策</strong>：
+            <ul>
+                <li>検索サービスの冗長化</li>
+                <li>インデックスのバックアップと復旧手順</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>10. 制約・課題</h2>
+    <ul>
+        <li><strong>日本語検索の精度</strong>：形態素解析の精度向上と辞書の最適化が必要</li>
+        <li><strong>検索結果の分類</strong>：適切なグループ化と関連度判定のチューニングが課題</li>
+        <li><strong>検索パフォーマンス</strong>：データ量増加に伴うパフォーマンス対策が必要</li>
+        <li><strong>権限制御との整合性</strong>：複雑な権限モデルと検索のパフォーマンスのバランス</li>
+    </ul>
+
+    <div class="navigation">
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>

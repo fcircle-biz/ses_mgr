@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム ファイル管理機能 基本設計書 - 概要とアーキテクチャ設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+        .document-sections {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f0f4ff;
+            border-radius: 5px;
+            border-left: 4px solid #2b4acb;
+        }
+        .document-sections h3 {
+            margin-top: 5px;
+            color: #1e429f;
+        }
+        .document-sections ul {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム ファイル管理機能 基本設計書</h1>
+
+    <div class="document-sections">
+        <h3>ドキュメント構成</h3>
+        <ul>
+            <li><strong>Part 1:</strong> <a href="ファイル管理機能設計_01_概要とアーキテクチャ.html">概要とアーキテクチャ設計</a> (現在のページ)</li>
+            <li><strong>Part 2:</strong> <a href="ファイル管理機能設計_02_データモデル.html">データモデル設計</a></li>
+            <li><strong>Part 3:</strong> <a href="ファイル管理機能設計_03_サービスインターフェース.html">サービスインターフェース設計</a></li>
+            <li><strong>Part 4:</strong> <a href="ファイル管理機能設計_04_API設計.html">API設計</a></li>
+            <li><strong>Part 5:</strong> <a href="ファイル管理機能設計_05_アクセス制御とセキュリティ.html">アクセス制御とセキュリティ</a></li>
+            <li><strong>Part 6:</strong> <a href="ファイル管理機能設計_06_業務モジュール統合.html">業務モジュール統合</a></li>
+            <li><strong>Part 7:</strong> <a href="ファイル管理機能設計_07_パフォーマンスと運用設計.html">パフォーマンスと運用設計</a></li>
+        </ul>
+    </div>
+
+    <h2>1. 概要</h2>
+
+    <p>ファイル管理機能は、SES業務システム全体で使用されるファイルを一元的に管理するための共通基盤である。この機能により、契約書、請求書、スキルシート、案件資料などのファイルを安全に保存、取得、管理することが可能になる。</p>
+
+    <h3>1.1 目的</h3>
+
+    <p>ファイル管理機能は以下の目的で設計される：</p>
+
+    <ol>
+        <li><strong>一元管理</strong>: 複数の業務モジュールで使用されるファイルを一元的に管理する</li>
+        <li><strong>安全性確保</strong>: 機密性の高い文書も安全に保存・管理できる仕組みを提供する</li>
+        <li><strong>アクセス制御</strong>: 各ファイルのアクセス権限を適切に管理する</li>
+        <li><strong>柔軟な保存期間</strong>: ファイルの種類に応じた保存期間と削除ポリシーを提供する</li>
+        <li><strong>スケーラビリティ</strong>: 増大するデータ量に対応できる拡張性の高い設計を実現する</li>
+    </ol>
+
+    <h3>1.2 ファイルの種類と用途</h3>
+
+    <p>本システムでは以下の種類のファイルを管理する：</p>
+
+    <table>
+        <tr>
+            <th>ファイル種類</th>
+            <th>説明</th>
+            <th>関連業務モジュール</th>
+        </tr>
+        <tr>
+            <td>contract</td>
+            <td>契約書、覚書、付属文書など</td>
+            <td>契約管理</td>
+        </tr>
+        <tr>
+            <td>invoice</td>
+            <td>請求書、支払通知書など</td>
+            <td>請求支払管理</td>
+        </tr>
+        <tr>
+            <td>skill_sheet</td>
+            <td>技術者のスキルシート</td>
+            <td>技術者管理</td>
+        </tr>
+        <tr>
+            <td>project_document</td>
+            <td>案件説明書、要件定義書など</td>
+            <td>案件管理</td>
+        </tr>
+        <tr>
+            <td>common</td>
+            <td>システム共通で使用される資料</td>
+            <td>全般</td>
+        </tr>
+    </table>
+
+    <h3>1.3 ファイル形式</h3>
+
+    <p>対応するファイル形式は以下の通り：</p>
+
+    <ul>
+        <li><strong>ドキュメント</strong>: PDF, Word (.docx), Excel (.xlsx), PowerPoint (.pptx), Text (.txt)</li>
+        <li><strong>画像</strong>: JPEG (.jpg, .jpeg), PNG (.png), GIF (.gif), SVG (.svg)</li>
+        <li><strong>圧縮ファイル</strong>: ZIP (.zip)</li>
+        <li><strong>その他</strong>: CSV (.csv), JSON (.json)</li>
+    </ul>
+
+    <p>セキュリティ上の理由から、実行可能ファイル（.exe, .bat, .sh など）はアップロード不可とする。</p>
+
+    <h2>2. アーキテクチャ設計</h2>
+
+    <h3>2.1 全体アーキテクチャ</h3>
+
+    <p>ファイル管理機能は以下のコンポーネントで構成される：</p>
+
+    <pre><code>[業務アプリケーション] ---> [ファイル管理API] ---> [ファイルサービス]
+                            |                      |
+                            v                      v
+                  [メタデータストレージ]    [ファイルストレージ]
+                   (データベース)          (オブジェクトストレージ)</code></pre>
+
+    <h3>2.2 コンポーネント説明</h3>
+
+    <h4>2.2.1 ファイル管理API</h4>
+
+    <p>REST APIとして提供され、以下の機能を実装する：</p>
+
+    <ul>
+        <li>ファイルのアップロード</li>
+        <li>ファイルのダウンロード</li>
+        <li>ファイルメタデータの取得</li>
+        <li>ファイルの削除（論理削除）</li>
+    </ul>
+
+    <h4>2.2.2 ファイルサービス</h4>
+
+    <p>ファイル操作のコアロジックを担当し、以下の責務を持つ：</p>
+
+    <ul>
+        <li>ファイルの保存と取得</li>
+        <li>ファイルのバリデーション（サイズ、形式チェック）</li>
+        <li>ファイルの暗号化と復号</li>
+        <li>アクセス権限の検証</li>
+        <li>ファイルメタデータの管理</li>
+    </ul>
+
+    <h4>2.2.3 メタデータストレージ</h4>
+
+    <p>ファイルに関するメタデータを保存するためのリレーショナルデータベース。以下の情報を管理する：</p>
+
+    <ul>
+        <li>ファイルID</li>
+        <li>ファイル名</li>
+        <li>MIME Type</li>
+        <li>サイズ</li>
+        <li>作成者</li>
+        <li>作成日時</li>
+        <li>ファイルの種類（contract, invoice など）</li>
+        <li>関連リソースID</li>
+        <li>アクセス権限情報</li>
+        <li>タグ情報</li>
+        <li>論理削除フラグ</li>
+        <li>SHA-256ハッシュ値</li>
+    </ul>
+
+    <h4>2.2.4 ファイルストレージ</h4>
+
+    <p>実際のファイルバイナリデータを保存するためのオブジェクトストレージ。以下の特性を持つ：</p>
+
+    <ul>
+        <li>暗号化ストレージ</li>
+        <li>冗長化構成</li>
+        <li>スケーラブルな容量</li>
+        <li>バックアップ機能</li>
+    </ul>
+
+    <h3>2.3 ストレージ構成</h3>
+
+    <p>ファイルストレージの構成は以下の通り：</p>
+
+    <pre><code>[ストレージサービス]
+    |
+    |-- [インメモリキャッシュ] - 頻繁に使用されるファイルの一時保存
+    |
+    |-- [ファイルシステム] - AES-256で暗号化された実体ファイル
+    |   |
+    |   |-- /contracts/YYYY/MM/[file-id]
+    |   |-- /invoices/YYYY/MM/[file-id]
+    |   |-- /skill_sheets/YYYY/MM/[file-id]
+    |   |-- /project_documents/YYYY/MM/[file-id]
+    |   |-- /common/YYYY/MM/[file-id]
+    |
+    |-- [アーカイブストレージ] - 長期保管用低コストストレージ
+        |
+        |-- /archived/contracts/YYYY/[file-id]
+        |-- /archived/invoices/YYYY/[file-id]
+        |-- ...</code></pre>
+
+    <div class="navigation">
+        <a href="index.html">共通機能一覧へ戻る</a> |
+        <a href="ファイル管理機能設計_02_データモデル.html">次へ：データモデル設計</a>
+    </div>
+</body>
+</html>

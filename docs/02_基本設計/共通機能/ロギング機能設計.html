@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム ロギング機能 基本設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム ロギング機能 基本設計書</h1>
+
+    <h2>1. はじめに</h2>
+    <p>本書は、SES業務システムにおけるロギング機能の基本設計を定義したものである。
+    システム全体の動作状況、エラー、操作履歴などを記録するロギング機能の実装方針について記述する。</p>
+
+    <h2>2. 機能概要</h2>
+    <p>ロギング機能は、SES業務システムの各種操作やイベントを記録し、システムの監視、障害調査、
+    監査、パフォーマンス分析などに活用するための共通機能である。様々なレベルと種類のログを
+    体系的に収集、保存、検索できる仕組みを提供する。</p>
+
+    <h2>3. ロギング要件</h2>
+
+    <h3>3.1 ログの種類</h3>
+    <p>本システムでは以下の種類のログを記録する：</p>
+    <table>
+        <tr>
+            <th>ログ種別</th>
+            <th>説明</th>
+            <th>対象</th>
+            <th>保管期間</th>
+        </tr>
+        <tr>
+            <td>アプリケーションログ</td>
+            <td>システムの動作状況、警告、エラーなど</td>
+            <td>各マイクロサービス、バッチ処理</td>
+            <td>3ヶ月</td>
+        </tr>
+        <tr>
+            <td>操作ログ</td>
+            <td>ユーザーの操作履歴、データ変更</td>
+            <td>管理系機能、重要データ更新</td>
+            <td>1年</td>
+        </tr>
+        <tr>
+            <td>監査ログ</td>
+            <td>セキュリティ関連操作、権限変更など</td>
+            <td>認証・認可、管理者操作</td>
+            <td>2年</td>
+        </tr>
+        <tr>
+            <td>アクセスログ</td>
+            <td>API呼び出し、リソースアクセス</td>
+            <td>全APIエンドポイント</td>
+            <td>3ヶ月</td>
+        </tr>
+        <tr>
+            <td>パフォーマンスログ</td>
+            <td>処理時間、リソース使用量など</td>
+            <td>重要処理、長時間処理</td>
+            <td>1ヶ月</td>
+        </tr>
+    </table>
+
+    <h3>3.2 ログレベル</h3>
+    <p>アプリケーションログは以下のログレベルで管理する：</p>
+    <table>
+        <tr>
+            <th>レベル</th>
+            <th>説明</th>
+            <th>使用例</th>
+        </tr>
+        <tr>
+            <td>ERROR</td>
+            <td>エラー状態で、対応が必要</td>
+            <td>例外発生、処理失敗、サービス停止</td>
+        </tr>
+        <tr>
+            <td>WARN</td>
+            <td>警告状態だが処理は継続可能</td>
+            <td>処理遅延、リトライ、設定不整合</td>
+        </tr>
+        <tr>
+            <td>INFO</td>
+            <td>通常の動作状況</td>
+            <td>起動/停止、重要処理開始/終了</td>
+        </tr>
+        <tr>
+            <td>DEBUG</td>
+            <td>開発時の詳細情報</td>
+            <td>内部状態、変数値、処理フロー</td>
+        </tr>
+        <tr>
+            <td>TRACE</td>
+            <td>最も詳細なデバッグ情報</td>
+            <td>フレームワーク内部処理、低レベル処理</td>
+        </tr>
+    </table>
+
+    <h3>3.3 ログの内容</h3>
+    <p>基本的なログ項目：</p>
+    <ul>
+        <li><strong>タイムスタンプ</strong>: ログ記録日時（ISO 8601形式）</li>
+        <li><strong>ログレベル</strong>: ERROR, WARN, INFO, DEBUG, TRACEのいずれか</li>
+        <li><strong>プロセスID</strong>: アプリケーションのプロセスID</li>
+        <li><strong>スレッドID</strong>: 処理スレッドの識別子</li>
+        <li><strong>ロガー名</strong>: ログを出力したクラスまたはモジュール名</li>
+        <li><strong>メッセージ</strong>: ログの本文</li>
+        <li><strong>例外情報</strong>: エラー発生時のスタックトレース（該当時のみ）</li>
+    </ul>
+
+    <p>拡張ログ項目：</p>
+    <ul>
+        <li><strong>トレースID</strong>: 一連の処理を追跡するためのID（分散トレーシング用）</li>
+        <li><strong>スパンID</strong>: 処理内の特定ステップを識別するID</li>
+        <li><strong>ユーザーID</strong>: 操作を実行したユーザーの識別子</li>
+        <li><strong>セッションID</strong>: ユーザーセッションの識別子</li>
+        <li><strong>リクエストID</strong>: APIリクエストの識別子</li>
+        <li><strong>クライアントIP</strong>: クライアントのIPアドレス</li>
+        <li><strong>サービス名</strong>: マイクロサービスの名前</li>
+        <li><strong>エンドポイント</strong>: API呼び出しのエンドポイント</li>
+        <li><strong>処理時間</strong>: 処理の所要時間（ミリ秒）</li>
+    </ul>
+
+    <h2>4. システムアーキテクチャ</h2>
+
+    <h3>4.1 全体アーキテクチャ</h3>
+    <p>ロギング機能のアーキテクチャ概要：</p>
+    <ul>
+        <li><strong>ログ生成層</strong>: アプリケーションからのログ出力（SLF4J + Logback）</li>
+        <li><strong>ログ収集層</strong>: 各サービスからのログ集約（Filebeat/Fluentd）</li>
+        <li><strong>ログ処理層</strong>: ログのパース・加工・強化（Logstash）</li>
+        <li><strong>ログ保存層</strong>: 検索可能な形でのログ永続化（Elasticsearch）</li>
+        <li><strong>ログ可視化層</strong>: ログの検索・分析・可視化（Kibana）</li>
+        <li><strong>アラート層</strong>: 異常検知と通知（Elasticsearch Watcher, Alertmanager）</li>
+    </ul>
+
+    <h3>4.2 ログフロー</h3>
+    <p>ログデータの流れ：</p>
+    <ol>
+        <li>アプリケーションがSLF4J/Logbackを使用してログを出力</li>
+        <li>ログはJSON形式でローカルファイルに書き込まれる</li>
+        <li>Filebeatがログファイルを監視し、変更を検出</li>
+        <li>収集されたログはLogstashに送信</li>
+        <li>Logstashでログの正規化、エンリッチメント処理</li>
+        <li>処理されたログはElasticsearchに保存</li>
+        <li>Kibanaを通じてログの検索・可視化</li>
+        <li>Elasticsearchのアラート機能で重要なイベントを検知・通知</li>
+    </ol>
+
+    <h3>4.3 コンポーネント詳細</h3>
+
+    <h4>4.3.1 SLF4J + Logback</h4>
+    <p>Java向けロギングファサードとその実装：</p>
+    <ul>
+        <li>すべてのアプリケーションでSLF4JのAPIを使用</li>
+        <li>Logbackを実装として採用</li>
+        <li>環境ごとの設定ファイル（開発/テスト/本番）</li>
+        <li>非同期アペンダーでパフォーマンス最適化</li>
+    </ul>
+
+    <h4>4.3.2 Filebeat</h4>
+    <p>ログファイル収集エージェント：</p>
+    <ul>
+        <li>各サーバにインストールし、ログファイルを監視</li>
+        <li>ファイル変更を検出してLogstashに転送</li>
+        <li>軽量で低リソース消費</li>
+        <li>ログのトランケーションやローテーション処理に対応</li>
+    </ul>
+
+    <h4>4.3.3 Logstash</h4>
+    <p>ログ処理パイプライン：</p>
+    <ul>
+        <li>入力: Filebeatからのデータ受信</li>
+        <li>フィルタ: JSON解析、フィールド加工、GeoIP処理、パターンマッチングなど</li>
+        <li>出力: Elasticsearchへのデータ送信</li>
+        <li>バッファリングとスケーラビリティの確保</li>
+    </ul>
+
+    <h4>4.3.4 Elasticsearch</h4>
+    <p>ログデータストア：</p>
+    <ul>
+        <li>ログデータを検索可能な形式で保存</li>
+        <li>インデックスライフサイクル管理（ILM）でデータ保持期間の制御</li>
+        <li>スナップショットによるバックアップ</li>
+        <li>クラスタ構成で高可用性確保</li>
+    </ul>
+
+    <h4>4.3.5 Kibana</h4>
+    <p>ログ可視化・分析プラットフォーム：</p>
+    <ul>
+        <li>ログの検索・フィルタリング</li>
+        <li>ダッシュボードによる可視化</li>
+        <li>レポート生成</li>
+        <li>アラート設定</li>
+    </ul>
+
+    <h2>5. 実装詳細</h2>
+
+    <h3>5.1 Logback設定</h3>
+    <p>Logbackの基本設定：</p>
+    <pre><code>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;configuration&gt;
+    &lt;!-- プロパティ定義 --&gt;
+    &lt;property name="LOG_DIR" value="${LOG_PATH:-logs}" /&gt;
+    &lt;property name="APP_NAME" value="ses-manager" /&gt;
+    &lt;property name="LOG_PATTERN" value="%d{yyyy-MM-dd'T'HH:mm:ss.SSSXXX} [%thread] %-5level %logger{36} - %msg%n" /&gt;
+    
+    &lt;!-- Appender定義 --&gt;
+    &lt;!-- コンソール出力 --&gt;
+    &lt;appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender"&gt;
+        &lt;encoder&gt;
+            &lt;pattern&gt;${LOG_PATTERN}&lt;/pattern&gt;
+        &lt;/encoder&gt;
+    &lt;/appender&gt;
+    
+    &lt;!-- JSONファイル出力 --&gt;
+    &lt;appender name="JSON_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender"&gt;
+        &lt;file&gt;${LOG_DIR}/${APP_NAME}.json&lt;/file&gt;
+        &lt;encoder class="net.logstash.logback.encoder.LogstashEncoder"&gt;
+            &lt;!-- カスタムフィールド --&gt;
+            &lt;customFields&gt;{"application":"${APP_NAME}","environment":"${ENVIRONMENT:-production}"}&lt;/customFields&gt;
+            &lt;!-- トレースID, スパンIDを含める --&gt;
+            &lt;includeMdc&gt;true&lt;/includeMdc&gt;
+            &lt;!-- スタックトレースを含める --&gt;
+            &lt;includeException&gt;true&lt;/includeException&gt;
+        &lt;/encoder&gt;
+        &lt;rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"&gt;
+            &lt;fileNamePattern&gt;${LOG_DIR}/${APP_NAME}-%d{yyyy-MM-dd}.json&lt;/fileNamePattern&gt;
+            &lt;maxHistory&gt;30&lt;/maxHistory&gt;
+            &lt;totalSizeCap&gt;5GB&lt;/totalSizeCap&gt;
+        &lt;/rollingPolicy&gt;
+    &lt;/appender&gt;
+    
+    &lt;!-- 非同期処理 --&gt;
+    &lt;appender name="ASYNC_JSON" class="ch.qos.logback.classic.AsyncAppender"&gt;
+        &lt;appender-ref ref="JSON_FILE" /&gt;
+        &lt;queueSize&gt;512&lt;/queueSize&gt;
+        &lt;discardingThreshold&gt;0&lt;/discardingThreshold&gt;
+        &lt;includeCallerData&gt;true&lt;/includeCallerData&gt;
+        &lt;neverBlock&gt;false&lt;/neverBlock&gt;
+    &lt;/appender&gt;
+    
+    &lt;!-- テキストファイル出力（バックアップ用） --&gt;
+    &lt;appender name="FILE_TEXT" class="ch.qos.logback.core.rolling.RollingFileAppender"&gt;
+        &lt;file&gt;${LOG_DIR}/${APP_NAME}.log&lt;/file&gt;
+        &lt;encoder&gt;
+            &lt;pattern&gt;${LOG_PATTERN}&lt;/pattern&gt;
+            &lt;charset&gt;UTF-8&lt;/charset&gt;
+        &lt;/encoder&gt;
+        &lt;rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy"&gt;
+            &lt;fileNamePattern&gt;${LOG_DIR}/${APP_NAME}-%d{yyyy-MM-dd}.log&lt;/fileNamePattern&gt;
+            &lt;maxHistory&gt;30&lt;/maxHistory&gt;
+            &lt;totalSizeCap&gt;5GB&lt;/totalSizeCap&gt;
+        &lt;/rollingPolicy&gt;
+    &lt;/appender&gt;
+    
+    &lt;!-- ロガー設定 --&gt;
+    &lt;logger name="jp.co.sesmanager" level="${LOG_LEVEL:-INFO}" additivity="false"&gt;
+        &lt;appender-ref ref="CONSOLE" /&gt;
+        &lt;appender-ref ref="ASYNC_JSON" /&gt;
+        &lt;appender-ref ref="FILE_TEXT" /&gt;
+    &lt;/logger&gt;
+    
+    &lt;!-- Spring関連のログ --&gt;
+    &lt;logger name="org.springframework" level="INFO" additivity="false"&gt;
+        &lt;appender-ref ref="CONSOLE" /&gt;
+        &lt;appender-ref ref="ASYNC_JSON" /&gt;
+    &lt;/logger&gt;
+    
+    &lt;!-- Hibernateのログ --&gt;
+    &lt;logger name="org.hibernate.SQL" level="${HIBERNATE_LOG_LEVEL:-INFO}" additivity="false"&gt;
+        &lt;appender-ref ref="CONSOLE" /&gt;
+        &lt;appender-ref ref="ASYNC_JSON" /&gt;
+    &lt;/logger&gt;
+    
+    &lt;!-- ルートロガー --&gt;
+    &lt;root level="${ROOT_LOG_LEVEL:-WARN}"&gt;
+        &lt;appender-ref ref="CONSOLE" /&gt;
+        &lt;appender-ref ref="ASYNC_JSON" /&gt;
+    &lt;/root&gt;
+&lt;/configuration&gt;</code></pre>
+
+    <h3>5.2 ログ出力コード例</h3>
+    <p>アプリケーションからのログ出力例：</p>
+    <pre><code>import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
+
+public class ProjectService {
+    // クラスごとにロガーインスタンスを取得
+    private static final Logger logger = LoggerFactory.getLogger(ProjectService.class);
+
+    public Project createProject(ProjectDTO projectDTO, String userId) {
+        try {
+            // トレース情報のセット
+            MDC.put("traceId", generateTraceId());
+            MDC.put("userId", userId);
+            MDC.put("operation", "ProjectCreate");
+            
+            logger.info("プロジェクト作成開始: projectName={}", projectDTO.getName());
+            
+            // 入力値検証
+            validateProjectInput(projectDTO);
+            
+            // 処理開始時間
+            long startTime = System.currentTimeMillis();
+            
+            // 実際のビジネスロジック
+            Project project = new Project();
+            // ... 省略
+            project = projectRepository.save(project);
+            
+            // 処理時間の計測
+            long duration = System.currentTimeMillis() - startTime;
+            logger.info("プロジェクト作成完了: projectId={}, duration={}ms", 
+                project.getId(), duration);
+            
+            return project;
+            
+        } catch (ValidationException e) {
+            logger.warn("プロジェクト作成の入力値エラー: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            logger.error("プロジェクト作成中にエラーが発生しました", e);
+            throw new SystemException("E-02301", "プロジェクト作成に失敗しました", e);
+        } finally {
+            // MDCのクリーンアップ
+            MDC.clear();
+        }
+    }
+    
+    private String generateTraceId() {
+        return UUID.randomUUID().toString();
+    }
+    
+    private void validateProjectInput(ProjectDTO projectDTO) {
+        // バリデーション処理
+    }
+}
+</code></pre>
+
+    <h3>5.3 監査ログ</h3>
+    <p>監査ログの実装例：</p>
+    <pre><code>@Aspect
+@Component
+public class AuditLogAspect {
+    private static final Logger auditLogger = LoggerFactory.getLogger("AUDIT_LOG");
+    
+    @Autowired
+    private UserContextHolder userContextHolder;
+    
+    @Around("@annotation(auditLog)")
+    public Object logAuditEvent(ProceedingJoinPoint joinPoint, AuditLog auditLog) throws Throwable {
+        // 監査情報の取得
+        String action = auditLog.action();
+        String targetType = auditLog.targetType();
+        String targetId = resolveTargetId(joinPoint, auditLog);
+        UserContext userContext = userContextHolder.getUserContext();
+        
+        // トレース情報
+        String traceId = MDC.get("traceId");
+        if (traceId == null) {
+            traceId = UUID.randomUUID().toString();
+            MDC.put("traceId", traceId);
+        }
+        
+        try {
+            // 実行前ログ
+            logAuditEvent(action + "_ATTEMPT", targetType, targetId, userContext);
+            
+            // メソッド実行
+            Object result = joinPoint.proceed();
+            
+            // 成功ログ
+            logAuditEvent(action + "_SUCCESS", targetType, targetId, userContext);
+            
+            return result;
+        } catch (Throwable t) {
+            // 失敗ログ
+            logAuditEvent(action + "_FAILURE", targetType, targetId, userContext, t);
+            throw t;
+        }
+    }
+    
+    private void logAuditEvent(String action, String targetType, String targetId, 
+                               UserContext userContext) {
+        logAuditEvent(action, targetType, targetId, userContext, null);
+    }
+    
+    private void logAuditEvent(String action, String targetType, String targetId, 
+                               UserContext userContext, Throwable t) {
+        Map<String, Object> auditData = new LinkedHashMap<>();
+        auditData.put("action", action);
+        auditData.put("targetType", targetType);
+        auditData.put("targetId", targetId);
+        auditData.put("timestamp", LocalDateTime.now());
+        
+        if (userContext != null) {
+            auditData.put("userId", userContext.getUserId());
+            auditData.put("username", userContext.getUsername());
+            auditData.put("roles", userContext.getRoles());
+            auditData.put("ipAddress", userContext.getClientIp());
+        }
+        
+        if (t != null) {
+            auditData.put("status", "ERROR");
+            auditData.put("errorMessage", t.getMessage());
+        } else {
+            auditData.put("status", "SUCCESS");
+        }
+        
+        String auditMessage = formatAuditMessage(action, targetType, targetId, userContext);
+        
+        // 監査ログ出力
+        auditLogger.info(auditMessage, auditData);
+    }
+    
+    private String formatAuditMessage(String action, String targetType, 
+                                      String targetId, UserContext userContext) {
+        String username = userContext != null ? userContext.getUsername() : "unknown";
+        return String.format("Audit: %s performed action %s on %s (id: %s)", 
+                             username, action, targetType, targetId);
+    }
+    
+    private String resolveTargetId(ProceedingJoinPoint joinPoint, AuditLog auditLog) {
+        // メソッド引数から対象IDを解決する処理
+        // 省略
+        return "unknown";
+    }
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface AuditLog {
+    String action();
+    String targetType();
+    String targetIdArg() default "";
+}
+
+// 使用例
+@Service
+public class UserService {
+    @AuditLog(action = "USER_CREATE", targetType = "USER")
+    public User createUser(UserDTO userDTO) {
+        // ユーザー作成処理
+    }
+    
+    @AuditLog(action = "USER_UPDATE", targetType = "USER", targetIdArg = "userId")
+    public User updateUser(String userId, UserDTO userDTO) {
+        // ユーザー更新処理
+    }
+    
+    @AuditLog(action = "USER_DELETE", targetType = "USER", targetIdArg = "userId")
+    public void deleteUser(String userId) {
+        // ユーザー削除処理
+    }
+}</code></pre>
+
+    <h3>5.4 パフォーマンスログ</h3>
+    <p>パフォーマンス測定のAOP実装例：</p>
+    <pre><code>@Aspect
+@Component
+public class PerformanceLogAspect {
+    private static final Logger perfLogger = LoggerFactory.getLogger("PERFORMANCE_LOG");
+    
+    @Around("@annotation(LogPerformance)")
+    public Object logPerformance(ProceedingJoinPoint joinPoint) throws Throwable {
+        // メソッド情報
+        String className = joinPoint.getTarget().getClass().getSimpleName();
+        String methodName = joinPoint.getSignature().getName();
+        
+        // 処理開始
+        long startTime = System.currentTimeMillis();
+        
+        try {
+            // メソッド実行
+            Object result = joinPoint.proceed();
+            
+            // 処理時間
+            long duration = System.currentTimeMillis() - startTime;
+            
+            // パフォーマンスログ出力
+            logMethodPerformance(className, methodName, duration);
+            
+            return result;
+        } catch (Throwable t) {
+            // エラー時も処理時間を記録
+            long duration = System.currentTimeMillis() - startTime;
+            logMethodPerformance(className, methodName, duration, t);
+            throw t;
+        }
+    }
+    
+    private void logMethodPerformance(String className, String methodName, long duration) {
+        logMethodPerformance(className, methodName, duration, null);
+    }
+    
+    private void logMethodPerformance(String className, String methodName, 
+                                    long duration, Throwable t) {
+        Map<String, Object> perfData = new LinkedHashMap<>();
+        perfData.put("className", className);
+        perfData.put("methodName", methodName);
+        perfData.put("durationMs", duration);
+        perfData.put("timestamp", LocalDateTime.now());
+        
+        if (t != null) {
+            perfData.put("status", "ERROR");
+            perfData.put("errorType", t.getClass().getName());
+        } else {
+            perfData.put("status", "SUCCESS");
+        }
+        
+        // パフォーマンスしきい値による警告レベル判定
+        if (duration > 1000) {
+            perfLogger.warn("Slow execution: {}.{} took {}ms", 
+                          className, methodName, duration, perfData);
+        } else {
+            perfLogger.info("Method execution: {}.{} took {}ms", 
+                          className, methodName, duration, perfData);
+        }
+    }
+}
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface LogPerformance {
+}</code></pre>
+
+    <h3>5.5 ログ統合</h3>
+    <p>Filebeat設定例：</p>
+    <pre><code>filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+    - /app/logs/*.json
+  json.keys_under_root: true
+  json.add_error_key: true
+  json.message_key: message
+
+output.logstash:
+  hosts: ["logstash:5044"]</code></pre>
+    
+    <p>Logstash設定例：</p>
+    <pre><code>input {
+  beats {
+    port => 5044
+  }
+}
+
+filter {
+  if [application] == "ses-manager" {
+    # タイムスタンプ処理
+    date {
+      match => [ "timestamp", "ISO8601" ]
+      target => "@timestamp"
+    }
+    
+    # GeoIP処理
+    if [client_ip] {
+      geoip {
+        source => "client_ip"
+        target => "geoip"
+      }
+    }
+    
+    # ログタイプによる分類
+    if [logger_name] == "AUDIT_LOG" {
+      mutate {
+        add_field => { "log_type" => "audit" }
+      }
+    } else if [logger_name] == "PERFORMANCE_LOG" {
+      mutate {
+        add_field => { "log_type" => "performance" }
+      }
+    } else {
+      mutate {
+        add_field => { "log_type" => "application" }
+      }
+    }
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => ["elasticsearch:9200"]
+    index => "%{[application]}-%{[log_type]}-%{+YYYY.MM.dd}"
+    document_type => "_doc"
+  }
+}</code></pre>
+
+    <h3>5.6 Elasticsearch設定</h3>
+    <p>インデックステンプレート例：</p>
+    <pre><code>{
+  "index_patterns": ["ses-manager-*-*"],
+  "settings": {
+    "number_of_shards": 3,
+    "number_of_replicas": 1,
+    "index.lifecycle.name": "ses-manager-logs-policy",
+    "index.lifecycle.rollover_alias": "ses-manager-logs",
+    "index.mapping.total_fields.limit": 2000
+  },
+  "mappings": {
+    "properties": {
+      "@timestamp": { "type": "date" },
+      "level": { "type": "keyword" },
+      "message": { "type": "text" },
+      "logger_name": { "type": "keyword" },
+      "thread_name": { "type": "keyword" },
+      "application": { "type": "keyword" },
+      "environment": { "type": "keyword" },
+      "host": { "type": "keyword" },
+      "log_type": { "type": "keyword" },
+      "traceId": { "type": "keyword" },
+      "spanId": { "type": "keyword" },
+      "userId": { "type": "keyword" },
+      "username": { "type": "keyword" },
+      "action": { "type": "keyword" },
+      "targetType": { "type": "keyword" },
+      "targetId": { "type": "keyword" },
+      "status": { "type": "keyword" },
+      "durationMs": { "type": "long" },
+      "client_ip": { "type": "ip" },
+      "geoip": {
+        "properties": {
+          "location": { "type": "geo_point" }
+        }
+      }
+    }
+  }
+}</code></pre>
+
+    <p>ILM (Index Lifecycle Management) 設定例：</p>
+    <pre><code>{
+  "policy": {
+    "phases": {
+      "hot": {
+        "actions": {
+          "rollover": {
+            "max_size": "50GB",
+            "max_age": "1d"
+          },
+          "set_priority": {
+            "priority": 100
+          }
+        }
+      },
+      "warm": {
+        "min_age": "3d",
+        "actions": {
+          "shrink": {
+            "number_of_shards": 1
+          },
+          "forcemerge": {
+            "max_num_segments": 1
+          },
+          "set_priority": {
+            "priority": 50
+          }
+        }
+      },
+      "cold": {
+        "min_age": "30d",
+        "actions": {
+          "set_priority": {
+            "priority": 0
+          },
+          "freeze": {}
+        }
+      },
+      "delete": {
+        "min_age": "90d",
+        "actions": {
+          "delete": {}
+        }
+      }
+    }
+  }
+}</code></pre>
+
+    <h2>6. 運用・監視</h2>
+
+    <h3>6.1 Kibanaダッシュボード</h3>
+    <p>主要ダッシュボード：</p>
+    <ul>
+        <li><strong>アプリケーション健全性ダッシュボード</strong>: エラー率、応答時間、処理数など</li>
+        <li><strong>エラー分析ダッシュボード</strong>: エラータイプ、発生箇所、頻度など</li>
+        <li><strong>監査ログダッシュボード</strong>: 重要操作の監視、ユーザーアクション、権限変更など</li>
+        <li><strong>パフォーマンスダッシュボード</strong>: 処理時間分布、ボトルネック分析、リソース使用率など</li>
+        <li><strong>セキュリティダッシュボード</strong>: ログイン試行、異常アクセス、権限違反など</li>
+    </ul>
+
+    <h3>6.2 アラート設定</h3>
+    <p>主要アラート：</p>
+    <ul>
+        <li><strong>エラー頻度アラート</strong>: 短時間に多数のエラー発生</li>
+        <li><strong>重大エラーアラート</strong>: SYSTEMレベルのエラー発生</li>
+        <li><strong>パフォーマンス低下アラート</strong>: 処理時間が閾値超過</li>
+        <li><strong>セキュリティアラート</strong>: 不正アクセス試行、重要データ変更</li>
+        <li><strong>システムリソースアラート</strong>: ディスク使用率、メモリ使用率、CPU使用率</li>
+    </ul>
+    <p>アラート通知方法：</p>
+    <ul>
+        <li>メール通知</li>
+        <li>Slack通知</li>
+        <li>監視システム連携（Prometheus/Alertmanager）</li>
+        <li>チケットシステム連携（Jira/ServiceNow）</li>
+    </ul>
+
+    <h3>6.3 ログローテーション</h3>
+    <p>ログファイル管理方針：</p>
+    <ul>
+        <li>日次ローテーション</li>
+        <li>ローテーション後の圧縮（gzip）</li>
+        <li>ログ種別ごとの保持期間設定</li>
+        <li>ディスク容量監視と自動クリーンアップ</li>
+    </ul>
+
+    <h3>6.4 バックアップ戦略</h3>
+    <p>ログのバックアップ方針：</p>
+    <ul>
+        <li>Elasticsearchスナップショットの定期取得（日次）</li>
+        <li>重要ログ（監査ログ）の専用バックアップ（WORM形式）</li>
+        <li>バックアップの定期検証</li>
+        <li>長期保存用のコールドストレージ転送（S3 Glacier等）</li>
+    </ul>
+
+    <h2>7. セキュリティ考慮事項</h2>
+
+    <h3>7.1 機密情報保護</h3>
+    <ul>
+        <li><strong>個人情報のマスキング</strong>: 
+            <ul>
+                <li>メールアドレス、電話番号など個人情報のマスキング</li>
+                <li>クレジットカード番号などの金融情報の非ログ化</li>
+            </ul>
+        </li>
+        <li><strong>認証情報の保護</strong>: パスワード、トークン、秘密鍵などの非ログ化</li>
+        <li><strong>データ分類</strong>: ログデータの機密レベル分類と適切な保護</li>
+    </ul>
+
+    <h3>7.2 アクセス制御</h3>
+    <ul>
+        <li><strong>ログへのアクセス権限</strong>: ロールベースのアクセス制御</li>
+        <li><strong>監査ログ保護</strong>: 監査ログへのアクセス制限と変更防止</li>
+        <li><strong>データアクセス監査</strong>: ログデータへのアクセスを監査ログに記録</li>
+    </ul>
+
+    <h3>7.3 転送・保存時の保護</h3>
+    <ul>
+        <li><strong>転送暗号化</strong>: TLS/SSLによる転送経路の暗号化</li>
+        <li><strong>保存暗号化</strong>: Elasticsearchのnode-to-node暗号化と保存データの暗号化</li>
+        <li><strong>鍵管理</strong>: 暗号鍵の安全な管理と定期的なローテーション</li>
+    </ul>
+
+    <h2>8. 課題と制限事項</h2>
+    <ul>
+        <li><strong>パフォーマンスへの影響</strong>: 詳細なログ取得によるアプリケーションパフォーマンスへの影響</li>
+        <li><strong>ストレージコスト</strong>: 大量ログデータ保存に伴うストレージコストの最適化</li>
+        <li><strong>スケーラビリティ</strong>: ログ処理パイプラインのスケーラビリティ確保</li>
+        <li><strong>検索パフォーマンス</strong>: 大量ログデータからの高速検索の実現</li>
+        <li><strong>コンプライアンス</strong>: 規制要件に応じたログ保持・保護の実装</li>
+    </ul>
+
+    <div class="navigation">
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>

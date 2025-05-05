@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム ファイル管理機能 基本設計書 - パフォーマンスと運用設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+        .document-sections {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f0f4ff;
+            border-radius: 5px;
+            border-left: 4px solid #2b4acb;
+        }
+        .document-sections h3 {
+            margin-top: 5px;
+            color: #1e429f;
+        }
+        .document-sections ul {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム ファイル管理機能 基本設計書 - パフォーマンスと運用設計</h1>
+
+    <div class="document-sections">
+        <h3>ドキュメント構成</h3>
+        <ul>
+            <li><strong>Part 1:</strong> <a href="ファイル管理機能設計_01_概要とアーキテクチャ.html">概要とアーキテクチャ設計</a></li>
+            <li><strong>Part 2:</strong> <a href="ファイル管理機能設計_02_データモデル.html">データモデル設計</a></li>
+            <li><strong>Part 3:</strong> <a href="ファイル管理機能設計_03_サービスインターフェース.html">サービスインターフェース設計</a></li>
+            <li><strong>Part 4:</strong> <a href="ファイル管理機能設計_04_API設計.html">API設計</a></li>
+            <li><strong>Part 5:</strong> <a href="ファイル管理機能設計_05_アクセス制御とセキュリティ.html">アクセス制御とセキュリティ</a></li>
+            <li><strong>Part 6:</strong> <a href="ファイル管理機能設計_06_業務モジュール統合.html">業務モジュール統合</a></li>
+            <li><strong>Part 7:</strong> <a href="ファイル管理機能設計_07_パフォーマンスと運用設計.html">パフォーマンスと運用設計</a> (現在のページ)</li>
+        </ul>
+    </div>
+
+    <h2>9. パフォーマンスと最適化</h2>
+
+    <h3>9.1 キャッシュ戦略</h3>
+
+    <p>ファイル管理機能のパフォーマンスを向上させるため、以下のキャッシュ戦略を導入する：</p>
+
+    <ol>
+        <li><strong>メタデータキャッシュ</strong>:
+            <ul>
+                <li>ファイルメタデータを対象とした軽量なキャッシュ</li>
+                <li>キー: ファイルID</li>
+                <li>有効期間: 10分</li>
+                <li>Spring Cache + Caffeine</li>
+            </ul>
+        </li>
+    </ol>
+
+    <pre><code>@Configuration
+@EnableCaching
+public class CacheConfig {
+    
+    @Bean
+    public CacheManager cacheManager() {
+        SimpleCacheManager cacheManager = new SimpleCacheManager();
+        List<Cache> caches = new ArrayList<>();
+        
+        // ファイルメタデータキャッシュ
+        caches.add(new CaffeineCache("fileMetadata", 
+            Caffeine.newBuilder()
+                .expireAfterWrite(10, TimeUnit.MINUTES)
+                .maximumSize(1000)
+                .build()));
+        
+        // ファイルアクセス権限キャッシュ
+        caches.add(new CaffeineCache("fileAccess", 
+            Caffeine.newBuilder()
+                .expireAfterWrite(5, TimeUnit.MINUTES)
+                .maximumSize(2000)
+                .build()));
+        
+        cacheManager.setCaches(caches);
+        return cacheManager;
+    }
+}</code></pre>
+
+    <ol start="2">
+        <li><strong>コンテンツキャッシュ</strong>:
+            <ul>
+                <li>頻繁にアクセスされる小さいファイル対象</li>
+                <li>容量制限: 最大100MB</li>
+                <li>有効期間: 最終アクセスから5分</li>
+            </ul>
+        </li>
+    </ol>
+
+    <pre><code>@Service
+public class FileContentCacheServiceImpl implements FileContentCacheService {
+    
+    // LRUキャッシュの実装
+    private final Map<UUID, CachedFileContent> contentCache = Collections.synchronizedMap(
+        new LinkedHashMap<UUID, CachedFileContent>(16, 0.75f, true) {
+            private static final long MAX_CACHE_SIZE_BYTES = 100 * 1024 * 1024; // 100MB
+            private long currentSize = 0;
+            
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<UUID, CachedFileContent> eldest) {
+                if (currentSize > MAX_CACHE_SIZE_BYTES) {
+                    currentSize -= eldest.getValue().getSize();
+                    return true;
+                }
+                return false;
+            }
+        });
+    
+    // ファイルコンテンツをキャッシュに保存
+    @Override
+    public void cacheFileContent(UUID fileId, byte[] content, String contentType) {
+        if (content.length < 5 * 1024 * 1024) { // 5MB未満のファイルのみキャッシュ
+            CachedFileContent cachedContent = new CachedFileContent(
+                content,
+                contentType,
+                LocalDateTime.now().plusMinutes(5)
+            );
+            contentCache.put(fileId, cachedContent);
+        }
+    }
+    
+    // キャッシュからファイルコンテンツを取得
+    @Override
+    public Optional<CachedFileContent> getFileContent(UUID fileId) {
+        CachedFileContent cachedContent = contentCache.get(fileId);
+        
+        if (cachedContent != null) {
+            if (cachedContent.isExpired()) {
+                contentCache.remove(fileId);
+                return Optional.empty();
+            }
+            return Optional.of(cachedContent);
+        }
+        
+        return Optional.empty();
+    }
+    
+    // キャッシュの定期的なクリーンアップ
+    @Scheduled(fixedRate = 300000) // 5分ごとに実行
+    public void cleanupExpiredCache() {
+        List<UUID> expiredKeys = contentCache.entrySet().stream()
+            .filter(entry -> entry.getValue().isExpired())
+            .map(Map.Entry::getKey)
+            .collect(Collectors.toList());
+            
+        expiredKeys.forEach(contentCache::remove);
+    }
+    
+    // キャッシュデータを表すクラス
+    public static class CachedFileContent {
+        private final byte[] content;
+        private final String contentType;
+        private final LocalDateTime expiresAt;
+        
+        // コンストラクタ、ゲッターなど
+    }
+}</code></pre>
+
+    <h3>9.2 非同期処理</h3>
+
+    <p>大容量ファイルの処理や複数ファイルの一括処理には、非同期処理を採用する：</p>
+
+    <pre><code>@Service
+public class AsyncFileServiceImpl implements AsyncFileService {
+    
+    @Autowired
+    private FileService fileService;
+    
+    @Autowired
+    private AsyncFileProcessRepository asyncFileProcessRepository;
+    
+    @Autowired
+    private NotificationService notificationService;
+    
+    @Async
+    @Override
+    public CompletableFuture<String> processLargeFileAsync(MultipartFile file, FileType fileType, 
+            String resourceId, String description, Set<String> tags, String username) {
+        
+        // 非同期処理の状態を保存
+        AsyncFileProcess process = new AsyncFileProcess();
+        process.setFileName(file.getOriginalFilename());
+        process.setFileType(fileType);
+        process.setStatus(AsyncProcessStatus.PROCESSING);
+        process.setStartedAt(LocalDateTime.now());
+        process.setUsername(username);
+        process = asyncFileProcessRepository.save(process);
+        
+        final String processId = process.getId().toString();
+        
+        try {
+            // ファイルの処理（大容量ファイルの場合は時間がかかる）
+            FileDto fileDto = fileService.saveFile(
+                file,
+                fileType,
+                resourceId,
+                description,
+                tags,
+                false,
+                null,
+                username
+            );
+            
+            // 処理成功を記録
+            process.setStatus(AsyncProcessStatus.COMPLETED);
+            process.setCompletedAt(LocalDateTime.now());
+            process.setResultFileId(UUID.fromString(fileDto.getId()));
+            asyncFileProcessRepository.save(process);
+            
+            // ユーザーに通知
+            notificationService.notifyUser(
+                username,
+                "ファイル処理完了",
+                String.format("ファイル「%s」の処理が完了しました。", file.getOriginalFilename())
+            );
+            
+            return CompletableFuture.completedFuture(fileDto.getId());
+            
+        } catch (Exception e) {
+            // エラー時の処理
+            process.setStatus(AsyncProcessStatus.FAILED);
+            process.setErrorMessage(e.getMessage());
+            process.setCompletedAt(LocalDateTime.now());
+            asyncFileProcessRepository.save(process);
+            
+            // エラー通知
+            notificationService.notifyUser(
+                username,
+                "ファイル処理エラー",
+                String.format("ファイル「%s」の処理中にエラーが発生しました。", file.getOriginalFilename())
+            );
+            
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+    
+    @Override
+    public AsyncFileProcessDto getProcessStatus(String processId) {
+        AsyncFileProcess process = asyncFileProcessRepository.findById(UUID.fromString(processId))
+            .orElseThrow(() -> new ResourceNotFoundException("Process not found"));
+            
+        return AsyncFileProcessMapper.toDto(process);
+    }
+}</code></pre>
+
+    <h3>9.3 データベースとストレージの最適化</h3>
+
+    <p>ファイル管理機能のパフォーマンスを維持するため、以下の最適化を行う：</p>
+
+    <h4>9.3.1 インデックス設計</h4>
+
+    <pre><code>-- ファイルテーブルのインデックス
+CREATE INDEX idx_files_file_type ON files (file_type);
+CREATE INDEX idx_files_resource_id ON files (resource_id);
+CREATE INDEX idx_files_created_by ON files (created_by);
+CREATE INDEX idx_files_created_at ON files (created_at);
+CREATE INDEX idx_files_is_public ON files (is_public);
+
+-- ファイルタグテーブルのインデックス
+CREATE INDEX idx_file_tags_tag ON file_tags (tag);
+
+-- ファイルアクセステーブルのインデックス
+CREATE INDEX idx_file_access_user_id ON file_access (user_id);
+CREATE INDEX idx_file_access_role_id ON file_access (role_id);</code></pre>
+
+    <h4>9.3.2 パーティショニング</h4>
+
+    <p>大量のファイルを扱う場合は、ファイルテーブルをパーティショニングする：</p>
+
+    <pre><code>-- file_typeとcreated_atでパーティショニング
+CREATE TABLE files (
+    id UUID PRIMARY KEY,
+    file_name VARCHAR(255) NOT NULL,
+    -- 他のカラム定義
+) PARTITION BY LIST (file_type);
+
+-- 契約書パーティション
+CREATE TABLE files_contract PARTITION OF files
+    FOR VALUES IN ('CONTRACT');
+
+-- 請求書パーティション
+CREATE TABLE files_invoice PARTITION OF files
+    FOR VALUES IN ('INVOICE');
+
+-- スキルシートパーティション
+CREATE TABLE files_skill_sheet PARTITION OF files
+    FOR VALUES IN ('SKILL_SHEET');
+
+-- 案件資料パーティション
+CREATE TABLE files_project_document PARTITION OF files
+    FOR VALUES IN ('PROJECT_DOCUMENT');
+
+-- 共通資料パーティション
+CREATE TABLE files_common PARTITION OF files
+    FOR VALUES IN ('COMMON');</code></pre>
+
+    <h4>9.3.3 ストレージライフサイクル管理</h4>
+
+    <p>ファイルの使用頻度に基づいて、異なるストレージ層に移動させる：</p>
+
+    <ul>
+        <li><strong>ホットストレージ</strong>: 最近アクセスされたファイル</li>
+        <li><strong>ウォームストレージ</strong>: 3ヶ月以上アクセスのないファイル</li>
+        <li><strong>コールドストレージ</strong>: 1年以上アクセスのないファイル</li>
+    </ul>
+
+    <pre><code>@Service
+@Scheduled(cron = "0 0 2 * * 0") // 毎週日曜日の午前2時に実行
+public class StorageLifecycleManagerImpl implements StorageLifecycleManager {
+    
+    @Autowired
+    private FileRepository fileRepository;
+    
+    @Autowired
+    private StorageService hotStorage;
+    
+    @Autowired
+    private StorageService warmStorage;
+    
+    @Autowired
+    private StorageService coldStorage;
+    
+    @Override
+    public void migrateFiles() {
+        LocalDateTime now = LocalDateTime.now();
+        
+        // ウォームストレージへの移行（3ヶ月以上アクセスなし）
+        List<File> filesToWarm = fileRepository.findFilesNotAccessedSince(
+            now.minusMonths(3), now.minusMonths(12));
+        
+        filesToWarm.forEach(file -> {
+            try {
+                // ホットからウォームストレージへ移行
+                Resource fileResource = hotStorage.getResource(file.getPath());
+                String newPath = warmStorage.store(fileResource.getInputStream(), file.getMimeType());
+                
+                // パスの更新とストレージタイプの変更
+                file.setPath(newPath);
+                file.setStorageType(StorageType.WARM);
+                fileRepository.save(file);
+                
+                // 元のファイルを削除
+                hotStorage.delete(file.getPath());
+            } catch (Exception e) {
+                // エラーログ
+            }
+        });
+        
+        // コールドストレージへの移行（1年以上アクセスなし）
+        List<File> filesToCold = fileRepository.findFilesNotAccessedSince(
+            now.minusYears(1), null);
+        
+        filesToCold.forEach(file -> {
+            try {
+                // ウォームからコールドストレージへ移行（同様の処理）
+                // ...
+            } catch (Exception e) {
+                // エラーログ
+            }
+        });
+    }
+}</code></pre>
+
+    <h2>10. 運用設計</h2>
+
+    <h3>10.1 バックアップと復元</h3>
+
+    <p>データの安全性を確保するため、以下のバックアップ方針を適用する：</p>
+
+    <ol>
+        <li><strong>データベースバックアップ</strong>:
+            <ul>
+                <li>完全バックアップ：週1回</li>
+                <li>増分バックアップ：毎日</li>
+                <li>トランザクションログ：1時間ごと</li>
+            </ul>
+        </li>
+        <li><strong>ファイルストレージバックアップ</strong>:
+            <ul>
+                <li>フルバックアップ：週1回</li>
+                <li>差分バックアップ：毎日</li>
+            </ul>
+        </li>
+        <li><strong>バックアップの保持期間</strong>:
+            <ul>
+                <li>日次バックアップ：30日間</li>
+                <li>週次バックアップ：3ヶ月間</li>
+                <li>月次バックアップ：1年間</li>
+            </ul>
+        </li>
+        <li><strong>リストアプロセス</strong>:
+            <ul>
+                <li>RTO（目標復旧時間）：4時間以内</li>
+                <li>RPO（目標復旧時点）：1時間以内</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>10.2 監視とアラート</h3>
+
+    <p>ファイル管理機能の可用性とパフォーマンスを確保するための監視設計：</p>
+
+    <ol>
+        <li><strong>リソース監視</strong>:
+            <ul>
+                <li>ストレージ使用率</li>
+                <li>データベース接続数</li>
+                <li>APIレスポンスタイム</li>
+            </ul>
+        </li>
+        <li><strong>プロセス監視</strong>:
+            <ul>
+                <li>ファイルアップロード失敗率</li>
+                <li>ファイル削除エラー率</li>
+                <li>暗号化処理エラー率</li>
+            </ul>
+        </li>
+        <li><strong>アラート設定</strong>:
+            <ul>
+                <li>ストレージ使用率80%超過：警告</li>
+                <li>ストレージ使用率95%超過：緊急</li>
+                <li>APIレスポンスタイム1秒超過：警告</li>
+                <li>連続ファイルアップロード失敗：緊急</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>10.3 ログとメトリクス</h3>
+
+    <p>システム運用のための情報収集設計：</p>
+
+    <ol>
+        <li><strong>アクセスログ</strong>:
+            <ul>
+                <li>ファイルのダウンロード履歴</li>
+                <li>ユーザーごとのファイルアクセス情報</li>
+                <li>権限エラーイベント</li>
+            </ul>
+        </li>
+        <li><strong>操作ログ</strong>:
+            <ul>
+                <li>ファイルアップロード／削除イベント</li>
+                <li>アクセス権限変更イベント</li>
+                <li>ファイルメタデータ更新イベント</li>
+            </ul>
+        </li>
+        <li><strong>パフォーマンスメトリクス</strong>:
+            <ul>
+                <li>ファイルアップロード処理時間</li>
+                <li>ファイルダウンロード処理時間</li>
+                <li>ストレージI/O統計</li>
+            </ul>
+        </li>
+    </ol>
+
+    <pre><code>@Aspect
+@Component
+public class FileOperationLoggingAspect {
+    
+    private static final Logger accessLogger = LoggerFactory.getLogger("file.access");
+    private static final Logger operationLogger = LoggerFactory.getLogger("file.operation");
+    
+    @Around("execution(* com.example.service.FileService.getFileResource(..))")
+    public Object logFileAccess(ProceedingJoinPoint joinPoint) throws Throwable {
+        Object[] args = joinPoint.getArgs();
+        UUID fileId = (UUID) args[0];
+        String username = (String) args[1];
+        
+        long startTime = System.currentTimeMillis();
+        Object result = joinPoint.proceed();
+        long endTime = System.currentTimeMillis();
+        
+        // アクセスログの記録
+        accessLogger.info("FILE_ACCESS fileId={} user={} time={}", 
+            fileId, username, (endTime - startTime));
+        
+        return result;
+    }
+    
+    @AfterReturning(
+        pointcut = "execution(* com.example.service.FileService.saveFile(..))",
+        returning = "result")
+    public void logFileUpload(JoinPoint joinPoint, Object result) {
+        Object[] args = joinPoint.getArgs();
+        MultipartFile file = (MultipartFile) args[0];
+        FileType fileType = (FileType) args[1];
+        String username = (String) args[args.length - 1];
+        
+        FileDto fileDto = (FileDto) result;
+        
+        // 操作ログの記録
+        operationLogger.info("FILE_UPLOAD fileId={} fileName={} type={} size={} user={}",
+            fileDto.getId(), file.getOriginalFilename(), fileType, file.getSize(), username);
+    }
+    
+    @AfterReturning("execution(* com.example.service.FileService.deleteFile(..))")
+    public void logFileDelete(JoinPoint joinPoint) {
+        Object[] args = joinPoint.getArgs();
+        UUID fileId = (UUID) args[0];
+        String username = (String) args[1];
+        boolean permanent = (boolean) args[2];
+        
+        // 操作ログの記録
+        operationLogger.info("FILE_DELETE fileId={} user={} permanent={}",
+            fileId, username, permanent);
+    }
+}</code></pre>
+
+    <h2>11. まとめ</h2>
+
+    <p>SES業務システムのファイル管理機能は、様々な業務プロセスで使用されるファイルを一元的に管理するための共通基盤として設計された。本機能は以下の特徴を持つ：</p>
+
+    <ol>
+        <li><strong>柔軟なファイル分類</strong>: 契約書、請求書、スキルシートなど、用途に応じたファイル分類をサポート</li>
+        <li><strong>堅牢なセキュリティ</strong>: AES-256暗号化、アクセス制御、ウイルススキャンによる安全性確保</li>
+        <li><strong>効率的なメタデータ管理</strong>: タグ、説明、関連リソースなどのメタデータによる検索と管理の効率化</li>
+        <li><strong>スケーラブルなストレージ設計</strong>: 増大するデータ量に対応できるストレージライフサイクル管理</li>
+        <li><strong>業務プロセスとの統合</strong>: 各業務モジュールとの密接な連携による使いやすさの向上</li>
+        <li><strong>高いパフォーマンス</strong>: キャッシュ、非同期処理、データベース最適化によるパフォーマンス確保</li>
+        <li><strong>運用管理機能</strong>: バックアップ、監視、ログ記録による安定運用のサポート</li>
+    </ol>
+
+    <p>これらの特徴により、ファイル管理機能はSES業務システム全体の効率と信頼性の向上に貢献する。</p>
+
+    <div class="navigation">
+        <a href="ファイル管理機能設計_06_業務モジュール統合.html">前へ：業務モジュール統合</a> |
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>

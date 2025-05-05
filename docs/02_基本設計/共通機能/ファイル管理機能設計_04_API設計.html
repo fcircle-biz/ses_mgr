@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム ファイル管理機能 基本設計書 - API設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+        .document-sections {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f0f4ff;
+            border-radius: 5px;
+            border-left: 4px solid #2b4acb;
+        }
+        .document-sections h3 {
+            margin-top: 5px;
+            color: #1e429f;
+        }
+        .document-sections ul {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム ファイル管理機能 基本設計書 - API設計</h1>
+
+    <div class="document-sections">
+        <h3>ドキュメント構成</h3>
+        <ul>
+            <li><strong>Part 1:</strong> <a href="ファイル管理機能設計_01_概要とアーキテクチャ.html">概要とアーキテクチャ設計</a></li>
+            <li><strong>Part 2:</strong> <a href="ファイル管理機能設計_02_データモデル.html">データモデル設計</a></li>
+            <li><strong>Part 3:</strong> <a href="ファイル管理機能設計_03_サービスインターフェース.html">サービスインターフェース設計</a></li>
+            <li><strong>Part 4:</strong> <a href="ファイル管理機能設計_04_API設計.html">API設計</a> (現在のページ)</li>
+            <li><strong>Part 5:</strong> <a href="ファイル管理機能設計_05_アクセス制御とセキュリティ.html">アクセス制御とセキュリティ</a></li>
+            <li><strong>Part 6:</strong> <a href="ファイル管理機能設計_06_業務モジュール統合.html">業務モジュール統合</a></li>
+            <li><strong>Part 7:</strong> <a href="ファイル管理機能設計_07_パフォーマンスと運用設計.html">パフォーマンスと運用設計</a></li>
+        </ul>
+    </div>
+
+    <h2>5. API設計</h2>
+
+    <h3>5.1 ファイルアップロードAPI</h3>
+
+    <pre><code>POST /api/v1/common/files/upload</code></pre>
+
+    <p><strong>リクエスト</strong>: multipart/form-data</p>
+
+    <table>
+        <tr>
+            <th>パラメータ</th>
+            <th>型</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>file</td>
+            <td>file</td>
+            <td>必須</td>
+            <td>アップロードするファイル</td>
+        </tr>
+        <tr>
+            <td>file_type</td>
+            <td>string</td>
+            <td>必須</td>
+            <td>ファイルの種類（contract, invoice, skill_sheet, project_document, common）</td>
+        </tr>
+        <tr>
+            <td>resource_id</td>
+            <td>string</td>
+            <td>任意</td>
+            <td>関連リソースのID（契約ID、請求書IDなど）</td>
+        </tr>
+        <tr>
+            <td>description</td>
+            <td>string</td>
+            <td>任意</td>
+            <td>ファイルの説明</td>
+        </tr>
+        <tr>
+            <td>tags</td>
+            <td>string</td>
+            <td>任意</td>
+            <td>カンマ区切りのタグリスト</td>
+        </tr>
+        <tr>
+            <td>is_public</td>
+            <td>boolean</td>
+            <td>任意</td>
+            <td>公開設定（デフォルト: false）</td>
+        </tr>
+        <tr>
+            <td>expiry_date</td>
+            <td>string</td>
+            <td>任意</td>
+            <td>有効期限（ISO8601形式）</td>
+        </tr>
+    </table>
+
+    <p><strong>レスポンス</strong>: 201 Created</p>
+
+    <pre><code>{
+  "data": {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "file_name": "契約書_2023_05.pdf",
+    "file_type": "contract",
+    "mime_type": "application/pdf",
+    "size": 1248576,
+    "description": "2023年5月締結の業務委託契約書",
+    "tags": ["契約書", "業務委託", "2023年度"],
+    "resource_id": "contract-123456",
+    "is_public": false,
+    "download_url": "/api/v1/common/files/f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "expiry_date": "2024-05-01T00:00:00.000Z",
+    "created_at": "2023-05-01T10:30:00.000Z",
+    "created_by": "550e8400-e29b-41d4-a716-446655440000"
+  }
+}</code></pre>
+
+    <h3>5.2 ファイルダウンロードAPI</h3>
+
+    <pre><code>GET /api/v1/common/files/{id}</code></pre>
+
+    <p><strong>パスパラメータ</strong>:</p>
+
+    <table>
+        <tr>
+            <th>パラメータ</th>
+            <th>型</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>id</td>
+            <td>string</td>
+            <td>必須</td>
+            <td>ファイルID</td>
+        </tr>
+    </table>
+
+    <p><strong>クエリパラメータ</strong>:</p>
+
+    <table>
+        <tr>
+            <th>パラメータ</th>
+            <th>型</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>download</td>
+            <td>boolean</td>
+            <td>任意</td>
+            <td>ダウンロード指定（デフォルト: false）</td>
+        </tr>
+    </table>
+
+    <p><strong>レスポンス</strong>: 200 OK</p>
+
+    <p>ファイルの内容とともに以下のヘッダーが返される：</p>
+
+    <pre><code>Content-Type: {ファイルのMIMEタイプ}
+Content-Length: {ファイルサイズ}
+Content-Disposition: attachment; filename="{ファイル名}" (downloadパラメータが true の場合)</code></pre>
+
+    <h3>5.3 ファイルメタデータ取得API</h3>
+
+    <pre><code>GET /api/v1/common/files/metadata/{id}</code></pre>
+
+    <p><strong>パスパラメータ</strong>:</p>
+
+    <table>
+        <tr>
+            <th>パラメータ</th>
+            <th>型</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>id</td>
+            <td>string</td>
+            <td>必須</td>
+            <td>ファイルID</td>
+        </tr>
+    </table>
+
+    <p><strong>レスポンス</strong>: 200 OK</p>
+
+    <pre><code>{
+  "data": {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "file_name": "契約書_2023_05.pdf",
+    "file_type": "contract",
+    "mime_type": "application/pdf",
+    "size": 1248576,
+    "description": "2023年5月締結の業務委託契約書",
+    "tags": ["契約書", "業務委託", "2023年度"],
+    "resource_id": "contract-123456",
+    "resource_type": "contract",
+    "is_public": false,
+    "download_url": "/api/v1/common/files/f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "download_count": 5,
+    "expiry_date": "2024-05-01T00:00:00.000Z",
+    "created_at": "2023-05-01T10:30:00.000Z",
+    "updated_at": "2023-05-02T15:45:00.000Z",
+    "created_by": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "山田 太郎"
+    },
+    "sha256_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
+}</code></pre>
+
+    <h3>5.4 ファイル削除API</h3>
+
+    <pre><code>DELETE /api/v1/common/files/{id}</code></pre>
+
+    <p><strong>パスパラメータ</strong>:</p>
+
+    <table>
+        <tr>
+            <th>パラメータ</th>
+            <th>型</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>id</td>
+            <td>string</td>
+            <td>必須</td>
+            <td>ファイルID</td>
+        </tr>
+    </table>
+
+    <p><strong>クエリパラメータ</strong>:</p>
+
+    <table>
+        <tr>
+            <th>パラメータ</th>
+            <th>型</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>permanent</td>
+            <td>boolean</td>
+            <td>任意</td>
+            <td>物理削除フラグ（デフォルト: false、管理者のみ指定可）</td>
+        </tr>
+    </table>
+
+    <p><strong>レスポンス</strong>: 204 No Content</p>
+
+    <h3>5.5 ファイル検索API</h3>
+
+    <pre><code>GET /api/v1/common/files/search</code></pre>
+
+    <p><strong>クエリパラメータ</strong>:</p>
+
+    <table>
+        <tr>
+            <th>パラメータ</th>
+            <th>型</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>file_type</td>
+            <td>string</td>
+            <td>任意</td>
+            <td>ファイルタイプでフィルタリング</td>
+        </tr>
+        <tr>
+            <td>resource_id</td>
+            <td>string</td>
+            <td>任意</td>
+            <td>関連リソースIDでフィルタリング</td>
+        </tr>
+        <tr>
+            <td>tags</td>
+            <td>string</td>
+            <td>任意</td>
+            <td>タグでフィルタリング（カンマ区切り）</td>
+        </tr>
+        <tr>
+            <td>query</td>
+            <td>string</td>
+            <td>任意</td>
+            <td>検索キーワード（ファイル名、説明で検索）</td>
+        </tr>
+        <tr>
+            <td>include_deleted</td>
+            <td>boolean</td>
+            <td>任意</td>
+            <td>削除済みファイルを含むか（デフォルト: false）</td>
+        </tr>
+        <tr>
+            <td>page</td>
+            <td>number</td>
+            <td>任意</td>
+            <td>ページ番号（デフォルト: 0）</td>
+        </tr>
+        <tr>
+            <td>size</td>
+            <td>number</td>
+            <td>任意</td>
+            <td>ページサイズ（デフォルト: 20）</td>
+        </tr>
+        <tr>
+            <td>sort</td>
+            <td>string</td>
+            <td>任意</td>
+            <td>ソート条件（created_at:desc, file_name:asc など）</td>
+        </tr>
+    </table>
+
+    <p><strong>レスポンス</strong>: 200 OK</p>
+
+    <pre><code>{
+  "data": [
+    {
+      "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+      "file_name": "契約書_2023_05.pdf",
+      "file_type": "contract",
+      "mime_type": "application/pdf",
+      "size": 1248576,
+      "description": "2023年5月締結の業務委託契約書",
+      "tags": ["契約書", "業務委託", "2023年度"],
+      "resource_id": "contract-123456",
+      "is_public": false,
+      "download_url": "/api/v1/common/files/f47ac10b-58cc-4372-a567-0e02b2c3d479",
+      "created_at": "2023-05-01T10:30:00.000Z",
+      "created_by": {
+        "id": "550e8400-e29b-41d4-a716-446655440000",
+        "name": "山田 太郎"
+      }
+    },
+    // ...他のファイル
+  ],
+  "pagination": {
+    "current_page": 0,
+    "page_size": 20,
+    "total_pages": 5,
+    "total_items": 93
+  }
+}</code></pre>
+
+    <h3>5.6 リソース関連ファイル取得API</h3>
+
+    <pre><code>GET /api/v1/common/files/by-resource/{resource_id}</code></pre>
+
+    <p><strong>パスパラメータ</strong>:</p>
+
+    <table>
+        <tr>
+            <th>パラメータ</th>
+            <th>型</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>resource_id</td>
+            <td>string</td>
+            <td>必須</td>
+            <td>関連リソースID</td>
+        </tr>
+    </table>
+
+    <p><strong>クエリパラメータ</strong>:</p>
+
+    <table>
+        <tr>
+            <th>パラメータ</th>
+            <th>型</th>
+            <th>必須</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>file_type</td>
+            <td>string</td>
+            <td>任意</td>
+            <td>ファイルタイプでフィルタリング</td>
+        </tr>
+    </table>
+
+    <p><strong>レスポンス</strong>: 200 OK</p>
+
+    <pre><code>{
+  "data": [
+    {
+      "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+      "file_name": "契約書_2023_05.pdf",
+      "file_type": "contract",
+      "mime_type": "application/pdf",
+      "size": 1248576,
+      "description": "2023年5月締結の業務委託契約書",
+      "tags": ["契約書", "業務委託", "2023年度"],
+      "resource_id": "contract-123456",
+      "download_url": "/api/v1/common/files/f47ac10b-58cc-4372-a567-0e02b2c3d479",
+      "created_at": "2023-05-01T10:30:00.000Z"
+    },
+    // ...他のファイル
+  ]
+}</code></pre>
+
+    <div class="navigation">
+        <a href="ファイル管理機能設計_03_サービスインターフェース.html">前へ：サービスインターフェース設計</a> |
+        <a href="ファイル管理機能設計_05_アクセス制御とセキュリティ.html">次へ：アクセス制御とセキュリティ</a> |
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>

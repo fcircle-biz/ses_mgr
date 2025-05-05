@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム ファイル管理機能 基本設計書 - データモデル設計</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+        .document-sections {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f0f4ff;
+            border-radius: 5px;
+            border-left: 4px solid #2b4acb;
+        }
+        .document-sections h3 {
+            margin-top: 5px;
+            color: #1e429f;
+        }
+        .document-sections ul {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム ファイル管理機能 基本設計書 - データモデル設計</h1>
+
+    <div class="document-sections">
+        <h3>ドキュメント構成</h3>
+        <ul>
+            <li><strong>Part 1:</strong> <a href="ファイル管理機能設計_01_概要とアーキテクチャ.html">概要とアーキテクチャ設計</a></li>
+            <li><strong>Part 2:</strong> <a href="ファイル管理機能設計_02_データモデル.html">データモデル設計</a> (現在のページ)</li>
+            <li><strong>Part 3:</strong> <a href="ファイル管理機能設計_03_サービスインターフェース.html">サービスインターフェース設計</a></li>
+            <li><strong>Part 4:</strong> <a href="ファイル管理機能設計_04_API設計.html">API設計</a></li>
+            <li><strong>Part 5:</strong> <a href="ファイル管理機能設計_05_アクセス制御とセキュリティ.html">アクセス制御とセキュリティ</a></li>
+            <li><strong>Part 6:</strong> <a href="ファイル管理機能設計_06_業務モジュール統合.html">業務モジュール統合</a></li>
+            <li><strong>Part 7:</strong> <a href="ファイル管理機能設計_07_パフォーマンスと運用設計.html">パフォーマンスと運用設計</a></li>
+        </ul>
+    </div>
+
+    <h2>3. データモデル設計</h2>
+
+    <h3>3.1 ファイル（File）エンティティ</h3>
+
+    <p>ファイルのメタデータを管理するエンティティ</p>
+
+    <pre><code>@Entity
+@Table(name = "files")
+public class File {
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+    
+    @Column(nullable = false)
+    private String fileName;
+    
+    @Column(nullable = false)
+    private String mimeType;
+    
+    @Column(nullable = false)
+    private long size;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private FileType fileType;
+    
+    @Column
+    private String resourceId;
+    
+    @Column
+    private String description;
+    
+    @Column
+    private String path;  // ストレージ内の相対パス
+    
+    @Column(nullable = false)
+    private String sha256Hash;  // ファイル整合性検証用ハッシュ値
+    
+    @ElementCollection
+    @CollectionTable(name = "file_tags", joinColumns = @JoinColumn(name = "file_id"))
+    @Column(name = "tag")
+    private Set<String> tags = new HashSet<>();
+    
+    @Column(nullable = false)
+    private boolean isPublic = false;
+    
+    @Column
+    private LocalDateTime expiryDate;
+    
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+    
+    @Column
+    private LocalDateTime updatedAt;
+    
+    @ManyToOne
+    @JoinColumn(name = "created_by", nullable = false)
+    private User createdBy;
+    
+    @Column(nullable = false)
+    private boolean deleted = false;
+    
+    @Column
+    private LocalDateTime deletedAt;
+    
+    // getters, setters, etc.
+}</code></pre>
+
+    <h3>3.2 ファイルタイプ（FileType）列挙型</h3>
+
+    <p>ファイルの種類を定義する列挙型</p>
+
+    <pre><code>public enum FileType {
+    CONTRACT("契約書"),
+    INVOICE("請求書"),
+    SKILL_SHEET("スキルシート"),
+    PROJECT_DOCUMENT("案件資料"),
+    COMMON("共通資料");
+    
+    private final String displayName;
+    
+    FileType(String displayName) {
+        this.displayName = displayName;
+    }
+    
+    public String getDisplayName() {
+        return displayName;
+    }
+}</code></pre>
+
+    <h3>3.3 ファイルアクセス（FileAccess）エンティティ</h3>
+
+    <p>ファイルへのアクセス権限を管理するエンティティ</p>
+
+    <pre><code>@Entity
+@Table(name = "file_access")
+public class FileAccess {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @ManyToOne
+    @JoinColumn(name = "file_id", nullable = false)
+    private File file;
+    
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
+    
+    @ManyToOne
+    @JoinColumn(name = "role_id")
+    private Role role;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AccessType accessType;
+    
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+    
+    // getters, setters, etc.
+}</code></pre>
+
+    <h3>3.4 アクセスタイプ（AccessType）列挙型</h3>
+
+    <p>アクセス権限のタイプを定義する列挙型</p>
+
+    <pre><code>public enum AccessType {
+    READ,       // 読み取り権限
+    WRITE,      // 書き込み権限
+    DELETE,     // 削除権限
+    ADMIN       // 管理者権限
+}</code></pre>
+
+    <h3>3.5 ファイルダウンロード履歴（FileDownloadHistory）エンティティ</h3>
+
+    <p>ファイルダウンロードの履歴を管理するエンティティ</p>
+
+    <pre><code>@Entity
+@Table(name = "file_download_history")
+public class FileDownloadHistory {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @ManyToOne
+    @JoinColumn(name = "file_id", nullable = false)
+    private File file;
+    
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+    
+    @Column(nullable = false)
+    private LocalDateTime downloadedAt;
+    
+    @Column
+    private String ipAddress;
+    
+    @Column
+    private String userAgent;
+    
+    // getters, setters, etc.
+}</code></pre>
+
+    <div class="navigation">
+        <a href="ファイル管理機能設計_01_概要とアーキテクチャ.html">前へ：概要とアーキテクチャ設計</a> |
+        <a href="ファイル管理機能設計_03_サービスインターフェース.html">次へ：サービスインターフェース設計</a> |
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>

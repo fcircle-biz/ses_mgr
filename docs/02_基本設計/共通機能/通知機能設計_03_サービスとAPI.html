@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 通知機能 基本設計書 - サービスインターフェースとAPI</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+        .document-sections {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f0f4ff;
+            border-radius: 5px;
+            border-left: 4px solid #2b4acb;
+        }
+        .document-sections h3 {
+            margin-top: 5px;
+            color: #1e429f;
+        }
+        .document-sections ul {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム 通知機能 基本設計書 - サービスインターフェースとAPI</h1>
+
+    <div class="document-sections">
+        <h3>ドキュメント構成</h3>
+        <ul>
+            <li><strong>Part 1:</strong> <a href="通知機能設計_01_概要とアーキテクチャ.html">概要とアーキテクチャ</a></li>
+            <li><strong>Part 2:</strong> <a href="通知機能設計_02_データモデル.html">データモデル</a></li>
+            <li><strong>Part 3:</strong> <a href="通知機能設計_03_サービスとAPI.html">サービスインターフェースとAPI</a> (現在のページ)</li>
+            <li><strong>Part 4:</strong> <a href="通知機能設計_04_フロントエンドと業務モジュール統合.html">フロントエンドと業務モジュール統合</a></li>
+            <li><strong>Part 5:</strong> <a href="通知機能設計_05_セキュリティと運用.html">セキュリティと運用</a></li>
+        </ul>
+    </div>
+
+    <h2>4. サービスインターフェース設計</h2>
+
+    <h3>4.1 通知サービス（NotificationService）</h3>
+
+    <p>通知の基本機能を提供するサービス。</p>
+
+    <pre><code>public interface NotificationService {
+    // 通知の作成
+    Notification createNotification(
+        NotificationType type,
+        List<User> recipients,
+        String title,
+        String body,
+        Map<String, Object> metadata
+    );
+    
+    // テンプレートベースの通知作成
+    Notification createNotificationFromTemplate(
+        String templateKey,
+        List<User> recipients,
+        Map<String, Object> parameters
+    );
+    
+    // ユーザーの通知取得
+    Page<Notification> getUserNotifications(
+        String username,
+        NotificationType type,
+        Boolean readStatus,
+        Pageable pageable
+    );
+    
+    // 通知の詳細取得
+    Notification getNotificationById(UUID id, String username);
+    
+    // 通知の既読設定
+    Notification markAsRead(UUID id, String username);
+    
+    // 全通知の既読設定
+    int markAllAsRead(String username, NotificationType type);
+    
+    // 通知の削除
+    void deleteNotification(UUID id, String username);
+    
+    // 通知ストリームの取得（リアルタイム通知用）
+    Flux<Notification> getNotificationStream(String username);
+    
+    // 期限切れ通知のアーカイブ
+    void archiveExpiredNotifications();
+}</code></pre>
+
+    <h3>4.2 配信サービス（DeliveryService）</h3>
+
+    <p>通知の配信方法を管理するサービス。</p>
+
+    <pre><code>public interface DeliveryService {
+    // メール通知の送信
+    void sendEmailNotification(Notification notification);
+    
+    // アプリ内通知のプッシュ
+    void pushInAppNotification(Notification notification);
+    
+    // 配信チャネルの決定
+    Set<DeliveryChannel> determineDeliveryChannels(User user, NotificationType type);
+    
+    // 通知テンプレートの適用
+    String applyTemplate(String template, Map<String, Object> parameters);
+}</code></pre>
+
+    <h3>4.3 通知設定サービス（NotificationPreferenceService）</h3>
+
+    <p>ユーザーの通知設定を管理するサービス。</p>
+
+    <pre><code>public interface NotificationPreferenceService {
+    // 通知設定の取得
+    List<NotificationPreference> getUserPreferences(String username);
+    
+    // 通知設定の更新
+    NotificationPreference updatePreference(
+        String username,
+        NotificationType type,
+        boolean appEnabled,
+        boolean emailEnabled,
+        int retentionDays
+    );
+    
+    // デフォルト設定のリセット
+    void resetToDefaults(String username);
+    
+    // 特定通知タイプの設定取得
+    NotificationPreference getPreference(String username, NotificationType type);
+}</code></pre>
+
+    <h2>5. API設計</h2>
+
+    <h3>5.1 通知一覧取得 API</h3>
+
+    <p>ユーザーの通知一覧を取得するAPI。</p>
+
+    <pre><code>GET /api/v1/common/notifications</code></pre>
+
+    <p><strong>クエリパラメータ：</strong></p>
+    <ul>
+        <li><code>page</code>: ページ番号（デフォルト: 1）</li>
+        <li><code>page_size</code>: 1ページあたりの件数（デフォルト: 20, 最大: 100）</li>
+        <li><code>type</code>: 通知タイプでフィルタリング（system, task, alert, event）</li>
+        <li><code>read_status</code>: 既読状態でフィルタリング（read, unread, all）（デフォルト: all）</li>
+        <li><code>sort</code>: ソート順（created_at:desc, created_at:asc）（デフォルト: created_at:desc）</li>
+    </ul>
+
+    <p><strong>レスポンス例：</strong></p>
+    <pre><code>{
+  "data": [
+    {
+      "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+      "type": "task",
+      "title": "新しい案件の提案依頼があります",
+      "body": "株式会社テクノロジーの案件「Javaエンジニア募集」に対して提案依頼がありました。",
+      "read": false,
+      "created_at": "2023-05-01T10:30:00.000Z",
+      "metadata": {
+        "project_id": "550e8400-e29b-41d4-a716-446655440000",
+        "project_name": "Javaエンジニア募集",
+        "client_name": "株式会社テクノロジー",
+        "action_url": "/projects/550e8400-e29b-41d4-a716-446655440000"
+      }
+    },
+    // その他の通知...
+  ],
+  "pagination": {
+    "current_page": 1,
+    "page_size": 20,
+    "total_pages": 2,
+    "total_items": 25
+  },
+  "summary": {
+    "unread_count": 12,
+    "total_count": 25
+  }
+}</code></pre>
+
+    <h3>5.2 通知詳細取得 API</h3>
+
+    <p>特定の通知の詳細を取得するAPI。</p>
+
+    <pre><code>GET /api/v1/common/notifications/{id}</code></pre>
+
+    <p><strong>パスパラメータ：</strong></p>
+    <ul>
+        <li><code>id</code>: 取得する通知のID</li>
+    </ul>
+
+    <p><strong>レスポンス例：</strong></p>
+    <pre><code>{
+  "data": {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "type": "task",
+    "title": "新しい案件の提案依頼があります",
+    "body": "株式会社テクノロジーの案件「Javaエンジニア募集」に対して提案依頼がありました。\n\n詳細を確認し、適切な技術者を選定して提案してください。",
+    "read": false,
+    "created_at": "2023-05-01T10:30:00.000Z",
+    "updated_at": "2023-05-01T10:30:00.000Z",
+    "metadata": {
+      "project_id": "550e8400-e29b-41d4-a716-446655440000",
+      "project_name": "Javaエンジニア募集",
+      "client_name": "株式会社テクノロジー",
+      "required_skills": ["Java", "Spring", "MySQL"],
+      "deadline": "2023-05-10T17:00:00.000Z",
+      "action_url": "/projects/550e8400-e29b-41d4-a716-446655440000",
+      "importance": "high"
+    },
+    "sender": {
+      "id": "6ba7b812-9dad-11d1-80b4-00c04fd430c8",
+      "name": "営業担当 佐藤"
+    },
+    "recipient": {
+      "id": "6ba7b813-9dad-11d1-80b4-00c04fd430c8",
+      "name": "マッチング担当 田中"
+    }
+  }
+}</code></pre>
+
+    <h3>5.3 通知既読設定 API</h3>
+
+    <p>指定された通知を既読状態に更新するAPI。</p>
+
+    <pre><code>PUT /api/v1/common/notifications/{id}/read</code></pre>
+
+    <p><strong>パスパラメータ：</strong></p>
+    <ul>
+        <li><code>id</code>: 既読にする通知のID</li>
+    </ul>
+
+    <p><strong>レスポンス例：</strong></p>
+    <pre><code>{
+  "data": {
+    "id": "f47ac10b-58cc-4372-a567-0e02b2c3d479",
+    "read": true,
+    "updated_at": "2023-05-02T14:45:00.000Z"
+  }
+}</code></pre>
+
+    <h3>5.4 全通知既読設定 API</h3>
+
+    <p>ユーザーの全ての未読通知を既読状態に更新するAPI。</p>
+
+    <pre><code>PUT /api/v1/common/notifications/read-all</code></pre>
+
+    <p><strong>クエリパラメータ：</strong></p>
+    <ul>
+        <li><code>type</code>: 特定タイプの通知のみを既読にする場合（system, task, alert, event）</li>
+    </ul>
+
+    <p><strong>レスポンス例：</strong></p>
+    <pre><code>{
+  "data": {
+    "marked_as_read": 12,
+    "updated_at": "2023-05-02T14:50:00.000Z"
+  }
+}</code></pre>
+
+    <h3>5.5 通知削除 API</h3>
+
+    <p>指定された通知を削除するAPI。</p>
+
+    <pre><code>DELETE /api/v1/common/notifications/{id}</code></pre>
+
+    <p><strong>パスパラメータ：</strong></p>
+    <ul>
+        <li><code>id</code>: 削除する通知のID</li>
+    </ul>
+
+    <p><strong>レスポンス例：</strong></p>
+    <p>No Content (204)</p>
+
+    <h3>5.6 通知設定取得 API</h3>
+
+    <p>ユーザーの通知設定を取得するAPI。</p>
+
+    <pre><code>GET /api/v1/common/notification-preferences</code></pre>
+
+    <p><strong>レスポンス例：</strong></p>
+    <pre><code>{
+  "data": [
+    {
+      "notification_type": "system",
+      "app_enabled": true,
+      "email_enabled": true,
+      "retention_days": 90
+    },
+    {
+      "notification_type": "task",
+      "app_enabled": true,
+      "email_enabled": true,
+      "retention_days": 90
+    },
+    {
+      "notification_type": "alert",
+      "app_enabled": true,
+      "email_enabled": true,
+      "retention_days": 180
+    },
+    {
+      "notification_type": "event",
+      "app_enabled": true,
+      "email_enabled": false,
+      "retention_days": 60
+    }
+  ]
+}</code></pre>
+
+    <h3>5.7 通知設定更新 API</h3>
+
+    <p>ユーザーの通知設定を更新するAPI。</p>
+
+    <pre><code>PUT /api/v1/common/notification-preferences/{type}</code></pre>
+
+    <p><strong>パスパラメータ：</strong></p>
+    <ul>
+        <li><code>type</code>: 更新する通知タイプ（system, task, alert, event）</li>
+    </ul>
+
+    <p><strong>リクエスト例：</strong></p>
+    <pre><code>{
+  "app_enabled": true,
+  "email_enabled": false,
+  "retention_days": 60
+}</code></pre>
+
+    <p><strong>レスポンス例：</strong></p>
+    <pre><code>{
+  "data": {
+    "notification_type": "event",
+    "app_enabled": true,
+    "email_enabled": false,
+    "retention_days": 60,
+    "updated_at": "2023-05-03T09:10:00.000Z"
+  }
+}</code></pre>
+
+    <h3>5.8 リアルタイム通知ストリーム API</h3>
+
+    <p>Server-Sent Events（SSE）を使用したリアルタイム通知のストリーミングAPI。</p>
+
+    <pre><code>GET /api/v1/common/notifications/stream</code></pre>
+
+    <p><strong>レスポンス形式：</strong></p>
+    <p>text/event-stream</p>
+
+    <p><strong>イベント例：</strong></p>
+    <pre><code>event: notification
+id: f47ac10b-58cc-4372-a567-0e02b2c3d479
+data: {"id":"f47ac10b-58cc-4372-a567-0e02b2c3d479","type":"task","title":"新しい案件の提案依頼があります","body":"株式会社テクノロジーの案件「Javaエンジニア募集」に対して提案依頼がありました。","read":false,"created_at":"2023-05-01T10:30:00.000Z"}</code></pre>
+
+    <div class="navigation">
+        <a href="通知機能設計_02_データモデル.html">前へ：データモデル</a> |
+        <a href="通知機能設計_04_フロントエンドと業務モジュール統合.html">次へ：フロントエンドと業務モジュール統合</a> |
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>

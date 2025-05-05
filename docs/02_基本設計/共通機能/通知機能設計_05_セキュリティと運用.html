@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 通知機能 基本設計書 - セキュリティと運用</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+        .document-sections {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f0f4ff;
+            border-radius: 5px;
+            border-left: 4px solid #2b4acb;
+        }
+        .document-sections h3 {
+            margin-top: 5px;
+            color: #1e429f;
+        }
+        .document-sections ul {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム 通知機能 基本設計書 - セキュリティと運用</h1>
+
+    <div class="document-sections">
+        <h3>ドキュメント構成</h3>
+        <ul>
+            <li><strong>Part 1:</strong> <a href="通知機能設計_01_概要とアーキテクチャ.html">概要とアーキテクチャ</a></li>
+            <li><strong>Part 2:</strong> <a href="通知機能設計_02_データモデル.html">データモデル</a></li>
+            <li><strong>Part 3:</strong> <a href="通知機能設計_03_サービスとAPI.html">サービスインターフェースとAPI</a></li>
+            <li><strong>Part 4:</strong> <a href="通知機能設計_04_フロントエンドと業務モジュール統合.html">フロントエンドと業務モジュール統合</a></li>
+            <li><strong>Part 5:</strong> <a href="通知機能設計_05_セキュリティと運用.html">セキュリティと運用</a> (現在のページ)</li>
+        </ul>
+    </div>
+
+    <h2>8. セキュリティと権限</h2>
+
+    <h3>8.1 通知のアクセス制御</h3>
+
+    <p>通知に関する操作は適切なアクセス制御を適用する：</p>
+
+    <ol>
+        <li><strong>通知の参照</strong>
+            <ul>
+                <li>通知の受信者のみが参照可能</li>
+                <li>管理者は全ての通知を参照可能（監査目的）</li>
+            </ul>
+        </li>
+        <li><strong>通知の状態変更</strong>
+            <ul>
+                <li>通知の受信者のみが既読/未読の状態を変更可能</li>
+                <li>削除も受信者のみが可能</li>
+            </ul>
+        </li>
+        <li><strong>通知の作成</strong>
+            <ul>
+                <li>認証されたシステムコンポーネントのみが作成可能</li>
+                <li>一般ユーザーは通知の作成不可</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>8.2 実装例</h3>
+
+    <p>Spring Securityを用いたアクセス制御の実装例：</p>
+
+    <pre><code>@RestController
+@RequestMapping("/api/v1/common/notifications")
+public class NotificationController {
+
+    private final NotificationService notificationService;
+    
+    // コンストラクタ注入
+    
+    @GetMapping
+    public ResponseEntity<?> getUserNotifications(
+            @RequestParam(required = false) NotificationType type,
+            @RequestParam(required = false) Boolean read,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        Page<Notification> notifications = notificationService.getUserNotifications(
+            userDetails.getUsername(), type, read, PageRequest.of(page, size)
+        );
+        
+        // レスポンス構築
+        return ResponseEntity.ok(buildPageResponse(notifications));
+    }
+    
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getNotificationById(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        try {
+            Notification notification = notificationService.getNotificationById(
+                id, userDetails.getUsername()
+            );
+            return ResponseEntity.ok(buildResponse(notification));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(buildErrorResponse("FORBIDDEN", "この通知へのアクセス権限がありません。"));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(buildErrorResponse("RESOURCE_NOT_FOUND", "指定された通知が存在しません。"));
+        }
+    }
+    
+    @PutMapping("/{id}/read")
+    public ResponseEntity<?> markAsRead(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        
+        try {
+            Notification notification = notificationService.markAsRead(
+                id, userDetails.getUsername()
+            );
+            return ResponseEntity.ok(buildReadStatusResponse(notification));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(buildErrorResponse("FORBIDDEN", "この通知へのアクセス権限がありません。"));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(buildErrorResponse("RESOURCE_NOT_FOUND", "指定された通知が存在しません。"));
+        }
+    }
+    
+    // その他のメソッド
+}</code></pre>
+
+    <p>サービス層での権限チェック：</p>
+
+    <pre><code>@Service
+public class NotificationServiceImpl implements NotificationService {
+
+    // 依存性注入など
+    
+    @Override
+    public Notification getNotificationById(UUID id, String username) {
+        Notification notification = notificationRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
+            
+        // 受信者チェック
+        if (!notification.getRecipient().getUsername().equals(username)) {
+            throw new AccessDeniedException("You don't have permission to access this notification");
+        }
+        
+        return notification;
+    }
+    
+    // その他のメソッド実装
+}</code></pre>
+
+    <h2>9. 性能と拡張性</h2>
+
+    <h3>9.1 キャッシュ戦略</h3>
+
+    <p>通知の高速な取得のためにキャッシュを適用する：</p>
+
+    <pre><code>@Service
+public class CachedNotificationServiceImpl implements NotificationService {
+
+    @Autowired
+    private NotificationRepository notificationRepository;
+    
+    @Autowired
+    private CacheManager cacheManager;
+    
+    @Override
+    @Cacheable(value = "userNotificationCount", key = "#username")
+    public NotificationSummary getUserNotificationSummary(String username) {
+        long unreadCount = notificationRepository.countByRecipientUsernameAndReadFalse(username);
+        long totalCount = notificationRepository.countByRecipientUsername(username);
+        
+        return new NotificationSummary(unreadCount, totalCount);
+    }
+    
+    @Override
+    @CacheEvict(value = "userNotificationCount", key = "#username")
+    public Notification markAsRead(UUID id, String username) {
+        // 既読処理の実装
+        return notification;
+    }
+    
+    @Override
+    @CacheEvict(value = "userNotificationCount", key = "#username")
+    public int markAllAsRead(String username, NotificationType type) {
+        // 全既読処理の実装
+        return markedCount;
+    }
+    
+    // その他のメソッド
+}</code></pre>
+
+    <h3>9.2 非同期処理</h3>
+
+    <p>通知の作成と配信を非同期で処理する：</p>
+
+    <pre><code>@Service
+public class AsyncNotificationServiceImpl implements NotificationService {
+
+    @Autowired
+    private NotificationRepository notificationRepository;
+    
+    @Autowired
+    private DeliveryService deliveryService;
+    
+    @Override
+    @Async
+    public CompletableFuture<Notification> createNotificationAsync(
+            NotificationType type,
+            List<User> recipients,
+            String title,
+            String body,
+            Map<String, Object> metadata) {
+        
+        // 複数の受信者がいる場合、それぞれに通知を作成
+        List<CompletableFuture<Notification>> futures = recipients.stream()
+            .map(recipient -> createSingleNotificationAsync(type, recipient, title, body, metadata))
+            .collect(Collectors.toList());
+        
+        // 最初の通知を返す（複数ある場合）
+        return futures.get(0);
+    }
+    
+    @Async
+    private CompletableFuture<Notification> createSingleNotificationAsync(
+            NotificationType type,
+            User recipient,
+            String title,
+            String body,
+            Map<String, Object> metadata) {
+        
+        Notification notification = new Notification();
+        notification.setType(type);
+        notification.setTitle(title);
+        notification.setBody(body);
+        notification.setMetadata(metadata);
+        notification.setRecipient(recipient);
+        notification.setCreatedAt(LocalDateTime.now());
+        notification.setRead(false);
+        
+        // 通知を保存
+        notification = notificationRepository.save(notification);
+        
+        // 配信処理（メール、プッシュ通知など）
+        deliveryService.deliverNotification(notification);
+        
+        return CompletableFuture.completedFuture(notification);
+    }
+    
+    // その他のメソッド
+}</code></pre>
+
+    <h3>9.3 パフォーマンス最適化</h3>
+
+    <h4>9.3.1 インデックス設計</h4>
+
+    <p>通知テーブルには以下のインデックスを設定：</p>
+
+    <pre><code>-- 受信者ごとの通知クエリの高速化
+CREATE INDEX idx_notification_recipient_created_at 
+ON notifications(recipient_id, created_at DESC);
+
+-- 未読通知のクエリ高速化
+CREATE INDEX idx_notification_recipient_read
+ON notifications(recipient_id, read);
+
+-- 通知タイプによるフィルタリングの高速化
+CREATE INDEX idx_notification_recipient_type
+ON notifications(recipient_id, type);</code></pre>
+
+    <h4>9.3.2 ページング処理の最適化</h4>
+
+    <p>大量の通知を効率的に取得するためのページング処理：</p>
+
+    <pre><code>@Repository
+public interface NotificationRepository extends JpaRepository<Notification, UUID> {
+
+    @Query("SELECT n FROM Notification n WHERE n.recipient.username = :username " +
+           "AND (:type IS NULL OR n.type = :type) " +
+           "AND (:read IS NULL OR n.read = :read) " +
+           "ORDER BY n.createdAt DESC")
+    Page<Notification> findByRecipientUsername(
+        @Param("username") String username,
+        @Param("type") NotificationType type,
+        @Param("read") Boolean read,
+        Pageable pageable
+    );
+    
+    // カウントクエリの最適化
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.recipient.username = :username " +
+           "AND n.read = false")
+    long countByRecipientUsernameAndReadFalse(@Param("username") String username);
+}</code></pre>
+
+    <h4>9.3.3 読み取り/書き込み分離</h4>
+
+    <p>高負荷環境での最適化として読み取り/書き込み分離パターンを適用：</p>
+
+    <pre><code>@Configuration
+@EnableJpaRepositories(
+    basePackages = "com.example.repository.read",
+    entityManagerFactoryRef = "readEntityManagerFactory",
+    transactionManagerRef = "readTransactionManager"
+)
+public class ReadRepositoryConfig {
+    // 読み取り専用リポジトリの設定
+}
+
+@Configuration
+@EnableJpaRepositories(
+    basePackages = "com.example.repository.write",
+    entityManagerFactoryRef = "writeEntityManagerFactory",
+    transactionManagerRef = "writeTransactionManager"
+)
+public class WriteRepositoryConfig {
+    // 書き込み用リポジトリの設定
+}</code></pre>
+
+    <h2>10. 運用設計</h2>
+
+    <h3>10.1 通知の保持期間とアーカイブ</h3>
+
+    <p>通知の保持期間ポリシーは以下の通り：</p>
+
+    <ul>
+        <li><strong>既読通知</strong>: 30日間保存後に自動アーカイブ</li>
+        <li><strong>未読通知</strong>: 90日間保存後に自動アーカイブ</li>
+        <li><strong>重要通知</strong>: 180日間保存後に自動アーカイブ</li>
+    </ul>
+
+    <p>アーカイブ処理の実装：</p>
+
+    <pre><code>@Service
+public class NotificationMaintenanceService {
+
+    @Autowired
+    private NotificationRepository notificationRepository;
+    
+    @Autowired
+    private NotificationArchiveRepository notificationArchiveRepository;
+    
+    @Autowired
+    private NotificationPreferenceService preferenceService;
+    
+    @Scheduled(cron = "0 0 1 * * ?") // 毎日午前1時に実行
+    public void archiveExpiredNotifications() {
+        log.info("Starting notification archiving process");
+        
+        LocalDateTime now = LocalDateTime.now();
+        
+        // ユーザーごとの設定に基づいてアーカイブ
+        List<User> allUsers = userRepository.findAll();
+        
+        for (User user : allUsers) {
+            // ユーザーごとの通知設定を取得
+            Map<NotificationType, NotificationPreference> preferences = 
+                preferenceService.getUserPreferencesAsMap(user.getUsername());
+                
+            for (NotificationType type : NotificationType.values()) {
+                NotificationPreference pref = preferences.get(type);
+                int retentionDays = pref != null ? pref.getRetentionDays() : 90; // デフォルト値
+                
+                // 既読通知のアーカイブ（保持期間の半分の日数で）
+                LocalDateTime readCutoff = now.minusDays(retentionDays / 2);
+                List<Notification> readNotifications = notificationRepository
+                    .findByRecipientAndTypeAndReadIsTrueAndCreatedAtBefore(
+                        user, type, readCutoff);
+                
+                archiveNotifications(readNotifications);
+                
+                // 未読通知のアーカイブ（フル保持期間で）
+                LocalDateTime unreadCutoff = now.minusDays(retentionDays);
+                List<Notification> unreadNotifications = notificationRepository
+                    .findByRecipientAndTypeAndReadIsFalseAndCreatedAtBefore(
+                        user, type, unreadCutoff);
+                    
+                archiveNotifications(unreadNotifications);
+            }
+        }
+        
+        log.info("Notification archiving process completed");
+    }
+    
+    private void archiveNotifications(List<Notification> notifications) {
+        if (notifications.isEmpty()) {
+            return;
+        }
+        
+        // 通知をアーカイブテーブルに移動
+        List<NotificationArchive> archives = notifications.stream()
+            .map(this::convertToArchive)
+            .collect(Collectors.toList());
+            
+        notificationArchiveRepository.saveAll(archives);
+        
+        // 元の通知を削除
+        notificationRepository.deleteAll(notifications);
+        
+        log.info("Archived {} notifications", notifications.size());
+    }
+    
+    private NotificationArchive convertToArchive(Notification notification) {
+        NotificationArchive archive = new NotificationArchive();
+        // プロパティのコピー
+        archive.setOriginalId(notification.getId());
+        archive.setType(notification.getType());
+        archive.setTitle(notification.getTitle());
+        archive.setBody(notification.getBody());
+        archive.setMetadata(notification.getMetadata());
+        archive.setRecipientId(notification.getRecipient().getId());
+        archive.setRecipientUsername(notification.getRecipient().getUsername());
+        archive.setSenderId(notification.getSender() != null ? notification.getSender().getId() : null);
+        archive.setRead(notification.isRead());
+        archive.setCreatedAt(notification.getCreatedAt());
+        archive.setUpdatedAt(notification.getUpdatedAt());
+        archive.setArchivedAt(LocalDateTime.now());
+        
+        return archive;
+    }
+}</code></pre>
+
+    <h3>10.2 モニタリングと監視</h3>
+
+    <p>通知システムの安定運用のためのモニタリング設計：</p>
+
+    <h4>10.2.1 メトリクス収集</h4>
+
+    <pre><code>@Configuration
+public class NotificationMetricsConfig {
+
+    @Bean
+    public MeterRegistry meterRegistry() {
+        return new SimpleMeterRegistry();
+    }
+    
+    @Bean
+    public NotificationMetrics notificationMetrics(MeterRegistry meterRegistry) {
+        return new NotificationMetrics(meterRegistry);
+    }
+}
+
+@Component
+public class NotificationMetrics {
+
+    private final Counter notificationCreatedCounter;
+    private final Counter notificationDeliveredCounter;
+    private final Counter notificationReadCounter;
+    private final Timer notificationDeliveryTimer;
+    
+    public NotificationMetrics(MeterRegistry registry) {
+        notificationCreatedCounter = registry.counter("notification.created");
+        notificationDeliveredCounter = registry.counter("notification.delivered");
+        notificationReadCounter = registry.counter("notification.read");
+        notificationDeliveryTimer = registry.timer("notification.delivery.time");
+    }
+    
+    public void recordNotificationCreated(NotificationType type) {
+        notificationCreatedCounter.increment();
+        registry.counter("notification.created." + type.name().toLowerCase()).increment();
+    }
+    
+    public void recordNotificationDelivered(NotificationType type, String channel) {
+        notificationDeliveredCounter.increment();
+        registry.counter("notification.delivered." + type.name().toLowerCase() + "." + channel).increment();
+    }
+    
+    public void recordNotificationRead() {
+        notificationReadCounter.increment();
+    }
+    
+    public Timer.Sample startDeliveryTimer() {
+        return Timer.start(registry);
+    }
+    
+    public void stopDeliveryTimer(Timer.Sample sample, NotificationType type, String channel) {
+        sample.stop(registry.timer("notification.delivery.time." + type.name().toLowerCase() + "." + channel));
+    }
+}</code></pre>
+
+    <h4>10.2.2 ログ記録</h4>
+
+    <pre><code>@Aspect
+@Component
+public class NotificationLoggingAspect {
+
+    private static final Logger log = LoggerFactory.getLogger(NotificationLoggingAspect.class);
+    
+    @Around("execution(* com.example.service.NotificationService.createNotification(..))")
+    public Object logNotificationCreation(ProceedingJoinPoint joinPoint) throws Throwable {
+        Object[] args = joinPoint.getArgs();
+        NotificationType type = (NotificationType) args[0];
+        List<User> recipients = (List<User>) args[1];
+        String title = (String) args[2];
+        
+        log.info("Creating {} notification '{}' for {} recipients", 
+            type, title, recipients.size());
+            
+        long startTime = System.currentTimeMillis();
+        Object result = joinPoint.proceed();
+        long endTime = System.currentTimeMillis();
+        
+        log.info("Created notification in {}ms", (endTime - startTime));
+        
+        return result;
+    }
+    
+    // その他のロギングポイント
+}</code></pre>
+
+    <h4>10.2.3 ヘルスチェック</h4>
+
+    <pre><code>@Component
+public class NotificationHealthIndicator implements HealthIndicator {
+
+    @Autowired
+    private NotificationRepository notificationRepository;
+    
+    @Autowired
+    private DeliveryService deliveryService;
+    
+    @Override
+    public Health health() {
+        Health.Builder builder = new Health.Builder();
+        
+        try {
+            // データベース接続チェック
+            long count = notificationRepository.count();
+            builder.withDetail("notification_count", count);
+            
+            // 配信サービスチェック
+            boolean deliveryServiceOk = deliveryService.checkHealth();
+            builder.withDetail("delivery_service", deliveryServiceOk ? "UP" : "DOWN");
+            
+            if (deliveryServiceOk) {
+                return builder.up().build();
+            } else {
+                return builder.down()
+                    .withDetail("error", "Delivery service is not available")
+                    .build();
+            }
+        } catch (Exception e) {
+            return builder.down()
+                .withDetail("error", e.getMessage())
+                .build();
+        }
+    }
+}</code></pre>
+
+    <h2>11. まとめ</h2>
+
+    <p>通知機能は、SES業務システム内で多様な業務イベントをユーザーに効率的に伝達するための重要な共通基盤である。本設計では以下の特徴を持つ通知システムを定義した：</p>
+
+    <ol>
+        <li><strong>多様な通知タイプ</strong>: システム、タスク、アラート、イベントの4種類の通知タイプをサポート</li>
+        <li><strong>複数の配信チャネル</strong>: アプリ内通知とメール通知の組み合わせによる確実な情報伝達</li>
+        <li><strong>リアルタイム通知</strong>: SSEを用いたプッシュ型のリアルタイム通知の実現</li>
+        <li><strong>柔軟な統合パターン</strong>: イベント駆動と直接呼び出しの2つの統合パターンによる業務モジュールとの連携</li>
+        <li><strong>パフォーマンスと拡張性</strong>: キャッシュと非同期処理による高いパフォーマンスと拡張性の確保</li>
+        <li><strong>運用管理機能</strong>: 通知のライフサイクル管理、アーカイブ、モニタリングによる安定運用</li>
+    </ol>
+
+    <p>この通知機能を導入することで、ユーザーは重要な情報をタイムリーに受け取り、必要なアクションを迅速に実行できるようになり、業務の効率化と利便性の向上に貢献する。</p>
+
+    <div class="navigation">
+        <a href="通知機能設計_04_フロントエンドと業務モジュール統合.html">前へ：フロントエンドと業務モジュール統合</a> |
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>

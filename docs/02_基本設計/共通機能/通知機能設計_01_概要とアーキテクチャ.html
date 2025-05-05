@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム 通知機能 基本設計書 - 概要とアーキテクチャ</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+        .document-sections {
+            margin: 25px 0;
+            padding: 15px;
+            background-color: #f0f4ff;
+            border-radius: 5px;
+            border-left: 4px solid #2b4acb;
+        }
+        .document-sections h3 {
+            margin-top: 5px;
+            color: #1e429f;
+        }
+        .document-sections ul {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム 通知機能 基本設計書</h1>
+
+    <div class="document-sections">
+        <h3>ドキュメント構成</h3>
+        <ul>
+            <li><strong>Part 1:</strong> <a href="通知機能設計_01_概要とアーキテクチャ.html">概要とアーキテクチャ</a> (現在のページ)</li>
+            <li><strong>Part 2:</strong> <a href="通知機能設計_02_データモデル.html">データモデル</a></li>
+            <li><strong>Part 3:</strong> <a href="通知機能設計_03_サービスとAPI.html">サービスインターフェースとAPI</a></li>
+            <li><strong>Part 4:</strong> <a href="通知機能設計_04_フロントエンドと業務モジュール統合.html">フロントエンドと業務モジュール統合</a></li>
+            <li><strong>Part 5:</strong> <a href="通知機能設計_05_セキュリティと運用.html">セキュリティと運用</a></li>
+        </ul>
+    </div>
+
+    <h2>1. 概要</h2>
+
+    <p>通知機能は、SES業務システム内でユーザーに対して様々な情報を伝達するための重要な基盤機能である。案件のマッチング、承認依頼、契約更新、請求書発行などの重要なイベントを、適切なタイミングで関係者に通知することで、業務の効率化と確実性を向上させる。</p>
+
+    <h3>1.1 目的</h3>
+
+    <p>通知機能は以下の目的で設計される：</p>
+
+    <ol>
+        <li><strong>リアルタイム情報提供</strong>: システム内のイベントをタイムリーにユーザーに伝達する</li>
+        <li><strong>アクション喚起</strong>: ユーザーが対応すべきタスクを明確に通知する</li>
+        <li><strong>重要事項の見落とし防止</strong>: 締切や期限など重要事項を通知して見落としを防ぐ</li>
+        <li><strong>業務連携の効率化</strong>: 複数の関係者間でのコミュニケーションを効率化する</li>
+        <li><strong>システム状態の通知</strong>: メンテナンスなどのシステム状態を適切に伝達する</li>
+    </ol>
+
+    <h3>1.2 通知の種類</h3>
+
+    <p>システムでは以下の4種類の通知をサポートする：</p>
+
+    <ol>
+        <li><strong>システム通知</strong>: システムからの一般的なお知らせ（メンテナンス情報など）</li>
+        <li><strong>タスク通知</strong>: ユーザーによるアクションが必要なタスク（承認依頼、提案依頼など）</li>
+        <li><strong>アラート通知</strong>: 緊急性の高い重要な通知（契約期限、支払期限など）</li>
+        <li><strong>イベント通知</strong>: 特定のイベントに関する情報（案件登録、技術者アサインなど）</li>
+    </ol>
+
+    <h3>1.3 通知のライフサイクル</h3>
+
+    <p>各通知は以下のライフサイクルを持つ：</p>
+
+    <ol>
+        <li><strong>作成</strong>: システムの各機能から通知が生成される</li>
+        <li><strong>配信</strong>: 関連するユーザーに通知が配信される</li>
+        <li><strong>既読処理</strong>: ユーザーが通知を確認すると既読状態になる</li>
+        <li><strong>削除/アーカイブ</strong>: ユーザーによる削除または一定期間経過後の自動アーカイブ</li>
+    </ol>
+
+    <h2>2. アーキテクチャ設計</h2>
+
+    <h3>2.1 全体アーキテクチャ</h3>
+
+    <p>通知機能は以下のコンポーネントで構成される：</p>
+
+    <pre><code>[業務モジュール] --イベント発行--> [通知サービス] --保存--> [通知ストレージ]
+                                |
+                                ↓
+              [メール配信] <-- [配信エンジン] --> [WebSocket/SSE]
+                                |
+                                ↓
+                        [通知REST API] <---- [フロントエンド]</code></pre>
+
+    <h3>2.2 コンポーネント説明</h3>
+
+    <ol>
+        <li><strong>通知サービス（NotificationService）</strong>
+            <ul>
+                <li>通知の作成、保存、取得、更新、削除を担当</li>
+                <li>業務モジュールからイベントを受信し通知に変換</li>
+                <li>メール通知とアプリ内通知の統合管理</li>
+            </ul>
+        </li>
+        <li><strong>配信エンジン（DeliveryEngine）</strong>
+            <ul>
+                <li>通知の配信方法（メール、アプリ内通知）を決定</li>
+                <li>リアルタイム通知のためのWebSocketまたはSSE管理</li>
+                <li>通知テンプレートの適用と書式設定</li>
+            </ul>
+        </li>
+        <li><strong>通知ストレージ（NotificationRepository）</strong>
+            <ul>
+                <li>通知の永続化と検索を担当</li>
+                <li>ユーザーごとの通知状態管理</li>
+                <li>通知の保持期間管理</li>
+            </ul>
+        </li>
+        <li><strong>通知REST API（NotificationController）</strong>
+            <ul>
+                <li>フロントエンドへの通知情報提供</li>
+                <li>通知の既読/未読処理</li>
+                <li>通知のフィルタリングと検索</li>
+            </ul>
+        </li>
+        <li><strong>イベントリスナー（NotificationEventListener）</strong>
+            <ul>
+                <li>業務モジュールからのイベントをリッスン</li>
+                <li>イベントを適切な通知タイプに変換</li>
+                <li>ターゲットユーザーの決定</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>2.3 通知生成パターン</h3>
+
+    <p>通知は以下の2つの方法で生成される：</p>
+
+    <ol>
+        <li><strong>イベント駆動型</strong>
+            <ul>
+                <li>業務モジュールがイベントを発行</li>
+                <li><code>NotificationEventListener</code>がイベントをキャッチ</li>
+                <li>イベント情報から通知を生成</li>
+            </ul>
+        </li>
+    </ol>
+
+    <pre><code>// イベント発行例
+applicationEventPublisher.publishEvent(new ProjectCreatedEvent(project));
+
+// イベントリスナー例
+@EventListener
+public void handleProjectCreatedEvent(ProjectCreatedEvent event) {
+    Project project = event.getProject();
+    notificationService.createNotification(
+        NotificationType.EVENT,
+        project.getAssignedUsers(),
+        "新規案件が登録されました",
+        String.format("「%s」という新しい案件が登録されました。", project.getName()),
+        createMetadata(project)
+    );
+}</code></pre>
+
+    <ol start="2">
+        <li><strong>直接呼び出し型</strong>
+            <ul>
+                <li>業務モジュールが<code>NotificationService</code>を直接呼び出し</li>
+                <li>通知の詳細情報を直接指定</li>
+            </ul>
+        </li>
+    </ol>
+
+    <pre><code>// 直接呼び出し例
+notificationService.createNotification(
+    NotificationType.TASK,
+    targetUsers,
+    "請求書の承認依頼があります",
+    String.format("案件「%s」の請求書が発行され、あなたの承認待ちです。", invoice.getProjectName()),
+    metadata
+);</code></pre>
+
+    <h3>2.4 リアルタイム通知の実装</h3>
+
+    <p>リアルタイム通知は以下の方法で実装する：</p>
+
+    <ol>
+        <li><strong>Server-Sent Events (SSE)方式</strong>
+            <ul>
+                <li>長期HTTP接続を利用した単方向通信</li>
+                <li>ブラウザ標準APIでサポートされており、追加ライブラリ不要</li>
+                <li>バックエンドではSpring WebFluxを利用したFlux&lt;ServerSentEvent&gt;の実装</li>
+            </ul>
+        </li>
+    </ol>
+
+    <pre><code>@GetMapping(value = "/notifications/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+public Flux<ServerSentEvent<NotificationDto>> streamNotifications(
+        @AuthenticationPrincipal UserDetails user) {
+    return notificationService.getNotificationStream(user.getUsername())
+        .map(notification -> ServerSentEvent.builder(NotificationDto.from(notification))
+            .id(notification.getId().toString())
+            .event("notification")
+            .build());
+}</code></pre>
+
+    <ol start="2">
+        <li><strong>WebSocket方式（代替実装）</strong>
+            <ul>
+                <li>双方向通信が必要な場合に利用</li>
+                <li>STOMP over WebSocketを利用した実装</li>
+                <li>接続管理の複雑さがあるためSSEを優先する</li>
+            </ul>
+        </li>
+    </ol>
+
+    <div class="navigation">
+        <a href="index.html">共通機能一覧へ戻る</a> |
+        <a href="通知機能設計_02_データモデル.html">次へ：データモデル</a>
+    </div>
+</body>
+</html>
