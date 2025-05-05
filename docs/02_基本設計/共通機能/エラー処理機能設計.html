@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム エラー処理・例外管理機能 基本設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        .json {
+            color: #333;
+        }
+        .java {
+            color: #333;
+        }
+        .properties {
+            color: #333;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="共通機能設計対象範囲.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム エラー処理・例外管理機能 基本設計書</h1>
+
+    <h2>1. はじめに</h2>
+    <p>本書は、SES業務システムにおけるエラー処理・例外管理機能の基本設計を定義したものである。
+    システム全体で一貫したエラー処理の方針と実装方法について記述し、安定性の高いシステム運用を実現するための
+    基盤的な共通機能について定義する。</p>
+
+    <h2>2. 機能概要</h2>
+    <p>エラー処理・例外管理機能は、アプリケーション内で発生するさまざまな例外や異常状態を適切に処理し、
+    ユーザーにわかりやすいフィードバックを提供するとともに、開発者・運用者が問題を迅速に特定して
+    対応できるようにする基盤的な共通機能である。</p>
+
+    <h2>3. エラー処理・例外管理機能設計</h2>
+
+    <h3>3.1 機能構成</h3>
+    <p>エラー処理・例外管理機能は以下のサブ機能で構成される：</p>
+    <ol>
+        <li><strong>統一エラーモデル</strong>: システム全体で一貫したエラー表現モデル</li>
+        <li><strong>エラーコード管理</strong>: 体系化されたエラーコードの定義と管理</li>
+        <li><strong>例外ハンドリング</strong>: 各レイヤでの例外処理と集約</li>
+        <li><strong>エラーレスポンス生成</strong>: クライアントへのエラー応答の構築</li>
+        <li><strong>エラーログ記録</strong>: エラー情報の適切なログ記録</li>
+    </ol>
+
+    <h3>3.2 統一エラーモデル</h3>
+
+    <h4>3.2.1 エラーモデル</h4>
+    <p>エラーは以下の属性で表現する統一モデルを採用する：</p>
+    <table>
+        <tr>
+            <th>属性</th>
+            <th>型</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>errorCode</td>
+            <td>String</td>
+            <td>一意のエラーコード</td>
+        </tr>
+        <tr>
+            <td>errorType</td>
+            <td>Enum</td>
+            <td>エラー種別（検証エラー、システムエラー等）</td>
+        </tr>
+        <tr>
+            <td>message</td>
+            <td>String</td>
+            <td>ユーザー向けエラーメッセージ</td>
+        </tr>
+        <tr>
+            <td>details</td>
+            <td>List</td>
+            <td>エラー詳細情報（フィールドエラー等）</td>
+        </tr>
+        <tr>
+            <td>timestamp</td>
+            <td>DateTime</td>
+            <td>エラー発生日時</td>
+        </tr>
+        <tr>
+            <td>requestId</td>
+            <td>String</td>
+            <td>リクエスト識別子</td>
+        </tr>
+        <tr>
+            <td>path</td>
+            <td>String</td>
+            <td>エラー発生リソースパス</td>
+        </tr>
+        <tr>
+            <td>traceId</td>
+            <td>String</td>
+            <td>分散トレースID（障害追跡用）</td>
+        </tr>
+        <tr>
+            <td>cause</td>
+            <td>String</td>
+            <td>技術的なエラー原因（開発者向け、本番環境では非表示）</td>
+        </tr>
+    </table>
+
+    <h4>3.2.2 エラー種別</h4>
+    <p>エラーは以下の種別に分類する：</p>
+    <ol>
+        <li><strong>ValidationError（検証エラー）</strong>:
+            <ul>
+                <li>ユーザー入力値の検証エラー</li>
+                <li>必須項目、形式、範囲等のチェックエラー</li>
+                <li>クライアントサイド・サーバーサイド双方で検証</li>
+            </ul>
+        </li>
+        <li><strong>BusinessError（業務エラー）</strong>:
+            <ul>
+                <li>ビジネスルールに基づく制約違反エラー</li>
+                <li>マスタデータ整合性エラー</li>
+                <li>ステータス遷移制約エラー</li>
+            </ul>
+        </li>
+        <li><strong>SystemError（システムエラー）</strong>:
+            <ul>
+                <li>内部的な技術エラー</li>
+                <li>データベースエラー</li>
+                <li>外部サービス連携エラー</li>
+            </ul>
+        </li>
+        <li><strong>SecurityError（セキュリティエラー）</strong>:
+            <ul>
+                <li>認証・認可に関するエラー</li>
+                <li>アクセス権限エラー</li>
+                <li>セキュリティ制約違反</li>
+            </ul>
+        </li>
+        <li><strong>ResourceError（リソースエラー）</strong>:
+            <ul>
+                <li>リソースが存在しないエラー</li>
+                <li>リソースへのアクセス制限エラー</li>
+                <li>重複リソースエラー</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>3.3 エラーコード管理</h3>
+
+    <h4>3.3.1 エラーコード体系</h4>
+    <p>エラーコードは以下の体系で管理する：</p>
+    <pre><code>E-AABCC</code></pre>
+    <ul>
+        <li><strong>E-</strong>: エラーコードを表す固定プレフィックス</li>
+        <li><strong>AA</strong>: モジュール識別子（01: 共通, 02: 案件管理, 03: 技術者管理, 04: 契約管理, など）</li>
+        <li><strong>B</strong>: エラー種別（1: 検証エラー, 2: 業務エラー, 3: システムエラー, 4: セキュリティエラー, 5: リソースエラー）</li>
+        <li><strong>CC</strong>: 連番（00-99）</li>
+    </ul>
+    <p>例：</p>
+    <ul>
+        <li><strong>E-01101</strong>: 共通モジュールの検証エラー01</li>
+        <li><strong>E-02302</strong>: 案件管理モジュールのシステムエラー02</li>
+        <li><strong>E-03201</strong>: 技術者管理モジュールの業務エラー01</li>
+    </ul>
+
+    <h4>3.3.2 エラーコード定義</h4>
+    <p>エラーコードは構成管理されたプロパティファイルで管理し、多言語対応を可能にする：</p>
+    <p><strong>messages_ja.properties の例</strong>:</p>
+    <pre><code class="properties"># 共通 - 検証エラー
+E-01101=入力値「{0}」は必須項目です。
+E-01102=入力値「{0}」が不正です。{1}の形式で入力してください。
+E-01103=入力値「{0}」は{1}文字以上{2}文字以下で入力してください。
+E-01104=入力値「{0}」は{1}以上{2}以下の値を入力してください。
+
+# 共通 - システムエラー
+E-01301=システムエラーが発生しました。しばらく経ってから再度お試しください。
+E-01302=データベースアクセス中にエラーが発生しました。
+E-01303=外部サービスとの通信中にエラーが発生しました。
+
+# 共通 - セキュリティエラー
+E-01401=認証に失敗しました。ユーザーIDとパスワードを確認してください。
+E-01402=このリソースへのアクセス権限がありません。
+E-01403=セッションの有効期限が切れました。再度ログインしてください。
+
+# 案件管理 - 業務エラー
+E-02201=指定された案件は既に{0}状態のため、この操作は実行できません。
+E-02202=案件の開始日は終了日よりも前の日付である必要があります。</code></pre>
+
+    <h4>3.3.3 エラーコードレジストリ</h4>
+    <p>エラーコードを一元管理するレジストリを実装する：</p>
+    <pre><code class="java">public interface ErrorCodeRegistry {
+    // エラーコードの取得
+    ErrorCode getErrorCode(String errorCodeId);
+    
+    // メッセージのフォーマット（引数置換）
+    String formatMessage(String errorCodeId, Object... args);
+    
+    // エラーコードの存在確認
+    boolean existsErrorCode(String errorCodeId);
+    
+    // 特定モジュールのエラーコード一覧取得
+    List<ErrorCode> getModuleErrorCodes(String moduleId);
+}</code></pre>
+
+    <h3>3.4 例外ハンドリング</h3>
+
+    <h4>3.4.1 例外階層</h4>
+    <p>システム内で使用する例外クラスの階層を以下のように定義する：</p>
+    <pre><code>BaseException (基底例外)
+├── ValidationException (検証例外)
+├── BusinessException (業務例外)
+├── SystemException (システム例外)
+├── SecurityException (セキュリティ例外)
+└── ResourceException (リソース例外)
+    ├── ResourceNotFoundException (リソース未検出例外)
+    ├── ResourceAlreadyExistsException (リソース重複例外)
+    └── ResourceAccessDeniedException (リソースアクセス拒否例外)</code></pre>
+    <p>各例外クラスは以下の情報を保持する：</p>
+    <pre><code class="java">public abstract class BaseException extends RuntimeException {
+    private final String errorCode; // エラーコード
+    private final Object[] args;    // メッセージパラメータ
+    private final Map<String, Object> additional = new HashMap<>(); // 追加情報
+    
+    // コンストラクタ、ゲッターなど
+}</code></pre>
+
+    <h4>3.4.2 グローバル例外ハンドラ</h4>
+    <p>Spring MVCのControllerAdviceを使用して、集中的に例外を処理するグローバル例外ハンドラを実装する：</p>
+    <pre><code class="java">@RestControllerAdvice
+public class GlobalExceptionHandler {
+    @Autowired
+    private ErrorResponseBuilder errorResponseBuilder;
+    
+    @Autowired
+    private ErrorLogger errorLogger;
+    
+    // アプリケーション定義例外
+    @ExceptionHandler(BaseException.class)
+    public ResponseEntity<ErrorResponse> handleBaseException(BaseException ex, WebRequest request) {
+        // ログ記録
+        errorLogger.logException(ex, request);
+        
+        // エラーレスポンス生成
+        ErrorResponse errorResponse = errorResponseBuilder.build(ex, request);
+        
+        // HTTPステータス決定
+        HttpStatus status = determineStatus(ex);
+        
+        return new ResponseEntity<>(errorResponse, status);
+    }
+    
+    // バリデーション例外
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(
+            MethodArgumentNotValidException ex, WebRequest request) {
+        // 検証エラーの集約と変換処理
+        // ...
+    }
+    
+    // リソース未検出例外
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(
+            ResourceNotFoundException ex, WebRequest request) {
+        // ...
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
+    
+    // 未処理例外のフォールバックハンドラ
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleUnexpectedException(
+            Exception ex, WebRequest request) {
+        // 予期しない例外の処理
+        // ...
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    
+    // 例外の種類に基づいてHTTPステータスコードを決定
+    private HttpStatus determineStatus(BaseException ex) {
+        if (ex instanceof ValidationException) return HttpStatus.BAD_REQUEST;
+        if (ex instanceof BusinessException) return HttpStatus.CONFLICT;
+        if (ex instanceof SystemException) return HttpStatus.INTERNAL_SERVER_ERROR;
+        if (ex instanceof SecurityException) return HttpStatus.FORBIDDEN;
+        if (ex instanceof ResourceNotFoundException) return HttpStatus.NOT_FOUND;
+        if (ex instanceof ResourceAlreadyExistsException) return HttpStatus.CONFLICT;
+        
+        return HttpStatus.INTERNAL_SERVER_ERROR;
+    }
+}</code></pre>
+
+    <h4>3.4.3 トランザクション境界と例外処理</h4>
+    <p>サービスレイヤーでのトランザクション管理と例外処理の関係：</p>
+    <pre><code class="java">@Service
+@Transactional
+public class ProjectServiceImpl implements ProjectService {
+
+    @Override
+    public Project createProject(ProjectCreateDTO projectDTO) {
+        try {
+            // プロジェクト作成ロジック
+            // ...
+            
+            return savedProject;
+        } catch (DataIntegrityViolationException e) {
+            // データ整合性エラー（一意制約違反など）を業務例外に変換
+            throw new BusinessException("E-02203", "プロジェクト名が重複しています", e);
+        } catch (DataAccessException e) {
+            // データアクセスエラーをシステム例外に変換
+            throw new SystemException("E-02301", "プロジェクト作成中にデータベースエラーが発生しました", e);
+        }
+    }
+    
+    @Override
+    @Transactional(readOnly = true) // 読み取り専用トランザクション
+    public Project findById(UUID id) {
+        return projectRepository.findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("E-02501", "指定されたプロジェクトが見つかりません", id));
+    }
+}</code></pre>
+
+    <h3>3.5 エラーレスポンス生成</h3>
+
+    <h4>3.5.1 エラーレスポンスモデル</h4>
+    <p>API呼び出し時のエラーレスポンスフォーマット：</p>
+    <pre><code class="json">{
+  "status": "error",
+  "errorCode": "E-02201",
+  "message": "指定された案件は既に「完了」状態のため、この操作は実行できません。",
+  "details": [
+    {
+      "field": "status",
+      "message": "現在のステータスでは変更できません"
+    }
+  ],
+  "timestamp": "2025-05-05T10:15:30.123Z",
+  "requestId": "req-8a7b9c3d2e1f",
+  "path": "/api/v1/projects/550e8400-e29b-41d4-a716-446655440000/status",
+  "traceId": "4a7b9c3d2e1f8a7b9c3d2e1f"
+}</code></pre>
+
+    <h4>3.5.2 エラーレスポンスビルダー</h4>
+    <p>エラーレスポンスを構築するサービス：</p>
+    <pre><code class="java">@Component
+public class ErrorResponseBuilder {
+    @Autowired
+    private ErrorCodeRegistry errorCodeRegistry;
+    
+    @Autowired
+    private MessageSource messageSource;
+    
+    @Value("${app.environment:production}")
+    private String environment;
+    
+    public ErrorResponse build(BaseException ex, WebRequest request) {
+        ErrorResponse response = new ErrorResponse();
+        
+        // 基本情報の設定
+        response.setStatus("error");
+        response.setErrorCode(ex.getErrorCode());
+        response.setTimestamp(LocalDateTime.now());
+        response.setRequestId(extractRequestId(request));
+        response.setPath(extractPath(request));
+        response.setTraceId(extractTraceId());
+        
+        // メッセージのローカライズと引数置換
+        Locale locale = extractLocale(request);
+        String message = messageSource.getMessage(
+            "error." + ex.getErrorCode(),
+            ex.getArgs(),
+            "An error occurred", // フォールバックメッセージ
+            locale
+        );
+        response.setMessage(message);
+        
+        // エラー詳細情報の設定
+        if (ex.getAdditional().containsKey("details")) {
+            response.setDetails(ex.getAdditional().get("details"));
+        }
+        
+        // 開発環境の場合のみ、技術的な詳細情報も含める
+        if ("development".equals(environment) || "staging".equals(environment)) {
+            response.setCause(ex.getCause() != null ? ex.getCause().getMessage() : null);
+            // スタックトレースなどの追加情報
+        }
+        
+        return response;
+    }
+    
+    // リクエストIDの抽出
+    private String extractRequestId(WebRequest request) {
+        // 実装...
+    }
+    
+    // パスの抽出
+    private String extractPath(WebRequest request) {
+        // 実装...
+    }
+    
+    // トレースIDの抽出（分散トレーシングシステムから）
+    private String extractTraceId() {
+        // 実装...
+    }
+    
+    // ロケールの抽出
+    private Locale extractLocale(WebRequest request) {
+        // 実装...
+    }
+}</code></pre>
+
+    <h3>3.6 エラーログ記録</h3>
+
+    <h4>3.6.1 エラーログフォーマット</h4>
+    <p>エラーログは以下の情報を含める：</p>
+    <ol>
+        <li><strong>タイムスタンプ</strong>: エラー発生日時</li>
+        <li><strong>ログレベル</strong>: ERROR/WARN</li>
+        <li><strong>エラーコード</strong>: 定義済みエラーコード</li>
+        <li><strong>メッセージ</strong>: エラーの概要</li>
+        <li><strong>トレースID</strong>: 分散トレースID</li>
+        <li><strong>ユーザーID</strong>: エラーが発生したユーザーのID（存在する場合）</li>
+        <li><strong>リクエスト情報</strong>: HTTPメソッド、URL、パラメータなど</li>
+        <li><strong>例外情報</strong>: 例外クラス、メッセージ、スタックトレース</li>
+    </ol>
+
+    <h4>3.6.2 エラーログ実装</h4>
+    <p>エラーログ記録サービス：</p>
+    <pre><code class="java">@Component
+public class ErrorLogger {
+    private static final Logger log = LoggerFactory.getLogger(ErrorLogger.class);
+    
+    @Autowired
+    private ObjectMapper objectMapper;
+    
+    public void logException(BaseException ex, WebRequest request) {
+        try {
+            Map<String, Object> logData = new LinkedHashMap<>();
+            
+            // 基本情報の設定
+            logData.put("timestamp", LocalDateTime.now());
+            logData.put("errorCode", ex.getErrorCode());
+            logData.put("errorType", ex.getClass().getSimpleName());
+            logData.put("message", ex.getMessage());
+            
+            // リクエスト情報
+            logData.put("request", extractRequestInfo(request));
+            
+            // ユーザー情報
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null && auth.getPrincipal() != null) {
+                logData.put("user", auth.getName());
+            }
+            
+            // トレース情報
+            logData.put("traceId", extractTraceId());
+            
+            // スタックトレース情報（開発環境のみ完全なスタックトレース）
+            if ("production".equals(environment)) {
+                logData.put("exception", ex.getClass().getName() + ": " + ex.getMessage());
+            } else {
+                StringWriter sw = new StringWriter();
+                ex.printStackTrace(new PrintWriter(sw));
+                logData.put("stackTrace", sw.toString());
+            }
+            
+            // ログ出力
+            if (ex instanceof SystemException) {
+                log.error("System error occurred: {}", objectMapper.writeValueAsString(logData));
+            } else if (ex instanceof SecurityException) {
+                log.warn("Security error occurred: {}", objectMapper.writeValueAsString(logData));
+            } else {
+                log.warn("Application error occurred: {}", objectMapper.writeValueAsString(logData));
+            }
+        } catch (Exception e) {
+            // ログ出力自体でエラーが発生した場合のフォールバック
+            log.error("Error logging exception", e);
+            log.error("Original exception", ex);
+        }
+    }
+    
+    private Map<String, Object> extractRequestInfo(WebRequest request) {
+        // リクエスト情報の抽出処理...
+    }
+}</code></pre>
+
+    <h2>4. UI設計</h2>
+
+    <h3>4.1 フロントエンドのエラー表示</h3>
+
+    <h4>4.1.1 入力フォームのエラー表示</h4>
+    <p>入力検証エラーは、以下の方針で表示する：</p>
+    <ol>
+        <li><strong>インラインエラー表示</strong>:
+            <ul>
+                <li>入力フィールドの直下に赤文字でエラーメッセージを表示</li>
+                <li>エラーのあるフィールドを赤枠で強調表示</li>
+                <li>複数エラーがある場合は、各フィールドにそれぞれ表示</li>
+            </ul>
+        </li>
+        <li><strong>フォーム全体のエラー表示</strong>:
+            <ul>
+                <li>フォーム上部にエラーサマリを表示（オプション）</li>
+                <li>エラー数と概要を表示</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h4>4.1.2 処理エラーの表示</h4>
+    <p>処理実行時のエラーは、以下の方針で表示する：</p>
+    <ol>
+        <li><strong>エラーダイアログ</strong>:
+            <ul>
+                <li>重大なエラーや操作中断を要するエラーはモーダルダイアログで表示</li>
+                <li>エラーコード、メッセージ、対処方法を表示</li>
+                <li>「閉じる」「再試行」などのアクションボタンを提供</li>
+            </ul>
+        </li>
+        <li><strong>エラー通知</strong>:
+            <ul>
+                <li>軽微なエラーはトースト通知で表示</li>
+                <li>短時間で自動的に消える</li>
+                <li>エラーメッセージのみをシンプルに表示</li>
+            </ul>
+        </li>
+        <li><strong>エラーページ</strong>:
+            <ul>
+                <li>致命的なエラーは専用のエラーページにリダイレクト</li>
+                <li>エラーコード、メッセージ、トラブルシューティング手順を表示</li>
+                <li>管理者への連絡方法を提示</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>4.2 エラーコード管理画面</h3>
+    <p>システム管理者向けのエラーコード管理画面を提供する：</p>
+    <ul>
+        <li><strong>エラーコード一覧部</strong>:
+            <ul>
+                <li>モジュールごとのタブ表示</li>
+                <li>エラーコード、種別、メッセージ一覧</li>
+                <li>メッセージの編集機能</li>
+                <li>多言語対応のための言語切り替え</li>
+            </ul>
+        </li>
+        <li><strong>エラーコード検索部</strong>:
+            <ul>
+                <li>エラーコード、メッセージ内容による検索</li>
+                <li>モジュール、エラー種別によるフィルタリング</li>
+            </ul>
+        </li>
+        <li><strong>エラーログ検索部</strong>:
+            <ul>
+                <li>エラーコードに関連するログの検索</li>
+                <li>発生頻度の統計表示</li>
+                <li>期間指定による絞り込み</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>5. API設計</h2>
+
+    <h3>5.1 エラーコード参照API</h3>
+    <table>
+        <tr>
+            <th>エンドポイント</th>
+            <th>メソッド</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>/api/v1/system/error-codes</td>
+            <td>GET</td>
+            <td>エラーコード一覧取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/system/error-codes/{code}</td>
+            <td>GET</td>
+            <td>指定エラーコードの詳細取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/system/error-codes/modules/{moduleId}</td>
+            <td>GET</td>
+            <td>モジュール別エラーコード取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/system/error-codes/types/{errorType}</td>
+            <td>GET</td>
+            <td>種別別エラーコード取得</td>
+        </tr>
+    </table>
+
+    <h4>リクエスト例</h4>
+    <pre><code>GET /api/v1/system/error-codes?page=0&size=20&sort=errorCode,asc</code></pre>
+
+    <h4>レスポンス例</h4>
+    <pre><code class="json">{
+  "content": [
+    {
+      "errorCode": "E-01101",
+      "errorType": "VALIDATION",
+      "messageTemplate": "入力値「{0}」は必須項目です。",
+      "moduleId": "01",
+      "moduleName": "Common"
+    },
+    // ...他のエラーコード
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 20,
+    "totalElements": 156,
+    "totalPages": 8
+  }
+}</code></pre>
+
+    <h3>5.2 エラーログ参照API</h3>
+    <table>
+        <tr>
+            <th>エンドポイント</th>
+            <th>メソッド</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>/api/v1/system/error-logs</td>
+            <td>GET</td>
+            <td>エラーログ一覧取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/system/error-logs/{id}</td>
+            <td>GET</td>
+            <td>指定エラーログの詳細取得</td>
+        </tr>
+        <tr>
+            <td>/api/v1/system/error-logs/search</td>
+            <td>POST</td>
+            <td>条件指定によるエラーログ検索</td>
+        </tr>
+        <tr>
+            <td>/api/v1/system/error-logs/statistics</td>
+            <td>GET</td>
+            <td>エラー発生統計情報取得</td>
+        </tr>
+    </table>
+
+    <h4>リクエスト例（検索）</h4>
+    <pre><code class="json">{
+  "errorCodes": ["E-01301", "E-02301"],
+  "startDate": "2025-05-01T00:00:00Z",
+  "endDate": "2025-05-05T23:59:59Z",
+  "userId": "user123",
+  "severity": ["ERROR"]
+}</code></pre>
+
+    <h2>6. 技術的実装</h2>
+
+    <h3>6.1 使用技術</h3>
+    <ul>
+        <li><strong>フレームワーク</strong>: Spring Boot + Spring MVC</li>
+        <li><strong>ロギング</strong>: SLF4J + Logback</li>
+        <li><strong>JSON処理</strong>: Jackson</li>
+        <li><strong>国際化</strong>: Spring MessageSource</li>
+        <li><strong>分散トレーシング</strong>: Spring Cloud Sleuth + Zipkin</li>
+    </ul>
+
+    <h3>6.2 データモデル設計</h3>
+    <p>以下のクラスを実装する：</p>
+    <pre><code class="java">// エラーコードエンティティ
+@Entity
+@Table(name = "error_codes")
+public class ErrorCode {
+    @Id
+    @Column(length = 10)
+    private String errorCode;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ErrorType errorType;
+    
+    @Column(length = 5, nullable = false)
+    private String moduleId;
+    
+    @Column(nullable = false)
+    private String messageTemplate;
+    
+    private String description;
+    
+    // ゲッター、セッターなど
+}
+
+// エラーログエンティティ
+@Entity
+@Table(name = "error_logs")
+public class ErrorLog {
+    @Id
+    private UUID id;
+    
+    @Column(length = 10)
+    private String errorCode;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private ErrorType errorType;
+    
+    @Column(nullable = false)
+    private String message;
+    
+    @Column(columnDefinition = "TEXT")
+    private String details;
+    
+    private String userId;
+    
+    private String requestUri;
+    
+    private String requestMethod;
+    
+    private String userAgent;
+    
+    private String traceId;
+    
+    @Column(nullable = false)
+    private LocalDateTime occurredAt;
+    
+    // ゲッター、セッターなど
+}</code></pre>
+
+    <h3>6.3 コード実装例</h3>
+
+    <h4>6.3.1 カスタム例外クラス</h4>
+    <pre><code class="java">// 基底例外クラス
+public abstract class BaseException extends RuntimeException {
+    private final String errorCode;
+    private final Object[] args;
+    private final Map<String, Object> additional = new HashMap<>();
+    
+    public BaseException(String errorCode, String message, Throwable cause, Object... args) {
+        super(message, cause);
+        this.errorCode = errorCode;
+        this.args = args;
+    }
+    
+    // ゲッター、セッター、ユーティリティメソッド
+}
+
+// 業務例外クラス
+public class BusinessException extends BaseException {
+    public BusinessException(String errorCode, String message, Object... args) {
+        super(errorCode, message, null, args);
+    }
+    
+    public BusinessException(String errorCode, String message, Throwable cause, Object... args) {
+        super(errorCode, message, cause, args);
+    }
+}
+
+// その他の例外クラス（ValidationException, SystemException, など）</code></pre>
+
+    <h4>6.3.2 グローバル例外ハンドラ実装例</h4>
+    <pre><code class="java">@RestControllerAdvice
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+    @Autowired
+    private ErrorResponseBuilder errorResponseBuilder;
+    
+    @Autowired
+    private ErrorLogger errorLogger;
+    
+    // アプリケーション定義例外
+    @ExceptionHandler(BaseException.class)
+    public ResponseEntity<Object> handleBaseException(BaseException ex, WebRequest request) {
+        // ログ記録
+        errorLogger.logException(ex, request);
+        
+        // エラーレスポンス生成
+        ErrorResponse errorResponse = errorResponseBuilder.build(ex, request);
+        
+        // HTTPステータス決定
+        HttpStatus status = determineStatus(ex);
+        
+        return handleExceptionInternal(ex, errorResponse, new HttpHeaders(), status, request);
+    }
+    
+    // Bean Validation API例外
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex, HttpHeaders headers, 
+            HttpStatus status, WebRequest request) {
+        
+        // フィールドエラーの抽出
+        List<Map<String, String>> fieldErrors = ex.getBindingResult().getFieldErrors().stream()
+            .map(err -> {
+                Map<String, String> fieldError = new HashMap<>();
+                fieldError.put("field", err.getField());
+                fieldError.put("message", err.getDefaultMessage());
+                return fieldError;
+            })
+            .collect(Collectors.toList());
+        
+        // ValidationExceptionに変換
+        ValidationException validationEx = new ValidationException(
+            "E-01101", "入力値の検証に失敗しました");
+        validationEx.addAdditional("details", fieldErrors);
+        
+        // ログとレスポンス
+        errorLogger.logException(validationEx, request);
+        ErrorResponse errorResponse = errorResponseBuilder.build(validationEx, request);
+        
+        return handleExceptionInternal(ex, errorResponse, headers, HttpStatus.BAD_REQUEST, request);
+    }
+    
+    // 未処理例外のフォールバックハンドラ
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleUnexpectedException(Exception ex, WebRequest request) {
+        // 予期しない例外をSystemExceptionにラップ
+        SystemException systemEx = new SystemException(
+            "E-01301", "システムエラーが発生しました", ex);
+        
+        // ログとレスポンス
+        errorLogger.logException(systemEx, request);
+        ErrorResponse errorResponse = errorResponseBuilder.build(systemEx, request);
+        
+        return handleExceptionInternal(ex, errorResponse, new HttpHeaders(), 
+            HttpStatus.INTERNAL_SERVER_ERROR, request);
+    }
+    
+    // 例外の種類に基づいてHTTPステータスコードを決定
+    private HttpStatus determineStatus(BaseException ex) {
+        // 実装...
+    }
+}</code></pre>
+
+    <h2>7. セキュリティ対策</h2>
+    <ul>
+        <li><strong>エラー情報の最小開示</strong>: 
+            <ul>
+                <li>エンドユーザーには必要最小限のエラー情報のみを表示</li>
+                <li>スタックトレースなど詳細技術情報は非公開環境でのみ表示</li>
+            </ul>
+        </li>
+        <li><strong>機密情報の漏洩防止</strong>:
+            <ul>
+                <li>エラーメッセージ内での機密情報（個人情報、認証情報など）の露出防止</li>
+                <li>ログ出力時の機密情報マスキング</li>
+            </ul>
+        </li>
+        <li><strong>エラー情報に基づく攻撃の防止</strong>:
+            <ul>
+                <li>詳細なシステム構成やバージョン情報の非開示</li>
+                <li>エラーメッセージの標準化によるシステム推測の防止</li>
+            </ul>
+        </li>
+        <li><strong>DoS対策</strong>:
+            <ul>
+                <li>エラー発生時の処理負荷監視</li>
+                <li>連続エラー発生時のレート制限</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>8. 運用管理</h2>
+    <ul>
+        <li><strong>エラー監視</strong>:
+            <ul>
+                <li>重大エラーのアラート通知</li>
+                <li>エラー発生頻度のモニタリング</li>
+                <li>エラー種別ごとの傾向分析</li>
+            </ul>
+        </li>
+        <li><strong>エラーレポート</strong>:
+            <ul>
+                <li>日次/週次/月次のエラー発生レポート</li>
+                <li>ユーザー影響度の分析</li>
+                <li>繰り返し発生するエラーの特定</li>
+            </ul>
+        </li>
+        <li><strong>改善プロセス</strong>:
+            <ul>
+                <li>エラー分析に基づく改善点の特定</li>
+                <li>エラーコードとメッセージの定期的なレビューと改善</li>
+                <li>ユーザーフィードバックの収集と反映</li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2>9. 課題と制限事項</h2>
+    <ul>
+        <li><strong>レガシーシステム連携</strong>: 外部システム連携時のエラー変換と統一</li>
+        <li><strong>エラー翻訳の精度</strong>: 多言語対応時の翻訳品質とメンテナンス</li>
+        <li><strong>パフォーマンス影響</strong>: エラー処理による処理オーバーヘッドの最小化</li>
+        <li><strong>エラーコード管理</strong>: エラーコードの一貫性維持と重複防止の仕組み</li>
+    </ul>
+
+    <div class="navigation">
+        <a href="共通機能設計対象範囲.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>
