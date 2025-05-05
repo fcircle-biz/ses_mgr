@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>12. ログ設計 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+        }
+        h5 {
+            font-size: 16px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        pre, code {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            padding: 2px 4px;
+        }
+        pre {
+            padding: 10px;
+            overflow: auto;
+            line-height: 1.45;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .image-placeholder {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            background-color: #f9f9f9;
+            width: 80%;
+        }
+        .navigation {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navigation a {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background-color: white;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="11_エラー処理設計.html">前のセクション</a>
+            <a href="13_監視設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <h2 id="logging">12. ログ設計</h2>
+    <p>本章では、SES業務システムにおけるログ設計について定義する。システムの運用・監視・障害対応・セキュリティ対策を効果的に行うため、適切なログ収集・分析基盤を構築する。</p>
+
+    <h3>12.1 ログ設計の基本方針</h3>
+    <p>ログ設計の基本方針は以下の通りとする。</p>
+    <ul>
+        <li><strong>統一性</strong>: 全コンポーネントで統一されたログ形式とレベルを採用</li>
+        <li><strong>追跡可能性</strong>: リクエスト単位での一連の処理の追跡が可能</li>
+        <li><strong>分析可能性</strong>: ログの集中管理と分析が容易な構造化ログの採用</li>
+        <li><strong>セキュリティ</strong>: 機密情報のマスキングと適切なアクセス制御</li>
+        <li><strong>パフォーマンス</strong>: ログ出力によるシステムパフォーマンスへの影響を最小化</li>
+    </ul>
+
+    <h3>12.2 ログの分類</h3>
+    <p>システムで収集するログを以下のように分類する。</p>
+
+    <table>
+        <tr>
+            <th>ログ種別</th>
+            <th>概要</th>
+            <th>主な目的</th>
+            <th>保存期間</th>
+        </tr>
+        <tr>
+            <td>アプリケーションログ</td>
+            <td>アプリケーションの動作状況を記録</td>
+            <td>障害調査、パフォーマンス分析</td>
+            <td>90日</td>
+        </tr>
+        <tr>
+            <td>アクセスログ</td>
+            <td>APIや画面へのアクセス情報を記録</td>
+            <td>アクセス監視、不正アクセス検知</td>
+            <td>180日</td>
+        </tr>
+        <tr>
+            <td>監査ログ</td>
+            <td>重要業務アクションを記録</td>
+            <td>内部統制、セキュリティ監査</td>
+            <td>5年</td>
+        </tr>
+        <tr>
+            <td>エラーログ</td>
+            <td>障害やエラー情報を記録</td>
+            <td>障害対応、品質改善</td>
+            <td>1年</td>
+        </tr>
+        <tr>
+            <td>パフォーマンスログ</td>
+            <td>システムのパフォーマンス指標を記録</td>
+            <td>性能監視、ボトルネック特定</td>
+            <td>30日</td>
+        </tr>
+        <tr>
+            <td>デバッグログ</td>
+            <td>詳細なデバッグ情報を記録</td>
+            <td>開発時のデバッグ</td>
+            <td>7日（本番環境では基本的に無効）</td>
+        </tr>
+    </table>
+
+    <h3>12.3 ログレベル定義</h3>
+    <p>ログレベルは以下のように定義し、環境ごとに出力レベルを制御する。</p>
+
+    <table>
+        <tr>
+            <th>レベル</th>
+            <th>概要</th>
+            <th>使用方針</th>
+            <th>環境ごとの設定</th>
+        </tr>
+        <tr>
+            <td>FATAL</td>
+            <td>システムの継続が困難な致命的な問題</td>
+            <td>システム停止やデータ破損につながる重大なエラー</td>
+            <td>全環境で出力</td>
+        </tr>
+        <tr>
+            <td>ERROR</td>
+            <td>エラー状態だが、システムは継続可能</td>
+            <td>予期しない例外、外部システム連携失敗など</td>
+            <td>全環境で出力</td>
+        </tr>
+        <tr>
+            <td>WARN</td>
+            <td>警告レベルの問題</td>
+            <td>将来的に問題となる可能性がある状況、性能低下の兆候など</td>
+            <td>全環境で出力</td>
+        </tr>
+        <tr>
+            <td>INFO</td>
+            <td>重要な業務イベント</td>
+            <td>ユーザーログイン、重要業務処理の開始・完了など</td>
+            <td>全環境で出力</td>
+        </tr>
+        <tr>
+            <td>DEBUG</td>
+            <td>開発・デバッグ用の詳細情報</td>
+            <td>メソッド呼び出し、詳細パラメータなど</td>
+            <td>開発・テスト環境のみ出力</td>
+        </tr>
+        <tr>
+            <td>TRACE</td>
+            <td>最も詳細なデバッグ情報</td>
+            <td>詳細なデータダンプ、ループ内処理など</td>
+            <td>開発環境のみ必要時に出力</td>
+        </tr>
+    </table>
+
+    <h3>12.4 ログ出力内容</h3>
+    <p>各ログには以下の情報を含める。</p>
+
+    <h4>12.4.1 共通項目</h4>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>説明</th>
+            <th>例</th>
+        </tr>
+        <tr>
+            <td>timestamp</td>
+            <td>ログ記録日時（ISO 8601形式）</td>
+            <td>2023-01-01T12:34:56.789Z</td>
+        </tr>
+        <tr>
+            <td>level</td>
+            <td>ログレベル</td>
+            <td>INFO, ERROR など</td>
+        </tr>
+        <tr>
+            <td>service</td>
+            <td>サービス（マイクロサービス）名</td>
+            <td>contract-service</td>
+        </tr>
+        <tr>
+            <td>instance</td>
+            <td>サーバーインスタンス識別子</td>
+            <td>contract-service-pod-8a7b6c5d</td>
+        </tr>
+        <tr>
+            <td>thread</td>
+            <td>スレッド名</td>
+            <td>http-nio-8080-exec-1</td>
+        </tr>
+        <tr>
+            <td>logger</td>
+            <td>ロガー名（クラス名）</td>
+            <td>jp.co.sesmanager.contract.service.ContractServiceImpl</td>
+        </tr>
+        <tr>
+            <td>traceId</td>
+            <td>分散トレース用ID</td>
+            <td>4a7b9c3d2e1f8a7b9c3d2e1f</td>
+        </tr>
+        <tr>
+            <td>userId</td>
+            <td>ユーザーID（認証済みの場合）</td>
+            <td>user_12345</td>
+        </tr>
+        <tr>
+            <td>message</td>
+            <td>ログメッセージ本文</td>
+            <td>Contract created successfully</td>
+        </tr>
+    </table>
+
+    <h4>12.4.2 種別ごとの固有項目</h4>
+
+    <h5>アプリケーションログ追加項目</h5>
+    <ul>
+        <li><strong>methodName</strong>: 実行メソッド名</li>
+        <li><strong>elapsedTime</strong>: 処理時間（ミリ秒）</li>
+        <li><strong>context</strong>: 処理コンテキスト情報</li>
+    </ul>
+
+    <h5>アクセスログ追加項目</h5>
+    <ul>
+        <li><strong>remoteIp</strong>: クライアントIPアドレス</li>
+        <li><strong>method</strong>: HTTPメソッド</li>
+        <li><strong>path</strong>: リクエストパス</li>
+        <li><strong>query</strong>: クエリパラメータ（機密情報マスク済み）</li>
+        <li><strong>userAgent</strong>: ユーザーエージェント</li>
+        <li><strong>referer</strong>: リファラー</li>
+        <li><strong>statusCode</strong>: HTTPステータスコード</li>
+        <li><strong>responseTime</strong>: レスポンス時間（ミリ秒）</li>
+        <li><strong>bodySize</strong>: レスポンスボディサイズ（バイト）</li>
+    </ul>
+
+    <h5>監査ログ追加項目</h5>
+    <ul>
+        <li><strong>action</strong>: 実行されたアクション種別</li>
+        <li><strong>resource</strong>: 操作対象リソース種別</li>
+        <li><strong>resourceId</strong>: 操作対象リソースID</li>
+        <li><strong>beforeState</strong>: 変更前の状態（サマリーのみ）</li>
+        <li><strong>afterState</strong>: 変更後の状態（サマリーのみ）</li>
+        <li><strong>ipAddress</strong>: 操作元IPアドレス</li>
+        <li><strong>success</strong>: 操作成功フラグ</li>
+    </ul>
+
+    <h5>エラーログ追加項目</h5>
+    <ul>
+        <li><strong>errorCode</strong>: エラーコード</li>
+        <li><strong>errorType</strong>: 例外種別</li>
+        <li><strong>stacktrace</strong>: スタックトレース</li>
+        <li><strong>cause</strong>: 原因となった例外</li>
+        <li><strong>contextData</strong>: エラー発生時のコンテキスト情報</li>
+    </ul>
+
+    <h3>12.5 ログ収集・管理アーキテクチャ</h3>
+    <p>ログの収集・管理・分析のためのアーキテクチャを以下に定義する。</p>
+
+    <h4>12.5.1 ログ収集フロー</h4>
+    <div class="container">
+        <div class="image-placeholder">
+            [ログ収集フロー図]<br>
+            ここにログ収集フローの図を挿入
+        </div>
+    </div>
+
+    <p>ログ収集フローは以下の構成とする：</p>
+    <ol>
+        <li>アプリケーションでのログ出力（JSON形式）</li>
+        <li>Fluentdエージェントによるログファイルの監視と収集</li>
+        <li>Kafkaへのログ送信（バッファリング）</li>
+        <li>Elasticsearchへのログストリーミングとインデックシング</li>
+        <li>Kibanaによるログの可視化と検索</li>
+        <li>長期保存ログのS3へのアーカイブ</li>
+    </ol>
+
+    <h4>12.5.2 技術スタック</h4>
+    <p>ログ管理のための技術スタックを以下に定義する：</p>
+    <ul>
+        <li><strong>ログ出力</strong>: Logback + Logstash JSON Encoder（Java）、Winston（Node.js）</li>
+        <li><strong>ログ収集</strong>: Fluentd</li>
+        <li><strong>ログバッファリング</strong>: Apache Kafka</li>
+        <li><strong>ログ保存/検索</strong>: Elasticsearch</li>
+        <li><strong>ログ可視化</strong>: Kibana</li>
+        <li><strong>監視アラート</strong>: Elasticsearch Watcher, Grafana Alerting</li>
+        <li><strong>ログアーカイブ</strong>: Amazon S3 + Glacier</li>
+    </ul>
+
+    <h3>12.6 監査ログ要件</h3>
+    <p>コンプライアンスと内部統制のために重要な監査ログの要件を以下に定義する。</p>
+
+    <h4>12.6.1 監査対象アクション</h4>
+    <p>以下のアクションを監査ログの対象とする：</p>
+    <ul>
+        <li>ユーザー認証（ログイン・ログアウト・認証失敗）</li>
+        <li>権限変更（ユーザー権限付与・剥奪）</li>
+        <li>重要データの作成・変更・削除</li>
+        <li>契約関連のアクション（契約作成・承認・変更・終了）</li>
+        <li>請求・支払関連のアクション（請求書作成・承認・支払登録）</li>
+        <li>システム設定変更</li>
+        <li>管理者による特権操作</li>
+    </ul>
+
+    <h4>12.6.2 監査ログ保全</h4>
+    <p>監査ログの改ざん防止と長期保存のために以下の対策を実施する：</p>
+    <ul>
+        <li>監査ログへの書き込み専用アクセス（削除・変更不可）</li>
+        <li>監査ログの暗号化保存</li>
+        <li>監査ログへのアクセス制御と監査</li>
+        <li>定期的なアーカイブと長期保存（5年間）</li>
+        <li>監査ログの完全性検証メカニズム</li>
+    </ul>
+
+    <h3>12.7 ログ管理運用</h3>
+    <p>ログ管理に関する運用ルールを以下に定義する。</p>
+
+    <h4>12.7.1 運用管理項目</h4>
+    <ul>
+        <li><strong>ログローテーション</strong>: 日次でのログファイルローテーション</li>
+        <li><strong>ディスク容量監視</strong>: ログディスク使用率の監視とアラート（80%超過時）</li>
+        <li><strong>ログ欠損監視</strong>: ログ収集状況の監視とアラート</li>
+        <li><strong>パフォーマンス影響</strong>: ログ処理による本番システムへの影響監視</li>
+        <li><strong>アーカイブ</strong>: 自動アーカイブプロセスと検証</li>
+    </ul>
+
+    <h4>12.7.2 ログ分析運用</h4>
+    <ul>
+        <li><strong>日次レビュー</strong>: エラーログとセキュリティログの日次レビュー</li>
+        <li><strong>週次分析</strong>: パフォーマンスログとアクセスログの週次分析</li>
+        <li><strong>月次監査</strong>: 監査ログの月次サンプル検証</li>
+        <li><strong>ダッシュボード</strong>: 運用チーム向けダッシュボードの整備と更新</li>
+        <li><strong>アラート</strong>: 重要イベントの監視と通知ルールの管理</li>
+    </ul>
+
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="11_エラー処理設計.html">前のセクション</a>
+            <a href="13_監視設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>SES業務システム システム設計書</p>
+    </footer>
+</body>
+</html>

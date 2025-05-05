@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>6. 性能設計 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        pre, code {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            padding: 2px 4px;
+        }
+        pre {
+            padding: 10px;
+            overflow: auto;
+            line-height: 1.45;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .image-placeholder {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            background-color: #f9f9f9;
+            width: 80%;
+        }
+        .navigation {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navigation a {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background-color: white;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="05_セキュリティ設計.html">前のセクション</a>
+            <a href="07_可用性設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <h2 id="performance">6. 性能設計</h2>
+    <h3 id="response-time">6.1 レスポンスタイム</h3>
+    <p>SES業務システムのレスポンスタイム目標は以下の通り：</p>
+    <table>
+        <tr>
+            <th>操作種別</th>
+            <th>目標レスポンスタイム</th>
+            <th>最大許容値</th>
+        </tr>
+        <tr>
+            <td>画面表示（初期表示）</td>
+            <td>1.0秒以内</td>
+            <td>3.0秒</td>
+        </tr>
+        <tr>
+            <td>画面遷移</td>
+            <td>0.5秒以内</td>
+            <td>2.0秒</td>
+        </tr>
+        <tr>
+            <td>検索処理（通常）</td>
+            <td>1.0秒以内</td>
+            <td>3.0秒</td>
+        </tr>
+        <tr>
+            <td>検索処理（複雑・大量）</td>
+            <td>3.0秒以内</td>
+            <td>8.0秒</td>
+        </tr>
+        <tr>
+            <td>データ登録・更新</td>
+            <td>1.0秒以内</td>
+            <td>3.0秒</td>
+        </tr>
+        <tr>
+            <td>レポート生成（通常）</td>
+            <td>3.0秒以内</td>
+            <td>10.0秒</td>
+        </tr>
+        <tr>
+            <td>レポート生成（複雑・大量）</td>
+            <td>10.0秒以内</td>
+            <td>30.0秒</td>
+        </tr>
+        <tr>
+            <td>バッチ処理</td>
+            <td>定義された時間内</td>
+            <td>処理ごとに規定</td>
+        </tr>
+    </table>
+    
+    <h3 id="throughput">6.2 スループット</h3>
+    <p>システム全体のスループット目標は以下の通り：</p>
+    <table>
+        <tr>
+            <th>処理種別</th>
+            <th>ピーク時想定</th>
+            <th>目標スループット</th>
+        </tr>
+        <tr>
+            <td>Webリクエスト処理</td>
+            <td>100ユーザー同時アクセス</td>
+            <td>300リクエスト/秒</td>
+        </tr>
+        <tr>
+            <td>API呼び出し</td>
+            <td>200同時接続</td>
+            <td>500リクエスト/秒</td>
+        </tr>
+        <tr>
+            <td>データベーストランザクション</td>
+            <td>ピーク時</td>
+            <td>1000トランザクション/秒</td>
+        </tr>
+        <tr>
+            <td>ファイルアップロード</td>
+            <td>10ファイル同時</td>
+            <td>50MB/秒</td>
+        </tr>
+    </table>
+    
+    <h3 id="capacity">6.3 キャパシティ計画</h3>
+    <h4>6.3.1 データ容量見積もり</h4>
+    <p>システムで扱うデータの容量見積もりは以下の通り：</p>
+    <table>
+        <tr>
+            <th>データ種別</th>
+            <th>初期容量</th>
+            <th>年間増加量</th>
+            <th>5年後想定</th>
+        </tr>
+        <tr>
+            <td>データベース（RDB）</td>
+            <td>100GB</td>
+            <td>50GB</td>
+            <td>350GB</td>
+        </tr>
+        <tr>
+            <td>ファイルストレージ</td>
+            <td>500GB</td>
+            <td>200GB</td>
+            <td>1.5TB</td>
+        </tr>
+        <tr>
+            <td>ログデータ</td>
+            <td>200GB/年</td>
+            <td>+20%/年</td>
+            <td>500GB/年</td>
+        </tr>
+        <tr>
+            <td>バックアップデータ</td>
+            <td>1TB</td>
+            <td>500GB</td>
+            <td>3.5TB</td>
+        </tr>
+    </table>
+    
+    <h4>6.3.2 リソース要件</h4>
+    <p>各環境におけるリソース要件：</p>
+    <table>
+        <tr>
+            <th>環境</th>
+            <th>CPU</th>
+            <th>メモリ</th>
+            <th>ストレージ</th>
+            <th>ネットワーク</th>
+        </tr>
+        <tr>
+            <td>開発環境</td>
+            <td>24 vCPU</td>
+            <td>64GB</td>
+            <td>1TB</td>
+            <td>1Gbps</td>
+        </tr>
+        <tr>
+            <td>テスト環境</td>
+            <td>32 vCPU</td>
+            <td>96GB</td>
+            <td>2TB</td>
+            <td>1Gbps</td>
+        </tr>
+        <tr>
+            <td>ステージング環境</td>
+            <td>48 vCPU</td>
+            <td>128GB</td>
+            <td>3TB</td>
+            <td>2Gbps</td>
+        </tr>
+        <tr>
+            <td>本番環境</td>
+            <td>96 vCPU</td>
+            <td>256GB</td>
+            <td>5TB</td>
+            <td>10Gbps</td>
+        </tr>
+    </table>
+    
+    <h3 id="scalability">6.4 スケーラビリティ設計</h3>
+    <h4>6.4.1 水平スケーリング</h4>
+    <p>以下のコンポーネントは水平スケーリング（スケールアウト）で対応する：</p>
+    <ul>
+        <li><strong>Webサーバー</strong>: Kubernetesによる自動スケーリング</li>
+        <li><strong>アプリケーションサーバー</strong>: Kubernetesによる自動スケーリング</li>
+        <li><strong>APIサーバー</strong>: Kubernetesによる自動スケーリング</li>
+        <li><strong>キャッシュサーバー</strong>: Redisクラスタによるスケールアウト</li>
+    </ul>
+    <p>水平スケーリングのトリガー：</p>
+    <ul>
+        <li>CPU使用率が70%を超えた場合</li>
+        <li>メモリ使用率が80%を超えた場合</li>
+        <li>リクエスト数が閾値を超えた場合</li>
+    </ul>
+    
+    <h4>6.4.2 垂直スケーリング</h4>
+    <p>以下のコンポーネントは垂直スケーリング（スケールアップ）で対応する：</p>
+    <ul>
+        <li><strong>データベースサーバー</strong>: CPU、メモリ、ディスクの増強</li>
+        <li><strong>バッチ処理サーバー</strong>: 処理要件に応じたリソース増強</li>
+    </ul>
+    
+    <h4>6.4.3 データベーススケーリング</h4>
+    <p>データベースは以下の方針でスケーリングする：</p>
+    <ul>
+        <li><strong>読み取りスケーリング</strong>: リードレプリカの追加</li>
+        <li><strong>書き込みスケーリング</strong>: 
+            <ul>
+                <li>垂直スケーリング（サーバーリソース増強）</li>
+                <li>シャーディング（将来拡張時）</li>
+            </ul>
+        </li>
+        <li><strong>接続プール最適化</strong>: コネクションプールサイズの適切な設定</li>
+    </ul>
+    
+    <h3 id="performance-optimization">6.5 性能最適化</h3>
+    <h4>6.5.1 フロントエンド最適化</h4>
+    <p>以下のフロントエンド最適化を実施する：</p>
+    <ul>
+        <li><strong>バンドル最適化</strong>: コード分割、遅延ロード</li>
+        <li><strong>リソース最適化</strong>: 画像圧縮、CSS/JS最小化</li>
+        <li><strong>キャッシュ戦略</strong>: ブラウザキャッシュ、CDN活用</li>
+        <li><strong>レンダリング最適化</strong>: 仮想スクロール、メモ化</li>
+        <li><strong>ネットワーク最適化</strong>: HTTP/2、リソースヒント</li>
+    </ul>
+    
+    <h4>6.5.2 バックエンド最適化</h4>
+    <p>以下のバックエンド最適化を実施する：</p>
+    <ul>
+        <li><strong>キャッシュ</strong>: 多階層キャッシュ戦略
+            <ul>
+                <li>アプリケーションキャッシュ（ローカルメモリ）</li>
+                <li>分散キャッシュ（Redis）</li>
+                <li>データベースキャッシュ</li>
+            </ul>
+        </li>
+        <li><strong>非同期処理</strong>: 重い処理の非同期化</li>
+        <li><strong>データアクセス最適化</strong>:
+            <ul>
+                <li>クエリ最適化（インデックス、実行計画分析）</li>
+                <li>N+1問題の回避</li>
+                <li>コネクションプーリング</li>
+            </ul>
+        </li>
+        <li><strong>バッチ処理最適化</strong>:
+            <ul>
+                <li>チャンク処理</li>
+                <li>並列処理</li>
+                <li>データベースパーティショニング</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h4>6.5.3 データベース最適化</h4>
+    <p>以下のデータベース最適化を実施する：</p>
+    <ul>
+        <li><strong>インデックス設計</strong>: 適切なインデックス設計と定期的な見直し</li>
+        <li><strong>クエリチューニング</strong>: スロークエリ分析と最適化</li>
+        <li><strong>テーブル設計</strong>: 正規化と選択的非正規化</li>
+        <li><strong>パーティショニング</strong>: 大規模テーブルのパーティショニング</li>
+        <li><strong>メモリチューニング</strong>: バッファ、キャッシュサイズの最適化</li>
+    </ul>
+
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="05_セキュリティ設計.html">前のセクション</a>
+            <a href="07_可用性設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>SES業務システム システム設計書</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10. インターフェース設計 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        pre, code {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            padding: 2px 4px;
+        }
+        pre {
+            padding: 10px;
+            overflow: auto;
+            line-height: 1.45;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .image-placeholder {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            background-color: #f9f9f9;
+            width: 80%;
+        }
+        .navigation {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navigation a {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background-color: white;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="09_バッチ処理設計.html">前のセクション</a>
+            <a href="11_エラー処理設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <h2 id="interface">10. インターフェース設計</h2>
+    <p>SES業務システムでは、以下のインターフェース設計を採用する：</p>
+
+    <h3>10.1 外部システムとのインターフェース</h3>
+    <p>SES業務システムと連携する外部システムとのインターフェースについて定義する。</p>
+    
+    <h4>10.1.1 会計システム連携</h4>
+    <p>請求・支払情報を会計システムと連携するためのインターフェース</p>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>連携方式</td>
+            <td>RESTful API</td>
+        </tr>
+        <tr>
+            <td>認証方式</td>
+            <td>OAuth2.0 + APIキー</td>
+        </tr>
+        <tr>
+            <td>連携頻度</td>
+            <td>日次バッチ（23:00）</td>
+        </tr>
+        <tr>
+            <td>送信データ</td>
+            <td>請求データ、支払データ、取引先データ</td>
+        </tr>
+        <tr>
+            <td>受信データ</td>
+            <td>入金ステータス、支払ステータス</td>
+        </tr>
+        <tr>
+            <td>エラー処理</td>
+            <td>再送機能、手動同期機能</td>
+        </tr>
+    </table>
+    
+    <h4>10.1.2 勤怠管理システム連携</h4>
+    <p>勤怠情報を外部勤怠管理システムと連携するためのインターフェース</p>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>内容</th>
+        </tr>
+        <tr>
+            <td>連携方式</td>
+            <td>RESTful API / CSV一括取込</td>
+        </tr>
+        <tr>
+            <td>認証方式</td>
+            <td>JWT認証</td>
+        </tr>
+        <tr>
+            <td>連携頻度</td>
+            <td>日次（毎朝6:00）</td>
+        </tr>
+        <tr>
+            <td>送信データ</td>
+            <td>社員マスタ、案件マスタ</td>
+        </tr>
+        <tr>
+            <td>受信データ</td>
+            <td>日次勤怠データ、月次集計データ</td>
+        </tr>
+        <tr>
+            <td>エラー処理</td>
+            <td>不整合データのレポート出力</td>
+        </tr>
+    </table>
+
+    <h3>10.2 内部インターフェース</h3>
+    <p>SES業務システム内部のコンポーネント間のインターフェースについて定義する。</p>
+    
+    <h4>10.2.1 マイクロサービス間連携</h4>
+    <p>各マイクロサービス間の連携方式</p>
+    <table>
+        <tr>
+            <th>連携パターン</th>
+            <th>実装方式</th>
+            <th>適用ケース</th>
+        </tr>
+        <tr>
+            <td>同期通信</td>
+            <td>RESTful API (HTTP/JSON)</td>
+            <td>即時性が必要な処理（ユーザー操作に伴う処理など）</td>
+        </tr>
+        <tr>
+            <td>非同期通信</td>
+            <td>メッセージキュー (Kafka)</td>
+            <td>バックグラウンド処理、イベント通知</td>
+        </tr>
+        <tr>
+            <td>一括処理</td>
+            <td>バッチ連携 + 共有ストレージ</td>
+            <td>大量データ処理、日次/月次処理</td>
+        </tr>
+    </table>
+    
+    <h3>10.3 APIインターフェース</h3>
+    <p>SES業務システムが提供するAPIインターフェースについて定義する。</p>
+    
+    <h4>10.3.1 API設計方針</h4>
+    <ul>
+        <li><strong>RESTful原則</strong>: HTTPメソッドの適切な使用、URI設計の一貫性</li>
+        <li><strong>JSON形式</strong>: リクエスト/レスポンスはJSON形式</li>
+        <li><strong>バージョニング</strong>: URIベースのバージョニング（/api/v1/...）</li>
+        <li><strong>ページネーション</strong>: リソースコレクションに標準ページネーション</li>
+        <li><strong>HATEOAS</strong>: 関連リソースへのリンク情報の提供</li>
+        <li><strong>OAuth2.0認証</strong>: API利用の認証/認可</li>
+        <li><strong>レート制限</strong>: APIごとの適切なレート制限設定</li>
+        <li><strong>ドキュメント</strong>: OpenAPI (Swagger) 形式のAPI仕様</li>
+    </ul>
+    
+    <h4>10.3.2 主要API一覧</h4>
+    <p>システムが提供する主要なAPI一覧</p>
+    <table>
+        <tr>
+            <th>API名</th>
+            <th>機能概要</th>
+            <th>エンドポイント例</th>
+        </tr>
+        <tr>
+            <td>技術者API</td>
+            <td>技術者情報の登録・検索・更新</td>
+            <td>/api/v1/engineers</td>
+        </tr>
+        <tr>
+            <td>案件API</td>
+            <td>案件情報の登録・検索・更新</td>
+            <td>/api/v1/projects</td>
+        </tr>
+        <tr>
+            <td>マッチングAPI</td>
+            <td>技術者と案件のマッチング</td>
+            <td>/api/v1/matching</td>
+        </tr>
+        <tr>
+            <td>契約API</td>
+            <td>契約情報の管理</td>
+            <td>/api/v1/contracts</td>
+        </tr>
+        <tr>
+            <td>請求API</td>
+            <td>請求情報の管理</td>
+            <td>/api/v1/billing</td>
+        </tr>
+        <tr>
+            <td>勤怠API</td>
+            <td>勤怠情報の管理</td>
+            <td>/api/v1/attendance</td>
+        </tr>
+        <tr>
+            <td>レポートAPI</td>
+            <td>各種レポートの生成</td>
+            <td>/api/v1/reports</td>
+        </tr>
+    </table>
+
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="09_バッチ処理設計.html">前のセクション</a>
+            <a href="11_エラー処理設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>SES業務システム システム設計書</p>
+    </footer>
+</body>
+</html>

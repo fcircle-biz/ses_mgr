@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>11. エラー処理設計 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        pre, code {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            padding: 2px 4px;
+        }
+        pre {
+            padding: 10px;
+            overflow: auto;
+            line-height: 1.45;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .image-placeholder {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            background-color: #f9f9f9;
+            width: 80%;
+        }
+        .navigation {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navigation a {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background-color: white;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="10_インターフェース設計.html">前のセクション</a>
+            <a href="12_ログ設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <h2 id="error">11. エラー処理設計</h2>
+    <p>SES業務システムにおけるエラー処理は、システムの堅牢性と利用者体験の品質を確保するために重要である。本章では、エラー処理の基本方針とその実装方法について詳述する。</p>
+
+    <h3>11.1 エラー処理の基本方針</h3>
+    <p>エラー処理の基本方針は以下の通りとする。</p>
+    <ul>
+        <li><strong>一貫性</strong>: 全てのコンポーネントで一貫したエラー処理方式を採用する</li>
+        <li><strong>追跡可能性</strong>: エラーの発生から解決までの追跡が可能な仕組みを提供する</li>
+        <li><strong>適切な情報提供</strong>: エンドユーザーには理解可能なメッセージを、開発者には詳細なエラー情報を提供する</li>
+        <li><strong>回復可能性</strong>: 可能な限りシステムとユーザー操作の回復手段を提供する</li>
+        <li><strong>セキュリティ</strong>: エラー情報による機密情報の漏洩を防止する</li>
+    </ul>
+
+    <h3>11.2 エラー分類</h3>
+    <p>本システムで扱うエラーを以下のように分類する。</p>
+
+    <table>
+        <tr>
+            <th>エラー分類</th>
+            <th>説明</th>
+            <th>処理方針</th>
+            <th>主な発生箇所</th>
+        </tr>
+        <tr>
+            <td>入力エラー</td>
+            <td>ユーザー入力値の検証エラー</td>
+            <td>フロントエンド・バックエンドの両方で検証し、具体的なエラーメッセージをユーザーに提供</td>
+            <td>ユーザーインターフェース、Web API</td>
+        </tr>
+        <tr>
+            <td>ビジネスルールエラー</td>
+            <td>業務ロジック上の制約違反</td>
+            <td>一貫したエラーコードとメッセージを定義し、ユーザーに明確な回避策を提示</td>
+            <td>サービス層、ドメイン層</td>
+        </tr>
+        <tr>
+            <td>システムエラー</td>
+            <td>内部処理や外部連携の技術的エラー</td>
+            <td>詳細ログを記録し、管理者に通知。ユーザーには一般的なエラーメッセージを表示</td>
+            <td>データアクセス層、連携サービス</td>
+        </tr>
+        <tr>
+            <td>セキュリティエラー</td>
+            <td>認証・認可、不正アクセスに関するエラー</td>
+            <td>詳細をログに記録し、セキュリティ監視システムに連携。ユーザーには最小限の情報のみ提供</td>
+            <td>認証サービス、API Gateway</td>
+        </tr>
+        <tr>
+            <td>可用性エラー</td>
+            <td>サービス停止、過負荷などによるエラー</td>
+            <td>代替手段の提示、リトライ機構の提供。運用監視システムへ迅速に通知</td>
+            <td>全コンポーネント</td>
+        </tr>
+    </table>
+
+    <h3>11.3 エラーコード体系</h3>
+    <p>エラーコードは以下の体系で定義する。</p>
+
+    <pre>
+    E-AABCC
+    </pre>
+
+    <ul>
+        <li><strong>E-</strong>: エラーを示すプレフィックス</li>
+        <li><strong>AA</strong>: モジュールコード（01: 共通, 02: 案件管理, 03: 技術者管理, 04: 契約管理, 05: 勤怠工数管理, 06: 請求支払, 07: マッチング, 08: レポーティング, 09: システム管理）</li>
+        <li><strong>B</strong>: エラー分類（1: 入力エラー, 2: ビジネスルールエラー, 3: システムエラー, 4: セキュリティエラー, 5: 可用性エラー）</li>
+        <li><strong>CC</strong>: 連番（00-99）</li>
+    </ul>
+
+    <p>例:</p>
+    <ul>
+        <li><strong>E-01101</strong>: 共通モジュールの入力エラー01</li>
+        <li><strong>E-03201</strong>: 技術者管理モジュールのビジネスルールエラー01</li>
+        <li><strong>E-04301</strong>: 契約管理モジュールのシステムエラー01</li>
+    </ul>
+
+    <h3>11.4 フロントエンドのエラー処理</h3>
+    <p>フロントエンドでのエラー処理方針を以下に示す。</p>
+
+    <h4>11.4.1 UI表示方法</h4>
+    <ul>
+        <li><strong>フォームバリデーション</strong>: 入力項目の近くに赤文字でエラーメッセージを表示</li>
+        <li><strong>処理エラー</strong>: モーダルダイアログまたはトーストメッセージでエラー内容を表示</li>
+        <li><strong>システムエラー</strong>: 専用のエラーページに遷移し、エラーIDと問い合わせ先を表示</li>
+        <li><strong>ネットワークエラー</strong>: オフライン状態の表示と、回復時の自動リトライオプションを提供</li>
+    </ul>
+
+    <h4>11.4.2 実装方式</h4>
+    <p>フロントエンドでのエラー処理は、以下の方式で実装する。</p>
+    <ul>
+        <li><strong>Reactコンポーネント</strong>: エラーバウンダリによる例外のキャッチと回復</li>
+        <li><strong>Redux/状態管理</strong>: グローバルエラー状態の管理と表示制御</li>
+        <li><strong>API通信</strong>: Axios インターセプターによるエラーハンドリングと統一処理</li>
+        <li><strong>Formライブラリ</strong>: React Hook FormとYupによるバリデーション制御</li>
+    </ul>
+
+    <div class="container">
+        <div class="image-placeholder">
+            [フロントエンドエラー処理フロー図]<br>
+            ここにフロントエンドのエラー処理フロー図を挿入
+        </div>
+    </div>
+
+    <h3>11.5 バックエンドのエラー処理</h3>
+    <p>バックエンド（API）でのエラー処理方針を以下に示す。</p>
+
+    <h4>11.5.1 API応答形式</h4>
+    <p>エラー発生時のAPI応答は以下のJSON形式で統一する。</p>
+    <pre>
+    {
+      "status": "error",
+      "errorCode": "E-AABCC",
+      "message": "ユーザー向けエラーメッセージ",
+      "details": [
+        {
+          "field": "該当フィールド名（該当する場合）",
+          "message": "詳細エラーメッセージ"
+        }
+      ],
+      "timestamp": "2023-01-01T12:00:00Z",
+      "requestId": "リクエスト識別子",
+      "path": "/api/v1/resource"
+    }
+    </pre>
+
+    <h4>11.5.2 実装方式</h4>
+    <p>バックエンドでのエラー処理は、以下の方式で実装する。</p>
+    <ul>
+        <li><strong>例外ハンドリング</strong>: グローバル例外ハンドラーによる統一的な例外処理</li>
+        <li><strong>ビジネス例外</strong>: 独自の例外階層を定義し、業務ロジックで明示的に発生させる</li>
+        <li><strong>バリデーション</strong>: Bean Validationと独自バリデーターの組み合わせ</li>
+        <li><strong>ログ連携</strong>: 例外発生時に構造化ログを自動記録</li>
+        <li><strong>監視連携</strong>: 重大なエラー発生時に監視システムへ通知</li>
+    </ul>
+
+    <div class="container">
+        <div class="image-placeholder">
+            [バックエンドエラー処理フロー図]<br>
+            ここにバックエンドのエラー処理フロー図を挿入
+        </div>
+    </div>
+
+    <h3>11.6 データアクセスレイヤーのエラー処理</h3>
+    <p>データアクセスレイヤーにおけるエラー処理方針を以下に示す。</p>
+    <ul>
+        <li><strong>トランザクション管理</strong>: 適切なトランザクション境界の設定とロールバック制御</li>
+        <li><strong>コネクション管理</strong>: コネクションプールの監視とタイムアウト制御</li>
+        <li><strong>リトライ機構</strong>: 一時的なエラーに対する適切なバックオフとリトライ</li>
+        <li><strong>デッドロック対策</strong>: 楽観的ロックの採用と競合検出機構</li>
+        <li><strong>整合性確保</strong>: データ整合性エラーの検出と回復手順</li>
+    </ul>
+
+    <h3>11.7 外部連携のエラー処理</h3>
+    <p>外部システムとの連携におけるエラー処理方針を以下に示す。</p>
+    <ul>
+        <li><strong>タイムアウト設定</strong>: 適切なタイムアウト値の設定と監視</li>
+        <li><strong>サーキットブレーカー</strong>: 障害検知による一時的なサービス利用停止と自動回復</li>
+        <li><strong>フォールバック機構</strong>: 代替処理パスの用意</li>
+        <li><strong>非同期処理</strong>: 重要な連携処理の非同期化とリトライキュー</li>
+        <li><strong>整合性確保</strong>: べき等性の保証とトランザクションID管理</li>
+    </ul>
+
+    <div class="container">
+        <div class="image-placeholder">
+            [外部連携エラー処理パターン図]<br>
+            ここに外部連携のエラー処理パターン図を挿入
+        </div>
+    </div>
+
+    <h3>11.8 運用面のエラー対応</h3>
+    <p>システム運用におけるエラー対応方針を以下に示す。</p>
+    <ul>
+        <li><strong>エラーモニタリング</strong>: リアルタイムでのエラー発生状況監視</li>
+        <li><strong>エラー分析</strong>: エラーログ集計と傾向分析</li>
+        <li><strong>自動対応</strong>: 特定パターンのエラーに対する自動復旧処理</li>
+        <li><strong>エスカレーション</strong>: エラーの重要度に応じた通知先と対応手順</li>
+        <li><strong>ユーザー支援</strong>: エラー発生時のサポート体制とナレッジベース</li>
+    </ul>
+
+    <h4>11.8.1 監視項目</h4>
+    <table>
+        <tr>
+            <th>監視項目</th>
+            <th>閾値</th>
+            <th>通知先</th>
+            <th>対応方針</th>
+        </tr>
+        <tr>
+            <td>システムエラー発生率</td>
+            <td>1分間に5件以上</td>
+            <td>システム管理者、開発チーム</td>
+            <td>即時調査、必要に応じてロールバック</td>
+        </tr>
+        <tr>
+            <td>特定APIのエラー率</td>
+            <td>10%以上</td>
+            <td>開発チーム、運用担当者</td>
+            <td>該当APIの診断、代替手段の案内</td>
+        </tr>
+        <tr>
+            <td>DB接続エラー</td>
+            <td>1件以上</td>
+            <td>DBA、システム管理者</td>
+            <td>DB状態確認、コネクションプール再設定</td>
+        </tr>
+        <tr>
+            <td>外部連携エラー</td>
+            <td>連続3回以上</td>
+            <td>システム管理者、連携先担当者</td>
+            <td>連携先状態確認、代替処理パスへの切替</td>
+        </tr>
+    </table>
+
+    <h3>11.9 エラーメッセージ管理</h3>
+    <p>エラーメッセージの管理方針を以下に示す。</p>
+    <ul>
+        <li><strong>メッセージの外部化</strong>: プロパティファイルによるメッセージ定義</li>
+        <li><strong>多言語対応</strong>: 日本語・英語の基本対応</li>
+        <li><strong>メッセージの構成</strong>: [エラーコード] メッセージ本文 (対処方法)</li>
+        <li><strong>プレースホルダー</strong>: メッセージ内の動的部分は{0}形式のプレースホルダーで定義</li>
+    </ul>
+
+    <p>例：</p>
+    <pre>
+    # プロパティファイル例
+    E-01101=入力された{0}は必須項目です。値を入力してください。
+    E-03201=指定された技術者は既に{0}案件にアサイン済みです。別の技術者を選択してください。
+    E-04301=契約書生成中にエラーが発生しました。しばらく経ってから再試行してください。(エラーID: {0})
+    </pre>
+
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="10_インターフェース設計.html">前のセクション</a>
+            <a href="12_ログ設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>SES業務システム システム設計書</p>
+    </footer>
+</body>
+</html>

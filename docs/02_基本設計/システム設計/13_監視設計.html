@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>13. 監視設計 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+        }
+        h5 {
+            font-size: 16px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        pre, code {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            padding: 2px 4px;
+        }
+        pre {
+            padding: 10px;
+            overflow: auto;
+            line-height: 1.45;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .image-placeholder {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            background-color: #f9f9f9;
+            width: 80%;
+        }
+        .navigation {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navigation a {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background-color: white;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="12_ログ設計.html">前のセクション</a>
+            <a href="14_移行設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <h2 id="monitoring">13. 監視設計</h2>
+    <p>本章では、SES業務システムの運用状況を継続的に把握し、問題の早期発見・対応を可能にするための監視設計について記述する。</p>
+
+    <h3>13.1 監視設計の基本方針</h3>
+    <p>監視設計の基本方針は以下の通りとする。</p>
+    <ul>
+        <li><strong>網羅性</strong>: インフラからアプリケーションまで全レイヤーを監視対象とする</li>
+        <li><strong>予防的監視</strong>: 問題発生前の予兆を検知し、事前対応を可能にする</li>
+        <li><strong>自動検知</strong>: 異常の自動検知とアラート通知による迅速な対応</li>
+        <li><strong>可視化</strong>: システム状態の直感的な可視化によるモニタリング</li>
+        <li><strong>相関分析</strong>: 複数指標の相関関係から真の原因を特定</li>
+    </ul>
+
+    <h3>13.2 監視レイヤー構成</h3>
+    <p>監視対象を以下のレイヤーに分類し、それぞれに適した監視項目と手法を定義する。</p>
+
+    <table>
+        <tr>
+            <th>監視レイヤー</th>
+            <th>概要</th>
+            <th>主な監視対象</th>
+            <th>監視ツール</th>
+        </tr>
+        <tr>
+            <td>インフラストラクチャ監視</td>
+            <td>物理/仮想リソースの状態監視</td>
+            <td>サーバー、ネットワーク、ストレージ</td>
+            <td>Prometheus、Node Exporter</td>
+        </tr>
+        <tr>
+            <td>プラットフォーム監視</td>
+            <td>ミドルウェアや実行環境の監視</td>
+            <td>Kubernetes、データベース、メッセージキュー</td>
+            <td>kube-state-metrics、JMX Exporter</td>
+        </tr>
+        <tr>
+            <td>アプリケーション監視</td>
+            <td>アプリケーション自体の動作監視</td>
+            <td>API、サービス、バッチ処理</td>
+            <td>Spring Boot Actuator、Micrometer</td>
+        </tr>
+        <tr>
+            <td>ビジネスプロセス監視</td>
+            <td>業務フローの進行状況監視</td>
+            <td>業務KPI、処理件数、エラー率</td>
+            <td>カスタムメトリクス、Grafana</td>
+        </tr>
+        <tr>
+            <td>エンドユーザー体験監視</td>
+            <td>実際のユーザー体験の監視</td>
+            <td>レスポンスタイム、エラー率、UI操作</td>
+            <td>Synthetic Monitoring、RUM</td>
+        </tr>
+    </table>
+
+    <h3>13.3 監視対象と指標</h3>
+    <p>各監視レイヤーにおける主要な監視対象と指標を定義する。</p>
+
+    <h4>13.3.1 インフラストラクチャ監視</h4>
+    <table>
+        <tr>
+            <th>監視対象</th>
+            <th>監視指標</th>
+            <th>閾値（警告/重大）</th>
+            <th>監視間隔</th>
+        </tr>
+        <tr>
+            <td>CPU</td>
+            <td>CPU使用率</td>
+            <td>70% / 90%</td>
+            <td>30秒</td>
+        </tr>
+        <tr>
+            <td>メモリ</td>
+            <td>メモリ使用率</td>
+            <td>80% / 95%</td>
+            <td>30秒</td>
+        </tr>
+        <tr>
+            <td>ディスク</td>
+            <td>ディスク使用率</td>
+            <td>75% / 90%</td>
+            <td>5分</td>
+        </tr>
+        <tr>
+            <td>ディスクI/O</td>
+            <td>I/O待ち時間</td>
+            <td>100ms / 500ms</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>ネットワーク</td>
+            <td>インターフェース使用率</td>
+            <td>60% / 80%</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>ネットワーク</td>
+            <td>パケット損失率</td>
+            <td>1% / 5%</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>プロセス</td>
+            <td>プロセス数</td>
+            <td>定義による</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>負荷</td>
+            <td>ロードアベレージ</td>
+            <td>CPU数×0.7 / CPU数×0.9</td>
+            <td>1分</td>
+        </tr>
+    </table>
+
+    <h4>13.3.2 プラットフォーム監視</h4>
+    <h5>Kubernetes</h5>
+    <table>
+        <tr>
+            <th>監視対象</th>
+            <th>監視指標</th>
+            <th>閾値（警告/重大）</th>
+            <th>監視間隔</th>
+        </tr>
+        <tr>
+            <td>ノード</td>
+            <td>ノード状態</td>
+            <td>NotReady</td>
+            <td>30秒</td>
+        </tr>
+        <tr>
+            <td>ポッド</td>
+            <td>ポッド状態</td>
+            <td>Pending/Failed/Unknown</td>
+            <td>30秒</td>
+        </tr>
+        <tr>
+            <td>ポッド</td>
+            <td>再起動回数</td>
+            <td>3回 / 5回(10分間)</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>デプロイメント</td>
+            <td>利用可能レプリカ率</td>
+            <td>80% / 50%</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>リソース</td>
+            <td>リソース要求vs割り当て</td>
+            <td>90% / 100%</td>
+            <td>5分</td>
+        </tr>
+    </table>
+
+    <h5>データベース（PostgreSQL）</h5>
+    <table>
+        <tr>
+            <th>監視対象</th>
+            <th>監視指標</th>
+            <th>閾値（警告/重大）</th>
+            <th>監視間隔</th>
+        </tr>
+        <tr>
+            <td>接続</td>
+            <td>接続数</td>
+            <td>最大接続数の70% / 90%</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>接続</td>
+            <td>接続エラー率</td>
+            <td>5% / 10%</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>パフォーマンス</td>
+            <td>クエリ実行時間</td>
+            <td>1秒 / 5秒</td>
+            <td>5分</td>
+        </tr>
+        <tr>
+            <td>パフォーマンス</td>
+            <td>スロークエリ数</td>
+            <td>10件 / 50件(10分間)</td>
+            <td>10分</td>
+        </tr>
+        <tr>
+            <td>ストレージ</td>
+            <td>テーブルサイズ増加率</td>
+            <td>10% / 20%(日次)</td>
+            <td>1時間</td>
+        </tr>
+        <tr>
+            <td>レプリケーション</td>
+            <td>レプリケーション遅延</td>
+            <td>10秒 / 60秒</td>
+            <td>1分</td>
+        </tr>
+    </table>
+
+    <h4>13.3.3 アプリケーション監視</h4>
+    <table>
+        <tr>
+            <th>監視対象</th>
+            <th>監視指標</th>
+            <th>閾値（警告/重大）</th>
+            <th>監視間隔</th>
+        </tr>
+        <tr>
+            <td>API</td>
+            <td>レスポンスタイム</td>
+            <td>500ms / 2000ms</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>API</td>
+            <td>エラーレート</td>
+            <td>1% / 5%</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>サービス</td>
+            <td>メソッド実行時間</td>
+            <td>200ms / 1000ms</td>
+            <td>5分</td>
+        </tr>
+        <tr>
+            <td>キャッシュ</td>
+            <td>ヒット率</td>
+            <td>80% / 50%</td>
+            <td>5分</td>
+        </tr>
+        <tr>
+            <td>コネクションプール</td>
+            <td>使用率</td>
+            <td>70% / 90%</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>JVM</td>
+            <td>GC発生頻度</td>
+            <td>5回 / 20回(分)</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>JVM</td>
+            <td>GC時間</td>
+            <td>200ms / 500ms</td>
+            <td>1分</td>
+        </tr>
+        <tr>
+            <td>ヘルスチェック</td>
+            <td>ヘルスステータス</td>
+            <td>UP以外</td>
+            <td>30秒</td>
+        </tr>
+    </table>
+
+    <h4>13.3.4 ビジネスプロセス監視</h4>
+    <table>
+        <tr>
+            <th>監視対象</th>
+            <th>監視指標</th>
+            <th>閾値（警告/重大）</th>
+            <th>監視間隔</th>
+        </tr>
+        <tr>
+            <td>契約処理</td>
+            <td>契約作成成功率</td>
+            <td>90% / 80%</td>
+            <td>1時間</td>
+        </tr>
+        <tr>
+            <td>請求処理</td>
+            <td>請求書生成成功率</td>
+            <td>95% / 90%</td>
+            <td>1時間</td>
+        </tr>
+        <tr>
+            <td>マッチング</td>
+            <td>マッチング処理時間</td>
+            <td>30秒 / 2分</td>
+            <td>10分</td>
+        </tr>
+        <tr>
+            <td>バッチ処理</td>
+            <td>バッチ完了率</td>
+            <td>95% / 80%</td>
+            <td>1時間</td>
+        </tr>
+        <tr>
+            <td>ワークフロー</td>
+            <td>承認待ち件数</td>
+            <td>50件 / 100件</td>
+            <td>1時間</td>
+        </tr>
+        <tr>
+            <td>業務KPI</td>
+            <td>新規案件登録数</td>
+            <td>カスタム定義</td>
+            <td>1日</td>
+        </tr>
+    </table>
+
+    <h3>13.4 監視アラート設計</h3>
+    <p>監視によって検出した問題に対するアラート設計を以下に定義する。</p>
+
+    <h4>13.4.1 アラートレベル</h4>
+    <table>
+        <tr>
+            <th>レベル</th>
+            <th>説明</th>
+            <th>対応時間</th>
+            <th>通知手段</th>
+        </tr>
+        <tr>
+            <td>重大 (P1)</td>
+            <td>サービス全体が停止、または重要な業務機能が利用不可</td>
+            <td>即時対応（24時間365日）</td>
+            <td>電話 → メール → チャット</td>
+        </tr>
+        <tr>
+            <td>高 (P2)</td>
+            <td>重要な機能の一部に障害が発生、または業務効率が著しく低下</td>
+            <td>30分以内（営業時間内）、2時間以内（営業時間外）</td>
+            <td>メール → チャット</td>
+        </tr>
+        <tr>
+            <td>中 (P3)</td>
+            <td>一部機能の障害や性能低下だが、代替手段あり</td>
+            <td>4時間以内（営業時間内のみ）</td>
+            <td>メール → チャット</td>
+        </tr>
+        <tr>
+            <td>低 (P4)</td>
+            <td>軽微な問題や予防的アラート</td>
+            <td>翌営業日対応</td>
+            <td>チャット → ダッシュボード表示</td>
+        </tr>
+    </table>
+
+    <h4>13.4.2 アラートルーティング</h4>
+    <p>検出した問題を適切な対応チームに通知するルーティングを定義する。</p>
+    <table>
+        <tr>
+            <th>問題カテゴリ</th>
+            <th>一次対応チーム</th>
+            <th>エスカレーション先</th>
+        </tr>
+        <tr>
+            <td>インフラ問題</td>
+            <td>インフラ運用チーム</td>
+            <td>インフラ管理者 → クラウドサポート</td>
+        </tr>
+        <tr>
+            <td>アプリケーションエラー</td>
+            <td>アプリケーション運用チーム</td>
+            <td>開発チーム → アーキテクト</td>
+        </tr>
+        <tr>
+            <td>セキュリティインシデント</td>
+            <td>セキュリティチーム</td>
+            <td>CSIRT → 外部セキュリティベンダー</td>
+        </tr>
+        <tr>
+            <td>データベース問題</td>
+            <td>DBAチーム</td>
+            <td>インフラ運用 → データベースベンダー</td>
+        </tr>
+        <tr>
+            <td>ネットワーク問題</td>
+            <td>ネットワーク運用チーム</td>
+            <td>ネットワーク管理者 → ISPサポート</td>
+        </tr>
+    </table>
+
+    <h3>13.5 監視アーキテクチャ</h3>
+    <p>監視システムのアーキテクチャを以下に定義する。</p>
+
+    <div class="container">
+        <div class="image-placeholder">
+            [監視アーキテクチャ図]<br>
+            ここに監視アーキテクチャの図を挿入
+        </div>
+    </div>
+
+    <h4>13.5.1 監視技術スタック</h4>
+    <ul>
+        <li><strong>メトリクス収集</strong>: Prometheus</li>
+        <li><strong>ログ収集</strong>: Fluent Bit + Elasticsearch</li>
+        <li><strong>分散トレーシング</strong>: Jaeger</li>
+        <li><strong>可視化</strong>: Grafana</li>
+        <li><strong>アラート管理</strong>: Alertmanager</li>
+        <li><strong>通知連携</strong>: Slack, メール, PagerDuty</li>
+        <li><strong>ヘルスチェック</strong>: Kubernetes Probes, Blackbox Exporter</li>
+        <li><strong>合成監視</strong>: Prometheus Blackbox Exporter</li>
+    </ul>
+
+    <h3>13.6 監視運用</h3>
+    <p>監視システムの運用方針を以下に定義する。</p>
+
+    <h4>13.6.1 監視ダッシュボード</h4>
+    <p>以下のダッシュボードを整備する：</p>
+    <ul>
+        <li><strong>運用オーバービュー</strong>: システム全体の健全性と主要な指標を表示</li>
+        <li><strong>インフラダッシュボード</strong>: インフラリソースの詳細な状態を表示</li>
+        <li><strong>アプリケーションダッシュボード</strong>: サービスごとの状態と性能指標を表示</li>
+        <li><strong>ビジネスダッシュボード</strong>: 業務KPIと処理状況を表示</li>
+        <li><strong>障害対応ダッシュボード</strong>: 障害発生時の調査用詳細指標を表示</li>
+    </ul>
+
+    <h4>13.6.2 監視メンテナンス</h4>
+    <p>監視システム自体のメンテナンス方針を以下に定義する：</p>
+    <ul>
+        <li><strong>監視システムの監視</strong>: 監視システム自体のヘルスチェック</li>
+        <li><strong>定期的な見直し</strong>: 3ヶ月ごとの監視項目とアラート閾値の見直し</li>
+        <li><strong>アラート品質改善</strong>: 誤検知率の計測と継続的な改善</li>
+        <li><strong>監視規模拡張</strong>: システム拡張時の監視設計更新プロセス</li>
+    </ul>
+
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="12_ログ設計.html">前のセクション</a>
+            <a href="14_移行設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>SES業務システム システム設計書</p>
+    </footer>
+</body>
+</html>

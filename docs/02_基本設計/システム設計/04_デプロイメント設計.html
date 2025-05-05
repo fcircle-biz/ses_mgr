@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4. デプロイメント設計 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        pre, code {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            padding: 2px 4px;
+        }
+        pre {
+            padding: 10px;
+            overflow: auto;
+            line-height: 1.45;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .image-placeholder {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            background-color: #f9f9f9;
+            width: 80%;
+        }
+        .navigation {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navigation a {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background-color: white;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="03_システムアーキテクチャ.html">前のセクション</a>
+            <a href="05_セキュリティ設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <h2 id="deployment">4. デプロイメント設計</h2>
+    <p>SES業務システムは、Kubernetesベースのコンテナオーケストレーションプラットフォーム上に展開され、Infrastructure as Code（IaC）の原則に従って管理される。</p>
+    
+    <h3 id="deployment-diagram">4.1 デプロイメント図</h3>
+    <div class="container">
+        <div class="image-placeholder">
+            [デプロイメント図]<br>
+            ここにデプロイメント図を挿入
+        </div>
+    </div>
+    
+    <h4>4.1.1 環境構成</h4>
+    <p>SES業務システムは、以下の環境を用意する：</p>
+    <table>
+        <tr>
+            <th>環境</th>
+            <th>用途</th>
+            <th>インフラ構成</th>
+            <th>データ</th>
+        </tr>
+        <tr>
+            <td>開発環境</td>
+            <td>開発者による機能開発、単体テスト</td>
+            <td>小規模Kubernetes（3ノード）</td>
+            <td>開発用データ（匿名化）</td>
+        </tr>
+        <tr>
+            <td>テスト環境</td>
+            <td>QAチームによる結合テスト、性能テスト</td>
+            <td>中規模Kubernetes（5ノード）</td>
+            <td>テスト用データセット</td>
+        </tr>
+        <tr>
+            <td>ステージング環境</td>
+            <td>本番リリース前の最終検証</td>
+            <td>本番相当Kubernetes（縮小版）</td>
+            <td>本番データのコピー（マスキング済み）</td>
+        </tr>
+        <tr>
+            <td>本番環境</td>
+            <td>実サービス提供</td>
+            <td>大規模Kubernetes（10+ノード）</td>
+            <td>実データ</td>
+        </tr>
+        <tr>
+            <td>DR環境</td>
+            <td>災害復旧用バックアップ環境</td>
+            <td>本番相当Kubernetes（別リージョン）</td>
+            <td>本番データのレプリカ</td>
+        </tr>
+    </table>
+    
+    <h4>4.1.2 展開方式</h4>
+    <p>各マイクロサービスは、以下の方針でKubernetesクラスタ上に展開される：</p>
+    <ul>
+        <li><strong>コンテナ化</strong>: 各サービスはDockerコンテナとしてパッケージ化</li>
+        <li><strong>Deployment管理</strong>: Kubernetesのデプロイメントリソースによる管理</li>
+        <li><strong>スケーリング</strong>: Horizontal Pod Autoscaler (HPA)による自動スケーリング</li>
+        <li><strong>ゼロダウンタイムデプロイ</strong>: Rolling UpdateまたはBlue/Green方式の採用</li>
+        <li><strong>ヘルスチェック</strong>: Liveness/Readinessプローブによる健全性検証</li>
+        <li><strong>リソース管理</strong>: CPU/メモリ制約の適切な設定</li>
+    </ul>
+    
+    <h4>4.1.3 デプロイメントパイプライン</h4>
+    <p>GitOpsの原則に基づき、以下のCI/CDパイプラインを構築する：</p>
+    <ol>
+        <li><strong>コード変更</strong>: 開発者がgitリポジトリにコードをプッシュ</li>
+        <li><strong>ビルド</strong>: GitLab CIがビルドプロセスを実行
+            <ul>
+                <li>依存関係の解決</li>
+                <li>コードのコンパイル</li>
+                <li>単体テストの実行</li>
+                <li>静的コード解析</li>
+                <li>Dockerイメージのビルド</li>
+                <li>イメージのスキャン</li>
+            </ul>
+        </li>
+        <li><strong>テスト</strong>: 自動テストの実行
+            <ul>
+                <li>統合テスト</li>
+                <li>API契約テスト</li>
+                <li>UIテスト</li>
+            </ul>
+        </li>
+        <li><strong>アーティファクト登録</strong>: Docker Registry（Harbor）にイメージを登録</li>
+        <li><strong>デプロイメント</strong>: ArgoCD/GitOpsによる環境への展開
+            <ul>
+                <li>Kubernetesマニフェストの更新</li>
+                <li>対象環境へのデプロイ</li>
+                <li>ヘルスチェック</li>
+            </ul>
+        </li>
+        <li><strong>モニタリング</strong>: デプロイ後の監視と検証</li>
+    </ol>
+    
+    <h3 id="network">4.2 ネットワーク構成</h3>
+    <p>SES業務システムのネットワーク構成は、セキュリティとスケーラビリティを重視し、以下のように設計する。</p>
+    
+    <h4>4.2.1 ネットワークアーキテクチャ</h4>
+    <div class="container">
+        <div class="image-placeholder">
+            [ネットワーク構成図]<br>
+            ここにネットワーク構成図を挿入
+        </div>
+    </div>
+    
+    <p>ネットワークは以下のセグメントに分割される：</p>
+    <table>
+        <tr>
+            <th>ネットワークゾーン</th>
+            <th>用途</th>
+            <th>アクセス制御</th>
+        </tr>
+        <tr>
+            <td>DMZ</td>
+            <td>インターネットからアクセス可能な公開サービス（API Gateway、CDN）</td>
+            <td>WAF、DDos保護、通信暗号化</td>
+        </tr>
+        <tr>
+            <td>アプリケーションゾーン</td>
+            <td>マイクロサービス、Webアプリケーション</td>
+            <td>内部通信のみ、セグメント間はファイアウォール制御</td>
+        </tr>
+        <tr>
+            <td>データベースゾーン</td>
+            <td>データベース、キャッシュサーバー</td>
+            <td>アプリケーションゾーンからのみアクセス可能</td>
+        </tr>
+        <tr>
+            <td>管理ゾーン</td>
+            <td>監視、ログ、CI/CD、運用管理サーバー</td>
+            <td>VPN経由でのみアクセス可能</td>
+        </tr>
+        <tr>
+            <td>バックアップゾーン</td>
+            <td>データバックアップ、アーカイブ</td>
+            <td>厳格なアクセス制御、データ転送の暗号化</td>
+        </tr>
+    </table>
+    
+    <h4>4.2.2 ロードバランシング</h4>
+    <p>システムの高可用性と負荷分散のため、以下のロードバランシング構成を採用する：</p>
+    <ul>
+        <li><strong>L7ロードバランサー</strong>: Nginx Ingress Controller + Cloud Load Balancer
+            <ul>
+                <li>SSL/TLS終端</li>
+                <li>パスベースルーティング</li>
+                <li>セッションアフィニティ</li>
+                <li>レートリミット</li>
+            </ul>
+        </li>
+        <li><strong>サービスメッシュ</strong>: Istio
+            <ul>
+                <li>サービス間の通信制御</li>
+                <li>トラフィック管理（カナリアリリース、A/Bテスト）</li>
+                <li>障害インジェクション</li>
+                <li>分散トレーシング</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h4>4.2.3 ネットワークポリシー</h4>
+    <p>Kubernetesのネットワークポリシーを用いて、マイクロサービス間の通信を制御する：</p>
+    <ul>
+        <li>デフォルトでは全ての通信を拒否（deny-all）</li>
+        <li>必要な通信のみを明示的に許可（least privilege principle）</li>
+        <li>名前空間間の通信制限</li>
+        <li>外部通信の制限（egress filtering）</li>
+    </ul>
+    
+    <h3 id="server">4.3 サーバー/コンテナ構成</h3>
+    <p>SES業務システムの実行環境を構成するサーバーとコンテナの構成を定義する。</p>
+    
+    <h4>4.3.1 物理/仮想サーバー構成</h4>
+    <p>本番環境は、以下のサーバー構成で構築する：</p>
+    <table>
+        <tr>
+            <th>サーバー種別</th>
+            <th>役割</th>
+            <th>OS/プラットフォーム</th>
+            <th>台数</th>
+            <th>スペック</th>
+        </tr>
+        <tr>
+            <td>Kubernetesマスターノード</td>
+            <td>クラスタ管理</td>
+            <td>Ubuntu 22.04 LTS</td>
+            <td>3台</td>
+            <td>CPU: 4vCPU<br>Memory: 16GB</td>
+        </tr>
+        <tr>
+            <td>Kubernetesワーカーノード</td>
+            <td>アプリケーション実行</td>
+            <td>Ubuntu 22.04 LTS</td>
+            <td>10台</td>
+            <td>CPU: 8vCPU<br>Memory: 32GB</td>
+        </tr>
+        <tr>
+            <td>データベースサーバー</td>
+            <td>PostgreSQLクラスタ</td>
+            <td>Ubuntu 22.04 LTS</td>
+            <td>3台</td>
+            <td>CPU: 8vCPU<br>Memory: 64GB<br>Storage: 1TB SSD</td>
+        </tr>
+        <tr>
+            <td>バックアップサーバー</td>
+            <td>PostgreSQL (pgBackRest)</td>
+            <td>Ubuntu 22.04 LTS</td>
+            <td>1台</td>
+            <td>CPU: 4vCPU<br>Memory: 16GB<br>Storage: 5TB SSD</td>
+        </tr>
+        <tr>
+            <td>ファイルストレージコンテナ</td>
+            <td>ファイル保存</td>
+            <td>共有ボリューム</td>
+            <td>1台</td>
+            <td>CPU: 2vCPU<br>Memory: 8GB<br>Storage: 5TB</td>
+        </tr>
+        <tr>
+            <td>モニタリングサーバー</td>
+            <td>Prometheus, Grafana</td>
+            <td>Ubuntu 22.04 LTS</td>
+            <td>2台</td>
+            <td>CPU: 4vCPU<br>Memory: 16GB</td>
+        </tr>
+        <tr>
+            <td>ログサーバー</td>
+            <td>Elasticsearch, Kibana</td>
+            <td>Ubuntu 22.04 LTS</td>
+            <td>3台</td>
+            <td>CPU: 8vCPU<br>Memory: 32GB<br>Storage: 2TB SSD</td>
+        </tr>
+        <tr>
+            <td>CI/CDサーバー</td>
+            <td>GitLab, Jenkins</td>
+            <td>Ubuntu 22.04 LTS</td>
+            <td>2台</td>
+            <td>CPU: 8vCPU<br>Memory: 32GB</td>
+        </tr>
+    </table>
+    
+    <h4>4.3.2 コンテナ構成</h4>
+    <p>各マイクロサービスは、以下のコンテナ構成で運用する：</p>
+    <table>
+        <tr>
+            <th>コンテナ</th>
+            <th>ベースイメージ</th>
+            <th>説明</th>
+            <th>リソース制約</th>
+        </tr>
+        <tr>
+            <td>アプリケーションコンテナ</td>
+            <td>Eclipse Temurin JDK 17</td>
+            <td>Spring Bootアプリケーション</td>
+            <td>CPU: 1-2 cores<br>Memory: 1-4GB</td>
+        </tr>
+        <tr>
+            <td>フロントエンドコンテナ</td>
+            <td>Nginx Alpine</td>
+            <td>静的リソース配信</td>
+            <td>CPU: 0.5 cores<br>Memory: 512MB</td>
+        </tr>
+        <tr>
+            <td>Redisコンテナ</td>
+            <td>Redis Alpine</td>
+            <td>キャッシュ、セッション管理</td>
+            <td>CPU: 1 core<br>Memory: 2GB</td>
+        </tr>
+        <tr>
+            <td>Fluentdコンテナ</td>
+            <td>Fluentd Alpine</td>
+            <td>ログ収集エージェント</td>
+            <td>CPU: 0.5 cores<br>Memory: 512MB</td>
+        </tr>
+        <tr>
+            <td>Prometheusエージェント</td>
+            <td>Prometheus Node Exporter</td>
+            <td>メトリクス収集</td>
+            <td>CPU: 0.2 cores<br>Memory: 256MB</td>
+        </tr>
+    </table>
+    
+    <h4>4.3.3 永続化ストレージ</h4>
+    <p>データの永続化には、以下のストレージを使用する：</p>
+    <table>
+        <tr>
+            <th>ストレージ種別</th>
+            <th>用途</th>
+            <th>容量</th>
+            <th>バックアップ方式</th>
+        </tr>
+        <tr>
+            <td>ブロックストレージ</td>
+            <td>データベース、キャッシュ</td>
+            <td>5TB</td>
+            <td>日次スナップショット + WALアーカイブ</td>
+        </tr>
+        <tr>
+            <td>オブジェクトストレージ</td>
+            <td>ドキュメント、ログ、バックアップデータ</td>
+            <td>50TB+（拡張可能）</td>
+            <td>クロスリージョンレプリケーション</td>
+        </tr>
+        <tr>
+            <td>共有ファイルシステム</td>
+            <td>アプリケーション間で共有するファイル</td>
+            <td>1TB</td>
+            <td>日次バックアップ</td>
+        </tr>
+    </table>
+
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="03_システムアーキテクチャ.html">前のセクション</a>
+            <a href="05_セキュリティ設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>SES業務システム システム設計書</p>
+    </footer>
+</body>
+</html>

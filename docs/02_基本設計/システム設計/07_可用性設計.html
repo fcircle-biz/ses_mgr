@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>7. 可用性設計 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        pre, code {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            padding: 2px 4px;
+        }
+        pre {
+            padding: 10px;
+            overflow: auto;
+            line-height: 1.45;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .image-placeholder {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            background-color: #f9f9f9;
+            width: 80%;
+        }
+        .navigation {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navigation a {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background-color: white;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="06_性能設計.html">前のセクション</a>
+            <a href="08_バックアップ設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <h2 id="availability">7. 可用性設計</h2>
+    <h3 id="redundancy">7.1 冗長構成</h3>
+    <p>SES業務システムでは、以下の冗長構成を採用する：</p>
+    <ul>
+        <li><strong>マルチAZ構成</strong>: 異なるアベイラビリティゾーンにシステムコンポーネントを配置</li>
+        <li><strong>ロードバランサー冗長化</strong>: 複数のロードバランサーを配置し、単一障害点を排除</li>
+        <li><strong>アプリケーションサーバー冗長化</strong>: 各サービスを複数インスタンスで運用</li>
+        <li><strong>データベース冗長化</strong>: マスター/スレーブ構成によるデータベースの冗長化</li>
+    </ul>
+
+    <h3 id="failover">7.2 フェイルオーバー</h3>
+    <p>SES業務システムでは、以下のフェイルオーバー設計を採用する：</p>
+    <ul>
+        <li><strong>データベースフェイルオーバー</strong>: 自動フェイルオーバーによるマスター切り替え（目標RTO: 60秒）</li>
+        <li><strong>サービスフェイルオーバー</strong>: ヘルスチェックによる障害検知と自動フェイルオーバー</li>
+        <li><strong>サーキットブレーカー</strong>: マイクロサービス間の呼び出しにサーキットブレーカーパターンを適用</li>
+        <li><strong>グレースフルデグラデーション</strong>: 一部サービス障害時の縮退運転モード</li>
+    </ul>
+
+    <h3 id="disaster-recovery">7.3 災害対策</h3>
+    <p>大規模災害に備え、以下の災害対策を実施する：</p>
+    <ul>
+        <li><strong>マルチリージョン構成</strong>: プライマリリージョンとDRリージョンの2リージョン構成</li>
+        <li><strong>データレプリケーション</strong>: リージョン間の非同期レプリケーション</li>
+        <li><strong>バックアップ</strong>: 複数リージョンへのバックアップ保存</li>
+        <li><strong>DR訓練</strong>: 定期的な災害復旧訓練の実施（年2回）</li>
+    </ul>
+    
+    <h4>7.3.1 RTO/RPO目標</h4>
+    <table>
+        <tr>
+            <th>障害レベル</th>
+            <th>RTO（目標復旧時間）</th>
+            <th>RPO（目標復旧ポイント）</th>
+        </tr>
+        <tr>
+            <td>コンポーネント障害</td>
+            <td>10分以内</td>
+            <td>0（データ損失なし）</td>
+        </tr>
+        <tr>
+            <td>アベイラビリティゾーン障害</td>
+            <td>30分以内</td>
+            <td>5分以内</td>
+        </tr>
+        <tr>
+            <td>リージョン障害</td>
+            <td>2時間以内</td>
+            <td>15分以内</td>
+        </tr>
+    </table>
+    
+    <h3 id="high-availability">7.4 高可用性設計</h3>
+    <p>システム全体の可用性目標は99.9%（年間ダウンタイム8.76時間以内）とし、以下の設計を採用する：</p>
+    
+    <h4>7.4.1 コンポーネント別可用性目標</h4>
+    <table>
+        <tr>
+            <th>コンポーネント</th>
+            <th>可用性目標</th>
+            <th>実現方法</th>
+        </tr>
+        <tr>
+            <td>フロントエンド</td>
+            <td>99.95%</td>
+            <td>CDN活用、静的コンテンツの冗長配置</td>
+        </tr>
+        <tr>
+            <td>APIサーバー</td>
+            <td>99.95%</td>
+            <td>複数インスタンス、自動スケーリング</td>
+        </tr>
+        <tr>
+            <td>アプリケーションサーバー</td>
+            <td>99.95%</td>
+            <td>複数インスタンス、自動スケーリング</td>
+        </tr>
+        <tr>
+            <td>データベース</td>
+            <td>99.99%</td>
+            <td>マスター/スレーブ構成、自動フェイルオーバー</td>
+        </tr>
+        <tr>
+            <td>ストレージ</td>
+            <td>99.999%</td>
+            <td>分散ストレージ、複数コピー</td>
+        </tr>
+    </table>
+    
+    <h4>7.4.2 アーキテクチャ上の考慮点</h4>
+    <ul>
+        <li><strong>ステートレス設計</strong>: アプリケーション層のステートレス化によるスケーラビリティと可用性の向上</li>
+        <li><strong>分散システム設計</strong>: 単一障害点の排除</li>
+        <li><strong>耐障害性設計</strong>: 障害を前提としたシステム設計</li>
+        <li><strong>自己修復機能</strong>: 障害検知と自動復旧</li>
+    </ul>
+    
+    <h3 id="maintenance">7.5 メンテナンス設計</h3>
+    <p>システムの定期メンテナンスと機能追加を適切に行うための設計：</p>
+    
+    <h4>7.5.1 無停止メンテナンス</h4>
+    <p>以下の技術を活用し、サービス無停止でのメンテナンスを実現する：</p>
+    <ul>
+        <li><strong>ローリングアップデート</strong>: サービスを段階的に更新</li>
+        <li><strong>ブルー/グリーンデプロイメント</strong>: 新旧環境の切り替え</li>
+        <li><strong>カナリアリリース</strong>: 一部ユーザーへの先行リリースと監視</li>
+    </ul>
+    
+    <h4>7.5.2 メンテナンスウィンドウ</h4>
+    <p>サービス停止を伴うメンテナンスが必要な場合は、以下の時間帯に実施する：</p>
+    <ul>
+        <li><strong>定期メンテナンス</strong>: 毎月第2日曜日 22:00〜翌2:00</li>
+        <li><strong>緊急メンテナンス</strong>: 状況に応じて判断（事前通知を最大限努力）</li>
+    </ul>
+    
+    <h3 id="monitoring">7.6 可用性監視</h3>
+    <p>システムの可用性を継続的に監視するための設計：</p>
+    <ul>
+        <li><strong>ヘルスチェック</strong>: 各コンポーネントの定期的なヘルスチェック</li>
+        <li><strong>可用性メトリクス</strong>: リアルタイムでの可用性測定</li>
+        <li><strong>SLA監視</strong>: SLA達成状況の継続的なモニタリング</li>
+        <li><strong>外部監視</strong>: 外部からの定期的なサービス死活監視</li>
+    </ul>
+
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="06_性能設計.html">前のセクション</a>
+            <a href="08_バックアップ設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>SES業務システム システム設計書</p>
+    </footer>
+</body>
+</html>

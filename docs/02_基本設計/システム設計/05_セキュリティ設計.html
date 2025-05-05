@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5. セキュリティ設計 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        pre, code {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            padding: 2px 4px;
+        }
+        pre {
+            padding: 10px;
+            overflow: auto;
+            line-height: 1.45;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .image-placeholder {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            background-color: #f9f9f9;
+            width: 80%;
+        }
+        .navigation {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navigation a {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background-color: white;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="04_デプロイメント設計.html">前のセクション</a>
+            <a href="06_性能設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <h2 id="security">5. セキュリティ設計</h2>
+    <p>SES業務システムでは、多層防御（Defense in Depth）の考え方に基づき、包括的なセキュリティ対策を実施する。</p>
+    
+    <h3 id="authentication">5.1 認証設計</h3>
+    <h4>5.1.1 認証基本方針</h4>
+    <p>SES業務システムでは、以下の認証方式を採用する：</p>
+    <ul>
+        <li><strong>認証プロトコル</strong>: OAuth2.0 + OpenID Connect</li>
+        <li><strong>認証方式</strong>: ユーザーID/パスワード認証 + 多要素認証（MFA）</li>
+        <li><strong>セッション管理</strong>: JWTトークンによるステートレスセッション</li>
+        <li><strong>アカウントロック</strong>: 5回連続ログイン失敗でアカウントロック（30分）</li>
+    </ul>
+    
+    <h4>5.1.2 パスワードポリシー</h4>
+    <table>
+        <tr>
+            <th>項目</th>
+            <th>要件</th>
+            <th>備考</th>
+        </tr>
+        <tr>
+            <td>最小文字数</td>
+            <td>12文字以上</td>
+            <td>セキュリティ強度確保のため</td>
+        </tr>
+        <tr>
+            <td>文字種</td>
+            <td>大文字、小文字、数字、特殊文字から3種類以上を使用</td>
+            <td>パスワードの複雑性確保</td>
+        </tr>
+        <tr>
+            <td>有効期限</td>
+            <td>90日</td>
+            <td>定期的な変更を促す</td>
+        </tr>
+        <tr>
+            <td>履歴管理</td>
+            <td>過去12回分のパスワードと同一のものは使用不可</td>
+            <td>パスワードの使い回し防止</td>
+        </tr>
+        <tr>
+            <td>初期パスワード</td>
+            <td>初回ログイン時に強制変更</td>
+            <td>仮パスワードの悪用防止</td>
+        </tr>
+    </table>
+    
+    <h4>5.1.3 多要素認証（MFA）</h4>
+    <p>セキュリティ強化のため、以下のユーザーに対してはMFAを必須とする：</p>
+    <ul>
+        <li>システム管理者</li>
+        <li>契約管理者</li>
+        <li>財務担当者</li>
+        <li>管理者権限を持つすべてのユーザー</li>
+    </ul>
+    <p>MFAの方式として、以下を提供する：</p>
+    <ul>
+        <li>モバイル認証アプリ（Google Authenticator, Microsoft Authenticator等）</li>
+        <li>SMSワンタイムパスワード</li>
+        <li>メール認証（緊急時のバックアップ用）</li>
+    </ul>
+    
+    <h4>5.1.4 認証フロー</h4>
+    <div class="container">
+        <div class="image-placeholder">
+            [認証フロー図]<br>
+            ここに認証フローの図を挿入
+        </div>
+    </div>
+    <ol>
+        <li><strong>ログイン要求</strong>: ユーザーがログイン画面でID/パスワードを入力</li>
+        <li><strong>一次認証</strong>: ID/パスワードの検証</li>
+        <li><strong>MFA要求</strong>: 必要に応じてMFAコードの入力を要求</li>
+        <li><strong>トークン発行</strong>: 認証成功時にJWTトークンを発行
+            <ul>
+                <li>アクセストークン（有効期間: 30分）</li>
+                <li>リフレッシュトークン（有効期間: 24時間）</li>
+            </ul>
+        </li>
+        <li><strong>トークン検証</strong>: APIリクエスト時にトークンを検証</li>
+        <li><strong>トークン更新</strong>: アクセストークン期限切れ時にリフレッシュトークンで更新</li>
+    </ol>
+    
+    <h3 id="authorization">5.2 認可設計</h3>
+    <h4>5.2.1 認可モデル</h4>
+    <p>SES業務システムでは、以下の認可モデルを組み合わせて使用する：</p>
+    <ul>
+        <li><strong>RBAC（Role-Based Access Control）</strong>: ロールベースのアクセス制御
+            <ul>
+                <li>ユーザーに対してロールを割り当て</li>
+                <li>ロールに対して権限を付与</li>
+                <li>階層型ロール構造の採用</li>
+            </ul>
+        </li>
+        <li><strong>ABAC（Attribute-Based Access Control）</strong>: 属性ベースのアクセス制御
+            <ul>
+                <li>ユーザー属性（所属部門、役職など）</li>
+                <li>リソース属性（機密レベル、所有者など）</li>
+                <li>環境属性（アクセス時間、IPアドレスなど）</li>
+                <li>コンテキスト属性（プロジェクト関連性など）</li>
+            </ul>
+        </li>
+    </ul>
+    
+    <h4>5.2.2 権限管理設計</h4>
+    <p>権限は以下の構成で管理する：</p>
+    <ul>
+        <li><strong>システムロール</strong>: システム管理者、運用管理者など</li>
+        <li><strong>業務ロール</strong>: 案件管理者、技術者管理者、契約管理者など</li>
+        <li><strong>機能権限</strong>: 参照、登録、更新、削除など</li>
+        <li><strong>データ権限</strong>: 全社データ、部門データ、担当データなど</li>
+    </ul>
+    
+    <h4>5.2.3 認可フロー</h4>
+    <div class="container">
+        <div class="image-placeholder">
+            [認可フロー図]<br>
+            ここに認可フローの図を挿入
+        </div>
+    </div>
+    <ol>
+        <li><strong>リクエスト受信</strong>: ユーザーからのリクエストを受信</li>
+        <li><strong>トークン検証</strong>: JWTトークンから認証情報を取得</li>
+        <li><strong>RBAC検証</strong>: ユーザーのロールに基づく権限チェック</li>
+        <li><strong>ABAC検証</strong>: 各種属性に基づく追加の権限チェック</li>
+        <li><strong>データフィルタリング</strong>: アクセス可能なデータのみを返却</li>
+    </ol>
+    
+    <h3 id="data-security">5.3 データセキュリティ</h3>
+    <h4>5.3.1 データ分類</h4>
+    <p>システムで扱うデータを以下のように分類し、適切な保護対策を施す：</p>
+    <table>
+        <tr>
+            <th>分類</th>
+            <th>説明</th>
+            <th>対象データ例</th>
+            <th>保護要件</th>
+        </tr>
+        <tr>
+            <td>機密情報</td>
+            <td>漏洩した場合に重大な影響があるデータ</td>
+            <td>個人情報、契約条件、給与情報</td>
+            <td>強力な暗号化、厳格なアクセス制御、完全な監査証跡</td>
+        </tr>
+        <tr>
+            <td>重要情報</td>
+            <td>業務上重要なデータ</td>
+            <td>案件情報、請求情報、技術者スキル情報</td>
+            <td>暗号化、適切なアクセス制御、監査証跡</td>
+        </tr>
+        <tr>
+            <td>一般情報</td>
+            <td>一般的な業務データ</td>
+            <td>コード値、参照情報、公開資料</td>
+            <td>基本的なアクセス制御</td>
+        </tr>
+    </table>
+    
+    <h4>5.3.2 データ暗号化</h4>
+    <p>以下のデータ暗号化対策を実施する：</p>
+    <table>
+        <tr>
+            <th>対象</th>
+            <th>暗号化方式</th>
+            <th>鍵管理</th>
+        </tr>
+        <tr>
+            <td>転送中データ</td>
+            <td>TLS 1.3</td>
+            <td>証明書ローテーション（年1回）</td>
+        </tr>
+        <tr>
+            <td>保存データ（DB）</td>
+            <td>AES-256（Transparent Data Encryption）</td>
+            <td>HSMによる鍵管理、鍵ローテーション（年2回）</td>
+        </tr>
+        <tr>
+            <td>機密フィールド</td>
+            <td>AES-256（アプリケーションレベル暗号化）</td>
+            <td>キーボールトによる鍵管理</td>
+        </tr>
+        <tr>
+            <td>バックアップデータ</td>
+            <td>AES-256</td>
+            <td>HSMによる鍵管理、バックアップ専用の暗号化鍵</td>
+        </tr>
+        <tr>
+            <td>ファイルストレージ</td>
+            <td>AES-256</td>
+            <td>ストレージシステムによる鍵管理</td>
+        </tr>
+    </table>
+    
+    <h4>5.3.3 マスキング・匿名化</h4>
+    <p>以下の場合にデータのマスキングまたは匿名化を行う：</p>
+    <ul>
+        <li><strong>開発・テスト環境</strong>: 本番データのコピーを利用する場合</li>
+        <li><strong>レポート・分析</strong>: 個人を特定できる情報が不要な場合</li>
+        <li><strong>ログ・監査証跡</strong>: 機密情報を含む場合</li>
+    </ul>
+    <p>マスキング・匿名化の方式：</p>
+    <ul>
+        <li><strong>部分マスキング</strong>: 「山田太郎」→「山＊＊＊」</li>
+        <li><strong>全置換</strong>: メールアドレス→ランダムな文字列</li>
+        <li><strong>トークン化</strong>: クレジットカード番号→トークン</li>
+        <li><strong>集計化</strong>: 個別給与→給与レンジ</li>
+    </ul>
+    
+    <h3 id="network-security">5.4 ネットワークセキュリティ</h3>
+    <h4>5.4.1 多層防御</h4>
+    <p>ネットワークセキュリティでは、以下の多層防御を実施する：</p>
+    <ol>
+        <li><strong>境界防御</strong>
+            <ul>
+                <li>WAF（Web Application Firewall）</li>
+                <li>DDoS対策</li>
+                <li>不正アクセス検知・防止</li>
+                <li>ボットフィルタリング</li>
+            </ul>
+        </li>
+        <li><strong>ネットワークセグメンテーション</strong>
+            <ul>
+                <li>DMZ、アプリケーション層、データベース層の分離</li>
+                <li>マイクロセグメンテーション（サービス間の通信制御）</li>
+            </ul>
+        </li>
+        <li><strong>通信の保護</strong>
+            <ul>
+                <li>TLS 1.3による通信の暗号化</li>
+                <li>内部通信のTLS化（Service-to-Service）</li>
+                <li>コンテナ間通信のmTLS（mutual TLS）</li>
+            </ul>
+        </li>
+    </ol>
+    
+    <h4>5.4.2 セキュアな通信設計</h4>
+    <p>API通信のセキュリティ確保のため、以下の対策を実施する：</p>
+    <ul>
+        <li><strong>HTTPS強制</strong>: HTTPSのみを許可（HTTP → HTTPSリダイレクト）</li>
+        <li><strong>HSTS</strong>: HTTP Strict Transport Securityの適用</li>
+        <li><strong>証明書管理</strong>: 信頼性の高い認証局による証明書の取得と管理</li>
+        <li><strong>暗号スイート制限</strong>: 安全な暗号化方式のみを許可</li>
+        <li><strong>CSP</strong>: Content Security Policyの適用</li>
+        <li><strong>CORS</strong>: 適切なCross-Origin Resource Sharingの設定</li>
+    </ul>
+    
+    <h3 id="application-security">5.5 アプリケーションセキュリティ</h3>
+    <h4>5.5.1 セキュアコーディング</h4>
+    <p>アプリケーション開発では、以下のセキュアコーディング原則を順守する：</p>
+    <ul>
+        <li><strong>入力検証</strong>: すべてのユーザー入力に対する適切な検証</li>
+        <li><strong>出力エンコーディング</strong>: XSS対策としてのHTMLエンコーディング</li>
+        <li><strong>パラメータ化クエリ</strong>: SQLインジェクション対策</li>
+        <li><strong>安全なAPI</strong>: 脆弱性のないAPIの使用</li>
+        <li><strong>エラー処理</strong>: 適切なエラーハンドリングと情報漏洩の防止</li>
+        <li><strong>ログ記録</strong>: セキュリティイベントの適切なログ記録</li>
+    </ul>
+    
+    <h4>5.5.2 OWASP Top 10対策</h4>
+    <p>OWASP Top 10の脆弱性に対する対策：</p>
+    <table>
+        <tr>
+            <th>脆弱性</th>
+            <th>対策</th>
+        </tr>
+        <tr>
+            <td>インジェクション</td>
+            <td>パラメータ化クエリ、ORM、入力検証</td>
+        </tr>
+        <tr>
+            <td>脆弱な認証</td>
+            <td>強固な認証方式、MFA、セッション管理</td>
+        </tr>
+        <tr>
+            <td>機密データの露出</td>
+            <td>データ暗号化、適切なキー管理</td>
+        </tr>
+        <tr>
+            <td>XXE</td>
+            <td>DTDの無効化、安全なXMLパーサーの使用</td>
+        </tr>
+        <tr>
+            <td>アクセス制御の不備</td>
+            <td>適切なRBAC/ABAC実装、最小権限の原則</td>
+        </tr>
+        <tr>
+            <td>セキュリティ設定ミス</td>
+            <td>セキュリティハードニング、設定チェックリスト</td>
+        </tr>
+        <tr>
+            <td>XSS</td>
+            <td>コンテキスト対応エンコーディング、CSP</td>
+        </tr>
+        <tr>
+            <td>安全でないデシリアライゼーション</td>
+            <td>安全なライブラリの使用、型チェック</td>
+        </tr>
+        <tr>
+            <td>既知の脆弱性のある部品の使用</td>
+            <td>依存関係の定期的チェック、自動脆弱性スキャン</td>
+        </tr>
+        <tr>
+            <td>不十分なログ記録とモニタリング</td>
+            <td>包括的なログ記録、リアルタイム監視</td>
+        </tr>
+    </table>
+    
+    <h3 id="security-operations">5.6 セキュリティ運用</h3>
+    <h4>5.6.1 脆弱性管理</h4>
+    <p>脆弱性管理プロセスは以下の通り：</p>
+    <ol>
+        <li><strong>スキャン</strong>: 定期的な脆弱性スキャンの実施
+            <ul>
+                <li>コードスキャン: 週1回</li>
+                <li>依存関係スキャン: 日次</li>
+                <li>コンテナスキャン: ビルド時 & 週1回</li>
+                <li>インフラスキャン: 月1回</li>
+            </ul>
+        </li>
+        <li><strong>評価</strong>: 検出された脆弱性の影響度評価</li>
+        <li><strong>修正</strong>: 優先度に基づく脆弱性の修正
+            <ul>
+                <li>クリティカル: 3日以内</li>
+                <li>高: 7日以内</li>
+                <li>中: 30日以内</li>
+                <li>低: スケジュールに基づく対応</li>
+            </ul>
+        </li>
+        <li><strong>検証</strong>: 修正の有効性確認</li>
+        <li><strong>報告</strong>: セキュリティ状況の定期報告</li>
+    </ol>
+    
+    <h4>5.6.2 インシデント対応</h4>
+    <p>セキュリティインシデント発生時の対応手順：</p>
+    <ol>
+        <li><strong>検知</strong>: インシデントの検知と初期評価</li>
+        <li><strong>封じ込め</strong>: 被害の拡大防止措置</li>
+        <li><strong>排除</strong>: 脅威の排除と正常化</li>
+        <li><strong>復旧</strong>: システムの復旧と正常運用の確認</li>
+        <li><strong>分析</strong>: インシデントの詳細分析</li>
+        <li><strong>改善</strong>: 再発防止策の策定と実施</li>
+    </ol>
+    
+    <h4>5.6.3 セキュリティ監視</h4>
+    <p>以下の監視体制を構築し、セキュリティイベントを検知する：</p>
+    <ul>
+        <li><strong>ログ監視</strong>: 各種ログの収集と相関分析</li>
+        <li><strong>異常検知</strong>: 行動分析ベースの異常検知</li>
+        <li><strong>セキュリティアラート</strong>: 重要イベントの通知</li>
+        <li><strong>レポーティング</strong>: 定期的なセキュリティレポート作成</li>
+    </ul>
+    
+    <h4>5.6.4 セキュリティ評価・監査</h4>
+    <p>定期的なセキュリティ評価を実施する：</p>
+    <ul>
+        <li><strong>ペネトレーションテスト</strong>: 年1回</li>
+        <li><strong>セキュリティコード監査</strong>: 四半期ごと</li>
+        <li><strong>設定監査</strong>: 月1回</li>
+        <li><strong>コンプライアンス監査</strong>: 年1回</li>
+    </ul>
+
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="04_デプロイメント設計.html">前のセクション</a>
+            <a href="06_性能設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>SES業務システム システム設計書</p>
+    </footer>
+</body>
+</html>

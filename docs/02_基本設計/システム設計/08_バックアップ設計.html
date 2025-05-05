@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>8. バックアップ設計 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        pre, code {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            padding: 2px 4px;
+        }
+        pre {
+            padding: 10px;
+            overflow: auto;
+            line-height: 1.45;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .image-placeholder {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            background-color: #f9f9f9;
+            width: 80%;
+        }
+        .navigation {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navigation a {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background-color: white;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="07_可用性設計.html">前のセクション</a>
+            <a href="09_バッチ処理設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <h2 id="backup">8. バックアップ設計</h2>
+    <p>SES業務システムでは、以下のバックアップ設計を採用する：</p>
+    <table>
+        <tr>
+            <th>バックアップ種別</th>
+            <th>対象</th>
+            <th>頻度</th>
+            <th>保管期間</th>
+            <th>方式</th>
+        </tr>
+        <tr>
+            <td>フルバックアップ</td>
+            <td>データベース全体</td>
+            <td>日次（深夜）</td>
+            <td>30日間</td>
+            <td>オンラインバックアップ</td>
+        </tr>
+        <tr>
+            <td>増分バックアップ</td>
+            <td>データベース変更分</td>
+            <td>1時間毎</td>
+            <td>7日間</td>
+            <td>トランザクションログ</td>
+        </tr>
+        <tr>
+            <td>ファイルバックアップ</td>
+            <td>アップロードファイル</td>
+            <td>日次</td>
+            <td>30日間</td>
+            <td>差分バックアップ</td>
+        </tr>
+        <tr>
+            <td>構成バックアップ</td>
+            <td>システム構成情報</td>
+            <td>構成変更時</td>
+            <td>変更履歴5世代</td>
+            <td>構成管理ツール</td>
+        </tr>
+        <tr>
+            <td>アーカイブ</td>
+            <td>重要データ</td>
+            <td>月次</td>
+            <td>7年間</td>
+            <td>コールドストレージ</td>
+        </tr>
+    </table>
+
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="07_可用性設計.html">前のセクション</a>
+            <a href="09_バッチ処理設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>SES業務システム システム設計書</p>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>9. バッチ処理設計 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        pre, code {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            padding: 2px 4px;
+        }
+        pre {
+            padding: 10px;
+            overflow: auto;
+            line-height: 1.45;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .image-placeholder {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            background-color: #f9f9f9;
+            width: 80%;
+        }
+        .navigation {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navigation a {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background-color: white;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="08_バックアップ設計.html">前のセクション</a>
+            <a href="10_インターフェース設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <h2 id="batch">9. バッチ処理設計</h2>
+    <p>SES業務システムでは、以下のバッチ処理設計を採用する。</p>
+
+    <h3>9.1 バッチ処理の概要</h3>
+    <p>SES業務システムにおけるバッチ処理は、Spring Batch フレームワークを利用して実装し、Kubernetes上のCronJobとして定期実行する設計とする。各バッチは独立したコンテナとして実行され、ジョブの実行状況や結果は監視システムによって監視される。</p>
+
+    <h4>9.1.1 バッチ処理アーキテクチャ</h4>
+    <div class="container">
+        <div class="image-placeholder">
+            [バッチ処理アーキテクチャ図]<br>
+            ここにバッチ処理アーキテクチャ図を挿入
+        </div>
+    </div>
+
+    <p>バッチ処理アーキテクチャは以下の構成要素で構成される：</p>
+    <ul>
+        <li><strong>ジョブスケジューラ</strong>: Kubernetes CronJob による実行スケジュール管理</li>
+        <li><strong>バッチジョブコンテナ</strong>: Spring Batch アプリケーションを含むコンテナ</li>
+        <li><strong>バッチジョブDB</strong>: Spring Batch のメタデータを管理するデータベース</li>
+        <li><strong>処理対象データソース</strong>: 業務データを格納するデータベース</li>
+        <li><strong>出力データストア</strong>: 処理結果を格納するストレージ</li>
+        <li><strong>監視・通知システム</strong>: バッチジョブの実行状況を監視し、異常時に通知</li>
+    </ul>
+
+    <h4>9.1.2 バッチ処理方式</h4>
+    <p>バッチ処理は、以下の3つの方式で実装する：</p>
+    <table>
+        <tr>
+            <th>処理方式</th>
+            <th>説明</th>
+            <th>適用先</th>
+        </tr>
+        <tr>
+            <td>チャンク処理</td>
+            <td>大量データを一定サイズのチャンクに分割して処理する方式</td>
+            <td>データ集計、レポート生成など</td>
+        </tr>
+        <tr>
+            <td>タスクレット処理</td>
+            <td>単一タスクとして処理する方式</td>
+            <td>ファイル転送、バックアップなど</td>
+        </tr>
+        <tr>
+            <td>フロー処理</td>
+            <td>複数のステップを条件分岐を含むフローとして処理する方式</td>
+            <td>複雑な業務ロジックを含むバッチ</td>
+        </tr>
+    </table>
+
+    <h4>9.1.3 バッチ処理の共通事項</h4>
+    <p>全てのバッチ処理に共通する設計方針は以下の通り：</p>
+    <ul>
+        <li><strong>再実行性</strong>: 障害発生時に同一パラメータで再実行可能な設計</li>
+        <li><strong>べき等性</strong>: 同一条件での複数回実行が同一結果となる設計</li>
+        <li><strong>分離性</strong>: 他のバッチやオンラインシステムへの影響を最小化</li>
+        <li><strong>監視可能性</strong>: 処理状況や結果が監視システムから確認可能</li>
+        <li><strong>パラメータ化</strong>: 実行条件をパラメータで外部から制御可能</li>
+    </ul>
+
+    <h3>9.2 バッチジョブ一覧</h3>
+    <p>SES業務システムで実装するバッチジョブは以下の通り：</p>
+
+    <h4>9.2.1 日次バッチジョブ</h4>
+    <table>
+        <tr>
+            <th>ジョブID</th>
+            <th>ジョブ名</th>
+            <th>概要</th>
+            <th>実行時間</th>
+            <th>想定処理時間</th>
+            <th>前提条件</th>
+            <th>後続処理</th>
+        </tr>
+        <tr>
+            <td>BATCH-D001</td>
+            <td>勤怠集計バッチ</td>
+            <td>前日の勤怠データを集計し、月次の集計テーブルを更新</td>
+            <td>毎日 05:00</td>
+            <td>30分以内</td>
+            <td>なし</td>
+            <td>BATCH-D002</td>
+        </tr>
+        <tr>
+            <td>BATCH-D002</td>
+            <td>工数集計バッチ</td>
+            <td>前日の工数データを集計し、月次の集計テーブルを更新</td>
+            <td>毎日 05:30</td>
+            <td>30分以内</td>
+            <td>BATCH-D001</td>
+            <td>なし</td>
+        </tr>
+        <tr>
+            <td>BATCH-D003</td>
+            <td>案件ステータス更新バッチ</td>
+            <td>案件の期限に応じてステータスを自動更新</td>
+            <td>毎日 06:00</td>
+            <td>15分以内</td>
+            <td>なし</td>
+            <td>なし</td>
+        </tr>
+        <tr>
+            <td>BATCH-D004</td>
+            <td>契約期限チェックバッチ</td>
+            <td>契約期限を確認し、期限が近い契約に対して通知を生成</td>
+            <td>毎日 07:00</td>
+            <td>15分以内</td>
+            <td>なし</td>
+            <td>なし</td>
+        </tr>
+        <tr>
+            <td>BATCH-D005</td>
+            <td>承認期限チェックバッチ</td>
+            <td>承認待ちの申請に対して、承認期限が近いものの通知を生成</td>
+            <td>毎日 08:00</td>
+            <td>15分以内</td>
+            <td>なし</td>
+            <td>なし</td>
+        </tr>
+        <tr>
+            <td>BATCH-D006</td>
+            <td>日次レポート生成バッチ</td>
+            <td>日次の業務指標レポートを生成</td>
+            <td>毎日 09:00</td>
+            <td>30分以内</td>
+            <td>BATCH-D001, BATCH-D002</td>
+            <td>なし</td>
+        </tr>
+        <tr>
+            <td>BATCH-D007</td>
+            <td>システムログ整理バッチ</td>
+            <td>システムログを整理し、長期保存用にアーカイブ</td>
+            <td>毎日 01:00</td>
+            <td>60分以内</td>
+            <td>なし</td>
+            <td>なし</td>
+        </tr>
+    </table>
+
+    <h4>9.2.2 月次バッチジョブ</h4>
+    <table>
+        <tr>
+            <th>ジョブID</th>
+            <th>ジョブ名</th>
+            <th>概要</th>
+            <th>実行時間</th>
+            <th>想定処理時間</th>
+            <th>前提条件</th>
+            <th>後続処理</th>
+        </tr>
+        <tr>
+            <td>BATCH-M001</td>
+            <td>請求書生成バッチ</td>
+            <td>月次の勤怠・工数データを基に請求書データを生成</td>
+            <td>毎月1日 07:00</td>
+            <td>120分以内</td>
+            <td>月次締め処理完了</td>
+            <td>BATCH-M002</td>
+        </tr>
+        <tr>
+            <td>BATCH-M002</td>
+            <td>支払データ生成バッチ</td>
+            <td>月次の勤怠・工数データを基に支払データを生成</td>
+            <td>毎月1日 09:00</td>
+            <td>120分以内</td>
+            <td>BATCH-M001</td>
+            <td>なし</td>
+        </tr>
+        <tr>
+            <td>BATCH-M003</td>
+            <td>月次レポート生成バッチ</td>
+            <td>月次の業務指標レポートを生成</td>
+            <td>毎月1日 11:00</td>
+            <td>60分以内</td>
+            <td>BATCH-M001, BATCH-M002</td>
+            <td>なし</td>
+        </tr>
+        <tr>
+            <td>BATCH-M004</td>
+            <td>契約自動更新バッチ</td>
+            <td>自動更新フラグが立っている契約の更新処理</td>
+            <td>毎月25日 10:00</td>
+            <td>30分以内</td>
+            <td>なし</td>
+            <td>なし</td>
+        </tr>
+        <tr>
+            <td>BATCH-M005</td>
+            <td>月次データアーカイブバッチ</td>
+            <td>月次データのアーカイブと長期保存処理</td>
+            <td>毎月2日 01:00</td>
+            <td>120分以内</td>
+            <td>月次締め処理完了</td>
+            <td>なし</td>
+        </tr>
+    </table>
+
+    <h4>9.2.3 その他の定期バッチジョブ</h4>
+    <table>
+        <tr>
+            <th>ジョブID</th>
+            <th>ジョブ名</th>
+            <th>概要</th>
+            <th>実行時間</th>
+            <th>想定処理時間</th>
+        </tr>
+        <tr>
+            <td>BATCH-O001</td>
+            <td>技術者スキルデータ更新バッチ</td>
+            <td>定期的なスキルデータの更新とマッチングデータの再構築</td>
+            <td>毎週月曜 03:00</td>
+            <td>60分以内</td>
+        </tr>
+        <tr>
+            <td>BATCH-O002</td>
+            <td>案件マッチングデータ更新バッチ</td>
+            <td>案件データの更新とマッチングデータの再構築</td>
+            <td>毎週火曜 03:00</td>
+            <td>60分以内</td>
+        </tr>
+        <tr>
+            <td>BATCH-O003</td>
+            <td>四半期レポート生成バッチ</td>
+            <td>四半期ごとの業務分析レポートを生成</td>
+            <td>四半期末翌日 09:00</td>
+            <td>120分以内</td>
+        </tr>
+    </table>
+
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="08_バックアップ設計.html">前のセクション</a>
+            <a href="10_インターフェース設計.html">次のセクション</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>SES業務システム システム設計書</p>
+    </footer>
+</body>
+</html>

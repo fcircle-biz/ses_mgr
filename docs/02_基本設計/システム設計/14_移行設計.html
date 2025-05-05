@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>14. 移行設計 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+        }
+        h5 {
+            font-size: 16px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        pre, code {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            padding: 2px 4px;
+        }
+        pre {
+            padding: 10px;
+            overflow: auto;
+            line-height: 1.45;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .image-placeholder {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            background-color: #f9f9f9;
+            width: 80%;
+        }
+        .navigation {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navigation a {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background-color: white;
+        }
+        .todo {
+            color: #d81b60;
+            font-weight: bold;
+            background-color: #fce4ec;
+            padding: 10px;
+            border-left: 3px solid #d81b60;
+            margin: 10px 0;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="13_監視設計.html">前のセクション</a>
+            <a href="15_付録.html">次のセクション</a>
+        </div>
+    </div>
+
+    <h2 id="migration">14. 移行設計</h2>
+    <p class="todo">TODO: 移行設計の詳細を記述する。</p>
+
+    <h3>14.1 移行計画の概要</h3>
+    <p>SES業務システムの導入に際し、既存システムからの移行計画を以下に定義する。</p>
+
+    <h4>14.1.1 移行の基本方針</h4>
+    <ul>
+        <li><strong>段階的移行</strong>: 機能ごとに段階的に移行を実施</li>
+        <li><strong>並行運用期間の確保</strong>: 一定期間は新旧システムを並行運用</li>
+        <li><strong>データ整合性の確保</strong>: 移行時のデータ整合性を厳密に検証</li>
+        <li><strong>リスク最小化</strong>: 業務への影響が最小となる移行スケジュール</li>
+        <li><strong>ロールバック計画</strong>: 問題発生時の明確なロールバック手順の策定</li>
+    </ul>
+
+    <h3>14.2 移行対象</h3>
+    <p>以下の要素を移行対象とする：</p>
+
+    <table>
+        <tr>
+            <th>区分</th>
+            <th>移行対象</th>
+            <th>データ量</th>
+            <th>移行方式</th>
+            <th>移行順序</th>
+        </tr>
+        <tr>
+            <td>マスタデータ</td>
+            <td>技術者情報</td>
+            <td>約1,000件</td>
+            <td>バッチ移行</td>
+            <td>1</td>
+        </tr>
+        <tr>
+            <td>マスタデータ</td>
+            <td>案件情報</td>
+            <td>約500件</td>
+            <td>バッチ移行</td>
+            <td>2</td>
+        </tr>
+        <tr>
+            <td>マスタデータ</td>
+            <td>取引先情報</td>
+            <td>約300件</td>
+            <td>バッチ移行</td>
+            <td>3</td>
+        </tr>
+        <tr>
+            <td>トランザクションデータ</td>
+            <td>進行中の契約情報</td>
+            <td>約200件</td>
+            <td>バッチ移行</td>
+            <td>4</td>
+        </tr>
+        <tr>
+            <td>トランザクションデータ</td>
+            <td>請求情報（直近1年）</td>
+            <td>約2,400件</td>
+            <td>バッチ移行</td>
+            <td>5</td>
+        </tr>
+        <tr>
+            <td>トランザクションデータ</td>
+            <td>勤怠・工数情報（直近3ヶ月）</td>
+            <td>約9,000件</td>
+            <td>バッチ移行</td>
+            <td>6</td>
+        </tr>
+        <tr>
+            <td>参照データ</td>
+            <td>過去契約履歴（過去3年）</td>
+            <td>約1,500件</td>
+            <td>段階的移行</td>
+            <td>7</td>
+        </tr>
+        <tr>
+            <td>参照データ</td>
+            <td>請求履歴（過去3年）</td>
+            <td>約7,200件</td>
+            <td>段階的移行</td>
+            <td>8</td>
+        </tr>
+        <tr>
+            <td>参照データ</td>
+            <td>勤怠履歴（過去1年）</td>
+            <td>約36,000件</td>
+            <td>段階的移行</td>
+            <td>9</td>
+        </tr>
+        <tr>
+            <td>ファイル</td>
+            <td>契約書ファイル</td>
+            <td>約5GB</td>
+            <td>バッチ移行</td>
+            <td>10</td>
+        </tr>
+        <tr>
+            <td>ファイル</td>
+            <td>請求書ファイル</td>
+            <td>約10GB</td>
+            <td>バッチ移行</td>
+            <td>11</td>
+        </tr>
+        <tr>
+            <td>ファイル</td>
+            <td>スキルシート</td>
+            <td>約2GB</td>
+            <td>バッチ移行</td>
+            <td>12</td>
+        </tr>
+    </table>
+
+    <h3>14.3 移行プロセス</h3>
+    <p>データ移行の具体的なプロセスを以下に定義する：</p>
+
+    <h4>14.3.1 移行準備フェーズ</h4>
+    <ol>
+        <li><strong>データ分析</strong>: 既存データの構造、品質、量の分析</li>
+        <li><strong>データクレンジング</strong>: 既存データの整合性確認と修正</li>
+        <li><strong>移行ルール定義</strong>: データマッピングと変換ルールの定義</li>
+        <li><strong>移行ツール開発</strong>: ETLプロセスの構築とテスト</li>
+        <li><strong>テスト環境構築</strong>: 移行テスト環境の準備</li>
+    </ol>
+
+    <h4>14.3.2 テストフェーズ</h4>
+    <ol>
+        <li><strong>移行シミュレーション</strong>: テスト環境での移行リハーサル</li>
+        <li><strong>データ検証</strong>: 移行データの正確性と完全性の検証</li>
+        <li><strong>性能テスト</strong>: 大規模データでの移行処理性能の確認</li>
+        <li><strong>統合テスト</strong>: 移行後のシステム全体の動作検証</li>
+        <li><strong>ロールバックテスト</strong>: 復旧手順の検証</li>
+    </ol>
+
+    <h4>14.3.3 本番移行フェーズ</h4>
+    <ol>
+        <li><strong>移行前凍結</strong>: 移行対象データの更新凍結</li>
+        <li><strong>バックアップ</strong>: 既存システムとデータのバックアップ</li>
+        <li><strong>マスタデータ移行</strong>: マスタデータの移行と検証</li>
+        <li><strong>トランザクションデータ移行</strong>: 取引データの移行と検証</li>
+        <li><strong>ファイル移行</strong>: ドキュメントファイルの移行</li>
+        <li><strong>最終検証</strong>: 移行完了後の整合性チェック</li>
+        <li><strong>切替判定</strong>: 新システムへの切替可否判断</li>
+    </ol>
+
+    <h3>14.4 移行リスクと対策</h3>
+    <p>移行プロセスに伴うリスクと対策を以下に定義する：</p>
+
+    <table>
+        <tr>
+            <th>リスク</th>
+            <th>影響度</th>
+            <th>対策</th>
+        </tr>
+        <tr>
+            <td>データ欠損</td>
+            <td>高</td>
+            <td>
+                <ul>
+                    <li>移行前後のレコード数と重要項目の値の照合</li>
+                    <li>チェックサム検証による整合性確認</li>
+                    <li>サンプリング検証による内容確認</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>データ変換エラー</td>
+            <td>中</td>
+            <td>
+                <ul>
+                    <li>事前のデータクレンジングによる異常値の修正</li>
+                    <li>変換ルールの厳密なテスト</li>
+                    <li>例外処理の実装と例外データの手動確認</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>移行時間超過</td>
+            <td>中</td>
+            <td>
+                <ul>
+                    <li>事前の性能テストによる所要時間の検証</li>
+                    <li>大規模データの分割移行</li>
+                    <li>移行処理の並列化</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>業務中断</td>
+            <td>高</td>
+            <td>
+                <ul>
+                    <li>業務影響を最小化する移行スケジュールの策定</li>
+                    <li>重要業務機能の並行運用</li>
+                    <li>段階的な切替による影響範囲の限定</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>移行後のシステム不具合</td>
+            <td>高</td>
+            <td>
+                <ul>
+                    <li>移行後の徹底した動作検証</li>
+                    <li>ロールバック手順の整備</li>
+                    <li>初期運用期間の監視強化</li>
+                </ul>
+            </td>
+        </tr>
+    </table>
+
+    <h3>14.5 移行スケジュール</h3>
+    <p>移行の全体スケジュールを以下に示す：</p>
+
+    <table>
+        <tr>
+            <th>フェーズ</th>
+            <th>開始時期</th>
+            <th>終了時期</th>
+            <th>主な作業</th>
+        </tr>
+        <tr>
+            <td>準備フェーズ</td>
+            <td>T-3ヶ月</td>
+            <td>T-2ヶ月</td>
+            <td>データ分析、移行ルール・ツール設計、テスト環境構築</td>
+        </tr>
+        <tr>
+            <td>テストフェーズ</td>
+            <td>T-2ヶ月</td>
+            <td>T-2週間</td>
+            <td>移行シミュレーション、検証、性能テスト</td>
+        </tr>
+        <tr>
+            <td>リハーサル</td>
+            <td>T-2週間</td>
+            <td>T-1週間</td>
+            <td>本番環境での移行リハーサル、タイミング計測</td>
+        </tr>
+        <tr>
+            <td>マスタ移行</td>
+            <td>T-1週間</td>
+            <td>T-3日</td>
+            <td>マスタデータの先行移行と検証</td>
+        </tr>
+        <tr>
+            <td>本番移行</td>
+            <td>T日</td>
+            <td>T+2日</td>
+            <td>システム停止、データ移行、検証、切替</td>
+        </tr>
+        <tr>
+            <td>並行運用</td>
+            <td>T+3日</td>
+            <td>T+1ヶ月</td>
+            <td>新旧システム並行運用、データ同期、最終検証</td>
+        </tr>
+        <tr>
+            <td>完全切替</td>
+            <td>T+1ヶ月</td>
+            <td>-</td>
+            <td>旧システム停止、完全移行完了</td>
+        </tr>
+    </table>
+
+    <h3>14.6 移行体制</h3>
+    <p>移行作業の実施体制を以下に定義する：</p>
+
+    <table>
+        <tr>
+            <th>役割</th>
+            <th>人数</th>
+            <th>主な責任</th>
+        </tr>
+        <tr>
+            <td>移行プロジェクトマネージャ</td>
+            <td>1名</td>
+            <td>移行全体の計画・管理・判断</td>
+        </tr>
+        <tr>
+            <td>データ移行リーダー</td>
+            <td>1名</td>
+            <td>データ移行設計・実装・検証の統括</td>
+        </tr>
+        <tr>
+            <td>移行開発者</td>
+            <td>3名</td>
+            <td>移行プログラム開発、ETL処理実装</td>
+        </tr>
+        <tr>
+            <td>テスト担当者</td>
+            <td>2名</td>
+            <td>移行結果の検証、不具合対応</td>
+        </tr>
+        <tr>
+            <td>業務システム担当者</td>
+            <td>2名</td>
+            <td>業務観点でのデータ検証、運用支援</td>
+        </tr>
+        <tr>
+            <td>インフラ担当者</td>
+            <td>1名</td>
+            <td>移行環境の構築・運用</td>
+        </tr>
+        <tr>
+            <td>ユーザー代表</td>
+            <td>各部門1名</td>
+            <td>業務要件確認、受入判定</td>
+        </tr>
+    </table>
+
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="13_監視設計.html">前のセクション</a>
+            <a href="15_付録.html">次のセクション</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>SES業務システム システム設計書</p>
+    </footer>
+</body>
+</html>

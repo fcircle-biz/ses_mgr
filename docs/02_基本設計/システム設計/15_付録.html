@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>15. 付録 - SES業務システム</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: #2c3e50;
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+        }
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            margin-top: 1em;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            font-size: 24px;
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+        }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+        }
+        h5 {
+            font-size: 16px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        pre, code {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            padding: 2px 4px;
+        }
+        pre {
+            padding: 10px;
+            overflow: auto;
+            line-height: 1.45;
+        }
+        a {
+            color: #3498db;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+        }
+        .image-placeholder {
+            border: 2px dashed #ccc;
+            border-radius: 5px;
+            padding: 40px;
+            text-align: center;
+            color: #999;
+            background-color: #f9f9f9;
+            width: 80%;
+        }
+        .navigation {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navigation a {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background-color: white;
+        }
+        .todo {
+            color: #d81b60;
+            font-weight: bold;
+            background-color: #fce4ec;
+            padding: 10px;
+            border-left: 3px solid #d81b60;
+            margin: 10px 0;
+        }
+        footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            text-align: center;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="14_移行設計.html">前のセクション</a>
+        </div>
+    </div>
+
+    <h2 id="appendix">15. 付録</h2>
+    <p class="todo">TODO: 必要に応じて付録情報を追加する。</p>
+
+    <h3>15.1 用語集</h3>
+    <p>本書で使用されている主な専門用語の定義一覧</p>
+    
+    <table>
+        <tr>
+            <th>用語</th>
+            <th>定義</th>
+        </tr>
+        <tr>
+            <td>SES</td>
+            <td>System Engineer Service（システムエンジニアサービス）の略。顧客企業に対して技術者を派遣し、技術者の稼働時間に応じて料金を請求するビジネスモデル。</td>
+        </tr>
+        <tr>
+            <td>マッチング</td>
+            <td>案件の要件と技術者のスキルや条件を照合し、最適な組み合わせを見つけるプロセス。</td>
+        </tr>
+        <tr>
+            <td>アサイン</td>
+            <td>技術者を特定の案件に割り当てること。</td>
+        </tr>
+        <tr>
+            <td>稼働率</td>
+            <td>技術者が実際に案件に従事している時間の割合。通常は月間の営業日に対する実働日数の割合で表される。</td>
+        </tr>
+        <tr>
+            <td>スキルシート</td>
+            <td>技術者の経歴、技術スキル、資格、過去の業務経験などをまとめた文書。</td>
+        </tr>
+        <tr>
+            <td>工数</td>
+            <td>業務に費やした作業量。人日（人×日）や人月（人×月）などの単位で表される。</td>
+        </tr>
+        <tr>
+            <td>粗利</td>
+            <td>売上から外注費（技術者への支払い）を差し引いた金額。</td>
+        </tr>
+        <tr>
+            <td>請求レート</td>
+            <td>顧客に請求する技術者の単価。通常は時間単価、日単価、月単価などで設定される。</td>
+        </tr>
+        <tr>
+            <td>支払レート</td>
+            <td>技術者に支払う単価。請求レートとの差が粗利となる。</td>
+        </tr>
+        <tr>
+            <td>常駐</td>
+            <td>技術者が顧客先の事業所で業務を行うこと。</td>
+        </tr>
+    </table>
+
+    <h3>15.2 技術スタック一覧</h3>
+    <p>本システムで採用している主要技術の一覧</p>
+    
+    <table>
+        <tr>
+            <th>分類</th>
+            <th>技術・製品名</th>
+            <th>バージョン</th>
+            <th>用途</th>
+        </tr>
+        <tr>
+            <td rowspan="3">バックエンド</td>
+            <td>Java</td>
+            <td>17</td>
+            <td>サーバーサイド開発言語</td>
+        </tr>
+        <tr>
+            <td>Spring Boot</td>
+            <td>3.0</td>
+            <td>アプリケーションフレームワーク</td>
+        </tr>
+        <tr>
+            <td>Spring Cloud</td>
+            <td>2022.0</td>
+            <td>マイクロサービスフレームワーク</td>
+        </tr>
+        <tr>
+            <td rowspan="3">フロントエンド</td>
+            <td>TypeScript</td>
+            <td>4.9</td>
+            <td>フロントエンド開発言語</td>
+        </tr>
+        <tr>
+            <td>React</td>
+            <td>18.2</td>
+            <td>UIライブラリ</td>
+        </tr>
+        <tr>
+            <td>Material UI</td>
+            <td>5.11</td>
+            <td>UIコンポーネントライブラリ</td>
+        </tr>
+        <tr>
+            <td rowspan="2">データベース</td>
+            <td>PostgreSQL</td>
+            <td>15</td>
+            <td>リレーショナルデータベース</td>
+        </tr>
+        <tr>
+            <td>Redis</td>
+            <td>7.0</td>
+            <td>キャッシュ、セッション管理</td>
+        </tr>
+        <tr>
+            <td rowspan="2">メッセージング</td>
+            <td>Apache Kafka</td>
+            <td>3.3</td>
+            <td>イベントストリーミングプラットフォーム</td>
+        </tr>
+        <tr>
+            <td>Spring Cloud Stream</td>
+            <td>4.0</td>
+            <td>メッセージングアブストラクション</td>
+        </tr>
+        <tr>
+            <td rowspan="3">インフラストラクチャ</td>
+            <td>Docker</td>
+            <td>23.0</td>
+            <td>コンテナ化</td>
+        </tr>
+        <tr>
+            <td>Kubernetes</td>
+            <td>1.26</td>
+            <td>コンテナオーケストレーション</td>
+        </tr>
+        <tr>
+            <td>AWS</td>
+            <td>-</td>
+            <td>クラウドインフラストラクチャ</td>
+        </tr>
+        <tr>
+            <td rowspan="3">監視・運用</td>
+            <td>Prometheus</td>
+            <td>2.42</td>
+            <td>メトリクス収集</td>
+        </tr>
+        <tr>
+            <td>Grafana</td>
+            <td>9.3</td>
+            <td>可視化</td>
+        </tr>
+        <tr>
+            <td>Elasticsearch</td>
+            <td>8.6</td>
+            <td>ログ収集・分析</td>
+        </tr>
+    </table>
+
+    <h3>15.3 参考資料</h3>
+    <p>設計時に参照した主な資料一覧</p>
+    
+    <ol>
+        <li>SES業務システム要件定義書 v1.0</li>
+        <li>現行システム分析レポート</li>
+        <li>業務フロー図（マッチング・契約・請求）</li>
+        <li>クラウドネイティブアプリケーションアーキテクチャガイド</li>
+        <li>セキュリティ対策ガイドライン</li>
+        <li>マイクロサービスパターン実装ガイド</li>
+        <li>UI/UXデザインガイドライン</li>
+        <li>データモデル標準化ガイドライン</li>
+    </ol>
+
+    <h3>15.4 外部連携仕様</h3>
+    <p>外部システムとの連携インターフェース詳細仕様へのリンク</p>
+    
+    <ul>
+        <li><a href="#">会計システム連携仕様書</a></li>
+        <li><a href="#">勤怠管理システム連携仕様書</a></li>
+        <li><a href="#">電子契約サービス連携仕様書</a></li>
+        <li><a href="#">BI・レポーティングツール連携仕様書</a></li>
+    </ul>
+
+    <h3>15.5 環境情報</h3>
+    <p>システム環境情報の概要</p>
+    
+    <table>
+        <tr>
+            <th>環境区分</th>
+            <th>用途</th>
+            <th>ハードウェア</th>
+            <th>ソフトウェア</th>
+            <th>ネットワーク</th>
+        </tr>
+        <tr>
+            <td>開発環境</td>
+            <td>開発作業</td>
+            <td>AWS t3.medium x 4</td>
+            <td>標準技術スタック + 開発ツール</td>
+            <td>社内ネットワーク</td>
+        </tr>
+        <tr>
+            <td>テスト環境</td>
+            <td>各種テスト</td>
+            <td>AWS t3.large x 6</td>
+            <td>標準技術スタック</td>
+            <td>社内ネットワーク</td>
+        </tr>
+        <tr>
+            <td>ステージング環境</td>
+            <td>リリース前確認</td>
+            <td>AWS m5.xlarge x 6</td>
+            <td>標準技術スタック</td>
+            <td>社内ネットワーク + VPN</td>
+        </tr>
+        <tr>
+            <td>本番環境</td>
+            <td>本番運用</td>
+            <td>AWS m5.xlarge x 10</td>
+            <td>標準技術スタック</td>
+            <td>マルチAZ構成、専用VPC</td>
+        </tr>
+        <tr>
+            <td>DR環境</td>
+            <td>災害対策</td>
+            <td>AWS m5.xlarge x 10</td>
+            <td>標準技術スタック</td>
+            <td>異リージョン、DR-VPC</td>
+        </tr>
+    </table>
+
+    <div class="navigation">
+        <a href="index.html">目次へ戻る</a>
+        <div>
+            <a href="14_移行設計.html">前のセクション</a>
+        </div>
+    </div>
+
+    <footer>
+        <p>SES業務システム システム設計書</p>
+    </footer>
+</body>
+</html>
