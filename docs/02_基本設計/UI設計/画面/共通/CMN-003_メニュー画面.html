@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム メニュー（グローバルナビゲーション）</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -88,6 +90,12 @@
             color: #777;
             font-size: 14px;
         }
+        .note {
+            background-color: #fffde7;
+            border-left: 4px solid #ffd600;
+            padding: 12px;
+            margin: 15px 0;
+        }
         .breadcrumb {
             display: flex;
             flex-wrap: wrap;
@@ -115,19 +123,58 @@
             padding: 8px 12px;
             color: #6c757d;
         }
+        .tabs {
+            display: flex;
+            margin: 20px 0 0;
+            padding: 0;
+            list-style: none;
+            border-bottom: 1px solid #ddd;
+        }
+        .tabs li {
+            margin-right: 5px;
+        }
+        .tabs a {
+            display: block;
+            padding: 8px 15px;
+            text-decoration: none;
+            background-color: #f8f9fa;
+            color: #495057;
+            border: 1px solid #ddd;
+            border-bottom: none;
+            border-radius: 4px 4px 0 0;
+        }
+        .tabs a.active {
+            background-color: #fff;
+            border-bottom: 1px solid #fff;
+            margin-bottom: -1px;
+            font-weight: bold;
+            color: #3498db;
+        }
+        .tab-content {
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-top: none;
+            background-color: #fff;
+        }
+        .tab-pane {
+            display: none;
+        }
+        .tab-pane.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
     <nav>
         <ul class="breadcrumb">
             <li><a href="../../共通画面設計.html">共通画面設計</a></li>
-            <li class="active">メニュー（グローバルナビゲーション）</li>
+            <li class="active">メニュー画面</li>
         </ul>
     </nav>
 
     <h1>CMN-003: メニュー（グローバルナビゲーション）</h1>
     
-    <h3>画面概要</h3>
+    <h2>画面概要</h2>
     <table>
         <tr>
             <th>項目</th>
@@ -149,16 +196,89 @@
             <td>対象ユーザー</td>
             <td>全ユーザー</td>
         </tr>
+        <tr>
+            <td>前画面</td>
+            <td>ログイン画面</td>
+        </tr>
+        <tr>
+            <td>次画面</td>
+            <td>各機能画面への遷移</td>
+        </tr>
     </table>
 
-    <h3>コンポーネント仕様</h3>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [グローバルナビゲーションのワイヤーフレーム]
-        </div>
+    <h2>画面レイアウト</h2>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="menu-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
 
-    <h3>メニュー構成</h3>
+    <h2>画面構成要素</h2>
+    <h3>1. ヘッダー部分</h3>
+    <table>
+        <tr>
+            <th>コンポーネント</th>
+            <th>説明</th>
+            <th>機能・振る舞い</th>
+        </tr>
+        <tr>
+            <td>システムロゴ</td>
+            <td>左上に表示されるシステム名</td>
+            <td>クリックするとダッシュボードに戻る</td>
+        </tr>
+        <tr>
+            <td>ハンバーガーアイコン</td>
+            <td>モバイル表示時のメニュー開閉ボタン</td>
+            <td>クリックでメニュー表示/非表示を切り替え</td>
+        </tr>
+        <tr>
+            <td>通知アイコン</td>
+            <td>未読通知を示すアイコンとバッジ</td>
+            <td>クリックで通知一覧をドロップダウン表示</td>
+        </tr>
+        <tr>
+            <td>ユーザー情報</td>
+            <td>ユーザーアイコンと名前</td>
+            <td>クリックでユーザーメニューをドロップダウン表示</td>
+        </tr>
+    </table>
+
+    <h3>2. サイドメニュー部分</h3>
+    <table>
+        <tr>
+            <th>コンポーネント</th>
+            <th>説明</th>
+            <th>機能・振る舞い</th>
+        </tr>
+        <tr>
+            <td>トップレベルメニュー</td>
+            <td>主要機能へのリンク</td>
+            <td>
+                <ul>
+                    <li>展開可能なメニューの場合、クリックで展開/折りたたみ</li>
+                    <li>現在のページに対応するメニューがハイライト表示</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>サブメニュー</td>
+            <td>トップレベルメニュー配下の機能へのリンク</td>
+            <td>
+                <ul>
+                    <li>親メニュー展開時に表示</li>
+                    <li>クリックで対応する機能画面へ遷移</li>
+                </ul>
+            </td>
+        </tr>
+        <tr>
+            <td>メニューアイコン</td>
+            <td>各メニュー項目の左側に表示されるアイコン</td>
+            <td>機能カテゴリを視覚的に識別するためのアイコン</td>
+        </tr>
+    </table>
+
+    <h2>画面動作仕様</h2>
+    <h3>1. メニュー構成</h3>
     <table>
         <tr>
             <th>メインメニュー</th>
@@ -284,16 +404,82 @@
         </tr>
     </table>
 
-    <h3>レスポンシブ対応</h3>
-    <ul>
-        <li>デスクトップ表示: 左側固定の垂直ナビゲーション</li>
-        <li>タブレット表示: 折りたたみ可能な垂直ナビゲーション</li>
-        <li>モバイル表示: ハンバーガーメニュー方式に切替</li>
-    </ul>
+    <h3>2. レスポンシブ対応</h3>
+    <table>
+        <tr>
+            <th>画面サイズ</th>
+            <th>表示形式</th>
+            <th>動作</th>
+        </tr>
+        <tr>
+            <td>デスクトップ（992px以上）</td>
+            <td>左側固定の垂直ナビゲーション</td>
+            <td>常に表示、幅280px</td>
+        </tr>
+        <tr>
+            <td>タブレット（768px～991px）</td>
+            <td>折りたたみ可能な垂直ナビゲーション</td>
+            <td>初期状態では非表示、ハンバーガーメニューで表示切替</td>
+        </tr>
+        <tr>
+            <td>モバイル（767px以下）</td>
+            <td>オーバーレイ方式のドロワーメニュー</td>
+            <td>画面上に重なる形で表示、背景タップで閉じる</td>
+        </tr>
+    </table>
+
+    <h3>3. ユーザーインタラクション</h3>
+    <table>
+        <tr>
+            <th>操作</th>
+            <th>振る舞い</th>
+        </tr>
+        <tr>
+            <td>メインメニュークリック</td>
+            <td>サブメニューの展開/折りたたみ</td>
+        </tr>
+        <tr>
+            <td>サブメニュークリック</td>
+            <td>対応する機能画面へ遷移</td>
+        </tr>
+        <tr>
+            <td>ハンバーガーアイコンクリック</td>
+            <td>モバイル表示時にメニューを表示/非表示</td>
+        </tr>
+        <tr>
+            <td>メニュー外クリック</td>
+            <td>モバイル表示時にメニューを閉じる</td>
+        </tr>
+    </table>
+
+    <div class="note">
+        <p><strong>注意：</strong> メニューの表示項目はユーザーの権限（ロール）によって動的に制御されます。ユーザーは自分がアクセス権を持つ機能のみがメニューに表示されます。権限のない機能へのアクセスを試みた場合は、権限エラーページにリダイレクトされます。メニューの状態（展開/折りたたみ）はローカルストレージに保存され、次回アクセス時に復元されます。</p>
+    </div>
 
     <div class="footer">
         <p>作成日: 2025年5月5日<br>
         バージョン: 1.0</p>
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('menu-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '600px',
+                mockups: [
+                    {
+                        name: 'メニュー',
+                        path: 'mockups/CMN-003.html',
+                        description: 'SES業務システムのグローバルナビゲーションメニューのモックアップです。各機能へのアクセスを提供し、ユーザー権限に応じた表示制御を行います。'
+                    }
+                ]
+            });
+        });
+    </script>
 </body>
 </html>
