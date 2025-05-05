@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム - 請求書作成</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* カスタムスタイル */
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 1rem;
+        }
+        .required-label::after {
+            content: "*";
+            color: #dc3545;
+            margin-left: 4px;
+        }
+        .table-fixed {
+            table-layout: fixed;
+        }
+        .invoice-item {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .invoice-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .amount-text {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+        .invoice-summary {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        .form-buttons {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #dee2e6;
+        }
+        .drag-indicator {
+            cursor: move;
+            color: #adb5bd;
+        }
+        .btn-icon {
+            padding: 0.25rem 0.5rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            請求・支払管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">請求一覧</a></li>
+                            <li><a class="dropdown-item active" href="#">請求書作成</a></li>
+                            <li><a class="dropdown-item" href="#">入金管理</a></li>
+                            <li><a class="dropdown-item" href="#">支払一覧</a></li>
+                            <li><a class="dropdown-item" href="#">支払登録</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">KT</div>
+                            <span>経理 太郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">請求・支払管理</a></li>
+                <li class="breadcrumb-item"><a href="#">請求一覧</a></li>
+                <li class="breadcrumb-item active" aria-current="page">請求書作成</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">請求書作成</h2>
+            <div>
+                <a href="#" class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-x-lg me-1"></i>キャンセル
+                </a>
+            </div>
+        </div>
+
+        <form>
+            <div class="row">
+                <!-- メインフォームエリア -->
+                <div class="col-lg-8">
+                    <!-- 請求基本情報 -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">請求基本情報</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="invoice-number" class="form-label text-muted">請求番号</label>
+                                    <input type="text" class="form-control" id="invoice-number" value="INV-2025-0012" readonly>
+                                    <small class="text-muted">※自動採番されます</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="customer" class="form-label required-label">顧客</label>
+                                    <select class="form-select" id="customer" required>
+                                        <option value="" selected disabled>選択してください</option>
+                                        <option>株式会社テクノソリューション</option>
+                                        <option>ABCシステムズ株式会社</option>
+                                        <option>NTSデジタル株式会社</option>
+                                        <option>グローバルITソリューションズ</option>
+                                        <option>株式会社フューチャーテック</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="project" class="form-label">案件</label>
+                                    <select class="form-select" id="project">
+                                        <option value="" selected disabled>選択してください</option>
+                                        <option>ECサイト開発プロジェクト</option>
+                                        <option>業務システム保守</option>
+                                        <option>AI分析システム開発</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="contract" class="form-label">契約</label>
+                                    <select class="form-select" id="contract">
+                                        <option value="" selected disabled>選択してください</option>
+                                        <option>CNT-2025-0001: Javaエンジニア派遣契約</option>
+                                        <option>CNT-2025-0003: PMO支援契約</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="invoice-year" class="form-label required-label">請求年</label>
+                                    <input type="number" class="form-control" id="invoice-year" value="2025" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="invoice-month" class="form-label required-label">請求月</label>
+                                    <select class="form-select" id="invoice-month" required>
+                                        <option>1</option>
+                                        <option>2</option>
+                                        <option>3</option>
+                                        <option>4</option>
+                                        <option selected>5</option>
+                                        <option>6</option>
+                                        <option>7</option>
+                                        <option>8</option>
+                                        <option>9</option>
+                                        <option>10</option>
+                                        <option>11</option>
+                                        <option>12</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="invoice-date" class="form-label required-label">請求日</label>
+                                    <input type="date" class="form-control" id="invoice-date" value="2025-05-01" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="due-date" class="form-label required-label">支払期限日</label>
+                                    <input type="date" class="form-control" id="due-date" value="2025-05-31" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="tax-rate" class="form-label required-label">消費税率</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="tax-rate" value="10" required>
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="payment-method" class="form-label required-label">支払方法</label>
+                                    <select class="form-select" id="payment-method" required>
+                                        <option>振込</option>
+                                        <option>自動引落</option>
+                                        <option>現金</option>
+                                        <option>小切手</option>
+                                        <option>その他</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 請求先情報 -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">請求先情報</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label for="billing-name" class="form-label required-label">請求先名称</label>
+                                    <input type="text" class="form-control" id="billing-name" value="" placeholder="例：株式会社テクノソリューション" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="billing-department" class="form-label">請求先部署</label>
+                                    <input type="text" class="form-control" id="billing-department" placeholder="例：情報システム部">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="billing-person" class="form-label">請求先担当者</label>
+                                    <input type="text" class="form-control" id="billing-person" placeholder="例：山田 太郎">
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="billing-zip" class="form-label required-label">郵便番号</label>
+                                    <input type="text" class="form-control" id="billing-zip" placeholder="例：123-4567" required>
+                                </div>
+                                <div class="col-md-8">
+                                    <label for="billing-address" class="form-label required-label">住所</label>
+                                    <textarea class="form-control" id="billing-address" rows="2" placeholder="例：東京都千代田区丸の内1-1-1" required></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="billing-tel" class="form-label">電話番号</label>
+                                    <input type="tel" class="form-control" id="billing-tel" placeholder="例：03-1234-5678">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 振込先情報 -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">振込先情報</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label for="bank-account" class="form-label required-label">銀行口座</label>
+                                    <select class="form-select" id="bank-account" required>
+                                        <option value="" selected disabled>選択してください</option>
+                                        <option>みずほ銀行 丸の内支店 普通 1234567 カ）ジョウホウシステム</option>
+                                        <option>三菱UFJ銀行 新宿支店 当座 7654321 カ）ジョウホウシステム</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="bank-name" class="form-label">銀行名</label>
+                                    <input type="text" class="form-control" id="bank-name" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="bank-branch" class="form-label">支店名</label>
+                                    <input type="text" class="form-control" id="bank-branch" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="account-type" class="form-label">口座種別</label>
+                                    <input type="text" class="form-control" id="account-type" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="account-number" class="form-label">口座番号</label>
+                                    <input type="text" class="form-control" id="account-number" readonly>
+                                </div>
+                                <div class="col-md-4">
+                                    <label for="account-name" class="form-label">口座名義</label>
+                                    <input type="text" class="form-control" id="account-name" readonly>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 請求明細 -->
+                    <div class="card mb-4">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">請求明細</h5>
+                            <div>
+                                <button type="button" class="btn btn-outline-primary btn-sm">
+                                    <i class="bi bi-cloud-download me-1"></i>工数データインポート
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="invoice-items-container">
+                                <!-- 明細項目 1 -->
+                                <div class="invoice-item p-3 bg-light rounded">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <span class="drag-indicator me-2"><i class="bi bi-grip-vertical"></i></span>
+                                            <strong>明細 #1</strong>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-danger btn-icon">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label for="item-type-1" class="form-label required-label">項目タイプ</label>
+                                            <select class="form-select" id="item-type-1" required>
+                                                <option selected>人月</option>
+                                                <option>固定</option>
+                                                <option>従量</option>
+                                                <option>諸経費</option>
+                                                <option>その他</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <label for="item-name-1" class="form-label required-label">項目名</label>
+                                            <input type="text" class="form-control" id="item-name-1" value="Javaエンジニア" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="quantity-1" class="form-label required-label">数量</label>
+                                            <input type="number" class="form-control" id="quantity-1" value="1.0" step="0.1" min="0" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="unit-price-1" class="form-label required-label">単価</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">¥</span>
+                                                <input type="number" class="form-control" id="unit-price-1" value="650000" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="amount-1" class="form-label">金額</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">¥</span>
+                                                <input type="text" class="form-control bg-light" id="amount-1" value="650,000" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-check mt-4">
+                                                <input class="form-check-input" type="checkbox" id="taxable-1" checked>
+                                                <label class="form-check-label" for="taxable-1">
+                                                    課税対象
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="engineer-1" class="form-label">技術者</label>
+                                            <select class="form-select" id="engineer-1">
+                                                <option selected>鈴木 花子</option>
+                                                <option>佐藤 次郎</option>
+                                                <option>高橋 三郎</option>
+                                                <option>田中 四郎</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="description-1" class="form-label">説明</label>
+                                            <input type="text" class="form-control" id="description-1" value="2025年5月分">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 明細項目 2 -->
+                                <div class="invoice-item p-3 bg-light rounded mt-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="d-flex align-items-center">
+                                            <span class="drag-indicator me-2"><i class="bi bi-grip-vertical"></i></span>
+                                            <strong>明細 #2</strong>
+                                        </div>
+                                        <button type="button" class="btn btn-sm btn-outline-danger btn-icon">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-md-4">
+                                            <label for="item-type-2" class="form-label required-label">項目タイプ</label>
+                                            <select class="form-select" id="item-type-2" required>
+                                                <option>人月</option>
+                                                <option>固定</option>
+                                                <option selected>諸経費</option>
+                                                <option>従量</option>
+                                                <option>その他</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <label for="item-name-2" class="form-label required-label">項目名</label>
+                                            <input type="text" class="form-control" id="item-name-2" value="交通費" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="quantity-2" class="form-label required-label">数量</label>
+                                            <input type="number" class="form-control" id="quantity-2" value="1" step="0.1" min="0" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label for="unit-price-2" class="form-label required-label">単価</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">¥</span>
+                                                <input type="number" class="form-control" id="unit-price-2" value="10000" required>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="amount-2" class="form-label">金額</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">¥</span>
+                                                <input type="text" class="form-control bg-light" id="amount-2" value="10,000" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="form-check mt-4">
+                                                <input class="form-check-input" type="checkbox" id="taxable-2" checked>
+                                                <label class="form-check-label" for="taxable-2">
+                                                    課税対象
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="engineer-2" class="form-label">技術者</label>
+                                            <select class="form-select" id="engineer-2">
+                                                <option>鈴木 花子</option>
+                                                <option>佐藤 次郎</option>
+                                                <option>高橋 三郎</option>
+                                                <option>田中 四郎</option>
+                                                <option selected>該当なし</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="description-2" class="form-label">説明</label>
+                                            <input type="text" class="form-control" id="description-2" value="2025年5月分 実費精算">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- 明細追加ボタン -->
+                                <div class="text-center mt-3">
+                                    <button type="button" class="btn btn-outline-secondary">
+                                        <i class="bi bi-plus-lg me-1"></i>明細を追加
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- その他情報 -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">その他情報</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row g-3">
+                                <div class="col-md-12">
+                                    <label for="remarks" class="form-label">備考</label>
+                                    <textarea class="form-control" id="remarks" rows="3" placeholder="請求書に印刷される備考欄です"></textarea>
+                                </div>
+                                <div class="col-md-12">
+                                    <label for="internal-memo" class="form-label">社内メモ</label>
+                                    <textarea class="form-control" id="internal-memo" rows="3" placeholder="請求書には印刷されない内部メモです"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 操作ボタン -->
+                    <div class="form-buttons d-flex justify-content-between">
+                        <div>
+                            <a href="#" class="btn btn-link text-secondary">
+                                <i class="bi bi-arrow-left me-1"></i>請求一覧に戻る
+                            </a>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-outline-secondary me-2">
+                                <i class="bi bi-file-earmark me-1"></i>下書き保存
+                            </button>
+                            <button type="button" class="btn btn-outline-primary me-2">
+                                <i class="bi bi-eye me-1"></i>プレビュー
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check-lg me-1"></i>保存
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 合計金額サイドバー -->
+                <div class="col-lg-4">
+                    <div class="card sticky-top" style="top: 80px;">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">請求金額</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="invoice-summary">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-muted">税抜合計：</span>
+                                    <span class="fw-bold amount-text">¥660,000</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="text-muted">消費税（10%）：</span>
+                                    <span class="fw-bold amount-text">¥66,000</span>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="fs-5">合計金額：</span>
+                                    <span class="fs-5 fw-bold amount-text">¥726,000</span>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info mt-4">
+                                <h6 class="alert-heading"><i class="bi bi-info-circle me-1"></i>ヒント</h6>
+                                <hr>
+                                <p class="small mb-0">
+                                    <strong>「工数データインポート」</strong>ボタンをクリックすると、選択した案件の工数データを自動で請求明細として取り込むことができます。
+                                </p>
+                            </div>
+                            
+                            <div class="alert alert-warning mt-3">
+                                <h6 class="alert-heading"><i class="bi bi-exclamation-triangle me-1"></i>注意</h6>
+                                <hr>
+                                <ul class="small mb-0">
+                                    <li>請求書は作成後も修正可能です</li>
+                                    <li>承認済の請求書を修正すると再承認が必要です</li>
+                                    <li>顧客を変更すると関連項目も変更されます</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    
+    <!-- カスタムJavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // 顧客選択イベント
+            const customerSelect = document.getElementById('customer');
+            customerSelect.addEventListener('change', function() {
+                const selectedCustomer = this.value;
+                // 実際のアプリケーションでは、顧客情報をAPIから取得
+                console.log(`顧客「${selectedCustomer}」が選択されました`);
+                
+                // 請求先情報のフィールドを顧客情報で自動入力
+                if (selectedCustomer) {
+                    document.getElementById('billing-name').value = selectedCustomer;
+                    
+                    // サンプルデータ（実際はAPIから取得）
+                    if (selectedCustomer === '株式会社テクノソリューション') {
+                        document.getElementById('billing-department').value = 'IT戦略部';
+                        document.getElementById('billing-person').value = '山田 太郎';
+                        document.getElementById('billing-zip').value = '100-0001';
+                        document.getElementById('billing-address').value = '東京都千代田区丸の内1-1-1';
+                        document.getElementById('billing-tel').value = '03-1234-5678';
+                    }
+                }
+                
+                // 案件選択肢を更新
+                updateProjectOptions(selectedCustomer);
+            });
+            
+            // 案件選択イベント
+            const projectSelect = document.getElementById('project');
+            projectSelect.addEventListener('change', function() {
+                const selectedProject = this.value;
+                // 実際のアプリケーションでは、案件情報をAPIから取得
+                console.log(`案件「${selectedProject}」が選択されました`);
+                
+                // 契約選択肢を更新
+                updateContractOptions(selectedProject);
+            });
+            
+            // 銀行口座選択イベント
+            const bankAccountSelect = document.getElementById('bank-account');
+            bankAccountSelect.addEventListener('change', function() {
+                const selectedBankAccount = this.value;
+                
+                // 選択された銀行口座情報の表示
+                if (selectedBankAccount) {
+                    // 口座情報をパース（実際はAPIから取得）
+                    const [bank, branch, type, number, name] = selectedBankAccount.split(' ');
+                    
+                    document.getElementById('bank-name').value = bank;
+                    document.getElementById('bank-branch').value = branch;
+                    document.getElementById('account-type').value = type;
+                    document.getElementById('account-number').value = number;
+                    document.getElementById('account-name').value = name;
+                } else {
+                    // 選択がクリアされた場合
+                    document.getElementById('bank-name').value = '';
+                    document.getElementById('bank-branch').value = '';
+                    document.getElementById('account-type').value = '';
+                    document.getElementById('account-number').value = '';
+                    document.getElementById('account-name').value = '';
+                }
+            });
+            
+            // 請求日と支払期限日の連動
+            const invoiceDateInput = document.getElementById('invoice-date');
+            invoiceDateInput.addEventListener('change', function() {
+                // 請求日から30日後を支払期限日として設定
+                const invoiceDate = new Date(this.value);
+                if (!isNaN(invoiceDate.getTime())) {
+                    const dueDate = new Date(invoiceDate);
+                    dueDate.setDate(dueDate.getDate() + 30);
+                    
+                    // YYYY-MM-DD形式に変換
+                    const dueDateStr = dueDate.toISOString().split('T')[0];
+                    document.getElementById('due-date').value = dueDateStr;
+                }
+            });
+            
+            // 数量・単価変更時の金額計算
+            document.querySelectorAll('[id^="quantity-"], [id^="unit-price-"]').forEach(input => {
+                input.addEventListener('change', function() {
+                    const id = this.id.split('-')[1];
+                    calculateAmount(id);
+                });
+            });
+            
+            // 金額計算関数
+            function calculateAmount(id) {
+                const quantity = parseFloat(document.getElementById(`quantity-${id}`).value) || 0;
+                const unitPrice = parseFloat(document.getElementById(`unit-price-${id}`).value) || 0;
+                const amount = quantity * unitPrice;
+                
+                // 金額フィールドに表示（3桁区切り）
+                document.getElementById(`amount-${id}`).value = amount.toLocaleString();
+                
+                // 総計の更新
+                updateTotals();
+            }
+            
+            // 合計金額の更新
+            function updateTotals() {
+                let subtotal = 0;
+                
+                // すべての明細項目の金額を集計
+                document.querySelectorAll('[id^="amount-"]').forEach(input => {
+                    // カンマを除去して数値に変換
+                    const amount = parseFloat(input.value.replace(/,/g, '')) || 0;
+                    subtotal += amount;
+                });
+                
+                // 税率を取得
+                const taxRate = parseFloat(document.getElementById('tax-rate').value) || 0;
+                
+                // 消費税額の計算
+                const taxAmount = subtotal * (taxRate / 100);
+                
+                // 合計金額の計算
+                const total = subtotal + taxAmount;
+                
+                // 金額サマリーの更新
+                const summaryItems = document.querySelector('.invoice-summary').children;
+                summaryItems[0].querySelector('.amount-text').textContent = `¥${subtotal.toLocaleString()}`;
+                summaryItems[1].querySelector('.amount-text').textContent = `¥${taxAmount.toLocaleString()}`;
+                summaryItems[3].querySelector('.amount-text').textContent = `¥${total.toLocaleString()}`;
+            }
+            
+            // 明細追加ボタンのイベント
+            const addItemButton = document.querySelector('.btn-outline-secondary');
+            addItemButton.addEventListener('click', function() {
+                console.log('明細を追加します');
+                // 実際のアプリケーションでは、新しい明細行を動的に追加
+                alert('新しい明細項目が追加されます（デモでは実装省略）');
+            });
+            
+            // 工数データインポートボタンのイベント
+            const importButton = document.querySelector('.btn-outline-primary.btn-sm');
+            importButton.addEventListener('click', function() {
+                const project = document.getElementById('project').value;
+                if (!project) {
+                    alert('工数データをインポートするには、先に案件を選択してください。');
+                    return;
+                }
+                
+                console.log(`${project}の工数データをインポートします`);
+                // 実際のアプリケーションでは、選択された案件・期間の工数データをAPIから取得
+                alert('工数データがインポートされます（デモでは実装省略）');
+            });
+            
+            // プレビューボタンのイベント
+            const previewButton = document.querySelector('.btn-outline-primary:not(.btn-sm)');
+            previewButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('請求書をプレビューします');
+                // 実際のアプリケーションでは、プレビュー画面に遷移
+                alert('請求書プレビュー画面に遷移します（デモでは実装省略）');
+            });
+            
+            // 保存ボタンのイベント
+            const saveButton = document.querySelector('.btn-primary:not(.btn-sm)');
+            saveButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log('請求書を保存します');
+                
+                // フォームバリデーション（実際はもっと詳細に）
+                const requiredFields = document.querySelectorAll('[required]');
+                let isValid = true;
+                
+                requiredFields.forEach(field => {
+                    if (!field.value) {
+                        isValid = false;
+                        field.classList.add('is-invalid');
+                    } else {
+                        field.classList.remove('is-invalid');
+                    }
+                });
+                
+                if (isValid) {
+                    // 実際のアプリケーションでは、APIを呼び出して保存
+                    alert('請求書が正常に保存されました（デモでは実装省略）');
+                } else {
+                    alert('必須項目を入力してください。');
+                }
+            });
+            
+            // サンプル用の補助関数
+            function updateProjectOptions(customer) {
+                // 実際のアプリケーションでは、APIから顧客に紐づく案件を取得
+                console.log(`${customer}に紐づく案件を取得します`);
+            }
+            
+            function updateContractOptions(project) {
+                // 実際のアプリケーションでは、APIから案件に紐づく契約を取得
+                console.log(`${project}に紐づく契約を取得します`);
+            }
+        });
+    </script>
+</body>
+</html>

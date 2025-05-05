@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム - 請求書詳細</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* カスタムスタイル */
+        .invoice-header {
+            background-color: #fff;
+            border-radius: 0.25rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            border: 1px solid #dee2e6;
+        }
+        .invoice-id {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        .invoice-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .invoice-meta-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .invoice-meta-label {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+        .invoice-meta-value {
+            font-weight: 600;
+        }
+        .invoice-status {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        .status-badge {
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            font-size: 0.875rem;
+            display: inline-block;
+        }
+        .status-draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-approved {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .status-billed {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .status-discarded {
+            background-color: #6c757d;
+            color: #fff;
+        }
+        .payment-status {
+            padding: 0.35rem 0.75rem;
+            border-radius: 1rem;
+            font-weight: 600;
+            font-size: 0.75rem;
+            display: inline-block;
+        }
+        .payment-unpaid {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .payment-partial {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .payment-paid {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .payment-overdue {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .payment-short {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .payment-excess {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .amount-text {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+        .nav-pills .nav-link {
+            color: #495057;
+            background-color: transparent;
+            font-weight: 500;
+        }
+        .nav-pills .nav-link.active {
+            color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.1);
+            font-weight: 600;
+        }
+        .tab-content {
+            background-color: #fff;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            padding: 1.5rem;
+        }
+        .invoice-summary {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #dee2e6;
+        }
+        .info-group {
+            margin-bottom: 1.5rem;
+        }
+        .info-label {
+            font-size: 0.875rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+        .info-value {
+            font-size: 1rem;
+        }
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 0.5rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background-color: #dee2e6;
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 1.5rem;
+        }
+        .timeline-item:last-child {
+            padding-bottom: 0;
+        }
+        .timeline-icon {
+            position: absolute;
+            left: -2rem;
+            top: 0;
+            width: 1rem;
+            height: 1rem;
+            border-radius: 50%;
+            background-color: #fff;
+            border: 2px solid #6c757d;
+            z-index: 1;
+        }
+        .timeline-content {
+            background-color: #f8f9fa;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            border: 1px solid #dee2e6;
+        }
+        .timeline-date {
+            font-size: 0.75rem;
+            color: #6c757d;
+            margin-bottom: 0.25rem;
+        }
+        .timeline-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        .timeline-text {
+            font-size: 0.875rem;
+        }
+        .attachment {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border: 1px solid #dee2e6;
+            border-radius: 0.25rem;
+            margin-bottom: 0.5rem;
+        }
+        .attachment-icon {
+            font-size: 1.5rem;
+            margin-right: 0.75rem;
+            color: #6c757d;
+        }
+        .attachment-info {
+            flex-grow: 1;
+        }
+        .attachment-name {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        .attachment-meta {
+            display: flex;
+            font-size: 0.75rem;
+            color: #6c757d;
+        }
+        .attachment-meta > * + * {
+            margin-left: 0.75rem;
+        }
+        .horizontal-divider {
+            margin: 1.5rem 0;
+            border-top: 1px solid #dee2e6;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            請求・支払管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">請求一覧</a></li>
+                            <li><a class="dropdown-item" href="#">請求書作成</a></li>
+                            <li><a class="dropdown-item active" href="#">請求書詳細</a></li>
+                            <li><a class="dropdown-item" href="#">入金管理</a></li>
+                            <li><a class="dropdown-item" href="#">支払一覧</a></li>
+                            <li><a class="dropdown-item" href="#">支払登録</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">KT</div>
+                            <span>経理 太郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">請求・支払管理</a></li>
+                <li class="breadcrumb-item"><a href="#">請求一覧</a></li>
+                <li class="breadcrumb-item active" aria-current="page">請求書詳細</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">請求書詳細</h2>
+            <div>
+                <a href="#" class="btn btn-outline-secondary me-1">
+                    <i class="bi bi-arrow-left me-1"></i>一覧に戻る
+                </a>
+            </div>
+        </div>
+
+        <!-- 請求書ヘッダー -->
+        <div class="invoice-header">
+            <div class="invoice-id">請求番号: INV-2025-0001</div>
+            <div class="invoice-meta">
+                <div class="invoice-meta-item">
+                    <div class="invoice-meta-label">顧客</div>
+                    <div class="invoice-meta-value">株式会社テクノソリューション</div>
+                </div>
+                <div class="invoice-meta-item">
+                    <div class="invoice-meta-label">案件</div>
+                    <div class="invoice-meta-value">ECサイト開発プロジェクト</div>
+                </div>
+                <div class="invoice-meta-item">
+                    <div class="invoice-meta-label">請求年月</div>
+                    <div class="invoice-meta-value">2025年5月</div>
+                </div>
+                <div class="invoice-meta-item">
+                    <div class="invoice-meta-label">請求日</div>
+                    <div class="invoice-meta-value">2025/05/01</div>
+                </div>
+                <div class="invoice-meta-item">
+                    <div class="invoice-meta-label">支払期限日</div>
+                    <div class="invoice-meta-value">2025/05/31</div>
+                </div>
+                <div class="invoice-meta-item">
+                    <div class="invoice-meta-label">合計金額</div>
+                    <div class="invoice-meta-value">¥990,000</div>
+                </div>
+            </div>
+            <div class="d-flex mt-2">
+                <span class="status-badge status-billed me-2">請求済</span>
+                <span class="payment-status payment-unpaid">未入金</span>
+            </div>
+        </div>
+
+        <!-- 操作ボタン -->
+        <div class="d-flex mb-4">
+            <button class="btn btn-primary me-2">
+                <i class="bi bi-pencil me-1"></i>編集
+            </button>
+            <button class="btn btn-outline-primary me-2">
+                <i class="bi bi-eye me-1"></i>プレビュー
+            </button>
+            <button class="btn btn-outline-secondary me-2">
+                <i class="bi bi-printer me-1"></i>印刷
+            </button>
+            <button class="btn btn-outline-secondary me-2">
+                <i class="bi bi-file-earmark-pdf me-1"></i>PDFダウンロード
+            </button>
+            <button class="btn btn-outline-secondary me-2">
+                <i class="bi bi-cash me-1"></i>入金登録
+            </button>
+            <button class="btn btn-outline-secondary me-2">
+                <i class="bi bi-envelope me-1"></i>メール送信
+            </button>
+            <div class="dropdown">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="statusDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="bi bi-arrow-repeat me-1"></i>ステータス変更
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="statusDropdown">
+                    <li><a class="dropdown-item" href="#">作成中</a></li>
+                    <li><a class="dropdown-item" href="#">確認中</a></li>
+                    <li><a class="dropdown-item" href="#">承認済</a></li>
+                    <li><a class="dropdown-item" href="#">請求済</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#">キャンセル</a></li>
+                    <li><a class="dropdown-item text-danger" href="#">破棄</a></li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- タブナビゲーション -->
+        <ul class="nav nav-pills mb-3" id="invoiceTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="basic-tab" data-bs-toggle="tab" data-bs-target="#basic" type="button" role="tab" aria-controls="basic" aria-selected="true">
+                    <i class="bi bi-info-circle me-1"></i>基本情報
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="items-tab" data-bs-toggle="tab" data-bs-target="#items" type="button" role="tab" aria-controls="items" aria-selected="false">
+                    <i class="bi bi-list-ul me-1"></i>請求明細
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="payment-tab" data-bs-toggle="tab" data-bs-target="#payment" type="button" role="tab" aria-controls="payment" aria-selected="false">
+                    <i class="bi bi-cash-coin me-1"></i>入金情報
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">
+                    <i class="bi bi-clock-history me-1"></i>履歴・コメント
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="files-tab" data-bs-toggle="tab" data-bs-target="#files" type="button" role="tab" aria-controls="files" aria-selected="false">
+                    <i class="bi bi-file-earmark me-1"></i>添付書類
+                </button>
+            </li>
+        </ul>
+
+        <!-- タブコンテンツ -->
+        <div class="tab-content" id="invoiceTabContent">
+            <!-- 基本情報タブ -->
+            <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5 class="mb-3">請求基本情報</h5>
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <div class="info-label">顧客</div>
+                                    <div class="info-value">株式会社テクノソリューション</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <div class="info-label">案件</div>
+                                    <div class="info-value">ECサイト開発プロジェクト</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <div class="info-label">契約</div>
+                                    <div class="info-value">CNT-2025-0001: Javaエンジニア派遣契約</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <div class="info-label">請求年月</div>
+                                    <div class="info-value">2025年5月</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <div class="info-label">請求日</div>
+                                    <div class="info-value">2025/05/01</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <div class="info-label">支払期限日</div>
+                                    <div class="info-value">2025/05/31</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <div class="info-label">消費税率</div>
+                                    <div class="info-value">10%</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <div class="info-label">支払方法</div>
+                                    <div class="info-value">振込</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h5 class="mt-4 mb-3">振込先情報</h5>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <div class="info-group">
+                                    <div class="info-label">銀行口座</div>
+                                    <div class="info-value">みずほ銀行 丸の内支店 普通 1234567 カ）ジョウホウシステム</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <h5 class="mb-3">請求先情報</h5>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <div class="info-group">
+                                    <div class="info-label">請求先名称</div>
+                                    <div class="info-value">株式会社テクノソリューション</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <div class="info-label">請求先部署</div>
+                                    <div class="info-value">IT戦略部</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <div class="info-label">請求先担当者</div>
+                                    <div class="info-value">山田 太郎</div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="info-group">
+                                    <div class="info-label">請求先住所</div>
+                                    <div class="info-value">〒100-0001<br>東京都千代田区丸の内1-1-1</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="info-group">
+                                    <div class="info-label">請求先電話番号</div>
+                                    <div class="info-value">03-1234-5678</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h5 class="mt-4 mb-3">その他情報</h5>
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <div class="info-group">
+                                    <div class="info-label">備考</div>
+                                    <div class="info-value">
+                                        支払期限日までに上記口座にお振込みください。<br>
+                                        振込手数料は貴社負担でお願いいたします。
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="info-group">
+                                    <div class="info-label">社内メモ <span class="badge bg-secondary">社内のみ表示</span></div>
+                                    <div class="info-value">
+                                        契約更新の提案を準備中。次回の訪問時に話し合う予定。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 請求明細タブ -->
+            <div class="tab-pane fade" id="items" role="tabpanel" aria-labelledby="items-tab">
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%">項目タイプ</th>
+                                <th style="width: 30%">項目名</th>
+                                <th style="width: 10%">数量</th>
+                                <th style="width: 15%">単価</th>
+                                <th style="width: 15%">金額</th>
+                                <th style="width: 10%">課税対象</th>
+                                <th style="width: 5%">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>人月</td>
+                                <td>Javaエンジニア<br><small class="text-muted">技術者: 鈴木 花子</small></td>
+                                <td>1.0</td>
+                                <td class="amount-text">¥900,000</td>
+                                <td class="amount-text">¥900,000</td>
+                                <td><i class="bi bi-check-lg text-success"></i></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>諸経費</td>
+                                <td>交通費<br><small class="text-muted">2025年5月分 実費精算</small></td>
+                                <td>1</td>
+                                <td class="amount-text">¥10,000</td>
+                                <td class="amount-text">¥10,000</td>
+                                <td><i class="bi bi-check-lg text-success"></i></td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                        <i class="bi bi-three-dots"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="row justify-content-end">
+                    <div class="col-md-4">
+                        <div class="invoice-summary">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-muted">税抜合計：</span>
+                                <span class="fw-bold amount-text">¥910,000</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-muted">消費税（10%）：</span>
+                                <span class="fw-bold amount-text">¥91,000</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="fs-5">合計金額：</span>
+                                <span class="fs-5 fw-bold amount-text">¥1,001,000</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 入金情報タブ -->
+            <div class="tab-pane fade" id="payment" role="tabpanel" aria-labelledby="payment-tab">
+                <div class="invoice-summary mb-4">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="info-group">
+                                <div class="info-label">請求金額</div>
+                                <div class="info-value fw-bold">¥1,001,000</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-group">
+                                <div class="info-label">入金済金額</div>
+                                <div class="info-value fw-bold">¥0</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-group">
+                                <div class="info-label">未入金金額</div>
+                                <div class="info-value fw-bold">¥1,001,000</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-group">
+                                <div class="info-label">入金ステータス</div>
+                                <div class="info-value">
+                                    <span class="payment-status payment-unpaid">未入金</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">入金履歴</h5>
+                    <button class="btn btn-primary btn-sm">
+                        <i class="bi bi-plus-lg me-1"></i>入金登録
+                    </button>
+                </div>
+                
+                <div class="bg-light p-5 text-center rounded">
+                    <i class="bi bi-cash-coin fs-1 text-muted mb-3 d-block"></i>
+                    <p class="text-muted mb-0">まだ入金履歴がありません。</p>
+                </div>
+            </div>
+
+            <!-- 履歴・コメントタブ -->
+            <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+                <ul class="nav nav-tabs mb-3" id="historyTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="history-changes-tab" data-bs-toggle="tab" data-bs-target="#history-changes" type="button" role="tab" aria-controls="history-changes" aria-selected="true">変更履歴</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="history-comments-tab" data-bs-toggle="tab" data-bs-target="#history-comments" type="button" role="tab" aria-controls="history-comments" aria-selected="false">コメント</button>
+                    </li>
+                </ul>
+                
+                <div class="tab-content" id="historyTabContent">
+                    <!-- 変更履歴 -->
+                    <div class="tab-pane fade show active" id="history-changes" role="tabpanel" aria-labelledby="history-changes-tab">
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-icon"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-date">2025/05/05 10:14</div>
+                                    <div class="timeline-title">ステータス変更</div>
+                                    <div class="timeline-text">
+                                        ステータスを「承認済」から「請求済」に変更しました。
+                                    </div>
+                                    <div class="text-muted mt-1">
+                                        <small>変更者: 経理 太郎</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-icon"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-date">2025/05/03 14:30</div>
+                                    <div class="timeline-title">ステータス変更</div>
+                                    <div class="timeline-text">
+                                        ステータスを「確認中」から「承認済」に変更しました。
+                                    </div>
+                                    <div class="text-muted mt-1">
+                                        <small>変更者: 管理 次郎</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-icon"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-date">2025/05/02 16:45</div>
+                                    <div class="timeline-title">請求明細変更</div>
+                                    <div class="timeline-text">
+                                        明細「Javaエンジニア」の単価を「850,000円」から「900,000円」に変更しました。
+                                    </div>
+                                    <div class="text-muted mt-1">
+                                        <small>変更者: 経理 太郎</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-icon"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-date">2025/05/01 09:21</div>
+                                    <div class="timeline-title">請求書作成</div>
+                                    <div class="timeline-text">
+                                        請求書を作成しました。ステータス: 作成中
+                                    </div>
+                                    <div class="text-muted mt-1">
+                                        <small>作成者: 経理 太郎</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- コメント -->
+                    <div class="tab-pane fade" id="history-comments" role="tabpanel" aria-labelledby="history-comments-tab">
+                        <div class="timeline">
+                            <div class="timeline-item">
+                                <div class="timeline-icon"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-date">2025/05/03 14:32</div>
+                                    <div class="timeline-title">管理 次郎</div>
+                                    <div class="timeline-text">
+                                        値上げ分の単価を確認し、承認しました。顧客には事前に説明済みです。
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-icon"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-date">2025/05/02 16:47</div>
+                                    <div class="timeline-title">経理 太郎</div>
+                                    <div class="timeline-text">
+                                        4月に合意した単価改定を適用しました。承認をお願いします。
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="horizontal-divider"></div>
+                        
+                        <form>
+                            <div class="mb-3">
+                                <label for="comment" class="form-label">新規コメント</label>
+                                <textarea class="form-control" id="comment" rows="3" placeholder="コメントを入力してください"></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">投稿</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 添付書類タブ -->
+            <div class="tab-pane fade" id="files" role="tabpanel" aria-labelledby="files-tab">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="mb-0">添付書類</h5>
+                    <div>
+                        <button class="btn btn-primary btn-sm">
+                            <i class="bi bi-upload me-1"></i>ファイルを追加
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="attachment">
+                    <div class="attachment-icon">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                    </div>
+                    <div class="attachment-info">
+                        <div class="attachment-name">請求書_INV-2025-0001.pdf</div>
+                        <div class="attachment-meta">
+                            <span>PDF文書</span>
+                            <span>248KB</span>
+                            <span>アップロード: 2025/05/05</span>
+                            <span>経理 太郎</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary me-1" title="ダウンロード">
+                            <i class="bi bi-download"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" title="削除">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="attachment">
+                    <div class="attachment-icon">
+                        <i class="bi bi-file-earmark-spreadsheet"></i>
+                    </div>
+                    <div class="attachment-info">
+                        <div class="attachment-name">工数明細_2025年5月.xlsx</div>
+                        <div class="attachment-meta">
+                            <span>Excel文書</span>
+                            <span>125KB</span>
+                            <span>アップロード: 2025/05/01</span>
+                            <span>経理 太郎</span>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-sm btn-outline-primary me-1" title="ダウンロード">
+                            <i class="bi bi-download"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" title="削除">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    
+    <!-- カスタムJavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // タブ切り替え
+            const triggerTabList = [].slice.call(document.querySelectorAll('#invoiceTab .nav-link'));
+            triggerTabList.forEach(function(triggerEl) {
+                const tabTrigger = new bootstrap.Tab(triggerEl);
+                triggerEl.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    tabTrigger.show();
+                });
+            });
+            
+            // 操作ボタンイベント
+            const actionButtons = document.querySelectorAll('.btn-primary, .btn-outline-primary, .btn-outline-secondary');
+            actionButtons.forEach(function(button) {
+                button.addEventListener('click', function(event) {
+                    const buttonText = this.textContent.trim();
+                    
+                    if (buttonText.includes('編集')) {
+                        console.log('編集モードに切り替えます');
+                        // 実際のアプリケーションでは、フィールドを編集可能に切り替える
+                        alert('編集モードに切り替えます（デモでは実装省略）');
+                    } else if (buttonText.includes('プレビュー')) {
+                        console.log('請求書をプレビューします');
+                        // 実際のアプリケーションでは、プレビュー画面に遷移
+                        alert('請求書プレビュー画面に遷移します（デモでは実装省略）');
+                    } else if (buttonText.includes('印刷')) {
+                        console.log('請求書を印刷します');
+                        // 実際のアプリケーションでは、印刷ダイアログを表示
+                        alert('印刷ダイアログを表示します（デモでは実装省略）');
+                    } else if (buttonText.includes('PDFダウンロード')) {
+                        console.log('請求書をPDFでダウンロードします');
+                        // 実際のアプリケーションでは、PDFファイルをダウンロード
+                        alert('PDFファイルをダウンロードします（デモでは実装省略）');
+                    } else if (buttonText.includes('入金登録')) {
+                        console.log('入金情報を登録します');
+                        // 実際のアプリケーションでは、入金登録モーダルを表示
+                        alert('入金登録モーダルを表示します（デモでは実装省略）');
+                    } else if (buttonText.includes('メール送信')) {
+                        console.log('請求書をメールで送信します');
+                        // 実際のアプリケーションでは、メール送信モーダルを表示
+                        alert('メール送信モーダルを表示します（デモでは実装省略）');
+                    } else if (buttonText.includes('ファイルを追加')) {
+                        console.log('ファイルをアップロードします');
+                        // 実際のアプリケーションでは、ファイル選択ダイアログを表示
+                        alert('ファイル選択ダイアログを表示します（デモでは実装省略）');
+                    } else if (buttonText.includes('投稿')) {
+                        const commentText = document.getElementById('comment').value;
+                        if (commentText.trim() === '') {
+                            alert('コメントを入力してください。');
+                            return;
+                        }
+                        console.log(`新規コメント: ${commentText}`);
+                        // 実際のアプリケーションでは、コメントを保存してリストに追加
+                        alert('コメントが投稿されました（デモでは実装省略）');
+                        document.getElementById('comment').value = '';
+                    }
+                });
+            });
+            
+            // ステータス変更ドロップダウンのイベント
+            const statusDropdownItems = document.querySelectorAll('#statusDropdown + .dropdown-menu .dropdown-item');
+            statusDropdownItems.forEach(function(item) {
+                item.addEventListener('click', function(event) {
+                    const newStatus = this.textContent.trim();
+                    console.log(`ステータスを「${newStatus}」に変更します`);
+                    // 実際のアプリケーションでは、ステータス変更の確認ダイアログを表示し、APIを呼び出して変更
+                    alert(`ステータスを「${newStatus}」に変更します（デモでは実装省略）`);
+                });
+            });
+            
+            // 添付ファイル操作ボタンのイベント
+            const attachmentButtons = document.querySelectorAll('.attachment button');
+            attachmentButtons.forEach(function(button) {
+                button.addEventListener('click', function(event) {
+                    const action = this.getAttribute('title');
+                    const fileName = this.closest('.attachment').querySelector('.attachment-name').textContent;
+                    
+                    if (action === 'ダウンロード') {
+                        console.log(`${fileName}をダウンロードします`);
+                        // 実際のアプリケーションでは、ファイルダウンロード処理
+                        alert(`${fileName}をダウンロードします（デモでは実装省略）`);
+                    } else if (action === '削除') {
+                        console.log(`${fileName}を削除します`);
+                        // 実際のアプリケーションでは、削除確認ダイアログを表示
+                        const confirmed = confirm(`${fileName}を削除してもよろしいですか？`);
+                        if (confirmed) {
+                            // 削除処理
+                            alert(`${fileName}を削除しました（デモでは実装省略）`);
+                        }
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

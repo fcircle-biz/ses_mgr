@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム 請求書作成画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -166,11 +168,32 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [請求書作成画面のワイヤーフレーム]
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="invoice-create-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('invoice-create-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '800px',
+                mockups: [
+                    {
+                        name: '請求書作成',
+                        path: 'mockups/BIL-002.html',
+                        description: '新規請求書情報を作成する画面です。請求基本情報、請求先情報、振込先情報、請求明細情報が入力できます。顧客を選択すると、その顧客に紐づく案件と契約が選択可能になり、請求先情報が自動入力されます。明細項目は自由に追加・削除可能で、数量や単価を入力すると金額が自動計算されます。工数データインポート機能により、選択された案件・期間の工数データを明細として自動取り込みすることも可能です。入力内容のプレビュー表示や下書き保存機能も備えています。'
+                    }
+                ]
+            });
+        });
+    </script>
 
     <h2>画面構成要素</h2>
     <h3>1. 請求基本情報セクション</h3>

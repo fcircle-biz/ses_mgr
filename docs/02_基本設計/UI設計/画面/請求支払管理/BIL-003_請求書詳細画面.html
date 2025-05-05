@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SES業務システム 請求書詳細画面</title>
+    <!-- モックアップビューワー用のCSS -->
+    <link rel="stylesheet" href="../../css/mockup-viewer.css">
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -221,11 +223,32 @@
     </table>
 
     <h2>画面レイアウト</h2>
-    <div class="wireframe">
-        <div class="wireframe-placeholder">
-            [請求書詳細画面のワイヤーフレーム]
-        </div>
+    
+    <!-- モックアップビューワーのコンテナ -->
+    <div id="invoice-detail-mockup" class="mockup-viewer-container">
+        <!-- モックアップビューワーがここに表示されます -->
     </div>
+    
+    <!-- モックアップビューワーのJavaScript -->
+    <script src="../../js/mockup-viewer.js"></script>
+    <script>
+        // ページ読み込み後にモックアップビューワーを初期化
+        document.addEventListener('DOMContentLoaded', function() {
+            // モックアップの設定
+            new MockupViewer('invoice-detail-mockup', {
+                responsive: true,
+                showControls: true,
+                defaultHeight: '800px',
+                mockups: [
+                    {
+                        name: '請求書詳細',
+                        path: 'mockups/BIL-003.html',
+                        description: '請求書の詳細情報を表示する画面です。画面上部のヘッダーには請求書の基本情報が表示され、請求ステータスと入金ステータスが一目で分かるようにバッジで表示されています。タブ形式のインターフェースにより、基本情報・請求明細・入金情報・履歴コメント・添付書類といった情報にアクセスしやすくなっています。操作ボタンからは編集・プレビュー・印刷・入金登録・メール送信などの主要機能に素早くアクセスでき、ステータス変更ドロップダウンで請求書のステータスを変更することもできます。タブ内容は切り替え可能で、基本情報タブでは請求先情報や振込先情報を確認でき、請求明細タブでは請求項目の詳細と合計金額を表示します。入金情報タブでは入金状況と履歴を確認でき、履歴・コメントタブでは変更履歴やコメントを記録・確認できます。添付書類タブではファイルのアップロードやダウンロードが可能です。'
+                    }
+                ]
+            });
+        });
+    </script>
 
     <h2>画面構成要素</h2>
     <h3>1. ヘッダー情報部分</h3>
