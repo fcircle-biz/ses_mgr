@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   app:
     build: .
@@ -11,7 +9,7 @@ services:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/ses_mgr
       - SPRING_DATASOURCE_USERNAME=postgres
       - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=validate
     volumes:
       - ./:/app
       - ~/.m2:/root/.m2
@@ -26,6 +24,23 @@ services:
       - POSTGRES_PASSWORD=postgres
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./db/00_init.sql:/docker-entrypoint-initdb.d/00_init.sql
+      - ./db/01_organization.sql:/docker-entrypoint-initdb.d/01_organization.sql
+      - ./db/02_company.sql:/docker-entrypoint-initdb.d/02_company.sql
+      - ./db/03_engineer.sql:/docker-entrypoint-initdb.d/03_engineer.sql
+      - ./db/04_project.sql:/docker-entrypoint-initdb.d/04_project.sql
+      - ./db/05_matching.sql:/docker-entrypoint-initdb.d/05_matching.sql
+      - ./db/06_attendance.sql:/docker-entrypoint-initdb.d/06_attendance.sql
+      - ./db/07_reporting.sql:/docker-entrypoint-initdb.d/07_reporting.sql
+      - ./db/08_notification.sql:/docker-entrypoint-initdb.d/08_notification.sql
+      - ./db/09_utility.sql:/docker-entrypoint-initdb.d/09_utility.sql
+      - ./db/90_create_foreign_keys.sql:/docker-entrypoint-initdb.d/90_create_foreign_keys.sql
+      - ./db/10_test_data_common.sql:/docker-entrypoint-initdb.d/10_test_data_common.sql
+      - ./db/11_test_data_company_engineer.sql:/docker-entrypoint-initdb.d/11_test_data_company_engineer.sql
+      - ./db/12_test_data_project.sql:/docker-entrypoint-initdb.d/12_test_data_project.sql
+      - ./db/13_test_data_matching.sql:/docker-entrypoint-initdb.d/13_test_data_matching.sql
+      - ./db/14_test_data_attendance.sql:/docker-entrypoint-initdb.d/14_test_data_attendance.sql
+      - ./db/15_test_data_reporting.sql:/docker-entrypoint-initdb.d/15_test_data_reporting.sql
 
 volumes:
   postgres_data:
