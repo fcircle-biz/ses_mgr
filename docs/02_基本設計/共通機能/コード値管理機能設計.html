@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム コード値管理機能 基本設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム コード値管理機能 基本設計書</h1>
+
+    <h2>1. はじめに</h2>
+    <p>本書は、SES業務システムにおけるコード値管理機能の基本設計を定義したものである。
+    システム全体で使用されるマスタデータ（コード値）の管理方法および実装方針について記述する。</p>
+
+    <h2>2. 機能概要</h2>
+    <p>コード値管理機能は、SES業務システムにおける各種コード値（マスタデータ）を一元管理するための共通機能である。
+    職種、スキル、案件種別、契約種別など、様々なカテゴリのコード値を提供し、システム全体での一貫性を確保する。
+    コード値は主に参照される用途で使用され、更新はシステム管理機能を通じて行われる。</p>
+
+    <h2>3. コード値管理機能設計</h2>
+
+    <h3>3.1 コード値の基本構造</h3>
+    <p>コード値は以下の階層構造で管理される：</p>
+    <ol>
+        <li><strong>カテゴリ（Category）</strong>: コード値のグループ（例：職種、スキル、契約種別）</li>
+        <li><strong>コード（Code）</strong>: カテゴリ内での一意のコード値（例：職種カテゴリ内の「SE」「PG」「PM」など）</li>
+        <li><strong>名称（Name）</strong>: コードの表示名称</li>
+        <li><strong>追加情報（Attributes）</strong>: コードに関連する追加的な属性情報（オプション）</li>
+    </ol>
+
+    <p>一部のコード値カテゴリでは、以下のような親子関係を持つ階層構造を採用する：</p>
+    <pre><code>// 階層構造の例（スキルカテゴリ）
+Programming Language（親）
+  |- Java
+  |- Python
+  |- JavaScript
+     |- TypeScript
+     |- React
+     |- Vue.js
+  |- C#
+  |- PHP
+
+// 階層構造の例（勤務地カテゴリ）
+Japan（親）
+  |- Tokyo
+     |- Chiyoda
+     |- Minato
+     |- Shibuya
+  |- Osaka
+  |- Nagoya
+  |- Fukuoka</code></pre>
+
+    <h3>3.2 主要コード値カテゴリ</h3>
+    <p>システムで使用される主要なコード値カテゴリは以下の通り：</p>
+    <table>
+        <tr>
+            <th>カテゴリID</th>
+            <th>名称</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>job_type</td>
+            <td>職種</td>
+            <td>技術者の職種区分（PM, SE, PG など）</td>
+        </tr>
+        <tr>
+            <td>skill</td>
+            <td>スキル</td>
+            <td>技術スキル一覧（Java, Python, AWS など）</td>
+        </tr>
+        <tr>
+            <td>skill_level</td>
+            <td>スキルレベル</td>
+            <td>スキルの習熟度（beginner, intermediate, advanced, expert）</td>
+        </tr>
+        <tr>
+            <td>project_type</td>
+            <td>プロジェクト種別</td>
+            <td>案件の種類（新規開発, 保守, コンサルティング など）</td>
+        </tr>
+        <tr>
+            <td>industry</td>
+            <td>業界</td>
+            <td>クライアントの業界（金融, 製造, 小売 など）</td>
+        </tr>
+        <tr>
+            <td>contract_type</td>
+            <td>契約種別</td>
+            <td>契約形態（準委任, 請負, 派遣 など）</td>
+        </tr>
+        <tr>
+            <td>billing_unit</td>
+            <td>請求単位</td>
+            <td>請求の単位（月額, 人月, 時間 など）</td>
+        </tr>
+        <tr>
+            <td>work_location</td>
+            <td>勤務地</td>
+            <td>勤務場所（リモート, オンサイト, ハイブリッド）</td>
+        </tr>
+        <tr>
+            <td>work_status</td>
+            <td>稼働状況</td>
+            <td>技術者の稼働状態（稼働中, 待機中, 研修中 など）</td>
+        </tr>
+        <tr>
+            <td>project_status</td>
+            <td>案件ステータス</td>
+            <td>案件の状態（募集中, 提案中, 成約, 終了 など）</td>
+        </tr>
+        <tr>
+            <td>invoice_status</td>
+            <td>請求書ステータス</td>
+            <td>請求書の処理状態（作成中, 承認待ち, 発行済み, 入金済み など）</td>
+        </tr>
+        <tr>
+            <td>payment_status</td>
+            <td>支払ステータス</td>
+            <td>支払いの処理状態（未払い, 処理中, 支払済み など）</td>
+        </tr>
+    </table>
+
+    <h3>3.3 マスタデータ分類</h3>
+    <p>マスタデータは、その用途に基づいて以下のように分類される：</p>
+
+    <h4>3.3.1 組織系マスタ</h4>
+    <ul>
+        <li>部門マスタ：会社の組織構造</li>
+        <li>役職マスタ：社内の役職</li>
+        <li>雇用形態マスタ：正社員、契約社員、派遣社員など</li>
+        <li>取引先分類マスタ：顧客、パートナー、仕入先など</li>
+    </ul>
+
+    <h4>3.3.2 業務系マスタ</h4>
+    <ul>
+        <li>スキル分類マスタ：スキルの大分類（言語、DB、フレームワークなど）</li>
+        <li>スキル詳細マスタ：具体的なスキル項目</li>
+        <li>案件ステータスマスタ：案件の状態（募集中、契約中、完了など）</li>
+        <li>案件種別マスタ：SES、受託開発、コンサルなど</li>
+        <li>稼働形態マスタ：常駐、リモート、ハイブリッドなど</li>
+        <li>契約種別マスタ：準委任、請負など</li>
+        <li>請求サイクルマスタ：月次、週次、完了時など</li>
+        <li>単価種別マスタ：時給、日給、月給など</li>
+    </ul>
+
+    <h4>3.3.3 システム系マスタ</h4>
+    <ul>
+        <li>システム設定マスタ：システム全体の設定値</li>
+        <li>通知テンプレートマスタ：メール通知などのテンプレート</li>
+        <li>帳票テンプレートマスタ：各種帳票のテンプレート</li>
+        <li>エラーコードマスタ：システムエラーコードと説明</li>
+    </ul>
+
+    <h3>3.4 コード値の属性</h3>
+    <p>基本的なコード値は以下の属性を持つ：</p>
+    <table>
+        <tr>
+            <th>属性</th>
+            <th>型</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>code</td>
+            <td>String</td>
+            <td>コード値（一意識別子）</td>
+        </tr>
+        <tr>
+            <td>name</td>
+            <td>String</td>
+            <td>表示名称</td>
+        </tr>
+        <tr>
+            <td>description</td>
+            <td>String</td>
+            <td>説明文</td>
+        </tr>
+        <tr>
+            <td>sortOrder</td>
+            <td>Integer</td>
+            <td>表示順序</td>
+        </tr>
+        <tr>
+            <td>isActive</td>
+            <td>Boolean</td>
+            <td>有効/無効フラグ</td>
+        </tr>
+        <tr>
+            <td>attributes</td>
+            <td>JSON</td>
+            <td>追加属性（コード値種別ごとに異なる）</td>
+        </tr>
+        <tr>
+            <td>parentCode</td>
+            <td>String</td>
+            <td>親コード（階層構造の場合）</td>
+        </tr>
+        <tr>
+            <td>createdAt</td>
+            <td>DateTime</td>
+            <td>作成日時</td>
+        </tr>
+        <tr>
+            <td>updatedAt</td>
+            <td>DateTime</td>
+            <td>更新日時</td>
+        </tr>
+    </table>
+
+    <p>カテゴリごとに固有の追加属性を持つことができる。例えば：</p>
+
+    <p><strong>職種（job_type）の追加属性例</strong>:</p>
+    <pre><code>{
+  "abbreviation": "PM",
+  "skillLevel": "senior",
+  "gradeRange": "G4-G6",
+  "typicalYearsExperience": "5-10"
+}</code></pre>
+
+    <p><strong>スキル（skill）の追加属性例</strong>:</p>
+    <pre><code>{
+  "category": "programming",
+  "popularity": "high",
+  "learningResources": ["https://example.com/learn-java", "https://example.com/java-tutorial"]
+}</code></pre>
+
+    <h2>4. 機能設計</h2>
+
+    <h3>4.1 コード値参照機能</h3>
+    <p>コード値参照機能は、システム全体でコード値を一貫して参照するためのAPI群を提供する。</p>
+
+    <h4>4.1.1 コード値カテゴリ一覧取得</h4>
+    <ul>
+        <li><strong>機能</strong>: システムで利用可能なコード値カテゴリの一覧を取得する</li>
+        <li><strong>入力</strong>: なし</li>
+        <li><strong>出力</strong>: カテゴリ一覧（ID、名前、説明、コード値件数）</li>
+        <li><strong>処理フロー</strong>:
+            <ol>
+                <li>利用可能なすべてのカテゴリ情報を取得</li>
+                <li>カテゴリごとのコード値件数を計算</li>
+                <li>結果を返却</li>
+            </ol>
+        </li>
+    </ul>
+
+    <h4>4.1.2 特定カテゴリのコード値一覧取得</h4>
+    <ul>
+        <li><strong>機能</strong>: 指定されたカテゴリに属するコード値の一覧を取得する</li>
+        <li><strong>入力</strong>: カテゴリID、検索条件（キーワード、親コード、有効フラグ）</li>
+        <li><strong>出力</strong>: コード値一覧（コード、名称、ソート順、有効フラグ、追加属性）</li>
+        <li><strong>処理フロー</strong>:
+            <ol>
+                <li>カテゴリの存在確認</li>
+                <li>指定された条件に合致するコード値を検索</li>
+                <li>ソート順に並べ替え</li>
+                <li>結果を返却</li>
+            </ol>
+        </li>
+    </ul>
+
+    <h4>4.1.3 特定コード値の詳細取得</h4>
+    <ul>
+        <li><strong>機能</strong>: 指定されたカテゴリとコードの組み合わせによる詳細情報を取得する</li>
+        <li><strong>入力</strong>: カテゴリID、コード値</li>
+        <li><strong>出力</strong>: コード値詳細（コード、名称、説明、ソート順、有効フラグ、追加属性、親コード、子コード、作成日時、更新日時）</li>
+        <li><strong>処理フロー</strong>:
+            <ol>
+                <li>カテゴリとコードの組み合わせの存在確認</li>
+                <li>詳細情報の取得</li>
+                <li>階層構造の場合は親コードと子コードの情報も取得</li>
+                <li>結果を返却</li>
+            </ol>
+        </li>
+    </ul>
+
+    <h3>4.2 コード値管理機能</h3>
+    <p>コード値管理機能は、システム管理者がコード値を管理するための機能を提供する。</p>
+
+    <h4>4.2.1 コード値登録機能</h4>
+    <ul>
+        <li><strong>機能</strong>: 新しいコード値を登録する</li>
+        <li><strong>入力</strong>: カテゴリID、コード、名称、説明、ソート順、有効フラグ、追加属性、親コード</li>
+        <li><strong>出力</strong>: 登録結果（成功/失敗）</li>
+        <li><strong>処理フロー</strong>:
+            <ol>
+                <li>入力値のバリデーション</li>
+                <li>コードの重複チェック</li>
+                <li>コード値の登録</li>
+                <li>結果を返却</li>
+            </ol>
+        </li>
+    </ul>
+
+    <h4>4.2.2 コード値更新機能</h4>
+    <ul>
+        <li><strong>機能</strong>: 既存のコード値を更新する</li>
+        <li><strong>入力</strong>: カテゴリID、コード、更新情報（名称、説明、ソート順、有効フラグ、追加属性）</li>
+        <li><strong>出力</strong>: 更新結果（成功/失敗）</li>
+        <li><strong>処理フロー</strong>:
+            <ol>
+                <li>コード値の存在確認</li>
+                <li>入力値のバリデーション</li>
+                <li>コード値の更新</li>
+                <li>結果を返却</li>
+            </ol>
+        </li>
+    </ul>
+
+    <h4>4.2.3 コード値削除/無効化機能</h4>
+    <ul>
+        <li><strong>機能</strong>: コード値を削除または無効化する</li>
+        <li><strong>入力</strong>: カテゴリID、コード</li>
+        <li><strong>出力</strong>: 削除/無効化結果（成功/失敗）</li>
+        <li><strong>処理フロー</strong>:
+            <ol>
+                <li>コード値の存在確認</li>
+                <li>関連データの参照チェック</li>
+                <li>参照がある場合は無効化、なければ削除</li>
+                <li>結果を返却</li>
+            </ol>
+        </li>
+    </ul>
+
+    <h4>4.2.4 一括インポート/エクスポート機能</h4>
+    <ul>
+        <li><strong>機能</strong>: コード値を一括でインポート/エクスポートする</li>
+        <li><strong>入力</strong>: カテゴリID、CSVファイル（インポート時）、インポートモード（追加/更新/全置換）</li>
+        <li><strong>出力</strong>: インポート/エクスポート結果</li>
+        <li><strong>処理フロー</strong>:
+            <ol>
+                <li>CSVファイルの形式チェック</li>
+                <li>指定されたモードでのインポート処理またはエクスポート処理</li>
+                <li>処理結果サマリーの生成</li>
+                <li>結果を返却</li>
+            </ol>
+        </li>
+    </ul>
+
+    <h2>5. API設計</h2>
+
+    <h3>5.1 コード値参照API</h3>
+
+    <h4>5.1.1 コード値カテゴリ一覧取得API</h4>
+    <p><strong>エンドポイント</strong>: <code>GET /api/v1/common/codes</code></p>
+    <p><strong>レスポンス例</strong>:</p>
+    <pre><code>{
+  "data": [
+    {
+      "id": "job_type",
+      "name": "職種",
+      "description": "技術者の職種区分",
+      "count": 15
+    },
+    {
+      "id": "skill",
+      "name": "スキル",
+      "description": "技術スキル一覧",
+      "count": 120
+    }
+  ]
+}</code></pre>
+
+    <h4>5.1.2 特定カテゴリのコード値一覧取得API</h4>
+    <p><strong>エンドポイント</strong>: <code>GET /api/v1/common/codes/{category}</code></p>
+    <p><strong>クエリパラメータ</strong>:</p>
+    <ul>
+        <li><code>keyword</code>: 検索キーワード（オプション）</li>
+        <li><code>parent</code>: 親コード（オプション）</li>
+        <li><code>active_only</code>: 有効なコードのみ取得するフラグ（デフォルトtrue）</li>
+    </ul>
+    <p><strong>レスポンス例</strong>:</p>
+    <pre><code>{
+  "data": {
+    "category": {
+      "id": "job_type",
+      "name": "職種",
+      "description": "技術者の職種区分"
+    },
+    "codes": [
+      {
+        "code": "PM",
+        "name": "プロジェクトマネージャ",
+        "sort_order": 1,
+        "is_active": true,
+        "attributes": {
+          "abbreviation": "PM",
+          "skill_level": "senior"
+        }
+      },
+      {
+        "code": "SE",
+        "name": "システムエンジニア",
+        "sort_order": 2,
+        "is_active": true,
+        "attributes": {
+          "abbreviation": "SE",
+          "skill_level": "middle"
+        }
+      }
+    ]
+  }
+}</code></pre>
+
+    <h4>5.1.3 特定コード値の詳細取得API</h4>
+    <p><strong>エンドポイント</strong>: <code>GET /api/v1/common/codes/{category}/{code}</code></p>
+    <p><strong>レスポンス例</strong>:</p>
+    <pre><code>{
+  "data": {
+    "category": {
+      "id": "job_type",
+      "name": "職種",
+      "description": "技術者の職種区分"
+    },
+    "code": "PM",
+    "name": "プロジェクトマネージャ",
+    "description": "プロジェクト全体の管理と調整を担当する職種",
+    "sort_order": 1,
+    "is_active": true,
+    "attributes": {
+      "abbreviation": "PM",
+      "skill_level": "senior",
+      "grade_range": "G4-G6",
+      "typical_years_experience": "5-10"
+    },
+    "parent_code": null,
+    "child_codes": [],
+    "created_at": "2023-01-01T00:00:00.000Z",
+    "updated_at": "2023-04-10T15:30:00.000Z"
+  }
+}</code></pre>
+
+    <h3>5.2 コード値管理API</h3>
+
+    <h4>5.2.1 コード値登録API</h4>
+    <p><strong>エンドポイント</strong>: <code>POST /api/v1/admin/codes/{category}</code></p>
+    <p><strong>リクエスト例</strong>:</p>
+    <pre><code>{
+  "code": "AI_ENG",
+  "name": "AIエンジニア",
+  "description": "AI・機械学習分野の開発を行うエンジニア",
+  "sort_order": 10,
+  "is_active": true,
+  "attributes": {
+    "abbreviation": "AI",
+    "skill_level": "expert",
+    "grade_range": "G5-G7"
+  },
+  "parent_code": null
+}</code></pre>
+    <p><strong>レスポンス例</strong>:</p>
+    <pre><code>{
+  "data": {
+    "category": "job_type",
+    "code": "AI_ENG",
+    "name": "AIエンジニア",
+    "created_at": "2023-05-05T10:30:00.000Z"
+  }
+}</code></pre>
+
+    <h4>5.2.2 コード値更新API</h4>
+    <p><strong>エンドポイント</strong>: <code>PUT /api/v1/admin/codes/{category}/{code}</code></p>
+    <p><strong>リクエスト例</strong>:</p>
+    <pre><code>{
+  "name": "AI/ML エンジニア",
+  "description": "AI・機械学習領域の開発を担当するエンジニア",
+  "sort_order": 12,
+  "is_active": true,
+  "attributes": {
+    "abbreviation": "AI/ML",
+    "skill_level": "expert",
+    "grade_range": "G5-G7"
+  }
+}</code></pre>
+    <p><strong>レスポンス例</strong>:</p>
+    <pre><code>{
+  "data": {
+    "category": "job_type",
+    "code": "AI_ENG",
+    "name": "AI/ML エンジニア",
+    "updated_at": "2023-05-05T11:45:00.000Z"
+  }
+}</code></pre>
+
+    <h4>5.2.3 コード値削除API</h4>
+    <p><strong>エンドポイント</strong>: <code>DELETE /api/v1/admin/codes/{category}/{code}</code></p>
+    <p><strong>レスポンス例</strong>:</p>
+    <pre><code>{
+  "data": {
+    "message": "コード値が正常に削除されました。",
+    "category": "job_type",
+    "code": "AI_ENG"
+  }
+}</code></pre>
+
+    <h4>5.2.4 コード値一括インポートAPI</h4>
+    <p><strong>エンドポイント</strong>: <code>POST /api/v1/admin/codes/{category}/import</code></p>
+    <p><strong>リクエスト</strong>:</p>
+    <ul>
+        <li>Content-Type: multipart/form-data</li>
+        <li>file: CSVファイル</li>
+        <li>mode: "add" | "update" | "replace"</li>
+    </ul>
+    <p><strong>レスポンス例</strong>:</p>
+    <pre><code>{
+  "data": {
+    "total": 50,
+    "success": 48,
+    "error": 2,
+    "summary": "48件のインポートに成功し、2件が失敗しました。",
+    "errors": [
+      {"line": 10, "reason": "既に存在するコードです。"},
+      {"line": 23, "reason": "必須項目「名称」が未入力です。"}
+    ],
+    "error_report_url": "/api/v1/admin/codes/job_type/import/errors/20230505123045"
+  }
+}</code></pre>
+
+    <h4>5.2.5 コード値一括エクスポートAPI</h4>
+    <p><strong>エンドポイント</strong>: <code>GET /api/v1/admin/codes/{category}/export</code></p>
+    <p><strong>レスポンス</strong>:</p>
+    <ul>
+        <li>Content-Type: text/csv</li>
+        <li>CSVファイルのダウンロード</li>
+    </ul>
+
+    <h2>6. UI設計</h2>
+
+    <h3>6.1 マスタ管理画面</h3>
+    <p>マスタ管理画面（ADM-003）は以下の構成を持つ：</p>
+
+    <h4>6.1.1 マスタ分類選択部</h4>
+    <ul>
+        <li>マスタ分類タブ: 組織系、業務系、システム系</li>
+        <li>マスタ一覧: 選択した分類内のマスタデータ一覧</li>
+    </ul>
+
+    <h4>6.1.2 マスタデータ管理部共通</h4>
+    <ul>
+        <li>マスタ名: 選択中のマスタデータ名</li>
+        <li>新規登録ボタン: マスタデータの新規登録</li>
+        <li>一括インポートボタン: CSVによるマスタデータの一括インポート</li>
+        <li>一括エクスポートボタン: CSVへのマスタデータの一括エクスポート</li>
+        <li>検索ボックス: マスタデータの検索</li>
+    </ul>
+
+    <h4>6.1.3 マスタデータ一覧部</h4>
+    <ul>
+        <li>コード: マスタデータのコード値</li>
+        <li>名称: マスタデータの表示名</li>
+        <li>説明: マスタデータの説明</li>
+        <li>表示順: マスタデータの表示順</li>
+        <li>有効フラグ: マスタデータの有効/無効状態</li>
+        <li>最終更新日時: マスタデータの最終更新日時</li>
+        <li>操作: 編集/削除/有効化・無効化</li>
+        <li>ページング: 一覧のページ切り替え</li>
+    </ul>
+
+    <h4>6.1.4 マスタデータ編集モーダル</h4>
+    <ul>
+        <li>コード: マスタデータのコード値（編集時は読み取り専用）</li>
+        <li>名称: マスタデータの表示名</li>
+        <li>説明: マスタデータの説明</li>
+        <li>表示順: マスタデータの表示順</li>
+        <li>有効フラグ: マスタデータの有効/無効設定</li>
+        <li>追加属性: マスタ種別ごとの固有属性</li>
+        <li>保存ボタン: マスタデータの保存</li>
+        <li>キャンセルボタン: 編集のキャンセル</li>
+    </ul>
+
+    <h2>7. 技術的実装</h2>
+
+    <h3>7.1 データモデル設計</h3>
+    <p>以下のエンティティを実装する：</p>
+    <pre><code>// CodeCategoryエンティティ
+@Entity
+@Table(name = "code_categories")
+public class CodeCategory {
+    @Id
+    private String id;
+    
+    @Column(nullable = false)
+    private String name;
+    
+    private String description;
+    
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+    
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
+    private Set<CodeValue> codeValues;
+}
+
+// CodeValueエンティティ
+@Entity
+@Table(name = "code_values")
+public class CodeValue {
+    @EmbeddedId
+    private CodeValueId id;
+    
+    @ManyToOne
+    @MapsId("categoryId")
+    private CodeCategory category;
+    
+    @Column(nullable = false)
+    private String name;
+    
+    private String description;
+    
+    @Column(nullable = false)
+    private Integer sortOrder;
+    
+    @Column(nullable = false)
+    private Boolean isActive = true;
+    
+    @Column(columnDefinition = "jsonb")
+    private String attributes;
+    
+    private String parentCode;
+    
+    @CreationTimestamp
+    private LocalDateTime createdAt;
+    
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+}
+
+// CodeValueIdエンティティ（複合主キー）
+@Embeddable
+public class CodeValueId implements Serializable {
+    private String categoryId;
+    private String code;
+    
+    // コンストラクタ、equals、hashCodeを適切に実装
+}</code></pre>
+
+    <h3>7.2 サービス実装</h3>
+    <p>以下の主要サービスを実装する：</p>
+    <pre><code>// CodeServiceインターフェース
+public interface CodeService {
+    List<CodeCategoryDTO> findAllCategories();
+    List<CodeValueDTO> findByCategory(String categoryId, String keyword, String parent, Boolean activeOnly);
+    CodeValueDetailDTO findByCode(String categoryId, String code);
+}
+
+// AdminCodeServiceインターフェース
+public interface AdminCodeService {
+    CodeValueDTO create(String categoryId, CodeValueCreateDTO codeValueDTO);
+    CodeValueDTO update(String categoryId, String code, CodeValueUpdateDTO codeValueDTO);
+    void delete(String categoryId, String code);
+    ImportResult importCodes(String categoryId, MultipartFile file, ImportMode mode);
+    void exportCodes(String categoryId, HttpServletResponse response);
+}
+
+// ImportModeのenumクラス
+public enum ImportMode {
+    ADD, // 新規追加のみ
+    UPDATE, // 既存データの更新のみ
+    REPLACE // 既存データを全て削除して置き換え
+}
+
+// ImportResultのDTOクラス
+public class ImportResult {
+    private int total;
+    private int success;
+    private int error;
+    private String summary;
+    private List<ImportError> errors;
+    private String errorReportUrl;
+    
+    // getterとsetter
+}</code></pre>
+
+    <h3>7.3 実装上の注意点</h3>
+    <ol>
+        <li><strong>キャッシュ戦略</strong>:
+            <ul>
+                <li>コード値は頻繁に参照されるため、適切なキャッシュ戦略を実装する</li>
+                <li>カテゴリごとにキャッシュを分割し、更新時に該当カテゴリのキャッシュのみを更新</li>
+                <li>キャッシュの有効期限を設定し、定期的に最新データで更新</li>
+            </ul>
+        </li>
+        <li><strong>バリデーション</strong>:
+            <ul>
+                <li>コード値のバリデーションルールをカテゴリごとに設定</li>
+                <li>必須項目、文字数制限、形式チェックなどの基本的なバリデーション</li>
+                <li>特定カテゴリ固有のビジネスルールに基づくバリデーション</li>
+            </ul>
+        </li>
+        <li><strong>関連データの整合性</strong>:
+            <ul>
+                <li>他のデータから参照されているコード値の削除を防止</li>
+                <li>コード値の無効化時に関連データへの影響を評価</li>
+                <li>階層構造を持つコード値の親子関係の整合性を維持</li>
+            </ul>
+        </li>
+        <li><strong>パフォーマンス</strong>:
+            <ul>
+                <li>大量のコード値に対する検索・フィルタリングの最適化</li>
+                <li>階層構造を持つコード値の効率的な取得方法</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>8. テスト方針</h2>
+    <ol>
+        <li><strong>単体テスト</strong>:
+            <ul>
+                <li>コード値サービスの各メソッドのテスト</li>
+                <li>異常系を含むバリデーションのテスト</li>
+                <li>キャッシュ戦略の正常動作確認</li>
+            </ul>
+        </li>
+        <li><strong>統合テスト</strong>:
+            <ul>
+                <li>APIエンドポイント呼び出しの結合テスト</li>
+                <li>データベースとの連携テスト</li>
+                <li>キャッシュとデータベースの一貫性テスト</li>
+            </ul>
+        </li>
+        <li><strong>性能テスト</strong>:
+            <ul>
+                <li>大量データでの検索性能テスト</li>
+                <li>キャッシュ有効時と無効時の性能比較</li>
+                <li>同時アクセス時の挙動テスト</li>
+            </ul>
+        </li>
+    </ol>
+
+    <div class="navigation">
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>

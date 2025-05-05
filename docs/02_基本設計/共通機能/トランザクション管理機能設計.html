@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム トランザクション管理機能 基本設計書</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1 {
+            color: #1a56db;
+            border-bottom: 2px solid #1a56db;
+            padding-bottom: 10px;
+            font-size: 28px;
+        }
+        h2 {
+            color: #1e429f;
+            border-bottom: 1px solid #1e429f;
+            padding-bottom: 5px;
+            margin-top: 30px;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2b4acb;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #354fd9;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f7ff;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9fafc;
+        }
+        code {
+            font-family: Consolas, Monaco, 'Andale Mono', monospace;
+            background-color: #f5f5f5;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            line-height: 1.4;
+        }
+        pre code {
+            background-color: transparent;
+            padding: 0;
+        }
+        ul, ol {
+            padding-left: 25px;
+        }
+        .navigation {
+            margin: 25px 0;
+            padding: 10px;
+            background-color: #f5f7fc;
+            border-radius: 5px;
+        }
+        .navigation a {
+            color: #1a56db;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        .navigation a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="navigation">
+        <a href="../システム設計/index.html">システム設計</a> |
+        <a href="../DB設計/README.html">DB設計</a> |
+        <a href="../UI設計/画面一覧.html">UI設計</a> |
+        <a href="../IF設計/REST_API設計_概要.html">IF設計</a> |
+        <a href="index.html">共通機能一覧</a>
+    </div>
+
+    <h1>SES業務システム トランザクション管理機能 基本設計書</h1>
+
+    <h2>1. はじめに</h2>
+
+    <h3>1.1 目的</h3>
+    <p>本ドキュメントはSES業務システムにおけるトランザクション管理機能の設計について定義します。システム全体でのデータ整合性を確保するためのトランザクション境界、分散トランザクション、例外処理における実装方針について詳細に記述します。</p>
+
+    <h3>1.2 対象読者</h3>
+    <ul>
+        <li>システム設計者</li>
+        <li>開発者</li>
+        <li>データベース管理者</li>
+        <li>QAエンジニア</li>
+    </ul>
+
+    <h3>1.3 前提条件</h3>
+    <ul>
+        <li>システムはマイクロサービスアーキテクチャに基づいて構築されている</li>
+        <li>バックエンドはSpring Bootを使用</li>
+        <li>データベースはPostgreSQLを主要DBとして使用</li>
+        <li>一部のデータはNoSQLデータベース（MongoDB）に格納される</li>
+    </ul>
+
+    <h2>2. 機能概要</h2>
+
+    <h3>2.1 主な機能</h3>
+    <ol>
+        <li><strong>トランザクション境界管理</strong>
+            <ul>
+                <li>サービスレベルのトランザクション境界定義</li>
+                <li>トランザクション伝播設定</li>
+                <li>読み取り専用トランザクション最適化</li>
+            </ul>
+        </li>
+        <li><strong>分散トランザクション管理</strong>
+            <ul>
+                <li>マイクロサービス間トランザクション連携</li>
+                <li>複数データソース間トランザクション制御</li>
+                <li>Saga パターンによる補償トランザクション</li>
+            </ul>
+        </li>
+        <li><strong>トランザクション例外処理</strong>
+            <ul>
+                <li>トランザクション失敗時の例外ハンドリング</li>
+                <li>リトライメカニズム</li>
+                <li>デッドロック検出と回避</li>
+            </ul>
+        </li>
+        <li><strong>トランザクションログ</strong>
+            <ul>
+                <li>トランザクションの監査ログ記録</li>
+                <li>パフォーマンスモニタリング</li>
+                <li>異常検知</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h3>2.2 機能の適用範囲</h3>
+    <p>トランザクション管理機能は、以下のような業務シナリオで特に重要となります：</p>
+    <ul>
+        <li><strong>契約管理</strong>: 契約書生成、承認フロー、電子署名など複数ステップが連携する処理</li>
+        <li><strong>請求支払管理</strong>: 請求書生成、入金処理、支払処理など複数の台帳を更新する処理</li>
+        <li><strong>マッチング機能</strong>: 案件と技術者のマッチング処理、提案管理など複数エンティティの更新が必要な処理</li>
+        <li><strong>勤怠工数管理</strong>: 勤怠データ登録、承認、工数集計など連続した処理フロー</li>
+    </ul>
+
+    <h2>3. 詳細設計</h2>
+
+    <h3>3.1 トランザクション境界管理</h3>
+
+    <p>トランザクション境界は、一連の処理が原子的に実行されるべき範囲を定義します。</p>
+
+    <h4>3.1.1 トランザクション境界設計原則</h4>
+    <ol>
+        <li><strong>サービスレイヤーでのトランザクション管理</strong>
+            <ul>
+                <li>プレゼンテーションレイヤーやリポジトリレイヤーではなく、サービスレイヤーでトランザクションを管理</li>
+                <li>ビジネスロジックを含むメソッドをトランザクション境界として定義</li>
+            </ul>
+        </li>
+        <li><strong>最小限のトランザクション範囲</strong>
+            <ul>
+                <li>トランザクションの範囲は必要最小限に保つ</li>
+                <li>長時間実行トランザクションを避ける</li>
+            </ul>
+        </li>
+        <li><strong>読み取り/書き込みの分離</strong>
+            <ul>
+                <li>読み取り専用処理は明示的に指定して最適化</li>
+                <li>書き込みを含む処理は適切な分離レベルで制御</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h4>3.1.2 トランザクション属性の設計</h4>
+    <p><strong>Spring 実装例</strong>:</p>
+    <pre><code>@Service
+public class ContractService {
+
+    @Autowired
+    private ContractRepository contractRepository;
+    
+    @Autowired
+    private ContractHistoryRepository historyRepository;
+    
+    @Autowired
+    private NotificationService notificationService;
+    
+    // 標準的なトランザクション（暗黙的にPROPAGATION_REQUIRED）
+    @Transactional
+    public Contract createContract(ContractDTO contractDTO) {
+        // 契約データの作成処理
+        Contract contract = new Contract();
+        // プロパティのマッピング
+        contract = contractRepository.save(contract);
+        
+        // 履歴データの作成
+        ContractHistory history = new ContractHistory();
+        history.setContract(contract);
+        history.setAction(ActionType.CREATE);
+        historyRepository.save(history);
+        
+        return contract;
+    }
+    
+    // 読み取り専用トランザクション
+    @Transactional(readOnly = true)
+    public List<Contract> findContracts(SearchCriteria criteria) {
+        return contractRepository.findByCriteria(criteria);
+    }
+    
+    // 既存トランザクションに参加するが、なければ新規作成しない
+    @Transactional(propagation = Propagation.SUPPORTS)
+    public void logContractAccess(String contractId, String userId) {
+        // アクセスログ記録処理
+    }
+    
+    // 新規トランザクションを常に作成（既存のものがあっても別トランザクション）
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void sendContractNotification(String contractId) {
+        Contract contract = contractRepository.findById(contractId)
+            .orElseThrow(() -> new NotFoundException("契約が見つかりません"));
+        
+        // 通知送信処理（トランザクション失敗時にロールバックされないよう分離）
+        notificationService.sendContractNotification(contract);
+    }
+    
+    // トランザクション分離レベルを明示的に指定
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void approveContract(String contractId, String approverId) {
+        // 承認処理（高い分離レベルで一貫性を保証）
+    }
+}</code></pre>
+
+    <h3>3.2 分散トランザクション管理</h3>
+    <p>マイクロサービスアーキテクチャでは、複数のサービスやデータソースにまたがるトランザクション管理が必要となります。</p>
+
+    <h4>3.2.1 サービス間トランザクション連携パターン</h4>
+    <p>本システムでは、以下のパターンを採用します：</p>
+    <ol>
+        <li><strong>Saga パターン</strong>
+            <ul>
+                <li>複数のマイクロサービスにまたがる長時間実行トランザクション</li>
+                <li>各ステップに対応する補償トランザクション（補償的アクション）を定義</li>
+                <li>障害発生時は実行済みのステップを補償トランザクションで巻き戻し</li>
+            </ul>
+        </li>
+        <li><strong>Two-Phase Commit（2PC）の回避</strong>
+            <ul>
+                <li>パフォーマンスとスケーラビリティの観点から2PCは原則として使用しない</li>
+                <li>代わりに結果整合性（Eventual Consistency）を許容するアプローチを採用</li>
+            </ul>
+        </li>
+        <li><strong>イベントドリブンアプローチ</strong>
+            <ul>
+                <li>トランザクション完了をイベントとして発行</li>
+                <li>後続のサービスはイベントを受け取って処理を実行</li>
+                <li>冪等性を確保して、イベントの重複処理に対応</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h4>3.2.2 Saga パターンの実装</h4>
+    <p><strong>オーケストレーション型Sagaの例（請求書発行処理）</strong>:</p>
+    <pre><code>@Service
+public class InvoiceOrchestrator {
+
+    @Autowired
+    private InvoiceService invoiceService;
+    
+    @Autowired
+    private ProjectService projectService;
+    
+    @Autowired
+    private PaymentService paymentService;
+    
+    @Autowired
+    private NotificationService notificationService;
+    
+    public InvoiceResult createAndSendInvoice(InvoiceRequest request) {
+        InvoiceContext context = new InvoiceContext();
+        context.setRequestId(UUID.randomUUID().toString());
+        context.setInvoiceRequest(request);
+        
+        try {
+            // ステップ1: 請求書データ作成
+            InvoiceData invoiceData = invoiceService.createInvoice(request);
+            context.setInvoiceId(invoiceData.getId());
+            
+            // ステップ2: プロジェクト状態更新
+            projectService.updateProjectBillingStatus(request.getProjectId(), BillingStatus.INVOICED);
+            
+            // ステップ3: 支払い期日設定
+            paymentService.createPaymentSchedule(invoiceData.getId(), invoiceData.getDueDate());
+            
+            // ステップ4: 顧客への通知
+            notificationService.sendInvoiceNotification(invoiceData.getId());
+            
+            return InvoiceResult.success(invoiceData.getId());
+            
+        } catch (InvoiceCreationException e) {
+            // ステップ1で失敗 - 補償アクションなし
+            log.error("請求書作成に失敗しました", e);
+            return InvoiceResult.failure("請求書作成エラー: " + e.getMessage());
+            
+        } catch (ProjectUpdateException e) {
+            // ステップ2で失敗 - ステップ1を補償
+            log.error("プロジェクト状態更新に失敗しました", e);
+            compensateInvoiceCreation(context.getInvoiceId());
+            return InvoiceResult.failure("プロジェクト更新エラー: " + e.getMessage());
+            
+        } catch (PaymentScheduleException e) {
+            // ステップ3で失敗 - ステップ1と2を補償
+            log.error("支払い期日設定に失敗しました", e);
+            compensateProjectUpdate(request.getProjectId());
+            compensateInvoiceCreation(context.getInvoiceId());
+            return InvoiceResult.failure("支払いスケジュールエラー: " + e.getMessage());
+            
+        } catch (NotificationException e) {
+            // ステップ4で失敗 - 通知は重要度が低いため補償なしでも可
+            log.warn("請求書通知の送信に失敗しました", e);
+            // トランザクション自体は成功とみなす
+            return InvoiceResult.partialSuccess(context.getInvoiceId(), "請求書は作成されましたが、通知送信に失敗しました");
+        }
+    }
+    
+    // 補償トランザクション（補償的アクション）
+    private void compensateInvoiceCreation(String invoiceId) {
+        try {
+            invoiceService.cancelInvoice(invoiceId);
+        } catch (Exception e) {
+            log.error("請求書作成の補償処理に失敗しました: " + invoiceId, e);
+            // 補償失敗をモニタリングシステムに通知
+            alertFailedCompensation("invoice_creation", invoiceId);
+        }
+    }
+    
+    private void compensateProjectUpdate(String projectId) {
+        try {
+            projectService.revertBillingStatus(projectId);
+        } catch (Exception e) {
+            log.error("プロジェクト更新の補償処理に失敗しました: " + projectId, e);
+            alertFailedCompensation("project_update", projectId);
+        }
+    }
+    
+    private void alertFailedCompensation(String step, String entityId) {
+        // モニタリングアラート送信
+    }
+}</code></pre>
+
+    <h4>3.2.3 複数データソース間トランザクション</h4>
+    <p>2つ以上のデータソースを使用する場合の実装例：</p>
+    <pre><code>@Configuration
+@EnableTransactionManagement
+public class TransactionConfig {
+
+    @Autowired
+    @Qualifier("primaryDataSource")
+    private DataSource primaryDataSource;
+    
+    @Autowired
+    @Qualifier("secondaryDataSource")
+    private DataSource secondaryDataSource;
+    
+    @Primary
+    @Bean(name = "primaryTransactionManager")
+    public PlatformTransactionManager primaryTransactionManager() {
+        return new DataSourceTransactionManager(primaryDataSource);
+    }
+    
+    @Bean(name = "secondaryTransactionManager")
+    public PlatformTransactionManager secondaryTransactionManager() {
+        return new DataSourceTransactionManager(secondaryDataSource);
+    }
+    
+    @Bean(name = "chainedTransactionManager")
+    public ChainedTransactionManager chainedTransactionManager(
+            @Qualifier("primaryTransactionManager") PlatformTransactionManager primaryTM,
+            @Qualifier("secondaryTransactionManager") PlatformTransactionManager secondaryTM) {
+        return new ChainedTransactionManager(primaryTM, secondaryTM);
+    }
+}
+
+@Service
+public class MultiDatabaseService {
+
+    // ChainedTransactionManager を使用した複数データソース間のトランザクション
+    @Transactional(value = "chainedTransactionManager")
+    public void processMultiDatabaseOperation(EntityDto dto) {
+        // 複数のデータソースにまたがる処理
+    }
+}</code></pre>
+
+    <p><strong>注意事項</strong>:</p>
+    <ul>
+        <li>ChainedTransactionManager は真のXAトランザクションではなく、順次コミットするため部分的な失敗の可能性がある</li>
+        <li>重要なビジネストランザクションでは、Saga パターンなどの追加的な仕組みを検討</li>
+    </ul>
+
+    <h3>3.3 トランザクション例外処理</h3>
+
+    <h4>3.3.1 例外分類とハンドリング</h4>
+    <p>例外は以下の2つに大きく分類します：</p>
+    <ol>
+        <li><strong>チェック例外</strong>: 回復可能な例外
+            <ul>
+                <li>ビジネスルール違反</li>
+                <li>一時的なシステム障害</li>
+                <li>リソース制約</li>
+            </ul>
+        </li>
+        <li><strong>非チェック例外</strong>: 回復不可能な例外
+            <ul>
+                <li>システム内部エラー</li>
+                <li>データ破損</li>
+                <li>予期しない障害</li>
+            </ul>
+        </li>
+    </ol>
+
+    <p><strong>例外ハンドリングの実装例</strong>:</p>
+    <pre><code>@Service
+public class BillingService {
+
+    @Autowired
+    private InvoiceRepository invoiceRepository;
+    
+    @Autowired
+    private TransactionRetryHelper retryHelper;
+    
+    // リトライ可能なトランザクション
+    @Transactional
+    @Retryable(
+        include = {ConcurrencyFailureException.class, LockTimeoutException.class},
+        maxAttempts = 3,
+        backoff = @Backoff(delay = 1000, multiplier = 2)
+    )
+    public Invoice generateInvoice(InvoiceGenerationRequest request) {
+        // 請求書生成ロジック
+        // ConcurrencyFailureExceptionやLockTimeoutExceptionが発生した場合は
+        // 指定された回数だけリトライされる
+    }
+    
+    // リカバリメソッド（最大リトライ回数を超えた場合に呼ばれる）
+    @Recover
+    public Invoice recoverFromTransactionFailure(Exception e, InvoiceGenerationRequest request) {
+        // リトライ失敗後の回復処理
+        // 例: 一時保存状態で請求書を作成し、手動処理用のタスクを作成
+        Invoice incompleteInvoice = new Invoice();
+        incompleteInvoice.setStatus(InvoiceStatus.DRAFT);
+        incompleteInvoice.setErrorFlag(true);
+        incompleteInvoice.setErrorMessage("トランザクション失敗: " + e.getMessage());
+        
+        // リトライ失敗を管理者に通知
+        notifyAdminOfRetryFailure(request, e);
+        
+        return invoiceRepository.save(incompleteInvoice);
+    }
+    
+    // デッドロック検出と特別処理
+    @Transactional
+    public void processPayment(String invoiceId, PaymentData paymentData) {
+        try {
+            // 支払い処理ロジック
+        } catch (DeadlockLoserDataAccessException e) {
+            // デッドロック検出時の特別処理
+            log.warn("デッドロックを検出しました。処理を再スケジュールします: " + invoiceId);
+            scheduleDeferredPaymentProcessing(invoiceId, paymentData);
+            throw new PaymentProcessingException("デッドロックにより処理が延期されました", e);
+        }
+    }
+}</code></pre>
+
+    <h4>3.3.2 トランザクション監視とデバッグ</h4>
+    <p>システムのトランザクション処理を監視するために、以下の仕組みを実装します：</p>
+    <ol>
+        <li><strong>トランザクションログ</strong>
+            <ul>
+                <li>トランザクション開始・終了</li>
+                <li>トランザクションID</li>
+                <li>処理時間</li>
+                <li>結果ステータス</li>
+            </ul>
+        </li>
+        <li><strong>トランザクション統計</strong>
+            <ul>
+                <li>トランザクション種別ごとの成功率</li>
+                <li>平均処理時間</li>
+                <li>リトライ回数</li>
+            </ul>
+        </li>
+    </ol>
+
+    <p><strong>トランザクションアスペクトの実装例</strong>:</p>
+    <pre><code>@Aspect
+@Component
+public class TransactionMonitoringAspect {
+
+    private static final Logger log = LoggerFactory.getLogger(TransactionMonitoringAspect.class);
+    
+    @Autowired
+    private TransactionStatisticsService statisticsService;
+    
+    // トランザクションメソッドをターゲットにするポイントカット
+    @Pointcut("@annotation(org.springframework.transaction.annotation.Transactional)")
+    public void transactionalMethod() {}
+    
+    @Around("transactionalMethod()")
+    public Object monitorTransaction(ProceedingJoinPoint joinPoint) throws Throwable {
+        String transactionId = UUID.randomUUID().toString();
+        String methodName = joinPoint.getSignature().toShortString();
+        long startTime = System.currentTimeMillis();
+        
+        MDC.put("transactionId", transactionId);
+        log.info("トランザクション開始: {}", methodName);
+        
+        try {
+            // トランザクションの実行
+            Object result = joinPoint.proceed();
+            
+            // 成功記録
+            long duration = System.currentTimeMillis() - startTime;
+            log.info("トランザクション成功: {} (所要時間: {}ms)", methodName, duration);
+            statisticsService.recordTransactionSuccess(methodName, duration);
+            
+            return result;
+            
+        } catch (Throwable t) {
+            // 失敗記録
+            long duration = System.currentTimeMillis() - startTime;
+            log.error("トランザクション失敗: {} (所要時間: {}ms)", methodName, duration, t);
+            statisticsService.recordTransactionFailure(methodName, t.getClass().getName(), duration);
+            throw t;
+            
+        } finally {
+            MDC.remove("transactionId");
+        }
+    }
+}</code></pre>
+
+    <h3>3.4 アプリケーション固有のトランザクションシナリオ</h3>
+
+    <h4>3.4.1 契約管理トランザクション</h4>
+    <p>契約管理における重要なトランザクションシナリオ：</p>
+    <ol>
+        <li><strong>契約書生成と保存</strong>
+            <ul>
+                <li>契約データ保存</li>
+                <li>契約書ドキュメント生成</li>
+                <li>ファイルストレージへの保存</li>
+                <li>履歴記録</li>
+            </ul>
+        </li>
+        <li><strong>契約承認フロー</strong>
+            <ul>
+                <li>承認状態更新</li>
+                <li>承認履歴記録</li>
+                <li>次承認者への通知</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h4>3.4.2 請求支払トランザクション</h4>
+    <p>請求支払管理における重要なトランザクションシナリオ：</p>
+    <ol>
+        <li><strong>請求書発行処理</strong>
+            <ul>
+                <li>請求データ作成</li>
+                <li>請求明細生成</li>
+                <li>消費税計算</li>
+                <li>PDF生成と保存</li>
+                <li>請求履歴更新</li>
+            </ul>
+        </li>
+        <li><strong>入金処理</strong>
+            <ul>
+                <li>入金データ登録</li>
+                <li>請求残高更新</li>
+                <li>入金消込処理</li>
+                <li>消込状態更新</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h4>3.4.3 勤怠工数承認トランザクション</h4>
+    <p>勤怠工数管理における重要なトランザクションシナリオ：</p>
+    <ol>
+        <li><strong>勤怠データ承認</strong>
+            <ul>
+                <li>勤怠データロック</li>
+                <li>承認状態更新</li>
+                <li>承認履歴記録</li>
+                <li>集計データ更新</li>
+            </ul>
+        </li>
+        <li><strong>工数データ集計</strong>
+            <ul>
+                <li>日次データロック</li>
+                <li>月次集計</li>
+                <li>プロジェクト別集計</li>
+                <li>請求データ連携</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>4. API設計</h2>
+
+    <h3>4.1 トランザクション管理に関するAPI</h3>
+
+    <h4>4.1.1 トランザクション状態確認API</h4>
+    <p><strong>エンドポイント</strong>: <code>GET /api/v1/admin/transactions/{transactionId}</code></p>
+    <p><strong>レスポンス例</strong>:</p>
+    <pre><code>{
+  "data": {
+    "transactionId": "tx-12345",
+    "status": "COMPLETED",
+    "startTime": "2023-05-01T10:30:45.123Z",
+    "endTime": "2023-05-01T10:30:48.456Z",
+    "duration": 3333,
+    "initiatedBy": "system",
+    "steps": [
+      {
+        "stepId": 1,
+        "name": "ContractDataCreation",
+        "status": "COMPLETED",
+        "startTime": "2023-05-01T10:30:45.123Z",
+        "endTime": "2023-05-01T10:30:46.234Z"
+      },
+      {
+        "stepId": 2,
+        "name": "DocumentGeneration",
+        "status": "COMPLETED",
+        "startTime": "2023-05-01T10:30:46.235Z",
+        "endTime": "2023-05-01T10:30:47.345Z"
+      },
+      {
+        "stepId": 3,
+        "name": "NotificationSending",
+        "status": "COMPLETED",
+        "startTime": "2023-05-01T10:30:47.346Z",
+        "endTime": "2023-05-01T10:30:48.456Z"
+      }
+    ]
+  }
+}</code></pre>
+
+    <h4>4.1.2 トランザクション管理ダッシュボードAPI</h4>
+    <p><strong>エンドポイント</strong>: <code>GET /api/v1/admin/transactions/dashboard</code></p>
+    <p><strong>レスポンス例</strong>:</p>
+    <pre><code>{
+  "data": {
+    "summary": {
+      "totalTransactions": 1250,
+      "successfulTransactions": 1230,
+      "failedTransactions": 20,
+      "successRate": 98.4,
+      "averageDuration": 245.7
+    },
+    "byType": [
+      {
+        "type": "ContractCreation",
+        "count": 350,
+        "successRate": 99.1,
+        "averageDuration": 320.5
+      },
+      {
+        "type": "InvoiceGeneration",
+        "count": 480,
+        "successRate": 98.5,
+        "averageDuration": 275.8
+      },
+      {
+        "type": "PaymentProcessing",
+        "count": 420,
+        "successRate": 97.6,
+        "averageDuration": 150.3
+      }
+    ],
+    "recentFailures": [
+      {
+        "transactionId": "tx-12340",
+        "type": "PaymentProcessing",
+        "timestamp": "2023-05-01T09:45:23.456Z",
+        "errorMessage": "デッドロックにより処理が失敗しました"
+      },
+      {
+        "transactionId": "tx-12330",
+        "type": "InvoiceGeneration",
+        "timestamp": "2023-05-01T08:32:11.789Z",
+        "errorMessage": "データベース接続タイムアウト"
+      }
+    ]
+  }
+}</code></pre>
+
+    <h3>4.2 補償トランザクションAPI</h3>
+
+    <h4>4.2.1 補償トランザクション実行API</h4>
+    <p><strong>エンドポイント</strong>: <code>POST /api/v1/admin/transactions/{transactionId}/compensate</code></p>
+    <p><strong>リクエスト例</strong>:</p>
+    <pre><code>{
+  "reason": "システム管理者による手動補償",
+  "administratorId": "admin123"
+}</code></pre>
+    <p><strong>レスポンス例</strong>:</p>
+    <pre><code>{
+  "data": {
+    "compensationId": "comp-45678",
+    "transactionId": "tx-12345",
+    "status": "COMPLETED",
+    "steps": [
+      {
+        "stepId": 3,
+        "name": "ReverseNotificationSending",
+        "status": "COMPLETED"
+      },
+      {
+        "stepId": 2,
+        "name": "ReverseDocumentGeneration",
+        "status": "COMPLETED"
+      },
+      {
+        "stepId": 1,
+        "name": "ReverseContractDataCreation",
+        "status": "COMPLETED"
+      }
+    ],
+    "completedAt": "2023-05-01T11:15:22.456Z"
+  }
+}</code></pre>
+
+    <h2>5. 技術実装</h2>
+
+    <h3>5.1 使用技術</h3>
+    <ul>
+        <li><strong>トランザクション管理</strong>: Spring Framework の <code>@Transactional</code></li>
+        <li><strong>分散トランザクション</strong>: Saga パターン、Eventual Consistency</li>
+        <li><strong>メッセージング</strong>: RabbitMQ / Apache Kafka（イベント駆動アーキテクチャ用）</li>
+        <li><strong>リトライ機構</strong>: Spring Retry</li>
+        <li><strong>モニタリング</strong>: Micrometer + Prometheus + Grafana</li>
+    </ul>
+
+    <h3>5.2 トランザクション管理サービス</h3>
+    <pre><code>@Service
+public class TransactionLogService {
+
+    @Autowired
+    private TransactionLogRepository logRepository;
+    
+    @Autowired
+    private TransactionStepRepository stepRepository;
+    
+    public void logTransactionStart(String transactionType, String initiatedBy) {
+        String transactionId = generateTransactionId();
+        MDC.put("transactionId", transactionId);
+        
+        TransactionLog log = new TransactionLog();
+        log.setTransactionId(transactionId);
+        log.setType(transactionType);
+        log.setStatus(TransactionStatus.IN_PROGRESS);
+        log.setStartTime(LocalDateTime.now());
+        log.setInitiatedBy(initiatedBy);
+        
+        logRepository.save(log);
+        
+        return transactionId;
+    }
+    
+    public void logTransactionStep(String transactionId, String stepName, TransactionStepStatus status) {
+        TransactionStep step = new TransactionStep();
+        step.setTransactionId(transactionId);
+        step.setName(stepName);
+        step.setStatus(status);
+        step.setTimestamp(LocalDateTime.now());
+        
+        stepRepository.save(step);
+    }
+    
+    public void completeTransaction(String transactionId, TransactionStatus status) {
+        TransactionLog log = logRepository.findById(transactionId)
+            .orElseThrow(() -> new IllegalArgumentException("トランザクションログが見つかりません: " + transactionId));
+        
+        log.setStatus(status);
+        log.setEndTime(LocalDateTime.now());
+        log.setDuration(Duration.between(log.getStartTime(), log.getEndTime()).toMillis());
+        
+        logRepository.save(log);
+        MDC.remove("transactionId");
+    }
+    
+    private String generateTransactionId() {
+        return "tx-" + UUID.randomUUID().toString();
+    }
+}
+
+@Service
+public class CompensationTransactionService {
+
+    @Autowired
+    private TransactionLogService logService;
+    
+    @Autowired
+    private ApplicationEventPublisher eventPublisher;
+    
+    // コンペンセーションハンドラーのレジストリ
+    private Map<String, CompensationHandler> handlers = new HashMap<>();
+    
+    // ハンドラー登録
+    @PostConstruct
+    public void registerHandlers() {
+        handlers.put("ContractCreation", new ContractCreationCompensationHandler());
+        handlers.put("InvoiceGeneration", new InvoiceGenerationCompensationHandler());
+        // その他のハンドラー登録
+    }
+    
+    // 補償トランザクション実行
+    @Transactional
+    public CompensationResult compensateTransaction(String transactionId, String reason, String requestedBy) {
+        // トランザクションログ取得
+        TransactionLog log = logRepository.findById(transactionId)
+            .orElseThrow(() -> new NotFoundException("トランザクション " + transactionId + " が見つかりません"));
+        
+        // 補償可能かチェック
+        if (log.getStatus() != TransactionStatus.COMPLETED && log.getStatus() != TransactionStatus.FAILED) {
+            throw new IllegalStateException("補償できないトランザクション状態です: " + log.getStatus());
+        }
+        
+        // 補償ID生成
+        String compensationId = "comp-" + UUID.randomUUID().toString();
+        
+        try {
+            // 補償ログ開始
+            CompensationLog compLog = new CompensationLog();
+            compLog.setCompensationId(compensationId);
+            compLog.setTransactionId(transactionId);
+            compLog.setReason(reason);
+            compLog.setRequestedBy(requestedBy);
+            compLog.setStatus(CompensationStatus.IN_PROGRESS);
+            compLog.setStartTime(LocalDateTime.now());
+            compensationLogRepository.save(compLog);
+            
+            // イベント発行
+            eventPublisher.publishEvent(new CompensationStartedEvent(compensationId, transactionId));
+            
+            // 補償処理実行
+            CompensationHandler handler = handlers.get(log.getType());
+            if (handler == null) {
+                throw new UnsupportedOperationException("補償ハンドラーが定義されていません: " + log.getType());
+            }
+            
+            // 補償ステップを逆順で実行
+            List<TransactionStep> steps = stepRepository.findByTransactionIdOrderByTimestampDesc(transactionId);
+            List<CompensationStepResult> stepResults = new ArrayList<>();
+            
+            for (TransactionStep step : steps) {
+                try {
+                    // 補償ステップ実行
+                    CompensationStepResult stepResult = handler.compensateStep(step.getName(), transactionId);
+                    stepResults.add(stepResult);
+                    
+                    // ステップログ記録
+                    logCompensationStep(compensationId, step.getName(), stepResult.isSuccess());
+                    
+                } catch (Exception e) {
+                    // ステップ失敗ログ
+                    logCompensationStep(compensationId, step.getName(), false);
+                    throw new CompensationException("補償ステップの実行に失敗しました: " + step.getName(), e);
+                }
+            }
+            
+            // 補償完了ログ
+            compLog.setStatus(CompensationStatus.COMPLETED);
+            compLog.setEndTime(LocalDateTime.now());
+            compLog.setDuration(Duration.between(compLog.getStartTime(), compLog.getEndTime()).toMillis());
+            compensationLogRepository.save(compLog);
+            
+            // 元トランザクションを補償済みとしてマーク
+            log.setCompensated(true);
+            log.setCompensationId(compensationId);
+            logRepository.save(log);
+            
+            // イベント発行
+            eventPublisher.publishEvent(new CompensationCompletedEvent(compensationId, transactionId));
+            
+            return CompensationResult.success(compensationId, stepResults);
+            
+        } catch (Exception e) {
+            // 補償失敗ログ
+            CompensationLog compLog = compensationLogRepository.findById(compensationId)
+                .orElseThrow(() -> new IllegalStateException("補償ログが見つかりません"));
+            
+            compLog.setStatus(CompensationStatus.FAILED);
+            compLog.setEndTime(LocalDateTime.now());
+            compLog.setDuration(Duration.between(compLog.getStartTime(), compLog.getEndTime()).toMillis());
+            compLog.setErrorMessage(e.getMessage());
+            compensationLogRepository.save(compLog);
+            
+            // イベント発行
+            eventPublisher.publishEvent(new CompensationFailedEvent(compensationId, transactionId, e));
+            
+            throw new CompensationException("トランザクション補償に失敗しました: " + transactionId, e);
+        }
+    }
+    
+    private void logCompensationStep(String compensationId, String stepName, boolean success) {
+        CompensationStep step = new CompensationStep();
+        step.setCompensationId(compensationId);
+        step.setStepName("Reverse" + stepName);
+        step.setStatus(success ? CompensationStepStatus.COMPLETED : CompensationStepStatus.FAILED);
+        step.setTimestamp(LocalDateTime.now());
+        compensationStepRepository.save(step);
+    }
+}</code></pre>
+
+    <h3>5.3 実装上の注意点</h3>
+    <ol>
+        <li><strong>トランザクション伝播設定</strong>
+            <ul>
+                <li>サービスメソッド間の呼び出しでトランザクション伝播に注意</li>
+                <li>特に <code>REQUIRES_NEW</code> の使用は、新しいトランザクションを開始するため注意が必要</li>
+            </ul>
+        </li>
+        <li><strong>リトライと冪等性</strong>
+            <ul>
+                <li>リトライ可能な操作は冪等性を確保</li>
+                <li>ユニークなIDやバージョン管理で重複実行を検出</li>
+            </ul>
+        </li>
+        <li><strong>長時間トランザクションの回避</strong>
+            <ul>
+                <li>パフォーマンスとロック競合の観点から、長時間実行トランザクションを避ける</li>
+                <li>長時間処理は複数の小さなトランザクションに分割</li>
+            </ul>
+        </li>
+        <li><strong>デッドロック対策</strong>
+            <ul>
+                <li>一貫したリソースアクセス順序を維持</li>
+                <li>デッドロック検出時の適切なリトライ戦略</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>6. セキュリティ考慮事項</h2>
+
+    <h3>6.1 トランザクションセキュリティ</h3>
+    <ol>
+        <li><strong>トランザクション操作の監査</strong>
+            <ul>
+                <li>トランザクション操作（特に補償トランザクション）はすべて監査ログに記録</li>
+                <li>誰が、いつ、なぜ操作を行ったかを追跡可能に</li>
+            </ul>
+        </li>
+        <li><strong>権限分離</strong>
+            <ul>
+                <li>通常のトランザクション実行と補償トランザクション実行の権限を分離</li>
+                <li>補償トランザクション実行は上位権限者のみに制限</li>
+            </ul>
+        </li>
+        <li><strong>トランザクションデータの保護</strong>
+            <ul>
+                <li>トランザクションログには機密情報を含めない</li>
+                <li>参照情報のみを保存し、詳細は別途セキュアに管理</li>
+            </ul>
+        </li>
+    </ol>
+
+    <h2>7. 制限事項・今後の課題</h2>
+
+    <h3>7.1 現状の制限</h3>
+    <ul>
+        <li>現時点ではシステム内の一部の重要なトランザクションのみSagaパターンを適用</li>
+        <li>長時間実行トランザクションのモニタリングとタイムアウト処理の強化が必要</li>
+        <li>多数のサービスにまたがる分散トランザクションのエンドツーエンドテストが複雑</li>
+    </ul>
+
+    <h3>7.2 今後の拡張予定</h3>
+    <ul>
+        <li>トランザクション進行状況の可視化ダッシュボード</li>
+        <li>障害検知と自動リカバリーメカニズムの強化</li>
+        <li>AIベースのトランザクションパターン分析による問題予測</li>
+    </ul>
+
+    <h2>8. 参考資料</h2>
+    <ul>
+        <li><a href="https://docs.spring.io/spring-framework/docs/current/reference/html/data-access.html#transaction" target="_blank">Spring Transaction Management</a></li>
+        <li><a href="https://microservices.io/patterns/data/saga.html" target="_blank">Saga Pattern</a></li>
+        <li><a href="https://developers.redhat.com/blog/2018/10/01/patterns-for-distributed-transactions-within-a-microservices-architecture" target="_blank">Patterns for Distributed Transactions within a Microservices Architecture</a></li>
+        <li><a href="https://www.allthingsdistributed.com/2008/12/eventually_consistent.html" target="_blank">Eventual Consistency in Distributed Systems</a></li>
+    </ul>
+
+    <div class="navigation">
+        <a href="index.html">共通機能一覧へ戻る</a>
+    </div>
+</body>
+</html>
