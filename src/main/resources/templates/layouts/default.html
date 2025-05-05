@@ -83,8 +83,14 @@
                     <i class="bi bi-house"></i>ダッシュボード
                 </a>
                 
+                <!-- メニュー画面へのリンク -->
+                <a th:href="@{/menu}" class="nav-link" th:classappend="${activeMenu == 'menu' ? 'active' : ''}">
+                    <i class="bi bi-list"></i>メニュー
+                </a>
+                
                 <!-- 案件管理 -->
-                <div class="nav-item" th:classappend="${activeMenu == 'project' ? 'menu-open' : ''}">
+                <div class="nav-item" th:classappend="${activeMenu == 'project' ? 'menu-open' : ''}" 
+                     sec:authorize="hasAnyRole('ADMIN', 'SALES', 'EXECUTIVE', 'MANAGER')">
                     <a href="#" class="nav-link has-submenu">
                         <i class="bi bi-kanban"></i>案件管理
                     </a>
@@ -96,54 +102,65 @@
                 </div>
                 
                 <!-- 技術者管理 -->
-                <div class="nav-item" th:classappend="${activeMenu == 'engineer' ? 'menu-open' : ''}">
+                <div class="nav-item" th:classappend="${activeMenu == 'engineer' ? 'menu-open' : ''}" 
+                     sec:authorize="hasAnyRole('ADMIN', 'HR', 'SALES', 'EXECUTIVE', 'MANAGER')">
                     <a href="#" class="nav-link has-submenu">
                         <i class="bi bi-people"></i>技術者管理
                     </a>
                     <div class="submenu">
                         <a th:href="@{/engineers}" class="nav-link" th:classappend="${subMenu == 'engineers' ? 'active' : ''}">技術者一覧</a>
-                        <a th:href="@{/engineers/create}" class="nav-link" th:classappend="${subMenu == 'engineer-create' ? 'active' : ''}">技術者登録</a>
+                        <a th:href="@{/engineers/create}" class="nav-link" th:classappend="${subMenu == 'engineer-create' ? 'active' : ''}" 
+                           sec:authorize="hasAnyRole('ADMIN', 'HR', 'MANAGER')">技術者登録</a>
                         <a th:href="@{/engineers/skills}" class="nav-link" th:classappend="${subMenu == 'skills' ? 'active' : ''}">スキルシート管理</a>
                     </div>
                 </div>
                 
                 <!-- マッチング -->
-                <div class="nav-item" th:classappend="${activeMenu == 'matching' ? 'menu-open' : ''}">
+                <div class="nav-item" th:classappend="${activeMenu == 'matching' ? 'menu-open' : ''}" 
+                     sec:authorize="hasAnyRole('ADMIN', 'SALES', 'HR', 'EXECUTIVE', 'MANAGER')">
                     <a href="#" class="nav-link has-submenu">
                         <i class="bi bi-search"></i>マッチング
                     </a>
                     <div class="submenu">
                         <a th:href="@{/matching/search}" class="nav-link" th:classappend="${subMenu == 'matching-search' ? 'active' : ''}">マッチング検索</a>
-                        <a th:href="@{/matching/proposals}" class="nav-link" th:classappend="${subMenu == 'proposals' ? 'active' : ''}">提案管理</a>
+                        <a th:href="@{/matching/proposals}" class="nav-link" th:classappend="${subMenu == 'proposals' ? 'active' : ''}" 
+                           sec:authorize="hasAnyRole('ADMIN', 'SALES', 'EXECUTIVE', 'MANAGER')">提案管理</a>
                     </div>
                 </div>
                 
                 <!-- 契約管理 -->
-                <div class="nav-item" th:classappend="${activeMenu == 'contract' ? 'menu-open' : ''}">
+                <div class="nav-item" th:classappend="${activeMenu == 'contract' ? 'menu-open' : ''}" 
+                     sec:authorize="hasAnyRole('ADMIN', 'SALES', 'ACCOUNTING', 'EXECUTIVE', 'MANAGER')">
                     <a href="#" class="nav-link has-submenu">
                         <i class="bi bi-file-earmark-text"></i>契約管理
                     </a>
                     <div class="submenu">
                         <a th:href="@{/contracts}" class="nav-link" th:classappend="${subMenu == 'contracts' ? 'active' : ''}">契約一覧</a>
-                        <a th:href="@{/contracts/create}" class="nav-link" th:classappend="${subMenu == 'contract-create' ? 'active' : ''}">契約作成</a>
+                        <a th:href="@{/contracts/create}" class="nav-link" th:classappend="${subMenu == 'contract-create' ? 'active' : ''}" 
+                           sec:authorize="hasAnyRole('ADMIN', 'SALES', 'MANAGER')">契約作成</a>
                         <a th:href="@{/contracts/signatures}" class="nav-link" th:classappend="${subMenu == 'signatures' ? 'active' : ''}">電子署名管理</a>
                     </div>
                 </div>
                 
                 <!-- 勤怠・工数 -->
-                <div class="nav-item" th:classappend="${activeMenu == 'timesheet' ? 'menu-open' : ''}">
+                <div class="nav-item" th:classappend="${activeMenu == 'timesheet' ? 'menu-open' : ''}" 
+                     sec:authorize="hasAnyRole('ADMIN', 'HR', 'ENGINEER', 'MANAGER')">
                     <a href="#" class="nav-link has-submenu">
                         <i class="bi bi-calendar-check"></i>勤怠・工数
                     </a>
                     <div class="submenu">
-                        <a th:href="@{/timesheet/daily}" class="nav-link" th:classappend="${subMenu == 'timesheet-daily' ? 'active' : ''}">勤怠入力</a>
-                        <a th:href="@{/timesheet/effort}" class="nav-link" th:classappend="${subMenu == 'timesheet-effort' ? 'active' : ''}">工数入力</a>
-                        <a th:href="@{/timesheet/approve}" class="nav-link" th:classappend="${subMenu == 'timesheet-approve' ? 'active' : ''}">勤怠承認</a>
+                        <a th:href="@{/timesheet/daily}" class="nav-link" th:classappend="${subMenu == 'timesheet-daily' ? 'active' : ''}" 
+                           sec:authorize="hasAnyRole('ADMIN', 'ENGINEER')">勤怠入力</a>
+                        <a th:href="@{/timesheet/effort}" class="nav-link" th:classappend="${subMenu == 'timesheet-effort' ? 'active' : ''}" 
+                           sec:authorize="hasAnyRole('ADMIN', 'ENGINEER')">工数入力</a>
+                        <a th:href="@{/timesheet/approve}" class="nav-link" th:classappend="${subMenu == 'timesheet-approve' ? 'active' : ''}" 
+                           sec:authorize="hasAnyRole('ADMIN', 'HR', 'MANAGER')">勤怠承認</a>
                     </div>
                 </div>
                 
                 <!-- 請求・支払 -->
-                <div class="nav-item" th:classappend="${activeMenu == 'billing' ? 'menu-open' : ''}">
+                <div class="nav-item" th:classappend="${activeMenu == 'billing' ? 'menu-open' : ''}" 
+                     sec:authorize="hasAnyRole('ADMIN', 'ACCOUNTING', 'EXECUTIVE', 'MANAGER')">
                     <a href="#" class="nav-link has-submenu">
                         <i class="bi bi-cash-stack"></i>請求・支払
                     </a>
@@ -155,7 +172,8 @@
                 </div>
                 
                 <!-- レポート -->
-                <div class="nav-item" th:classappend="${activeMenu == 'report' ? 'menu-open' : ''}">
+                <div class="nav-item" th:classappend="${activeMenu == 'report' ? 'menu-open' : ''}" 
+                     sec:authorize="hasAnyRole('ADMIN', 'EXECUTIVE', 'MANAGER')">
                     <a href="#" class="nav-link has-submenu">
                         <i class="bi bi-graph-up"></i>レポート
                     </a>
@@ -167,7 +185,8 @@
                 </div>
                 
                 <!-- システム管理 -->
-                <div class="nav-item" th:classappend="${activeMenu == 'admin' ? 'menu-open' : ''}">
+                <div class="nav-item" th:classappend="${activeMenu == 'admin' ? 'menu-open' : ''}" 
+                     sec:authorize="hasRole('ADMIN')">
                     <a href="#" class="nav-link has-submenu">
                         <i class="bi bi-gear"></i>システム管理
                     </a>

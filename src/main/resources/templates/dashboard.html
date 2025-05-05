@@ -14,74 +14,152 @@
         <title>ダッシュボード | SES業務システム</title>
         
         <section>
-            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                <h1 class="h2">ダッシュボード</h1>
-                <div class="btn-toolbar mb-2 mb-md-0">
-                    <div class="btn-group me-2">
-                        <button type="button" class="btn btn-sm btn-outline-secondary">共有</button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary">エクスポート</button>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle">
-                        <i class="bi bi-calendar"></i>
-                        今週
-                    </button>
-                </div>
+            <div class="welcome-banner">
+                <h3>ようこそ、<span th:text="${currentUser != null ? currentUser.fullName : 'ゲスト'}">山田 太郎</span>さん</h3>
+                <p>今日は <span th:text="${#dates.format(#dates.createNow(), 'yyyy年MM月dd日（E）')}">2025年5月1日（木）</span> です。今週の重要なタスクとスケジュールをご確認ください。</p>
             </div>
             
-            <!-- ステータスカード -->
+            <!-- KPIステータスカード -->
             <div class="row mb-4">
                 <div class="col-md-3 mb-4 mb-md-0">
-                    <div class="card text-white bg-primary">
+                    <div class="card text-white bg-primary kpi-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <h6 class="card-title mb-0">技術者稼働率</h6>
-                                    <h2 class="my-2">86.7%</h2>
-                                    <p class="card-text mb-0">前月比 +2.1%</p>
+                                    <p class="kpi-value my-2" th:text="${kpi.utilizationRate + '%'}">86.7%</p>
+                                    <p class="kpi-delta mb-0"><i class="bi bi-arrow-up-short"></i> <span th:text="${'+' + kpi.utilizationRateChange + '%'}">+2.1%</span> 前月比</p>
                                 </div>
-                                <i class="bi bi-people fs-1"></i>
+                                <i class="bi bi-people kpi-icon"></i>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3 mb-4 mb-md-0">
-                    <div class="card text-white bg-success">
+                    <div class="card text-white bg-success kpi-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <h6 class="card-title mb-0">進行中の案件</h6>
-                                    <h2 class="my-2">42</h2>
-                                    <p class="card-text mb-0">前週比 +3</p>
+                                    <p class="kpi-value my-2" th:text="${kpi.activeProjects}">42</p>
+                                    <p class="kpi-delta mb-0"><i class="bi bi-arrow-up-short"></i> <span th:text="${'+' + kpi.activeProjectsChange}">+3</span> 前週比</p>
                                 </div>
-                                <i class="bi bi-briefcase fs-1"></i>
+                                <i class="bi bi-briefcase kpi-icon"></i>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3 mb-4 mb-md-0">
-                    <div class="card text-white bg-info">
+                    <div class="card text-white bg-info kpi-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <h6 class="card-title mb-0">今月の売上</h6>
-                                    <h2 class="my-2">43.8M</h2>
-                                    <p class="card-text mb-0">目標達成率 92%</p>
+                                    <p class="kpi-value my-2" th:text="${kpi.monthlySales + 'M'}">43.8M</p>
+                                    <p class="kpi-delta mb-0">目標達成率 <span th:text="${kpi.salesTargetProgress + '%'}">92%</span></p>
                                 </div>
-                                <i class="bi bi-graph-up fs-1"></i>
+                                <i class="bi bi-graph-up-arrow kpi-icon"></i>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
-                    <div class="card text-white bg-warning">
+                    <div class="card text-white bg-warning kpi-card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <h6 class="card-title mb-0">新規問い合わせ</h6>
-                                    <h2 class="my-2">12</h2>
-                                    <p class="card-text mb-0">未対応 5件</p>
+                                    <p class="kpi-value my-2" th:text="${kpi.newInquiries}">12</p>
+                                    <p class="kpi-delta mb-0">未対応 <span th:text="${kpi.pendingInquiries + '件'}">5件</span></p>
                                 </div>
-                                <i class="bi bi-bell fs-1"></i>
+                                <i class="bi bi-bell kpi-icon"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row mb-4">
+                <!-- 売上推移グラフ -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">売上推移</h5>
+                            <div class="btn-group period-selector">
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-period="year">年間</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary active" data-period="half">半期</button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" data-period="quarter">四半期</button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="salesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 技術者スキル分布 -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">技術者スキル分布</h5>
+                            <a th:href="@{/reports/skills}" class="btn btn-sm btn-outline-primary">詳細</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="utilizationChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- 案件ステータス -->
+                <div class="col-lg-4 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">案件ステータス</h5>
+                            <a th:href="@{/projects}" class="btn btn-sm btn-outline-primary">案件一覧</a>
+                        </div>
+                        <div class="card-body">
+                            <div class="chart-container">
+                                <canvas id="projectStatusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 最近の案件 -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card h-100">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">最近の案件</h5>
+                            <a th:href="@{/projects}" class="btn btn-sm btn-outline-primary">案件一覧へ</a>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>案件ID</th>
+                                            <th>案件名</th>
+                                            <th>顧客名</th>
+                                            <th>開始日</th>
+                                            <th>ステータス</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr th:each="project : ${recentProjects}">
+                                            <td th:text="${project.id}">PRJ-ID</td>
+                                            <td th:text="${project.name}">案件名</td>
+                                            <td th:text="${project.client}">顧客名</td>
+                                            <td th:text="${project.startDate}">開始日</td>
+                                            <td><span th:class="${'badge bg-' + project.statusClass}" th:text="${project.status}">ステータス</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -94,112 +172,15 @@
                     <div class="card h-100">
                         <div class="card-header d-flex justify-content-between align-items-center">
                             <h5 class="mb-0">重要な通知</h5>
-                            <a href="#" class="btn btn-sm btn-outline-primary">全て見る</a>
+                            <a th:href="@{/notifications}" class="btn btn-sm btn-outline-primary">全て見る</a>
                         </div>
-                        <div class="card-body p-0">
-                            <div class="list-group list-group-flush">
-                                <a href="#" class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">工数承認依頼</h6>
-                                        <small class="text-muted">30分前</small>
-                                    </div>
-                                    <p class="mb-1">5月分の工数が承認待ちです。本日中に確認してください。</p>
-                                </a>
-                                <a href="#" class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">新規案件のマッチング</h6>
-                                        <small class="text-muted">2時間前</small>
-                                    </div>
-                                    <p class="mb-1">新しい案件に対して5名の候補者がマッチングされました。</p>
-                                </a>
-                                <a href="#" class="list-group-item list-group-item-action">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">契約書の確認</h6>
-                                        <small class="text-muted">1日前</small>
-                                    </div>
-                                    <p class="mb-1">AB社との契約書署名が完了しました。内容を確認してください。</p>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- 今週の予定 -->
-                <div class="col-md-6 mb-4">
-                    <div class="card h-100">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">今週の予定</h5>
-                            <a href="#" class="btn btn-sm btn-outline-primary">カレンダーへ</a>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="list-group list-group-flush">
-                                <div class="list-group-item">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">顧客ミーティング: XYZ株式会社</h6>
-                                        <small>今日 13:00</small>
-                                    </div>
-                                    <p class="mb-1">新規プロジェクト提案の打ち合わせ</p>
+                        <div class="card-body">
+                            <div th:each="notification : ${notifications}" th:class="${'notification-item' + (notification.isUnread ? ' unread' : '')}">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1" th:text="${notification.title}">通知タイトル</h6>
+                                    <small class="text-muted" th:text="${notification.time}">時間</small>
                                 </div>
-                                <div class="list-group-item">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">契約書締結期限: CD社</h6>
-                                        <small>明日</small>
-                                    </div>
-                                    <p class="mb-1">フレームワーク契約の最終確認と締結</p>
-                                </div>
-                                <div class="list-group-item">
-                                    <div class="d-flex w-100 justify-content-between">
-                                        <h6 class="mb-1">技術者面談: 鈴木太郎</h6>
-                                        <small>木曜日 11:00</small>
-                                    </div>
-                                    <p class="mb-1">案件アサインに関する面談</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row">
-                <!-- 最近の案件 -->
-                <div class="col-md-6 mb-4">
-                    <div class="card h-100">
-                        <div class="card-header d-flex justify-content-between align-items-center">
-                            <h5 class="mb-0">最近の案件</h5>
-                            <a th:href="@{/projects}" class="btn btn-sm btn-outline-primary">案件一覧へ</a>
-                        </div>
-                        <div class="card-body p-0">
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>案件ID</th>
-                                            <th>案件名</th>
-                                            <th>顧客名</th>
-                                            <th>ステータス</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>PRJ-2025-0042</td>
-                                            <td>業務システムリニューアル</td>
-                                            <td>ABC商事</td>
-                                            <td><span class="badge bg-success">契約済</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td>PRJ-2025-0041</td>
-                                            <td>決済システム開発</td>
-                                            <td>DEF銀行</td>
-                                            <td><span class="badge bg-warning">交渉中</span></td>
-                                        </tr>
-                                        <tr>
-                                            <td>PRJ-2025-0040</td>
-                                            <td>モバイルアプリ開発</td>
-                                            <td>GHI通信</td>
-                                            <td><span class="badge bg-info">提案中</span></td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                <p class="mb-1" th:text="${notification.message}">通知内容</p>
                             </div>
                         </div>
                     </div>
@@ -211,54 +192,20 @@
                         <div class="card-header">
                             <h5 class="mb-0">最近のアクティビティ</h5>
                         </div>
-                        <div class="card-body p-0">
-                            <div class="list-group list-group-flush">
-                                <div class="list-group-item">
-                                    <div class="d-flex">
-                                        <div class="me-3">
-                                            <span class="avatar-circle bg-primary text-white">
-                                                <span>山</span>
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <div class="d-flex w-100 justify-content-between">
-                                                <h6 class="mb-1">山田太郎</h6>
-                                                <small>10分前</small>
-                                            </div>
-                                            <p class="mb-1">案件「PRJ-2025-0042」の契約書を更新しました。</p>
-                                        </div>
+                        <div class="card-body">
+                            <div th:each="activity : ${activities}" class="activity-item">
+                                <div class="d-flex">
+                                    <div class="me-3">
+                                        <span th:class="${'avatar-circle bg-' + activity.avatarColor + ' text-white'}">
+                                            <span th:text="${activity.userInitial}">頭</span>
+                                        </span>
                                     </div>
-                                </div>
-                                <div class="list-group-item">
-                                    <div class="d-flex">
-                                        <div class="me-3">
-                                            <span class="avatar-circle bg-info text-white">
-                                                <span>佐</span>
-                                            </span>
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex w-100 justify-content-between">
+                                            <h6 class="mb-1" th:text="${activity.userName}">ユーザー名</h6>
+                                            <small th:text="${activity.time}">時間</small>
                                         </div>
-                                        <div>
-                                            <div class="d-flex w-100 justify-content-between">
-                                                <h6 class="mb-1">佐藤花子</h6>
-                                                <small>45分前</small>
-                                            </div>
-                                            <p class="mb-1">新しい技術者「田中次郎」を登録しました。</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="list-group-item">
-                                    <div class="d-flex">
-                                        <div class="me-3">
-                                            <span class="avatar-circle bg-success text-white">
-                                                <span>鈴</span>
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <div class="d-flex w-100 justify-content-between">
-                                                <h6 class="mb-1">鈴木一郎</h6>
-                                                <small>2時間前</small>
-                                            </div>
-                                            <p class="mb-1">技術者「高橋健太」のスキルシートを更新しました。</p>
-                                        </div>
+                                        <p class="mb-1" th:text="${activity.message}">アクティビティ内容</p>
                                     </div>
                                 </div>
                             </div>
@@ -270,6 +217,7 @@
         
         <link th:href="@{/css/dashboard.css}" rel="stylesheet">
         
+        <script th:src="@{/webjars/chart.js/4.3.0/dist/chart.umd.js}"></script>
         <script th:src="@{/js/dashboard.js}"></script>
     </th:block>
 </body>

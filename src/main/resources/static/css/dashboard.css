@@ -1,0 +1,146 @@
+/**
+ * Dashboard specific styles
+ */
+
+/* KPI Status Cards */
+.kpi-card {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.kpi-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.kpi-icon {
+    font-size: 2.5rem;
+    opacity: 0.8;
+}
+
+.kpi-value {
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.kpi-delta {
+    font-size: 0.85rem;
+}
+
+.delta-up {
+    color: #28a745;
+}
+
+.delta-down {
+    color: #dc3545;
+}
+
+/* Chart containers */
+.chart-container {
+    position: relative;
+    height: 250px;
+    width: 100%;
+}
+
+/* Activity feed */
+.activity-item {
+    padding: 15px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.activity-item:last-child {
+    border-bottom: none;
+}
+
+.avatar-circle {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+}
+
+/* Notification styles */
+.notification-item {
+    padding: 10px 15px;
+    border-left: 4px solid transparent;
+    transition: all 0.2s ease;
+    margin-bottom: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
+}
+
+.notification-item:hover {
+    background-color: #e9ecef;
+}
+
+.notification-item.unread {
+    border-left-color: #0d6efd;
+    background-color: #e7f1ff;
+}
+
+/* Upcoming events */
+.event-item {
+    position: relative;
+    padding-left: 20px;
+    margin-bottom: 15px;
+}
+
+.event-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+}
+
+.event-time {
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+/* Project status tags */
+.status-tag {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Welcome banner */
+.welcome-banner {
+    background-color: #e7f1ff;
+    border-left: 4px solid #0d6efd;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+}
+
+.welcome-banner h3 {
+    margin-bottom: 10px;
+    color: #0d6efd;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .kpi-card {
+        margin-bottom: 15px;
+    }
+    
+    .chart-container {
+        height: 200px;
+    }
+}
+
+@media (max-width: 768px) {
+    .chart-container {
+        height: 180px;
+    }
+}

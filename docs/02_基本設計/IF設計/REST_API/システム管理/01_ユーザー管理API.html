@@ -119,160 +119,204 @@
         </tr>
         <tr>
             <td>POST</td>
+            <td>/api/v1/admin/users/search</td>
+            <td>ユーザー検索</td>
+        </tr>
+        <tr>
+            <td>POST</td>
             <td>/api/v1/admin/users</td>
             <td>新規ユーザーの作成</td>
         </tr>
         <tr>
             <td>GET</td>
-            <td>/api/v1/admin/users/{id}</td>
+            <td>/api/v1/admin/users/{userId}</td>
             <td>特定ユーザーの詳細取得</td>
         </tr>
         <tr>
             <td>PUT</td>
-            <td>/api/v1/admin/users/{id}</td>
+            <td>/api/v1/admin/users/{userId}</td>
             <td>ユーザー情報の更新</td>
         </tr>
         <tr>
-            <td>DELETE</td>
-            <td>/api/v1/admin/users/{id}</td>
-            <td>ユーザーの削除</td>
-        </tr>
-        <tr>
             <td>PUT</td>
-            <td>/api/v1/admin/users/{id}/status</td>
+            <td>/api/v1/admin/users/{userId}/status</td>
             <td>ユーザーステータスの変更</td>
         </tr>
         <tr>
-            <td>PUT</td>
-            <td>/api/v1/admin/users/{id}/password</td>
+            <td>POST</td>
+            <td>/api/v1/admin/users/{userId}/reset-password</td>
             <td>ユーザーパスワードのリセット</td>
         </tr>
         <tr>
-            <td>GET</td>
-            <td>/api/v1/admin/users/{id}/activity</td>
-            <td>ユーザーの活動履歴取得</td>
+            <td>POST</td>
+            <td>/api/v1/admin/users/{userId}/unlock</td>
+            <td>ユーザーアカウントのロック解除</td>
+        </tr>
+        <tr>
+            <td>PUT</td>
+            <td>/api/v1/admin/users/bulk-status</td>
+            <td>複数ユーザーステータスの一括変更</td>
+        </tr>
+        <tr>
+            <td>POST</td>
+            <td>/api/v1/admin/users/bulk-unlock</td>
+            <td>複数ユーザーの一括ロック解除</td>
         </tr>
     </table>
 
-    <h2>3. API詳細</h2>
-
-    <div class="endpoint">
-        <h3><span class="method get">GET</span><span class="path">/api/v1/admin/users</span></h3>
-        <p><strong>説明：</strong> ユーザー一覧を取得します。ページネーション、フィルタリング、ソートをサポートします。</p>
-
-        <h4>リクエストパラメータ（クエリパラメータ）</h4>
-        <table>
-            <tr>
-                <th>パラメータ名</th>
-                <th>型</th>
-                <th>必須</th>
-                <th>説明</th>
-            </tr>
-            <tr>
-                <td>page</td>
-                <td>number</td>
-                <td>×</td>
-                <td>ページ番号（デフォルト: 1）</td>
-            </tr>
-            <tr>
-                <td>limit</td>
-                <td>number</td>
-                <td>×</td>
-                <td>1ページあたりの件数（デフォルト: 20, 最大: 100）</td>
-            </tr>
-            <tr>
-                <td>search</td>
-                <td>string</td>
-                <td>×</td>
-                <td>検索キーワード（ユーザー名、メールアドレス、氏名などで検索）</td>
-            </tr>
-            <tr>
-                <td>status</td>
-                <td>string</td>
-                <td>×</td>
-                <td>ステータスでフィルタリング（active, inactive, locked）</td>
-            </tr>
-            <tr>
-                <td>roleId</td>
-                <td>string</td>
-                <td>×</td>
-                <td>ロールIDでフィルタリング</td>
-            </tr>
-            <tr>
-                <td>department</td>
-                <td>string</td>
-                <td>×</td>
-                <td>部署でフィルタリング</td>
-            </tr>
-            <tr>
-                <td>sort</td>
-                <td>string</td>
-                <td>×</td>
-                <td>ソート条件（例: createdAt:desc）</td>
-            </tr>
-        </table>
-
-        <h4>レスポンス例（成功時 - 200 OK）</h4>
-        <pre><code>{
-  "status": "success",
-  "data": [
-    {
-      "id": "u123456",
-      "username": "yamada.taro",
-      "email": "yamada.taro@example.com",
-      "firstName": "太郎",
-      "lastName": "山田",
-      "status": "active",
-      "roleId": "role123",
-      "roleName": "システム管理者",
-      "department": "情報システム部",
-      "position": "係長",
-      "lastLogin": "2024-05-03T14:30:00Z",
-      "createdAt": "2024-01-15T09:00:00Z",
-      "updatedAt": "2024-04-20T11:20:00Z"
-    },
-    {
-      "id": "u123457",
-      "username": "suzuki.hanako",
-      "email": "suzuki.hanako@example.com",
-      "firstName": "花子",
-      "lastName": "鈴木",
-      "status": "active",
-      "roleId": "role456",
-      "roleName": "営業担当",
-      "department": "営業部",
-      "position": "主任",
-      "lastLogin": "2024-05-04T09:15:00Z",
-      "createdAt": "2024-02-10T10:30:00Z",
-      "updatedAt": "2024-05-01T16:45:00Z"
-    }
-    // ... その他のユーザー
-  ],
-  "pagination": {
-    "total": 48,
-    "page": 1,
-    "limit": 20,
-    "pages": 3
+    <h2>3. 共通仕様</h2>
+    
+    <h3>3.1 レスポンス形式</h3>
+    <p>
+        すべてのAPIレスポンスは統一された形式で返されます。正常系のレスポンスは以下の形式です。
+    </p>
+    <pre><code>{
+  "data": {
+    // レスポンスデータ
   }
 }</code></pre>
-
-        <h4>エラーレスポンス例</h4>
-        <pre><code>{
-  "status": "error",
+    <p>
+        エラー系のレスポンスは以下の形式です。
+    </p>
+    <pre><code>{
   "error": {
-    "code": "INVALID_PARAMETER",
-    "message": "無効なパラメータが指定されました",
+    "code": "ERROR_CODE",
+    "message": "エラーメッセージ",
     "details": [
+      // バリデーションエラーなどの詳細情報（任意）
       {
-        "param": "limit",
-        "message": "limitは1から100の間の値を指定してください"
+        "field": "フィールド名",
+        "message": "エラーメッセージ"
       }
     ]
   }
 }</code></pre>
 
+    <h3>3.2 認証方式</h3>
+    <p>
+        すべてのAPIは、認証済みユーザーからのアクセスが必要です。認証には以下のヘッダーが必要です。
+    </p>
+    <pre><code>Authorization: Bearer {JWT_ACCESS_TOKEN}</code></pre>
+
+    <h3>3.3 エラーコード</h3>
+    <table>
+        <tr>
+            <th>エラーコード</th>
+            <th>説明</th>
+        </tr>
+        <tr>
+            <td>UNAUTHORIZED</td>
+            <td>認証が必要です</td>
+        </tr>
+        <tr>
+            <td>FORBIDDEN</td>
+            <td>このリソースにアクセスする権限がありません</td>
+        </tr>
+        <tr>
+            <td>VALIDATION_ERROR</td>
+            <td>入力データにエラーがあります</td>
+        </tr>
+        <tr>
+            <td>NOT_FOUND</td>
+            <td>リソースが見つかりません</td>
+        </tr>
+        <tr>
+            <td>RESOURCE_ALREADY_EXISTS</td>
+            <td>リソースが既に存在します</td>
+        </tr>
+        <tr>
+            <td>INTERNAL_SERVER_ERROR</td>
+            <td>内部サーバーエラーが発生しました</td>
+        </tr>
+    </table>
+
+    <h2>4. API詳細</h2>
+
+    <div class="endpoint">
+        <h3><span class="method get">GET</span><span class="path">/api/v1/admin/users</span></h3>
+        <p><strong>説明：</strong> ユーザー一覧を取得します。</p>
+
+        <h4>リクエストパラメータ</h4>
+        <p>なし</p>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "email": "admin@example.com",
+      "name": "システム管理者",
+      "department": "システム管理部",
+      "position": "システム管理者",
+      "role": "ADMIN",
+      "status": "active",
+      "lastLoginAt": "2025-05-01T09:00:00.000Z",
+      "createdAt": "2025-01-15T10:30:00.000Z",
+      "updatedAt": "2025-04-20T14:45:00.000Z"
+    },
+    {
+      "id": "550e8401-e29b-41d4-a716-446655440001",
+      "email": "user@example.com",
+      "name": "一般ユーザー",
+      "department": "営業部",
+      "position": "一般社員",
+      "role": "USER",
+      "status": "active",
+      "lastLoginAt": "2025-05-02T14:30:00.000Z",
+      "createdAt": "2025-02-01T09:15:00.000Z",
+      "updatedAt": "2025-04-25T10:20:00.000Z"
+    }
+    // ... その他のユーザー
+  ]
+}</code></pre>
+
+        <h4>エラーレスポンス例</h4>
+        <pre><code>{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "認証が必要です。"
+  }
+}</code></pre>
+
         <h4>アクセス権限要件</h4>
-        <p>system.users.read または system.users.admin または system.admin 権限が必要です。</p>
+        <p>ADMIN ロールが必要です。</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method post">POST</span><span class="path">/api/v1/admin/users/search</span></h3>
+        <p><strong>説明：</strong> 条件に一致するユーザーを検索します。</p>
+
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "keyword": "検索キーワード",
+  "status": "active",
+  "role": "ADMIN",
+  "department": "システム管理部",
+  "from": "2025-01-01T00:00:00.000Z",
+  "to": "2025-05-01T00:00:00.000Z"
+}</code></pre>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "data": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "email": "admin@example.com",
+      "name": "システム管理者",
+      "department": "システム管理部",
+      "position": "システム管理者",
+      "role": "ADMIN",
+      "status": "active",
+      "lastLoginAt": "2025-05-01T09:00:00.000Z",
+      "createdAt": "2025-01-15T10:30:00.000Z",
+      "updatedAt": "2025-04-20T14:45:00.000Z"
+    }
+    // ... 検索条件に一致する他のユーザー
+  ]
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>ADMIN ロールが必要です。</p>
     </div>
 
     <div class="endpoint">
@@ -281,52 +325,54 @@
 
         <h4>リクエストボディ</h4>
         <pre><code>{
-  "username": "tanaka.jiro",
-  "email": "tanaka.jiro@example.com",
-  "firstName": "次郎",
-  "lastName": "田中",
-  "password": "一時的なパスワード",  // オプション。指定しない場合はランダムに生成され、ユーザーにメールで通知
-  "roleId": "role789",
-  "department": "開発部",
-  "position": "主任",
-  "sendWelcomeEmail": true  // ウェルカムメールを送信するかどうか（デフォルト: true）
+  "email": "new.user@example.com",
+  "name": "新規 ユーザー",
+  "password": "Password123",
+  "department": "営業部",
+  "position": "一般社員",
+  "role": "USER",
+  "status": "active"
 }</code></pre>
 
         <h4>レスポンス例（成功時 - 201 Created）</h4>
         <pre><code>{
-  "status": "success",
   "data": {
-    "id": "u123458",
-    "username": "tanaka.jiro",
-    "email": "tanaka.jiro@example.com",
-    "firstName": "次郎",
-    "lastName": "田中",
+    "id": "550e8402-e29b-41d4-a716-446655440002",
+    "email": "new.user@example.com",
+    "name": "新規 ユーザー",
+    "department": "営業部",
+    "position": "一般社員",
+    "role": "USER",
     "status": "active",
-    "roleId": "role789",
-    "roleName": "開発者",
-    "department": "開発部",
-    "position": "主任",
-    "createdAt": "2024-05-04T10:30:00Z",
-    "updatedAt": "2024-05-04T10:30:00Z"
+    "createdAt": "2025-05-06T10:30:00.000Z",
+    "updatedAt": "2025-05-06T10:30:00.000Z"
   }
 }</code></pre>
 
         <h4>エラーレスポンス例</h4>
         <pre><code>{
-  "status": "error",
   "error": {
-    "code": "DUPLICATE_USERNAME",
-    "message": "ユーザー名 tanaka.jiro は既に使用されています",
-    "details": []
+    "code": "VALIDATION_ERROR",
+    "message": "入力データにエラーがあります。",
+    "details": [
+      {
+        "field": "email",
+        "message": "有効なメールアドレスを入力してください"
+      },
+      {
+        "field": "password",
+        "message": "パスワードは8文字以上で、英字と数字を含む必要があります"
+      }
+    ]
   }
 }</code></pre>
 
         <h4>アクセス権限要件</h4>
-        <p>system.users.admin または system.admin 権限が必要です。</p>
+        <p>ADMIN ロールが必要です。</p>
     </div>
 
     <div class="endpoint">
-        <h3><span class="method get">GET</span><span class="path">/api/v1/admin/users/{id}</span></h3>
+        <h3><span class="method get">GET</span><span class="path">/api/v1/admin/users/{userId}</span></h3>
         <p><strong>説明：</strong> 特定のユーザーの詳細情報を取得します。</p>
 
         <h4>パスパラメータ</h4>
@@ -337,60 +383,46 @@
                 <th>説明</th>
             </tr>
             <tr>
-                <td>id</td>
+                <td>userId</td>
                 <td>string</td>
-                <td>ユーザーID</td>
+                <td>ユーザーID（UUID形式）</td>
             </tr>
         </table>
 
         <h4>レスポンス例（成功時 - 200 OK）</h4>
         <pre><code>{
-  "status": "success",
   "data": {
-    "id": "u123456",
-    "username": "yamada.taro",
-    "email": "yamada.taro@example.com",
-    "firstName": "太郎",
-    "lastName": "山田",
-    "status": "active",
-    "roleId": "role123",
-    "roleName": "システム管理者",
-    "department": "情報システム部",
-    "position": "係長",
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "admin@example.com",
+    "name": "システム管理者",
+    "department": "システム管理部",
+    "position": "システム管理者",
     "phone": "03-1234-5678",
-    "mobilePhone": "090-1234-5678",
-    "address": {
-      "postalCode": "100-0001",
-      "prefecture": "東京都",
-      "city": "千代田区",
-      "street": "丸の内1-1-1",
-      "building": "丸の内ビル10F"
-    },
-    "lastLogin": "2024-05-03T14:30:00Z",
-    "loginCount": 152,
-    "createdAt": "2024-01-15T09:00:00Z",
-    "updatedAt": "2024-04-20T11:20:00Z",
-    "createdBy": "u100001",
-    "updatedBy": "u100001"
+    "role": "ADMIN",
+    "status": "active",
+    "lastLoginAt": "2025-05-01T09:00:00.000Z",
+    "loginAttempts": 0,
+    "passwordExpiresAt": "2025-06-01T00:00:00.000Z",
+    "mfaEnabled": false,
+    "createdAt": "2025-01-15T10:30:00.000Z",
+    "updatedAt": "2025-04-20T14:45:00.000Z"
   }
 }</code></pre>
 
         <h4>エラーレスポンス例</h4>
         <pre><code>{
-  "status": "error",
   "error": {
-    "code": "USER_NOT_FOUND",
-    "message": "指定されたユーザーが見つかりません",
-    "details": []
+    "code": "NOT_FOUND",
+    "message": "指定されたユーザーが見つかりません。"
   }
 }</code></pre>
 
         <h4>アクセス権限要件</h4>
-        <p>system.users.read または system.users.admin または system.admin 権限が必要です。</p>
+        <p>ADMIN ロールが必要です。</p>
     </div>
 
     <div class="endpoint">
-        <h3><span class="method put">PUT</span><span class="path">/api/v1/admin/users/{id}</span></h3>
+        <h3><span class="method put">PUT</span><span class="path">/api/v1/admin/users/{userId}</span></h3>
         <p><strong>説明：</strong> ユーザー情報を更新します。</p>
 
         <h4>パスパラメータ</h4>
@@ -401,134 +433,52 @@
                 <th>説明</th>
             </tr>
             <tr>
-                <td>id</td>
+                <td>userId</td>
                 <td>string</td>
-                <td>ユーザーID</td>
+                <td>ユーザーID（UUID形式）</td>
             </tr>
         </table>
 
         <h4>リクエストボディ</h4>
         <pre><code>{
-  "email": "yamada.taro.new@example.com",
-  "firstName": "太郎",
-  "lastName": "山田",
-  "roleId": "role123",
-  "department": "情報システム部",
-  "position": "課長",  // 役職変更
+  "email": "updated.email@example.com",
+  "name": "更新 ユーザー",
+  "department": "営業部",
+  "position": "主任",
   "phone": "03-1234-5678",
-  "mobilePhone": "090-1234-5678",
-  "address": {
-    "postalCode": "100-0001",
-    "prefecture": "東京都",
-    "city": "千代田区",
-    "street": "丸の内1-1-1",
-    "building": "丸の内ビル10F"
-  }
+  "role": "MANAGER",
+  "status": "active"
 }</code></pre>
 
         <h4>レスポンス例（成功時 - 200 OK）</h4>
         <pre><code>{
-  "status": "success",
   "data": {
-    "id": "u123456",
-    "username": "yamada.taro",
-    "email": "yamada.taro.new@example.com",
-    "firstName": "太郎",
-    "lastName": "山田",
-    "status": "active",
-    "roleId": "role123",
-    "roleName": "システム管理者",
-    "department": "情報システム部",
-    "position": "課長",
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "updated.email@example.com",
+    "name": "更新 ユーザー",
+    "department": "営業部",
+    "position": "主任",
     "phone": "03-1234-5678",
-    "mobilePhone": "090-1234-5678",
-    "address": {
-      "postalCode": "100-0001",
-      "prefecture": "東京都",
-      "city": "千代田区",
-      "street": "丸の内1-1-1",
-      "building": "丸の内ビル10F"
-    },
-    "updatedAt": "2024-05-04T11:45:00Z"
+    "role": "MANAGER",
+    "status": "active",
+    "updatedAt": "2025-05-06T11:30:00.000Z"
   }
 }</code></pre>
 
         <h4>エラーレスポンス例</h4>
         <pre><code>{
-  "status": "error",
   "error": {
-    "code": "INVALID_ROLE",
-    "message": "指定されたロールが存在しません",
-    "details": []
+    "code": "NOT_FOUND",
+    "message": "指定されたユーザーが見つかりません。"
   }
 }</code></pre>
 
         <h4>アクセス権限要件</h4>
-        <p>system.users.admin または system.admin 権限が必要です。</p>
+        <p>ADMIN ロールが必要です。</p>
     </div>
 
     <div class="endpoint">
-        <h3><span class="method delete">DELETE</span><span class="path">/api/v1/admin/users/{id}</span></h3>
-        <p><strong>説明：</strong> ユーザーを削除します。通常は論理削除（ステータスを inactive に変更）が推奨されます。</p>
-
-        <h4>パスパラメータ</h4>
-        <table>
-            <tr>
-                <th>パラメータ名</th>
-                <th>型</th>
-                <th>説明</th>
-            </tr>
-            <tr>
-                <td>id</td>
-                <td>string</td>
-                <td>ユーザーID</td>
-            </tr>
-        </table>
-
-        <h4>クエリパラメータ</h4>
-        <table>
-            <tr>
-                <th>パラメータ名</th>
-                <th>型</th>
-                <th>必須</th>
-                <th>説明</th>
-            </tr>
-            <tr>
-                <td>permanent</td>
-                <td>boolean</td>
-                <td>×</td>
-                <td>完全に削除するかどうか（デフォルト: false）</td>
-            </tr>
-        </table>
-
-        <h4>レスポンス例（成功時 - 200 OK）</h4>
-        <pre><code>{
-  "status": "success",
-  "data": {
-    "message": "ユーザーが正常に削除されました",
-    "id": "u123456"
-  }
-}</code></pre>
-
-        <h4>エラーレスポンス例</h4>
-        <pre><code>{
-  "status": "error",
-  "error": {
-    "code": "USER_NOT_FOUND",
-    "message": "指定されたユーザーが見つかりません",
-    "details": []
-  }
-}</code></pre>
-
-        <h4>アクセス権限要件</h4>
-        <p>system.users.admin または system.admin 権限が必要です。</p>
-        <div class="warning">
-            <p><strong>注意：</strong> permanent=true の場合、ユーザーデータが完全に削除されます。この操作は取り消せません。</p>
-        </div>
-    </div>
-
-    <div class="endpoint">
-        <h3><span class="method put">PUT</span><span class="path">/api/v1/admin/users/{id}/status</span></h3>
+        <h3><span class="method put">PUT</span><span class="path">/api/v1/admin/users/{userId}/status</span></h3>
         <p><strong>説明：</strong> ユーザーのステータスを変更します。</p>
 
         <h4>パスパラメータ</h4>
@@ -539,45 +489,32 @@
                 <th>説明</th>
             </tr>
             <tr>
-                <td>id</td>
+                <td>userId</td>
                 <td>string</td>
-                <td>ユーザーID</td>
+                <td>ユーザーID（UUID形式）</td>
             </tr>
         </table>
 
         <h4>リクエストボディ</h4>
         <pre><code>{
-  "status": "inactive",  // active, inactive, locked のいずれか
-  "reason": "退職のため"  // ステータス変更理由（オプション）
+  "status": "inactive"  // active, inactive, locked のいずれか
 }</code></pre>
 
         <h4>レスポンス例（成功時 - 200 OK）</h4>
         <pre><code>{
-  "status": "success",
   "data": {
-    "id": "u123456",
-    "username": "yamada.taro",
+    "id": "550e8400-e29b-41d4-a716-446655440000",
     "status": "inactive",
-    "updatedAt": "2024-05-04T12:30:00Z"
-  }
-}</code></pre>
-
-        <h4>エラーレスポンス例</h4>
-        <pre><code>{
-  "status": "error",
-  "error": {
-    "code": "INVALID_STATUS",
-    "message": "無効なステータスが指定されました",
-    "details": []
+    "updatedAt": "2025-05-06T12:00:00.000Z"
   }
 }</code></pre>
 
         <h4>アクセス権限要件</h4>
-        <p>system.users.admin または system.admin 権限が必要です。</p>
+        <p>ADMIN ロールが必要です。</p>
     </div>
 
     <div class="endpoint">
-        <h3><span class="method put">PUT</span><span class="path">/api/v1/admin/users/{id}/password</span></h3>
+        <h3><span class="method post">POST</span><span class="path">/api/v1/admin/users/{userId}/reset-password</span></h3>
         <p><strong>説明：</strong> ユーザーのパスワードをリセットします。</p>
 
         <h4>パスパラメータ</h4>
@@ -588,50 +525,27 @@
                 <th>説明</th>
             </tr>
             <tr>
-                <td>id</td>
+                <td>userId</td>
                 <td>string</td>
-                <td>ユーザーID</td>
+                <td>ユーザーID（UUID形式）</td>
             </tr>
         </table>
 
-        <h4>リクエストボディ</h4>
-        <pre><code>{
-  "password": "新しいパスワード",  // オプション。指定しない場合はランダムに生成
-  "sendEmail": true,             // パスワードリセット通知をメールで送信するかどうか（デフォルト: true）
-  "expireHours": 24,             // パスワードの有効期限（時間）。ユーザーは初回ログイン時にパスワード変更を要求される
-  "forceChange": true            // 初回ログイン時にパスワード変更を強制するかどうか（デフォルト: true）
-}</code></pre>
-
         <h4>レスポンス例（成功時 - 200 OK）</h4>
         <pre><code>{
-  "status": "success",
   "data": {
     "message": "パスワードが正常にリセットされました",
-    "id": "u123456",
-    "emailSent": true
-  }
-}</code></pre>
-
-        <h4>エラーレスポンス例</h4>
-        <pre><code>{
-  "status": "error",
-  "error": {
-    "code": "PASSWORD_POLICY_VIOLATION",
-    "message": "パスワードポリシーに違反しています",
-    "details": [
-      "パスワードは最低8文字必要です",
-      "大文字、小文字、数字を含める必要があります"
-    ]
+    "id": "550e8400-e29b-41d4-a716-446655440000"
   }
 }</code></pre>
 
         <h4>アクセス権限要件</h4>
-        <p>system.users.admin または system.admin 権限が必要です。</p>
+        <p>ADMIN ロールが必要です。</p>
     </div>
 
     <div class="endpoint">
-        <h3><span class="method get">GET</span><span class="path">/api/v1/admin/users/{id}/activity</span></h3>
-        <p><strong>説明：</strong> ユーザーの活動履歴を取得します。</p>
+        <h3><span class="method post">POST</span><span class="path">/api/v1/admin/users/{userId}/unlock</span></h3>
+        <p><strong>説明：</strong> ロックされたユーザーアカウントのロックを解除します。</p>
 
         <h4>パスパラメータ</h4>
         <table>
@@ -641,120 +555,75 @@
                 <th>説明</th>
             </tr>
             <tr>
-                <td>id</td>
+                <td>userId</td>
                 <td>string</td>
-                <td>ユーザーID</td>
-            </tr>
-        </table>
-
-        <h4>クエリパラメータ</h4>
-        <table>
-            <tr>
-                <th>パラメータ名</th>
-                <th>型</th>
-                <th>必須</th>
-                <th>説明</th>
-            </tr>
-            <tr>
-                <td>page</td>
-                <td>number</td>
-                <td>×</td>
-                <td>ページ番号（デフォルト: 1）</td>
-            </tr>
-            <tr>
-                <td>limit</td>
-                <td>number</td>
-                <td>×</td>
-                <td>1ページあたりの件数（デフォルト: 20, 最大: 100）</td>
-            </tr>
-            <tr>
-                <td>from</td>
-                <td>string</td>
-                <td>×</td>
-                <td>開始日時（ISO 8601形式）</td>
-            </tr>
-            <tr>
-                <td>to</td>
-                <td>string</td>
-                <td>×</td>
-                <td>終了日時（ISO 8601形式）</td>
-            </tr>
-            <tr>
-                <td>type</td>
-                <td>string</td>
-                <td>×</td>
-                <td>アクティビティタイプ（login, logout, action, system）</td>
+                <td>ユーザーID（UUID形式）</td>
             </tr>
         </table>
 
         <h4>レスポンス例（成功時 - 200 OK）</h4>
         <pre><code>{
-  "status": "success",
-  "data": [
-    {
-      "id": "act123456",
-      "userId": "u123456",
-      "type": "login",
-      "action": "login.success",
-      "details": {
-        "ipAddress": "192.168.1.100",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Safari/537.36",
-        "location": "東京"
-      },
-      "timestamp": "2024-05-04T09:00:00Z"
-    },
-    {
-      "id": "act123457",
-      "userId": "u123456",
-      "type": "action",
-      "action": "user.update",
-      "details": {
-        "targetId": "u123457",
-        "targetType": "user",
-        "changes": {
-          "department": {
-            "from": "営業部",
-            "to": "マーケティング部"
-          }
-        }
-      },
-      "timestamp": "2024-05-04T10:15:00Z"
-    },
-    {
-      "id": "act123458",
-      "userId": "u123456",
-      "type": "logout",
-      "action": "logout.success",
-      "details": {
-        "ipAddress": "192.168.1.100",
-        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.4844.82 Safari/537.36"
-      },
-      "timestamp": "2024-05-04T17:30:00Z"
-    }
-  ],
-  "pagination": {
-    "total": 128,
-    "page": 1,
-    "limit": 20,
-    "pages": 7
-  }
-}</code></pre>
-
-        <h4>エラーレスポンス例</h4>
-        <pre><code>{
-  "status": "error",
-  "error": {
-    "code": "USER_NOT_FOUND",
-    "message": "指定されたユーザーが見つかりません",
-    "details": []
+  "data": {
+    "message": "アカウントロックが解除されました",
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "active"
   }
 }</code></pre>
 
         <h4>アクセス権限要件</h4>
-        <p>system.users.read または system.users.admin または system.admin 権限が必要です。</p>
+        <p>ADMIN ロールが必要です。</p>
     </div>
 
-    <h2>4. ユーザーステータスについて</h2>
+    <div class="endpoint">
+        <h3><span class="method put">PUT</span><span class="path">/api/v1/admin/users/bulk-status</span></h3>
+        <p><strong>説明：</strong> 複数ユーザーのステータスを一括で変更します。</p>
+
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "userIds": [
+    "550e8400-e29b-41d4-a716-446655440000",
+    "550e8401-e29b-41d4-a716-446655440001"
+  ],
+  "status": "inactive"  // active, inactive, locked のいずれか
+}</code></pre>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "data": {
+    "message": "2 件のユーザーステータスが更新されました",
+    "count": 2
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>ADMIN ロールが必要です。</p>
+    </div>
+
+    <div class="endpoint">
+        <h3><span class="method post">POST</span><span class="path">/api/v1/admin/users/bulk-unlock</span></h3>
+        <p><strong>説明：</strong> 複数ユーザーのアカウントロックを一括で解除します。</p>
+
+        <h4>リクエストボディ</h4>
+        <pre><code>{
+  "userIds": [
+    "550e8400-e29b-41d4-a716-446655440000",
+    "550e8401-e29b-41d4-a716-446655440001"
+  ]
+}</code></pre>
+
+        <h4>レスポンス例（成功時 - 200 OK）</h4>
+        <pre><code>{
+  "data": {
+    "message": "2 件のユーザーアカウントのロックが解除されました",
+    "count": 2
+  }
+}</code></pre>
+
+        <h4>アクセス権限要件</h4>
+        <p>ADMIN ロールが必要です。</p>
+    </div>
+
+    <h2>5. ユーザーステータスについて</h2>
     <p>ユーザーアカウントには以下の3つのステータスがあります：</p>
     <table>
         <tr>
@@ -775,13 +644,28 @@
         </tr>
     </table>
 
-    <h2>5. 改訂履歴</h2>
+    <h2>6. セキュリティ上の考慮事項</h2>
+    <ul>
+        <li>すべてのAPIは認証済みユーザーからのアクセスが必要です。</li>
+        <li>ユーザー管理APIはADMINロールを持つユーザーのみアクセス可能です。</li>
+        <li>パスワード関連の操作はすべて監査ログに記録されます。</li>
+        <li>ユーザー一覧取得APIでは、機密情報（パスワードハッシュ等）は含まれません。</li>
+        <li>パスワードリセット機能は、一時的なパスワードを生成し、初回ログイン時にパスワード変更を強制する仕組みを使用します。</li>
+    </ul>
+
+    <h2>7. 改訂履歴</h2>
     <table>
         <tr>
             <th>日付</th>
             <th>バージョン</th>
             <th>内容</th>
             <th>担当者</th>
+        </tr>
+        <tr>
+            <td>2025/05/06</td>
+            <td>1.1</td>
+            <td>API実装に合わせて仕様を更新</td>
+            <td>S.Ichimaru</td>
         </tr>
         <tr>
             <td>2025/05/04</td>
