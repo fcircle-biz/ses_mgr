@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SES業務システム - 請求一覧</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: 600;
+        }
+        .page-header {
+            margin-bottom: 20px;
+        }
+        .card {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+        }
+        .table th {
+            font-weight: 600;
+            background-color: #f8f9fa;
+        }
+        .avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #6c757d;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .action-button {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        /* カスタムスタイル */
+        .status-badge {
+            padding: 5px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        /* 請求ステータス */
+        .status-badge.draft {
+            background-color: #e9ecef;
+            color: #495057;
+        }
+        .status-badge.pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-badge.approved {
+            background-color: #cff4fc;
+            color: #055160;
+        }
+        .status-badge.billed {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .status-badge.cancelled {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .status-badge.discarded {
+            background-color: #6c757d;
+            color: #fff;
+        }
+        /* 入金ステータス */
+        .payment-status.unpaid {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .payment-status.partial {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .payment-status.paid {
+            background-color: #d1e7dd;
+            color: #0f5132;
+        }
+        .payment-status.delayed {
+            background-color: #dc3545;
+            color: #fff;
+        }
+        .payment-status.insufficient {
+            background-color: #f8d7da;
+            color: #842029;
+        }
+        .payment-status.excess {
+            background-color: #d0bfff;
+            color: #4b0082;
+        }
+        .invoice-checkbox {
+            width: 20px;
+            height: 20px;
+        }
+        .amount-text {
+            text-align: right;
+            font-family: 'Courier New', monospace;
+        }
+        .table-hover tbody tr:hover {
+            background-color: rgba(0, 123, 255, 0.05);
+        }
+        .invoice-select-all {
+            margin-right: 10px;
+        }
+        .btn-check-group {
+            display: flex;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+        <div class="container-fluid">
+            <a class="navbar-brand text-primary" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">ダッシュボード</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            案件管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">案件一覧</a></li>
+                            <li><a class="dropdown-item" href="#">新規案件登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            技術者管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">技術者一覧</a></li>
+                            <li><a class="dropdown-item" href="#">スキル管理</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">マッチング</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">契約管理</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            請求・支払管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item active" href="#">請求一覧</a></li>
+                            <li><a class="dropdown-item" href="#">請求書作成</a></li>
+                            <li><a class="dropdown-item" href="#">入金管理</a></li>
+                            <li><a class="dropdown-item" href="#">支払一覧</a></li>
+                            <li><a class="dropdown-item" href="#">支払登録</a></li>
+                        </ul>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="dropdown">
+                        <a href="#" class="d-flex align-items-center text-decoration-none dropdown-toggle" id="userDropdown" data-bs-toggle="dropdown">
+                            <div class="avatar me-2">KT</div>
+                            <span>経理 太郎</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#">設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">ログアウト</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- パンくずリスト -->
+    <div class="container-fluid py-2 bg-light border-bottom">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">請求・支払管理</a></li>
+                <li class="breadcrumb-item active" aria-current="page">請求一覧</li>
+            </ol>
+        </nav>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div class="container-fluid my-4">
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h4 mb-0">請求一覧</h2>
+            <div>
+                <button class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-printer me-1"></i>一括印刷
+                </button>
+                <button class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-file-earmark-pdf me-1"></i>一括ダウンロード
+                </button>
+                <button class="btn btn-outline-secondary me-2">
+                    <i class="bi bi-download me-1"></i>CSVエクスポート
+                </button>
+                <button class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i>新規請求書作成
+                </button>
+            </div>
+        </div>
+
+        <!-- 検索・フィルターパネル -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">検索条件</h5>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="keyword" class="form-label">キーワード</label>
+                            <input type="text" class="form-control" id="keyword" placeholder="請求番号、顧客名、案件名など">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="billing-month" class="form-label">請求年月</label>
+                            <input type="month" class="form-control" id="billing-month" value="2025-05">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="billing-status" class="form-label">請求ステータス</label>
+                            <select class="form-select" id="billing-status" multiple>
+                                <option selected>すべて</option>
+                                <option>作成中</option>
+                                <option>確認中</option>
+                                <option>承認済</option>
+                                <option>請求済</option>
+                                <option>キャンセル</option>
+                                <option>破棄</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="payment-status" class="form-label">入金ステータス</label>
+                            <select class="form-select" id="payment-status" multiple>
+                                <option selected>すべて</option>
+                                <option>未入金</option>
+                                <option>一部入金</option>
+                                <option>入金済</option>
+                                <option>遅延</option>
+                                <option>不足</option>
+                                <option>過剰</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="client" class="form-label">顧客</label>
+                            <select class="form-select" id="client">
+                                <option selected>すべて</option>
+                                <option>株式会社テクノソリューション</option>
+                                <option>ABCシステムズ株式会社</option>
+                                <option>NTSデジタル株式会社</option>
+                                <option>グローバルITソリューションズ</option>
+                                <option>株式会社フューチャーテック</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="billing-date-range" class="form-label">請求日範囲</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="billing-date-from">
+                                <span class="input-group-text">～</span>
+                                <input type="date" class="form-control" id="billing-date-to">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="due-date-range" class="form-label">支払期限日範囲</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="due-date-from">
+                                <span class="input-group-text">～</span>
+                                <input type="date" class="form-control" id="due-date-to">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="assignee" class="form-label">担当者</label>
+                            <select class="form-select" id="assignee">
+                                <option selected>すべて</option>
+                                <option>経理 太郎</option>
+                                <option>財務 花子</option>
+                                <option>営業 次郎</option>
+                            </select>
+                        </div>
+                        <div class="col-12 text-end">
+                            <button type="button" class="btn btn-outline-secondary me-2">クリア</button>
+                            <button type="submit" class="btn btn-primary">検索</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 一覧表示 -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <div class="btn-check-group">
+                        <div class="form-check">
+                            <input class="form-check-input invoice-select-all" type="checkbox" id="selectAllInvoices">
+                            <label class="form-check-label" for="selectAllInvoices">すべて選択</label>
+                        </div>
+                    </div>
+                    <h5 class="card-title mb-0">検索結果</h5>
+                </div>
+                <span class="text-muted">全27件中 1-10件を表示</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;"></th>
+                                <th>請求番号</th>
+                                <th>顧客名</th>
+                                <th>案件名</th>
+                                <th>請求年月</th>
+                                <th>請求日</th>
+                                <th>支払期限日</th>
+                                <th class="text-end">税抜金額</th>
+                                <th class="text-end">消費税</th>
+                                <th class="text-end">合計金額</th>
+                                <th>請求ステータス</th>
+                                <th>入金ステータス</th>
+                                <th>入金日</th>
+                                <th style="width: 120px;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input invoice-checkbox" type="checkbox" id="invoice1">
+                                </td>
+                                <td><a href="#">INV-2025-0001</a></td>
+                                <td>株式会社テクノソリューション</td>
+                                <td>ECサイト開発プロジェクト</td>
+                                <td>2025/05</td>
+                                <td>2025/05/01</td>
+                                <td>2025/05/31</td>
+                                <td class="amount-text">¥900,000</td>
+                                <td class="amount-text">¥90,000</td>
+                                <td class="amount-text">¥990,000</td>
+                                <td><span class="status-badge billed">請求済</span></td>
+                                <td><span class="status-badge payment-status unpaid">未入金</span></td>
+                                <td>-</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="入金登録">
+                                            <i class="bi bi-cash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input invoice-checkbox" type="checkbox" id="invoice2">
+                                </td>
+                                <td><a href="#">INV-2025-0002</a></td>
+                                <td>ABCシステムズ株式会社</td>
+                                <td>業務システム保守</td>
+                                <td>2025/05</td>
+                                <td>2025/05/01</td>
+                                <td>2025/05/31</td>
+                                <td class="amount-text">¥250,000</td>
+                                <td class="amount-text">¥25,000</td>
+                                <td class="amount-text">¥275,000</td>
+                                <td><span class="status-badge billed">請求済</span></td>
+                                <td><span class="status-badge payment-status paid">入金済</span></td>
+                                <td>2025/05/15</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="プレビュー">
+                                            <i class="bi bi-file-pdf"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="入金詳細">
+                                            <i class="bi bi-cash-coin"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input invoice-checkbox" type="checkbox" id="invoice3">
+                                </td>
+                                <td><a href="#">INV-2025-0003</a></td>
+                                <td>NTSデジタル株式会社</td>
+                                <td>AI分析システム開発</td>
+                                <td>2025/05</td>
+                                <td>2025/05/01</td>
+                                <td>2025/05/31</td>
+                                <td class="amount-text">¥1,200,000</td>
+                                <td class="amount-text">¥120,000</td>
+                                <td class="amount-text">¥1,320,000</td>
+                                <td><span class="status-badge approved">承認済</span></td>
+                                <td><span class="status-badge payment-status unpaid">未入金</span></td>
+                                <td>-</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="プレビュー">
+                                            <i class="bi bi-file-pdf"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input invoice-checkbox" type="checkbox" id="invoice4">
+                                </td>
+                                <td><a href="#">INV-2025-0004</a></td>
+                                <td>グローバルITソリューションズ</td>
+                                <td>クラウド移行支援</td>
+                                <td>2025/04</td>
+                                <td>2025/04/01</td>
+                                <td>2025/04/30</td>
+                                <td class="amount-text">¥800,000</td>
+                                <td class="amount-text">¥80,000</td>
+                                <td class="amount-text">¥880,000</td>
+                                <td><span class="status-badge billed">請求済</span></td>
+                                <td><span class="status-badge payment-status partial">一部入金</span></td>
+                                <td>2025/04/20</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="プレビュー">
+                                            <i class="bi bi-file-pdf"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="入金登録">
+                                            <i class="bi bi-cash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input invoice-checkbox" type="checkbox" id="invoice5">
+                                </td>
+                                <td><a href="#">INV-2025-0005</a></td>
+                                <td>株式会社フューチャーテック</td>
+                                <td>オンライン決済システム導入</td>
+                                <td>2025/05</td>
+                                <td>2025/05/01</td>
+                                <td>2025/05/31</td>
+                                <td class="amount-text">¥1,500,000</td>
+                                <td class="amount-text">¥150,000</td>
+                                <td class="amount-text">¥1,650,000</td>
+                                <td><span class="status-badge pending">確認中</span></td>
+                                <td><span class="status-badge payment-status unpaid">未入金</span></td>
+                                <td>-</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="プレビュー">
+                                            <i class="bi bi-file-pdf"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input invoice-checkbox" type="checkbox" id="invoice6">
+                                </td>
+                                <td><a href="#">INV-2025-0006</a></td>
+                                <td>株式会社テクノソリューション</td>
+                                <td>セキュリティ診断サービス</td>
+                                <td>2025/04</td>
+                                <td>2025/04/01</td>
+                                <td>2025/04/30</td>
+                                <td class="amount-text">¥350,000</td>
+                                <td class="amount-text">¥35,000</td>
+                                <td class="amount-text">¥385,000</td>
+                                <td><span class="status-badge billed">請求済</span></td>
+                                <td><span class="status-badge payment-status delayed">遅延</span></td>
+                                <td>-</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="プレビュー">
+                                            <i class="bi bi-file-pdf"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="入金登録">
+                                            <i class="bi bi-cash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input invoice-checkbox" type="checkbox" id="invoice7">
+                                </td>
+                                <td><a href="#">INV-2025-0007</a></td>
+                                <td>ABCシステムズ株式会社</td>
+                                <td>インフラ基盤構築</td>
+                                <td>2025/04</td>
+                                <td>2025/04/01</td>
+                                <td>2025/04/30</td>
+                                <td class="amount-text">¥1,800,000</td>
+                                <td class="amount-text">¥180,000</td>
+                                <td class="amount-text">¥1,980,000</td>
+                                <td><span class="status-badge billed">請求済</span></td>
+                                <td><span class="status-badge payment-status excess">過剰</span></td>
+                                <td>2025/04/25</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="プレビュー">
+                                            <i class="bi bi-file-pdf"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="入金詳細">
+                                            <i class="bi bi-cash-coin"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input invoice-checkbox" type="checkbox" id="invoice8">
+                                </td>
+                                <td><a href="#">INV-2025-0008</a></td>
+                                <td>NTSデジタル株式会社</td>
+                                <td>BI導入コンサルティング</td>
+                                <td>2025/04</td>
+                                <td>2025/04/01</td>
+                                <td>2025/04/30</td>
+                                <td class="amount-text">¥650,000</td>
+                                <td class="amount-text">¥65,000</td>
+                                <td class="amount-text">¥715,000</td>
+                                <td><span class="status-badge cancelled">キャンセル</span></td>
+                                <td><span class="status-badge payment-status unpaid">未入金</span></td>
+                                <td>-</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="プレビュー">
+                                            <i class="bi bi-file-pdf"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input invoice-checkbox" type="checkbox" id="invoice9">
+                                </td>
+                                <td><a href="#">INV-2025-0009</a></td>
+                                <td>株式会社フューチャーテック</td>
+                                <td>モバイルアプリ開発</td>
+                                <td>2025/05</td>
+                                <td>2025/05/01</td>
+                                <td>2025/05/31</td>
+                                <td class="amount-text">¥980,000</td>
+                                <td class="amount-text">¥98,000</td>
+                                <td class="amount-text">¥1,078,000</td>
+                                <td><span class="status-badge draft">作成中</span></td>
+                                <td><span class="status-badge payment-status unpaid">未入金</span></td>
+                                <td>-</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="編集">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="プレビュー">
+                                            <i class="bi bi-file-pdf"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <input class="form-check-input invoice-checkbox" type="checkbox" id="invoice10">
+                                </td>
+                                <td><a href="#">INV-2025-0010</a></td>
+                                <td>グローバルITソリューションズ</td>
+                                <td>Web APIサービス開発</td>
+                                <td>2025/04</td>
+                                <td>2025/04/01</td>
+                                <td>2025/04/30</td>
+                                <td class="amount-text">¥780,000</td>
+                                <td class="amount-text">¥78,000</td>
+                                <td class="amount-text">¥858,000</td>
+                                <td><span class="status-badge billed">請求済</span></td>
+                                <td><span class="status-badge payment-status insufficient">不足</span></td>
+                                <td>2025/04/28</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="詳細">
+                                            <i class="bi bi-eye"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="プレビュー">
+                                            <i class="bi bi-file-pdf"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-secondary action-button" title="入金登録">
+                                            <i class="bi bi-cash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between align-items-center">
+                <div class="text-muted">全27件中 1-10件を表示</div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination mb-0">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS と依存関係のある JavaScript ライブラリ -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+    
+    <!-- カスタムJavaScript -->
+    <script>
+        // 初期化処理とイベントリスナー
+        document.addEventListener('DOMContentLoaded', function() {
+            // 検索条件クリアボタンの処理
+            document.querySelector('button[type="button"].btn-outline-secondary').addEventListener('click', function() {
+                const form = document.querySelector('form');
+                form.reset();
+            });
+            
+            // 検索ボタンクリック時の処理
+            document.querySelector('button[type="submit"]').addEventListener('click', function(e) {
+                e.preventDefault();
+                // 実際の実装では、ここでAPIリクエストを行いデータを取得
+                console.log('検索条件を適用しました');
+            });
+            
+            // すべて選択チェックボックスの処理
+            const selectAllCheckbox = document.getElementById('selectAllInvoices');
+            const invoiceCheckboxes = document.querySelectorAll('.invoice-checkbox');
+            
+            selectAllCheckbox.addEventListener('change', function() {
+                invoiceCheckboxes.forEach(checkbox => {
+                    checkbox.checked = selectAllCheckbox.checked;
+                });
+            });
+            
+            // 個別チェックボックスの変更を監視して「すべて選択」の状態を更新
+            invoiceCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    updateSelectAllState();
+                });
+            });
+            
+            function updateSelectAllState() {
+                const checkedCount = document.querySelectorAll('.invoice-checkbox:checked').length;
+                selectAllCheckbox.checked = checkedCount === invoiceCheckboxes.length;
+                selectAllCheckbox.indeterminate = checkedCount > 0 && checkedCount < invoiceCheckboxes.length;
+            }
+            
+            // アクションボタンのイベント
+            document.querySelectorAll('.action-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const action = this.getAttribute('title');
+                    const row = this.closest('tr');
+                    const invoiceNumber = row.querySelector('td:nth-child(2) a').textContent;
+                    console.log(`${action} action for invoice ${invoiceNumber}`);
+                    
+                    // アクションに応じた処理を実装
+                    switch(action) {
+                        case '詳細':
+                            // 詳細画面へ遷移
+                            console.log('詳細画面へ遷移');
+                            break;
+                        case '編集':
+                            // 編集モードで開く
+                            console.log('編集モードで開く');
+                            break;
+                        case 'プレビュー':
+                            // PDF表示
+                            console.log('PDF表示');
+                            break;
+                        case '入金登録':
+                            // 入金登録モーダル表示
+                            console.log('入金登録モーダル表示');
+                            break;
+                        case '入金詳細':
+                            // 入金詳細画面へ遷移
+                            console.log('入金詳細画面へ遷移');
+                            break;
+                    }
+                });
+            });
+            
+            // 一括操作ボタンのイベント
+            document.querySelectorAll('.page-header button').forEach(button => {
+                button.addEventListener('click', function() {
+                    // 選択されている請求書を取得
+                    const selectedInvoices = [];
+                    document.querySelectorAll('.invoice-checkbox:checked').forEach(checkbox => {
+                        const row = checkbox.closest('tr');
+                        const invoiceNumber = row.querySelector('td:nth-child(2) a').textContent;
+                        selectedInvoices.push(invoiceNumber);
+                    });
+                    
+                    if (selectedInvoices.length === 0 && !this.classList.contains('btn-primary')) {
+                        alert('操作を行う請求書を選択してください。');
+                        return;
+                    }
+                    
+                    const buttonText = this.textContent.trim();
+                    if (buttonText.includes('新規請求書作成')) {
+                        console.log('新規請求書作成画面へ遷移');
+                    } else if (buttonText.includes('一括印刷')) {
+                        console.log(`選択された請求書を一括印刷: ${selectedInvoices.join(', ')}`);
+                    } else if (buttonText.includes('一括ダウンロード')) {
+                        console.log(`選択された請求書をダウンロード: ${selectedInvoices.join(', ')}`);
+                    } else if (buttonText.includes('CSVエクスポート')) {
+                        console.log('現在の検索結果をCSVでエクスポート');
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
