@@ -1,0 +1,556 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 認証API
+  description: |
+    SES業務システムの認証関連APIです。
+    ユーザーのログイン・ログアウト、パスワード管理、プロフィール管理などの機能を提供します。
+  version: 1.0.0
+
+tags:
+  - name: auth
+    description: 認証関連のAPI
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: ユーザーログイン
+      description: |
+        ユーザーのログイン認証を行い、認証トークンを発行します。
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                  description: ユーザーのメールアドレス
+                password:
+                  type: string
+                  format: password
+                  example: password123
+                  description: ユーザーのパスワード
+                remember_me:
+                  type: boolean
+                  default: false
+                  description: true の場合、リフレッシュトークンの有効期間を延長
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: ログイン成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      access_token:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                        description: JWTアクセストークン
+                      refresh_token:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                        description: JWTリフレッシュトークン
+                      token_type:
+                        type: string
+                        example: Bearer
+                      expires_in:
+                        type: integer
+                        example: 1800
+                        description: アクセストークンの有効期限（秒）
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: uuid
+                            example: 550e8400-e29b-41d4-a716-446655440000
+                          email:
+                            type: string
+                            format: email
+                            example: user@example.com
+                          name:
+                            type: string
+                            example: 山田 太郎
+                          role:
+                            type: string
+                            example: manager
+        '401':
+          description: 認証失敗
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: INVALID_CREDENTIALS
+                      message:
+                        type: string
+                        example: メールアドレスまたはパスワードが正しくありません。
+
+  /auth/logout:
+    post:
+      tags:
+        - auth
+      summary: ユーザーログアウト
+      description: |
+        現在のセッションをログアウトし、発行されたトークンを無効化します。
+      operationId: logout
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: ログアウト成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: ログアウトが完了しました。
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/refresh-token:
+    post:
+      tags:
+        - auth
+      summary: アクセストークンの更新
+      description: |
+        有効期限切れのアクセストークンを、リフレッシュトークンを使用して再発行します。
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+                  example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                  description: 以前のログイン時に発行されたリフレッシュトークン
+              required:
+                - refresh_token
+      responses:
+        '200':
+          description: トークン更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      access_token:
+                        type: string
+                        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                      token_type:
+                        type: string
+                        example: Bearer
+                      expires_in:
+                        type: integer
+                        example: 1800
+        '401':
+          description: 無効なリフレッシュトークン
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: INVALID_REFRESH_TOKEN
+                      message:
+                        type: string
+                        example: リフレッシュトークンが無効または期限切れです。
+
+  /auth/profile:
+    get:
+      tags:
+        - auth
+      summary: ユーザープロフィール取得
+      description: |
+        ログインユーザーの詳細プロフィール情報を取得します。
+      operationId: getProfile
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: プロフィール取得成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: 550e8400-e29b-41d4-a716-446655440000
+                      email:
+                        type: string
+                        format: email
+                        example: user@example.com
+                      name:
+                        type: string
+                        example: 山田 太郎
+                      department:
+                        type: string
+                        example: 営業部
+                      position:
+                        type: string
+                        example: マネージャー
+                      phone:
+                        type: string
+                        example: 03-1234-5678
+                      role:
+                        type: string
+                        example: manager
+                      last_login_at:
+                        type: string
+                        format: date-time
+                        example: 2023-05-01T09:00:00.000Z
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: 2023-01-15T10:30:00.000Z
+                      updated_at:
+                        type: string
+                        format: date-time
+                        example: 2023-04-20T14:45:00.000Z
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+    put:
+      tags:
+        - auth
+      summary: ユーザープロフィール更新
+      description: |
+        ログインユーザーのプロフィール情報を更新します。
+      operationId: updateProfile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: 山田 太郎
+                department:
+                  type: string
+                  example: 営業部
+                position:
+                  type: string
+                  example: マネージャー
+                phone:
+                  type: string
+                  example: 03-1234-5678
+      responses:
+        '200':
+          description: プロフィール更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: 550e8400-e29b-41d4-a716-446655440000
+                      email:
+                        type: string
+                        format: email
+                        example: user@example.com
+                      name:
+                        type: string
+                        example: 山田 太郎
+                      department:
+                        type: string
+                        example: 営業部
+                      position:
+                        type: string
+                        example: マネージャー
+                      phone:
+                        type: string
+                        example: 03-1234-5678
+                      role:
+                        type: string
+                        example: manager
+                      last_login_at:
+                        type: string
+                        format: date-time
+                        example: 2023-05-01T09:00:00.000Z
+                      created_at:
+                        type: string
+                        format: date-time
+                        example: 2023-01-15T10:30:00.000Z
+                      updated_at:
+                        type: string
+                        format: date-time
+                        example: 2023-05-01T10:15:00.000Z
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/password:
+    put:
+      tags:
+        - auth
+      summary: パスワード変更
+      description: |
+        ログインユーザーのパスワードを変更します。
+      operationId: changePassword
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                current_password:
+                  type: string
+                  format: password
+                  example: oldpassword123
+                  description: 現在のパスワード
+                new_password:
+                  type: string
+                  format: password
+                  example: newpassword456
+                  description: 新しいパスワード（8文字以上、英数字混在）
+                new_password_confirmation:
+                  type: string
+                  format: password
+                  example: newpassword456
+                  description: 新しいパスワード（確認用）
+              required:
+                - current_password
+                - new_password
+                - new_password_confirmation
+      responses:
+        '200':
+          description: パスワード変更成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: パスワードが正常に変更されました。
+        '400':
+          description: パスワード変更エラー
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      error:
+                        type: object
+                        properties:
+                          code:
+                            type: string
+                            example: INVALID_CURRENT_PASSWORD
+                          message:
+                            type: string
+                            example: 現在のパスワードが正しくありません。
+                  - $ref: '#/components/schemas/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+
+  /auth/password/reset-request:
+    post:
+      tags:
+        - auth
+      summary: パスワードリセット要求
+      description: |
+        パスワードリセットのリクエストを送信し、リセット用のメールを送信します。
+      operationId: requestPasswordReset
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                  description: パスワードをリセットするアカウントのメールアドレス
+              required:
+                - email
+      responses:
+        '200':
+          description: パスワードリセット要求成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: パスワードリセット用のメールを送信しました。メールに記載されている手順に従ってください。
+
+  /auth/password/reset:
+    post:
+      tags:
+        - auth
+      summary: パスワードリセット実行
+      description: |
+        パスワードリセットトークンを使用して、新しいパスワードを設定します。
+      operationId: resetPassword
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  example: abcdef123456
+                  description: パスワードリセットメールに記載されたトークン
+                email:
+                  type: string
+                  format: email
+                  example: user@example.com
+                  description: アカウントのメールアドレス
+                password:
+                  type: string
+                  format: password
+                  example: newpassword456
+                  description: 新しいパスワード（8文字以上、英数字混在）
+                password_confirmation:
+                  type: string
+                  format: password
+                  example: newpassword456
+                  description: 新しいパスワード（確認用）
+              required:
+                - token
+                - email
+                - password
+                - password_confirmation
+      responses:
+        '200':
+          description: パスワードリセット成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: パスワードが正常にリセットされました。新しいパスワードでログインしてください。
+        '400':
+          description: パスワードリセットエラー
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      error:
+                        type: object
+                        properties:
+                          code:
+                            type: string
+                            example: INVALID_RESET_TOKEN
+                          message:
+                            type: string
+                            example: パスワードリセットトークンが無効または期限切れです。
+                  - $ref: '#/components/schemas/ValidationError'
+
+components:
+  responses:
+    UnauthorizedError:
+      description: 認証エラー
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: UNAUTHORIZED
+                  message:
+                    type: string
+                    example: 認証が必要です。
+
+  schemas:
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: 入力データにエラーがあります。
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT形式のアクセストークンを使用した認証

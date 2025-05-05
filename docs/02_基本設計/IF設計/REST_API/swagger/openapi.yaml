@@ -1,0 +1,178 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム API
+  description: |
+    SES業務システムのREST API仕様書です。
+    このAPIは、案件管理、技術者管理、マッチング、契約管理、勤怠・工数管理、請求・支払管理、レポーティング等の機能を提供します。
+  version: 1.0.0
+  contact:
+    name: SES業務システム開発チーム
+    email: dev-team@example.com
+
+servers:
+  - url: https://api.example.com/api/v1
+    description: 本番環境
+  - url: https://staging-api.example.com/api/v1
+    description: ステージング環境
+  - url: https://dev-api.example.com/api/v1
+    description: 開発環境
+
+tags:
+  - name: auth
+    description: 認証関連のAPI
+  - name: projects
+    description: 案件管理API
+  - name: engineers
+    description: 技術者管理API
+  - name: matching
+    description: マッチング機能API
+  - name: contracts
+    description: 契約管理API
+  - name: timesheet
+    description: 勤怠・工数管理API
+  - name: billing
+    description: 請求・支払管理API
+  - name: reports
+    description: レポーティングAPI
+  - name: admin
+    description: システム管理API
+
+# 共通で使用するコンポーネント定義
+components:
+  # 共通セキュリティスキーム
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT形式のアクセストークンを使用した認証
+
+  # 共通レスポンス定義
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: エラーコード
+            message:
+              type: string
+              description: エラーメッセージ
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                    description: エラーが発生したフィールド名
+                  message:
+                    type: string
+                    description: 詳細なエラーメッセージ
+      required:
+        - error
+
+    ValidationError:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: VALIDATION_ERROR
+            message:
+              type: string
+              example: 入力データにエラーがあります。
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+      required:
+        - error
+
+    UnauthorizedError:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: UNAUTHORIZED
+            message:
+              type: string
+              example: 認証が必要です。
+      required:
+        - error
+
+    ForbiddenError:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: FORBIDDEN
+            message:
+              type: string
+              example: このリソースにアクセスする権限がありません。
+      required:
+        - error
+
+    NotFoundError:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              example: NOT_FOUND
+            message:
+              type: string
+              example: リソースが見つかりません。
+      required:
+        - error
+
+  # 共通レスポンス
+  responses:
+    UnauthorizedError:
+      description: 認証エラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/UnauthorizedError'
+
+    ForbiddenError:
+      description: 権限エラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ForbiddenError'
+
+    ValidationError:
+      description: バリデーションエラー
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+
+    NotFoundError:
+      description: リソースが見つからない
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/NotFoundError'
+
+# パスは個別のファイルで定義
+paths: {}

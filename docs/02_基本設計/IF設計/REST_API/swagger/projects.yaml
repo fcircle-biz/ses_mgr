@@ -1,0 +1,806 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 案件管理API
+  description: |
+    SES業務システムの案件管理API仕様書です。
+    案件の基本情報管理、検索、ステータス管理、関連情報管理などの機能を提供します。
+  version: 1.0.0
+
+tags:
+  - name: projects
+    description: 案件管理API
+
+paths:
+  /projects:
+    get:
+      tags:
+        - projects
+      summary: 案件一覧の取得
+      description: |
+        登録されている案件の一覧を取得します。ページネーション、ソート、フィルタリングに対応しています。
+      operationId: getProjects
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          description: ページ番号
+          required: false
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: per_page
+          in: query
+          description: 1ページあたりの件数
+          required: false
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: sort
+          in: query
+          description: ソート条件（例：created_at:desc,name:asc）
+          required: false
+          schema:
+            type: string
+            default: created_at:desc
+        - name: status
+          in: query
+          description: 案件ステータス（複数指定可）
+          required: false
+          schema:
+            type: string
+            example: open,in_progress
+        - name: client_id
+          in: query
+          description: 顧客ID
+          required: false
+          schema:
+            type: string
+        - name: min_price
+          in: query
+          description: 最低単価
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+        - name: max_price
+          in: query
+          description: 最高単価
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+        - name: start_date_from
+          in: query
+          description: 開始日の下限
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: start_date_to
+          in: query
+          description: 開始日の上限
+          required: false
+          schema:
+            type: string
+            format: date
+        - name: skill_ids
+          in: query
+          description: 必要スキルID（複数可）
+          required: false
+          schema:
+            type: string
+            example: skill-123,skill-456
+      responses:
+        '200':
+          description: 案件一覧取得成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Project'
+                  meta:
+                    type: object
+                    properties:
+                      pagination:
+                        type: object
+                        properties:
+                          total_count:
+                            type: integer
+                            description: 全体の件数
+                            example: 47
+                          total_pages:
+                            type: integer
+                            description: 全体のページ数
+                            example: 3
+                          current_page:
+                            type: integer
+                            description: 現在のページ番号
+                            example: 1
+                          per_page:
+                            type: integer
+                            description: 1ページあたりの件数
+                            example: 20
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+    post:
+      tags:
+        - projects
+      summary: 新規案件の登録
+      description: |
+        新しい案件情報を登録します。
+      operationId: createProject
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectInput'
+      responses:
+        '201':
+          description: 案件作成成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ProjectDetail'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+
+  /projects/{id}:
+    get:
+      tags:
+        - projects
+      summary: 案件詳細の取得
+      description: |
+        指定されたIDの案件の詳細情報を取得します。
+      operationId: getProjectById
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: 案件ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 案件詳細取得成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/ProjectDetail'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+          
+    put:
+      tags:
+        - projects
+      summary: 案件情報の全体更新
+      description: |
+        指定されたIDの案件情報を全体的に更新します。更新時には全ての必須フィールドを含める必要があります。
+      operationId: updateProject
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: 案件ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectInput'
+      responses:
+        '200':
+          description: 案件更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+          
+    patch:
+      tags:
+        - projects
+      summary: 案件情報の部分更新
+      description: |
+        指定されたIDの案件情報を部分的に更新します。更新したいフィールドのみを含めることができます。
+      operationId: patchProject
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: 案件ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProjectPatch'
+      responses:
+        '200':
+          description: 案件部分更新成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Project'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+          
+    delete:
+      tags:
+        - projects
+      summary: 案件の削除
+      description: |
+        指定されたIDの案件を削除します。論理削除または物理削除を行います。
+      operationId: deleteProject
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: 案件ID
+          required: true
+          schema:
+            type: string
+        - name: permanent
+          in: query
+          description: 物理削除を行うかどうか
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '204':
+          description: 案件削除成功
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '422':
+          description: ビジネスルールエラー
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: object
+                    properties:
+                      code:
+                        type: string
+                        example: BUSINESS_RULE_VIOLATION
+                      message:
+                        type: string
+                        example: 進行中の案件は削除できません。
+                      details:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            field:
+                              type: string
+                            message:
+                              type: string
+
+components:
+  schemas:
+    Project:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 案件ID（システム生成）
+          example: proj-001
+        name:
+          type: string
+          description: 案件名
+          example: 次世代ECサイト開発プロジェクト
+        client:
+          type: object
+          properties:
+            id:
+              type: string
+              description: 顧客ID
+              example: client-123
+            name:
+              type: string
+              description: 顧客名
+              example: 株式会社テックリテール
+        status:
+          type: string
+          description: 案件ステータス
+          enum: [draft, open, in_progress, on_hold, completed, cancelled]
+          example: open
+        description:
+          type: string
+          description: 案件詳細説明
+          example: ECサイトのフルリニューアルプロジェクト。既存システムからの移行を含む。
+        start_date:
+          type: string
+          format: date
+          description: 開始予定日
+          example: 2025-07-01
+        end_date:
+          type: string
+          format: date
+          description: 終了予定日
+          example: 2026-03-31
+        location:
+          type: string
+          description: 就業場所
+          example: 東京都渋谷区
+        work_style:
+          type: string
+          description: 勤務形態
+          enum: [onsite, remote, hybrid]
+          example: hybrid
+        price_range:
+          type: object
+          properties:
+            min:
+              type: integer
+              description: 最低単価
+              example: 750000
+            max:
+              type: integer
+              description: 最高単価
+              example: 850000
+            currency:
+              type: string
+              description: 通貨コード
+              default: JPY
+              example: JPY
+        required_person_count:
+          type: integer
+          description: 必要人数
+          example: 3
+        filled_count:
+          type: integer
+          description: 配置済み人数
+          example: 1
+        manager:
+          type: object
+          properties:
+            id:
+              type: string
+              description: 担当者ID
+              example: user-301
+            name:
+              type: string
+              description: 担当者名
+              example: 鈴木一郎
+        department:
+          type: object
+          properties:
+            id:
+              type: string
+              description: 部署ID
+              example: dept-101
+            name:
+              type: string
+              description: 部署名
+              example: デジタルソリューション部
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+          example: 2025-05-01T10:30:00+09:00
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+          example: 2025-05-01T10:30:00+09:00
+
+    ProjectDetail:
+      allOf:
+        - $ref: '#/components/schemas/Project'
+        - type: object
+          properties:
+            requirements:
+              type: array
+              description: 案件要件
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: 要件ID
+                    example: req-101
+                  title:
+                    type: string
+                    description: 要件タイトル
+                    example: フロントエンド開発
+                  description:
+                    type: string
+                    description: 要件詳細
+                    example: ReactベースのSPAフロントエンド開発
+                  priority:
+                    type: string
+                    description: 優先度
+                    enum: [high, medium, low]
+                    example: high
+            required_skills:
+              type: array
+              description: 必要スキル
+              items:
+                type: object
+                properties:
+                  skill:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: スキルID
+                        example: skill-201
+                      name:
+                        type: string
+                        description: スキル名
+                        example: React
+                  level:
+                    type: string
+                    description: スキルレベル
+                    enum: [beginner, intermediate, expert]
+                    example: expert
+                  is_required:
+                    type: boolean
+                    description: 必須スキルフラグ
+                    example: true
+            attachments:
+              type: array
+              description: 添付ファイル
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: 添付ファイルID
+                    example: attach-101
+                  name:
+                    type: string
+                    description: ファイル名
+                    example: 案件概要書.pdf
+                  size:
+                    type: integer
+                    description: ファイルサイズ（バイト）
+                    example: 2459648
+                  content_type:
+                    type: string
+                    description: ファイル形式
+                    example: application/pdf
+                  url:
+                    type: string
+                    description: ファイルURL
+                    example: /api/v1/projects/proj-001/attachments/attach-101
+                  uploaded_at:
+                    type: string
+                    format: date-time
+                    description: アップロード日時
+                    example: 2025-05-01T10:35:00+09:00
+            activity_history:
+              type: array
+              description: 活動履歴
+              items:
+                type: object
+                properties:
+                  action:
+                    type: string
+                    description: アクション種別
+                    example: status_changed
+                  from:
+                    type: string
+                    description: 変更前の値
+                    example: draft
+                  to:
+                    type: string
+                    description: 変更後の値
+                    example: open
+                  actor:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: 実行者ID
+                        example: user-301
+                      name:
+                        type: string
+                        description: 実行者名
+                        example: 鈴木一郎
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: 実行日時
+                    example: 2025-05-03T15:45:00+09:00
+                  comment:
+                    type: string
+                    description: コメント
+                    example: 要件確定のため公開ステータスに変更
+
+    ProjectInput:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 案件名
+          example: 金融機関向けセキュリティ強化プロジェクト
+        client_id:
+          type: string
+          description: 顧客ID
+          example: client-789
+        description:
+          type: string
+          description: 案件詳細説明
+          example: インターネットバンキングシステムのセキュリティ強化プロジェクト。脆弱性診断と対策実装を行う。
+        start_date:
+          type: string
+          format: date
+          description: 開始予定日
+          example: 2025-09-01
+        end_date:
+          type: string
+          format: date
+          description: 終了予定日
+          example: 2026-02-28
+        location:
+          type: string
+          description: 就業場所
+          example: 東京都港区
+        work_style:
+          type: string
+          description: 勤務形態
+          enum: [onsite, remote, hybrid]
+          example: remote
+        price_range:
+          type: object
+          properties:
+            min:
+              type: integer
+              description: 最低単価
+              example: 800000
+            max:
+              type: integer
+              description: 最高単価
+              example: 900000
+            currency:
+              type: string
+              description: 通貨コード
+              default: JPY
+              example: JPY
+        required_person_count:
+          type: integer
+          description: 必要人数
+          example: 2
+        requirements:
+          type: array
+          description: 案件要件
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+                description: 要件タイトル
+                example: セキュリティ診断
+              description:
+                type: string
+                description: 要件詳細
+                example: 既存システムの脆弱性診断を実施し、レポートを作成する
+              priority:
+                type: string
+                description: 優先度
+                enum: [high, medium, low]
+                example: high
+        required_skills:
+          type: array
+          description: 必要スキル
+          items:
+            type: object
+            properties:
+              skill_id:
+                type: string
+                description: スキルID
+                example: skill-123
+              level:
+                type: string
+                description: スキルレベル
+                enum: [beginner, intermediate, expert]
+                example: expert
+              is_required:
+                type: boolean
+                description: 必須スキルフラグ
+                example: true
+        manager_id:
+          type: string
+          description: 担当者ID
+          example: user-123
+        department_id:
+          type: string
+          description: 部署ID
+          example: dept-456
+      required:
+        - name
+        - client_id
+        - start_date
+        - end_date
+        - price_range
+        - required_person_count
+
+    ProjectPatch:
+      type: object
+      properties:
+        name:
+          type: string
+          description: 案件名
+        client_id:
+          type: string
+          description: 顧客ID
+        description:
+          type: string
+          description: 案件詳細説明
+        start_date:
+          type: string
+          format: date
+          description: 開始予定日
+        end_date:
+          type: string
+          format: date
+          description: 終了予定日
+        location:
+          type: string
+          description: 就業場所
+        work_style:
+          type: string
+          description: 勤務形態
+          enum: [onsite, remote, hybrid]
+        price_range:
+          type: object
+          properties:
+            min:
+              type: integer
+              description: 最低単価
+            max:
+              type: integer
+              description: 最高単価
+            currency:
+              type: string
+              description: 通貨コード
+        required_person_count:
+          type: integer
+          description: 必要人数
+        manager_id:
+          type: string
+          description: 担当者ID
+        department_id:
+          type: string
+          description: 部署ID
+
+  responses:
+    ValidationError:
+      description: バリデーションエラー
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: VALIDATION_ERROR
+                  message:
+                    type: string
+                    example: 入力内容に誤りがあります。
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                          example: name
+                        message:
+                          type: string
+                          example: 案件名は必須です。
+
+    NotFoundError:
+      description: リソースが見つからない
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: RESOURCE_NOT_FOUND
+                  message:
+                    type: string
+                    example: 指定された案件が見つかりません。
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        message:
+                          type: string
+
+    ForbiddenError:
+      description: 権限エラー
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: object
+                properties:
+                  code:
+                    type: string
+                    example: FORBIDDEN
+                  message:
+                    type: string
+                    example: 案件一覧の閲覧権限がありません。
+                  details:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        field:
+                          type: string
+                        message:
+                          type: string
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT形式のアクセストークンを使用した認証

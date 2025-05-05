@@ -1,0 +1,68 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム API
+  description: |
+    SES業務システムのREST API仕様書です。
+    このファイルは、各機能領域のAPI仕様を統合したものです。
+  version: 1.0.0
+
+# 共通の定義をインポート
+servers:
+  - url: https://api.example.com/api/v1
+    description: 本番環境
+  - url: https://staging-api.example.com/api/v1
+    description: ステージング環境
+  - url: https://dev-api.example.com/api/v1
+    description: 開発環境
+
+# 各API定義ファイルへの参照
+paths:
+  # 認証API
+  /auth/login:
+    $ref: './auth.yaml#/paths/~1auth~1login'
+  /auth/logout:
+    $ref: './auth.yaml#/paths/~1auth~1logout'
+  /auth/refresh-token:
+    $ref: './auth.yaml#/paths/~1auth~1refresh-token'
+  /auth/profile:
+    $ref: './auth.yaml#/paths/~1auth~1profile'
+  /auth/password:
+    $ref: './auth.yaml#/paths/~1auth~1password'
+  /auth/password/reset-request:
+    $ref: './auth.yaml#/paths/~1auth~1password~1reset-request'
+  /auth/password/reset:
+    $ref: './auth.yaml#/paths/~1auth~1password~1reset'
+
+  # 案件管理API
+  /projects:
+    $ref: './projects.yaml#/paths/~1projects'
+  /projects/{id}:
+    $ref: './projects.yaml#/paths/~1projects~1{id}'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT形式のアクセストークンを使用した認証
+
+tags:
+  - name: auth
+    description: 認証関連のAPI
+  - name: projects
+    description: 案件管理API
+  - name: engineers
+    description: 技術者管理API
+  - name: matching
+    description: マッチング機能API
+  - name: contracts
+    description: 契約管理API
+  - name: timesheet
+    description: 勤怠・工数管理API
+  - name: billing
+    description: 請求・支払管理API
+  - name: reports
+    description: レポーティングAPI
+  - name: admin
+    description: システム管理API
