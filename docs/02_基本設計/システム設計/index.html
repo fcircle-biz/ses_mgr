@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>目次 - SES業務システム システム設計書</title>
+    <title>システム設計書 - SES業務システム</title>
     <style>
         body {
             font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
@@ -32,6 +32,14 @@
             background-color: #f8f9fa;
             padding: 8px 12px;
         }
+        h3 {
+            font-size: 20px;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 5px;
+        }
+        h4 {
+            font-size: 18px;
+        }
         table {
             border-collapse: collapse;
             width: 100%;
@@ -49,6 +57,18 @@
         tr:nth-child(even) {
             background-color: #f8f9fa;
         }
+        pre, code {
+            background-color: #f6f8fa;
+            border-radius: 3px;
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+            font-size: 14px;
+            padding: 2px 4px;
+        }
+        pre {
+            padding: 10px;
+            overflow: auto;
+            line-height: 1.45;
+        }
         a {
             color: #3498db;
             text-decoration: none;
@@ -56,11 +76,51 @@
         a:hover {
             text-decoration: underline;
         }
+        .cover {
+            text-align: center;
+            margin: 50px 0;
+        }
+        .cover h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+            border: none;
+        }
+        .cover p {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .cover .version {
+            margin-top: 50px;
+        }
+        .update-history {
+            margin-bottom: 40px;
+        }
+        .toc {
+            margin: 30px 0;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
         .toc ol {
+            margin-left: 0;
             padding-left: 20px;
         }
         .toc li {
             margin: 8px 0;
+        }
+        .navigation {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .navigation a {
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background-color: white;
         }
         footer {
             margin-top: 50px;
@@ -70,13 +130,58 @@
             color: #777;
             font-size: 14px;
         }
+        .section-container {
+            margin-bottom: 40px;
+            padding: 20px;
+            border: 1px solid #e5e5e5;
+            border-radius: 5px;
+            background-color: #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .section-title {
+            font-size: 22px;
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #3498db;
+        }
+        .section-summary {
+            margin-bottom: 15px;
+            font-style: italic;
+            color: #555;
+        }
+        .section-link {
+            text-align: right;
+            margin-top: 10px;
+        }
+        .pdf-button {
+            display: inline-block;
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            margin-top: 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .pdf-button:hover {
+            background-color: #2980b9;
+            text-decoration: none;
+        }
     </style>
 </head>
 <body>
-    <h1>システム設計書 - SES業務システム</h1>
+    <div class="cover">
+        <h1>システム設計書</h1>
+        <p>SES業務システム</p>
+        <p class="version">バージョン 1.0.0</p>
+        <p>2025年5月5日</p>
+    </div>
 
     <h2>変更履歴</h2>
-    <table>
+    <table class="update-history">
         <tr>
             <th>版数</th>
             <th>日付</th>
@@ -85,35 +190,175 @@
         </tr>
         <tr>
             <td>1.0.0</td>
-            <td>2025/05/04</td>
+            <td>2025/05/05</td>
             <td>初版作成</td>
             <td>設計担当者</td>
         </tr>
     </table>
 
-    <h2>目次</h2>
-    <div class="toc">
-        <ol>
-            <li><a href="01_はじめに.html">はじめに</a></li>
-            <li><a href="02_システム概要.html">システム概要</a></li>
-            <li><a href="03_システムアーキテクチャ.html">システムアーキテクチャ</a></li>
-            <li><a href="04_デプロイメント設計.html">デプロイメント設計</a></li>
-            <li><a href="05_セキュリティ設計.html">セキュリティ設計</a></li>
-            <li><a href="06_性能設計.html">性能設計</a></li>
-            <li><a href="07_可用性設計.html">可用性設計</a></li>
-            <li><a href="08_バックアップ設計.html">バックアップ設計</a></li>
-            <li><a href="09_バッチ処理設計.html">バッチ処理設計</a></li>
-            <li><a href="10_インターフェース設計.html">インターフェース設計</a></li>
-            <li><a href="11_エラー処理設計.html">エラー処理設計</a></li>
-            <li><a href="12_ログ設計.html">ログ設計</a></li>
-            <li><a href="13_監視設計.html">監視設計</a></li>
-            <li><a href="14_移行設計.html">移行設計</a></li>
-            <li><a href="15_付録.html">付録</a></li>
-        </ol>
+    <div class="navigation">
+        <a href="/Users/s-ichimaru/git/ses_mgr/docs/02_基本設計/index.html">基本設計トップへ戻る</a>
+    </div>
+
+    <h2>ドキュメント構成</h2>
+    <p>本システム設計書は、以下のセクションから構成されています。各セクションの詳細な内容は、リンク先のページを参照してください。</p>
+
+    <div class="section-container">
+        <h3 class="section-title">1. はじめに</h3>
+        <div class="section-summary">
+            <p>本書の目的、対象読者、関連ドキュメントについて説明します。</p>
+        </div>
+        <div class="section-link">
+            <a href="01_はじめに.html">詳細を見る</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h3 class="section-title">2. システム概要</h3>
+        <div class="section-summary">
+            <p>システムの目的、機能概要、ユーザー種別、開発方針について説明します。</p>
+        </div>
+        <div class="section-link">
+            <a href="02_システム概要.html">詳細を見る</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h3 class="section-title">3. システムアーキテクチャ</h3>
+        <div class="section-summary">
+            <p>システム全体のアーキテクチャ、採用技術、モジュール構成について説明します。</p>
+        </div>
+        <div class="section-link">
+            <a href="03_システムアーキテクチャ.html">詳細を見る</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h3 class="section-title">4. デプロイメント設計</h3>
+        <div class="section-summary">
+            <p>システムの物理的な配置、ネットワーク構成、クラウド環境設定について説明します。</p>
+        </div>
+        <div class="section-link">
+            <a href="04_デプロイメント設計.html">詳細を見る</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h3 class="section-title">5. セキュリティ設計</h3>
+        <div class="section-summary">
+            <p>認証・認可、データ保護、通信セキュリティ、脆弱性対策について説明します。</p>
+        </div>
+        <div class="section-link">
+            <a href="05_セキュリティ設計.html">詳細を見る</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h3 class="section-title">6. 性能設計</h3>
+        <div class="section-summary">
+            <p>性能要件、スケーラビリティ、チューニング戦略について説明します。</p>
+        </div>
+        <div class="section-link">
+            <a href="06_性能設計.html">詳細を見る</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h3 class="section-title">7. 可用性設計</h3>
+        <div class="section-summary">
+            <p>可用性要件、冗長構成、障害対策、メンテナンス計画について説明します。</p>
+        </div>
+        <div class="section-link">
+            <a href="07_可用性設計.html">詳細を見る</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h3 class="section-title">8. バックアップ設計</h3>
+        <div class="section-summary">
+            <p>バックアップ方針、スケジュール、災害復旧計画について説明します。</p>
+        </div>
+        <div class="section-link">
+            <a href="08_バックアップ設計.html">詳細を見る</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h3 class="section-title">9. バッチ処理設計</h3>
+        <div class="section-summary">
+            <p>バッチジョブの一覧、スケジュール、リカバリ方法について説明します。</p>
+        </div>
+        <div class="section-link">
+            <a href="09_バッチ処理設計.html">詳細を見る</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h3 class="section-title">10. インターフェース設計</h3>
+        <div class="section-summary">
+            <p>外部システムとのインターフェース、API設計、データ連携方法について説明します。</p>
+        </div>
+        <div class="section-link">
+            <a href="10_インターフェース設計.html">詳細を見る</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h3 class="section-title">11. エラー処理設計</h3>
+        <div class="section-summary">
+            <p>エラーハンドリング方針、エラーコード体系、ユーザーへの通知方法について説明します。</p>
+        </div>
+        <div class="section-link">
+            <a href="11_エラー処理設計.html">詳細を見る</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h3 class="section-title">12. ログ設計</h3>
+        <div class="section-summary">
+            <p>ログ収集方針、ログレベル、ログフォーマット、ログ分析方法について説明します。</p>
+        </div>
+        <div class="section-link">
+            <a href="12_ログ設計.html">詳細を見る</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h3 class="section-title">13. 監視設計</h3>
+        <div class="section-summary">
+            <p>監視対象、監視ツール、アラート設定、レポート方法について説明します。</p>
+        </div>
+        <div class="section-link">
+            <a href="13_監視設計.html">詳細を見る</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h3 class="section-title">14. 移行設計</h3>
+        <div class="section-summary">
+            <p>移行方針、移行スケジュール、データ移行計画、リスク対策について説明します。</p>
+        </div>
+        <div class="section-link">
+            <a href="14_移行設計.html">詳細を見る</a>
+        </div>
+    </div>
+
+    <div class="section-container">
+        <h3 class="section-title">15. 付録</h3>
+        <div class="section-summary">
+            <p>用語集、参照資料、技術標準について説明します。</p>
+        </div>
+        <div class="section-link">
+            <a href="15_付録.html">詳細を見る</a>
+        </div>
+    </div>
+
+    <div class="navigation">
+        <a href="/Users/s-ichimaru/git/ses_mgr/docs/02_基本設計/index.html">基本設計トップへ戻る</a>
     </div>
 
     <footer>
-        <p>SES業務システム システム設計書</p>
+        <p>SES業務システム システム設計書 &copy; 2025</p>
     </footer>
 </body>
 </html>
