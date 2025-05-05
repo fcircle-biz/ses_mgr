@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支払一覧画面 | SES業務システム</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: #f5f7fa;
+        }
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            border-bottom: 1px solid #eaecf0;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: normal;
+        }
+        .status-badge {
+            font-size: 0.85em;
+            padding: 0.35em 0.65em;
+            border-radius: 4px;
+        }
+        .status-draft {
+            background-color: #6c757d;
+            color: white;
+        }
+        .status-review {
+            background-color: #ffc107;
+            color: #343a40;
+        }
+        .status-approved {
+            background-color: #0d6efd;
+            color: white;
+        }
+        .status-paid {
+            background-color: #198754;
+            color: white;
+        }
+        .status-canceled {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-icon i {
+            margin-right: 0.4rem;
+        }
+        .search-box {
+            transition: all 0.3s;
+        }
+        .search-panel {
+            transition: all 0.3s;
+            max-height: 1000px;
+            overflow: hidden;
+        }
+        .search-panel.collapsed {
+            max-height: 0;
+            overflow: hidden;
+            padding-top: 0;
+            padding-bottom: 0;
+            margin-top: 0;
+            margin-bottom: 0;
+            border: none;
+        }
+        .action-buttons .btn {
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+        .table-actions .btn {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.875rem;
+        }
+        .page-header {
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-house"></i> ホーム</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-person-lines-fill"></i> 技術者管理</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-briefcase"></i> 案件管理</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-file-earmark-text"></i> 契約管理</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-cash-coin"></i> 請求・支払管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">請求一覧</a></li>
+                            <li><a class="dropdown-item" href="#">請求書作成</a></li>
+                            <li><a class="dropdown-item active" href="#">支払一覧</a></li>
+                            <li><a class="dropdown-item" href="#">支払登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-clock"></i> 勤怠・工数管理</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-graph-up"></i> レポート</a></li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> 山田太郎
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> 設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-box-arrow-right"></i> ログアウト</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-bell"></i><span class="badge bg-danger rounded-pill">3</span></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mb-5">
+        <!-- パンくずリスト -->
+        <nav aria-label="breadcrumb" class="mt-2 mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">請求・支払管理</a></li>
+                <li class="breadcrumb-item active" aria-current="page">支払一覧</li>
+            </ol>
+        </nav>
+
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <h2 class="h3"><i class="bi bi-cash-coin me-2"></i>支払一覧</h2>
+            <div>
+                <button class="btn btn-primary btn-icon" data-bs-toggle="modal" data-bs-target="#createPaymentModal">
+                    <i class="bi bi-plus-circle"></i> 新規支払登録
+                </button>
+            </div>
+        </div>
+
+        <!-- 検索パネル -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center py-2">
+                <span>検索条件</span>
+                <button class="btn btn-sm btn-link" type="button" id="toggleSearch">
+                    <i class="bi bi-chevron-up"></i>
+                </button>
+            </div>
+            <div class="card-body search-panel py-3">
+                <form class="row g-3">
+                    <div class="col-md-12 mb-2">
+                        <div class="input-group">
+                            <input type="text" class="form-control" placeholder="支払番号、会社名、技術者名などで検索">
+                            <button class="btn btn-outline-secondary" type="button">
+                                <i class="bi bi-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">支払年月</label>
+                        <input type="month" class="form-control" value="2025-05">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">支払ステータス</label>
+                        <select class="form-select" multiple>
+                            <option selected>作成中</option>
+                            <option selected>確認中</option>
+                            <option selected>承認済</option>
+                            <option>支払済</option>
+                            <option>キャンセル</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">支払先タイプ</label>
+                        <select class="form-select">
+                            <option value="">すべて</option>
+                            <option>パートナー会社</option>
+                            <option>技術者</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">支払先</label>
+                        <select class="form-select">
+                            <option value="">すべて</option>
+                            <option>株式会社テクノパートナー</option>
+                            <option>株式会社ITソリューション</option>
+                            <option>鈴木一郎</option>
+                            <option>田中次郎</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">案件</label>
+                        <select class="form-select">
+                            <option value="">すべて</option>
+                            <option>A社基幹システム再構築</option>
+                            <option>B社ECサイトリニューアル</option>
+                            <option>C社クラウド移行</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">担当者</label>
+                        <select class="form-select">
+                            <option value="">すべて</option>
+                            <option>山田太郎</option>
+                            <option>佐藤花子</option>
+                            <option>伊藤誠</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">支払日範囲</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="date" class="form-control" placeholder="開始日">
+                            </div>
+                            <div class="col-6">
+                                <input type="date" class="form-control" placeholder="終了日">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">金額範囲</label>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <input type="number" class="form-control" placeholder="最小金額">
+                            </div>
+                            <div class="col-6">
+                                <input type="number" class="form-control" placeholder="最大金額">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 text-end mt-4">
+                        <button type="button" class="btn btn-outline-secondary me-2">クリア</button>
+                        <button type="button" class="btn btn-primary">検索</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ボタングループ -->
+        <div class="action-buttons mb-3">
+            <button class="btn btn-outline-secondary btn-icon">
+                <i class="bi bi-printer"></i> 一括印刷
+            </button>
+            <button class="btn btn-outline-secondary btn-icon">
+                <i class="bi bi-check-circle"></i> 一括承認
+            </button>
+            <button class="btn btn-outline-secondary btn-icon">
+                <i class="bi bi-cash"></i> 一括支払
+            </button>
+            <button class="btn btn-outline-secondary btn-icon">
+                <i class="bi bi-file-earmark-excel"></i> CSVエクスポート
+            </button>
+        </div>
+
+        <!-- 支払一覧テーブル -->
+        <div class="card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th style="width: 30px">
+                                    <input class="form-check-input" type="checkbox" id="selectAll">
+                                </th>
+                                <th>支払番号</th>
+                                <th>支払先タイプ</th>
+                                <th>支払先名</th>
+                                <th>支払年月</th>
+                                <th>発行日</th>
+                                <th>支払日</th>
+                                <th>税抜金額</th>
+                                <th>消費税</th>
+                                <th>合計金額</th>
+                                <th>支払ステータス</th>
+                                <th>承認状況</th>
+                                <th>案件名</th>
+                                <th class="text-end">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><input class="form-check-input" type="checkbox"></td>
+                                <td><a href="#" class="fw-semibold">P25050001</a></td>
+                                <td>パートナー会社</td>
+                                <td>株式会社テクノパートナー</td>
+                                <td>2025年5月</td>
+                                <td>2025/05/01</td>
+                                <td>2025/05/30</td>
+                                <td class="text-end">1,200,000</td>
+                                <td class="text-end">120,000</td>
+                                <td class="text-end">1,320,000</td>
+                                <td><span class="status-badge status-review">確認中</span></td>
+                                <td>経理部長承認待ち</td>
+                                <td>A社基幹システム再構築</td>
+                                <td class="text-end table-actions">
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary">詳細</button>
+                                        <button class="btn btn-sm btn-outline-success">承認</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input class="form-check-input" type="checkbox"></td>
+                                <td><a href="#" class="fw-semibold">P25050002</a></td>
+                                <td>パートナー会社</td>
+                                <td>株式会社ITソリューション</td>
+                                <td>2025年5月</td>
+                                <td>2025/05/02</td>
+                                <td>2025/05/25</td>
+                                <td class="text-end">850,000</td>
+                                <td class="text-end">85,000</td>
+                                <td class="text-end">935,000</td>
+                                <td><span class="status-badge status-approved">承認済</span></td>
+                                <td>すべて承認済</td>
+                                <td>B社ECサイトリニューアル</td>
+                                <td class="text-end table-actions">
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary">詳細</button>
+                                        <button class="btn btn-sm btn-outline-info">支払実行</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input class="form-check-input" type="checkbox"></td>
+                                <td><a href="#" class="fw-semibold">P25050003</a></td>
+                                <td>技術者</td>
+                                <td>鈴木一郎</td>
+                                <td>2025年5月</td>
+                                <td>2025/05/03</td>
+                                <td>2025/05/20</td>
+                                <td class="text-end">540,000</td>
+                                <td class="text-end">54,000</td>
+                                <td class="text-end">594,000</td>
+                                <td><span class="status-badge status-paid">支払済</span></td>
+                                <td>完了</td>
+                                <td>C社クラウド移行</td>
+                                <td class="text-end table-actions">
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary">詳細</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input class="form-check-input" type="checkbox"></td>
+                                <td><a href="#" class="fw-semibold">P25050004</a></td>
+                                <td>技術者</td>
+                                <td>田中次郎</td>
+                                <td>2025年5月</td>
+                                <td>2025/05/04</td>
+                                <td>2025/05/28</td>
+                                <td class="text-end">620,000</td>
+                                <td class="text-end">62,000</td>
+                                <td class="text-end">682,000</td>
+                                <td><span class="status-badge status-draft">作成中</span></td>
+                                <td>未申請</td>
+                                <td>A社基幹システム再構築</td>
+                                <td class="text-end table-actions">
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary">詳細</button>
+                                        <button class="btn btn-sm btn-outline-secondary">編集</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><input class="form-check-input" type="checkbox"></td>
+                                <td><a href="#" class="fw-semibold">P25050005</a></td>
+                                <td>パートナー会社</td>
+                                <td>株式会社システムコンサル</td>
+                                <td>2025年5月</td>
+                                <td>2025/05/05</td>
+                                <td>2025/05/29</td>
+                                <td class="text-end">1,050,000</td>
+                                <td class="text-end">105,000</td>
+                                <td class="text-end">1,155,000</td>
+                                <td><span class="status-badge status-canceled">キャンセル</span></td>
+                                <td>キャンセル</td>
+                                <td>D社データ分析プロジェクト</td>
+                                <td class="text-end table-actions">
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary">詳細</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>表示: 1 - 5 / 全45件</div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination mb-0">
+                            <li class="page-item disabled">
+                                <a class="page-link" href="#">前へ</a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#">次へ</a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 新規支払登録モーダル -->
+    <div class="modal fade" id="createPaymentModal" tabindex="-1" aria-labelledby="createPaymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="createPaymentModalLabel">新規支払登録</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>新規支払を登録します。支払先タイプを選択してください。</p>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="paymentType" id="partnerCompany" checked>
+                        <label class="form-check-label" for="partnerCompany">
+                            パートナー会社への支払
+                        </label>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="radio" name="paymentType" id="engineer">
+                        <label class="form-check-label" for="engineer">
+                            技術者への支払
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary">次へ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap & jQuery JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // 検索パネルの開閉
+            $("#toggleSearch").click(function() {
+                $(".search-panel").toggleClass("collapsed");
+                var icon = $(this).find("i");
+                if (icon.hasClass("bi-chevron-up")) {
+                    icon.removeClass("bi-chevron-up").addClass("bi-chevron-down");
+                } else {
+                    icon.removeClass("bi-chevron-down").addClass("bi-chevron-up");
+                }
+            });
+
+            // 全選択チェックボックス
+            $("#selectAll").change(function() {
+                var isChecked = $(this).prop("checked");
+                $("tbody input[type='checkbox']").prop("checked", isChecked);
+            });
+
+            // チェックボックスの変更監視
+            $("tbody input[type='checkbox']").change(function() {
+                checkSelectAllState();
+            });
+
+            function checkSelectAllState() {
+                var totalCheckboxes = $("tbody input[type='checkbox']").length;
+                var checkedCheckboxes = $("tbody input[type='checkbox']:checked").length;
+                $("#selectAll").prop("checked", totalCheckboxes === checkedCheckboxes && totalCheckboxes > 0);
+            }
+        });
+    </script>
+</body>
+</html>

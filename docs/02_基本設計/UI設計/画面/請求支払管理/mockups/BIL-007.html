@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支払登録画面 | SES業務システム</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background-color: #f5f7fa;
+        }
+        .navbar-brand {
+            font-weight: bold;
+        }
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+        .card-header {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            border-bottom: 1px solid #eaecf0;
+        }
+        .form-label {
+            font-weight: 500;
+            margin-bottom: 0.3rem;
+        }
+        .required-label::after {
+            content: "必須";
+            font-size: 0.75em;
+            color: #fff;
+            background-color: #dc3545;
+            border-radius: 3px;
+            padding: 0.1em 0.5em;
+            margin-left: 0.5em;
+            vertical-align: middle;
+        }
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+        }
+        .btn-icon i {
+            margin-right: 0.4rem;
+        }
+        .page-header {
+            margin-bottom: 1.5rem;
+        }
+        .alert-info {
+            background-color: #e8f4f8;
+            border-color: #b8e7f3;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: normal;
+        }
+        .approval-flow-item {
+            display: flex;
+            align-items: center;
+        }
+        .approval-flow-item::before {
+            content: "";
+            height: 1.5px;
+            background-color: #dee2e6;
+            flex-grow: 1;
+            margin: 0 10px;
+        }
+        .approval-flow-item:first-child::before {
+            display: none;
+        }
+        .summary-table th {
+            width: 30%;
+        }
+        .drag-handle {
+            cursor: grab;
+            color: #adb5bd;
+        }
+        .payee-info {
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+        .payee-info p {
+            margin-bottom: 0.3rem;
+        }
+        .account-info {
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- ナビゲーションバー -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">SES業務システム</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-house"></i> ホーム</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-person-lines-fill"></i> 技術者管理</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-briefcase"></i> 案件管理</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-file-earmark-text"></i> 契約管理</a></li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle active" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-cash-coin"></i> 請求・支払管理
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">請求一覧</a></li>
+                            <li><a class="dropdown-item" href="#">請求書作成</a></li>
+                            <li><a class="dropdown-item" href="#">支払一覧</a></li>
+                            <li><a class="dropdown-item active" href="#">支払登録</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-clock"></i> 勤怠・工数管理</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-graph-up"></i> レポート</a></li>
+                </ul>
+                <ul class="navbar-nav">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-person-circle"></i> 山田太郎
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-person"></i> プロフィール</a></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-gear"></i> 設定</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#"><i class="bi bi-box-arrow-right"></i> ログアウト</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="bi bi-bell"></i><span class="badge bg-danger rounded-pill">3</span></a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid mb-5">
+        <!-- パンくずリスト -->
+        <nav aria-label="breadcrumb" class="mt-2 mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="#">ホーム</a></li>
+                <li class="breadcrumb-item"><a href="#">請求・支払管理</a></li>
+                <li class="breadcrumb-item"><a href="#">支払一覧</a></li>
+                <li class="breadcrumb-item active" aria-current="page">支払登録</li>
+            </ol>
+        </nav>
+
+        <!-- ページヘッダー -->
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <h2 class="h3"><i class="bi bi-cash-coin me-2"></i>支払登録</h2>
+        </div>
+
+        <form id="paymentForm">
+            <!-- 支払先選択セクション -->
+            <div class="card mb-4">
+                <div class="card-header py-2">支払先選択</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label required-label">支払先タイプ</label>
+                            <div class="mb-3">
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="payeeType" id="partner" value="partner" checked>
+                                    <label class="form-check-label" for="partner">パートナー会社</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="payeeType" id="engineer" value="engineer">
+                                    <label class="form-check-label" for="engineer">技術者</label>
+                                </div>
+                            </div>
+                            <div class="mb-3" id="partnerSelection">
+                                <label class="form-label required-label">パートナー会社</label>
+                                <select class="form-select" id="partnerCompany">
+                                    <option value="">選択してください</option>
+                                    <option value="1" selected>株式会社テクノパートナー</option>
+                                    <option value="2">株式会社ITソリューション</option>
+                                    <option value="3">株式会社システムコンサル</option>
+                                    <option value="4">株式会社デジタルイノベーション</option>
+                                </select>
+                            </div>
+                            <div class="mb-3 d-none" id="engineerSelection">
+                                <label class="form-label required-label">技術者</label>
+                                <select class="form-select" id="engineerSelect">
+                                    <option value="">選択してください</option>
+                                    <option value="1">鈴木一郎</option>
+                                    <option value="2">田中次郎</option>
+                                    <option value="3">佐藤花子</option>
+                                    <option value="4">伊藤誠</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info" id="payeeInfo">
+                        <h6 class="alert-heading fw-bold"><i class="bi bi-info-circle me-2"></i>支払先情報</h6>
+                        <div class="payee-info">
+                            <p><strong>会社名：</strong>株式会社テクノパートナー</p>
+                            <p><strong>住所：</strong>〒105-0001 東京都港区虎ノ門1-1-1 テクノビル5F</p>
+                            <p><strong>電話番号：</strong>03-1234-5678</p>
+                            <p><strong>担当者：</strong>佐々木太郎</p>
+                            <p><strong>メールアドレス：</strong>t.sasaki@techno-partner.co.jp</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 支払基本情報セクション -->
+            <div class="card mb-4">
+                <div class="card-header py-2">支払基本情報</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">支払番号</label>
+                            <input type="text" class="form-control" value="P25050006" readonly>
+                            <div class="form-text">自動採番されます</div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">案件</label>
+                            <select class="form-select">
+                                <option value="">選択してください</option>
+                                <option value="1" selected>A社基幹システム再構築</option>
+                                <option value="2">B社ECサイトリニューアル</option>
+                                <option value="3">C社クラウド移行</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">契約</label>
+                            <select class="form-select">
+                                <option value="">選択してください</option>
+                                <option value="1" selected>CT-20250401-001（A社基幹）</option>
+                                <option value="2">CT-20250402-002（A社基幹・追加）</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">請求</label>
+                            <select class="form-select">
+                                <option value="">選択してください</option>
+                                <option value="1" selected>INV-2505001（A社5月分）</option>
+                                <option value="2">INV-2505002（B社5月分）</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required-label">支払年月</label>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <input type="number" class="form-control" value="2025" placeholder="年">
+                                </div>
+                                <div class="col-md-6">
+                                    <input type="number" class="form-control" value="5" min="1" max="12" placeholder="月">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required-label">消費税率</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" value="10" min="0" max="100">
+                                <span class="input-group-text">%</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required-label">発行日</label>
+                            <input type="date" class="form-control" value="2025-05-05">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required-label">支払日</label>
+                            <input type="date" class="form-control" value="2025-05-30">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label required-label">支払方法</label>
+                            <select class="form-select">
+                                <option>選択してください</option>
+                                <option selected>振込</option>
+                                <option>自動引落</option>
+                                <option>現金</option>
+                                <option>その他</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 振込先口座情報セクション -->
+            <div class="card mb-4">
+                <div class="card-header py-2">振込先口座情報</div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label required-label">銀行口座</label>
+                            <select class="form-select">
+                                <option>選択してください</option>
+                                <option selected>テクノパートナー（みずほ銀行・虎ノ門支店）</option>
+                                <option>テクノパートナー（三菱UFJ銀行・東京支店）</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="account-info">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <p><strong>銀行名：</strong>みずほ銀行</p>
+                                <p><strong>支店名：</strong>虎ノ門支店（支店番号：123）</p>
+                                <p><strong>口座種別：</strong>普通</p>
+                            </div>
+                            <div class="col-md-6">
+                                <p><strong>口座番号：</strong>1234567</p>
+                                <p><strong>口座名義：</strong>カ）テクノパートナー</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 支払明細セクション -->
+            <div class="card mb-4">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                    <span>支払明細</span>
+                    <div>
+                        <button type="button" class="btn btn-sm btn-outline-secondary btn-icon" id="importTimesheet">
+                            <i class="bi bi-file-earmark-arrow-down"></i> 工数データインポート
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="itemsTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 40px"></th>
+                                    <th style="width: 15%">項目タイプ</th>
+                                    <th style="width: 25%">項目名</th>
+                                    <th style="width: 10%">数量</th>
+                                    <th style="width: 15%">単価</th>
+                                    <th style="width: 15%">金額</th>
+                                    <th style="width: 10%">課税対象</th>
+                                    <th style="width: 10%">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="text-center"><i class="bi bi-grip-vertical drag-handle"></i></td>
+                                    <td>
+                                        <select class="form-select form-select-sm">
+                                            <option>選択してください</option>
+                                            <option selected>人月</option>
+                                            <option>固定</option>
+                                            <option>従量</option>
+                                            <option>諸経費</option>
+                                            <option>その他</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm" value="システムエンジニア（常駐）">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control form-control-sm quantity" value="1" min="0" step="0.1">
+                                    </td>
+                                    <td>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">¥</span>
+                                            <input type="number" class="form-control unit-price" value="800000" min="0">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">¥</span>
+                                            <input type="number" class="form-control amount" value="800000" readonly>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="form-check d-flex justify-content-center">
+                                            <input class="form-check-input" type="checkbox" checked>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-row"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="text-center"><i class="bi bi-grip-vertical drag-handle"></i></td>
+                                    <td>
+                                        <select class="form-select form-select-sm">
+                                            <option>選択してください</option>
+                                            <option>人月</option>
+                                            <option>固定</option>
+                                            <option>従量</option>
+                                            <option selected>諸経費</option>
+                                            <option>その他</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <input type="text" class="form-control form-control-sm" value="交通費">
+                                    </td>
+                                    <td>
+                                        <input type="number" class="form-control form-control-sm quantity" value="1" min="0" step="0.1">
+                                    </td>
+                                    <td>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">¥</span>
+                                            <input type="number" class="form-control unit-price" value="20000" min="0">
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="input-group input-group-sm">
+                                            <span class="input-group-text">¥</span>
+                                            <input type="number" class="form-control amount" value="20000" readonly>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="form-check d-flex justify-content-center">
+                                            <input class="form-check-input" type="checkbox" checked>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-row"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="8" class="text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" id="addItemRow">
+                                            <i class="bi bi-plus-circle"></i> 明細を追加
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+
+                    <div class="row justify-content-end mt-4">
+                        <div class="col-md-4">
+                            <table class="table table-sm summary-table">
+                                <tr>
+                                    <th>税抜合計金額</th>
+                                    <td class="text-end">¥ 820,000</td>
+                                </tr>
+                                <tr>
+                                    <th>消費税額</th>
+                                    <td class="text-end">¥ 82,000</td>
+                                </tr>
+                                <tr class="table-active fw-bold">
+                                    <th>税込合計金額</th>
+                                    <td class="text-end">¥ 902,000</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- その他情報セクション -->
+            <div class="card mb-4">
+                <div class="card-header py-2">その他情報</div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">備考</label>
+                            <textarea class="form-control" rows="3" placeholder="支払書に表示される備考欄です"></textarea>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">社内メモ</label>
+                            <textarea class="form-control" rows="3" placeholder="支払書には表示されない社内向けのメモです"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 承認フロー設定セクション -->
+            <div class="card mb-4">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                    <span>承認フロー設定</span>
+                    <div>
+                        <select class="form-select form-select-sm" style="width: 250px">
+                            <option value="">承認フローテンプレート選択</option>
+                            <option value="1">標準承認フロー（支払）</option>
+                            <option value="2">管理者スキップフロー</option>
+                            <option value="3">高額支払承認フロー</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-center mt-2 mb-4">
+                                <div class="approval-flow-item">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <div class="badge bg-primary mb-1">1</div>
+                                        <div>経理担当</div>
+                                        <small>山田太郎</small>
+                                    </div>
+                                </div>
+                                <div class="approval-flow-item">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <div class="badge bg-primary mb-1">2</div>
+                                        <div>経理部長</div>
+                                        <small>佐藤雄二</small>
+                                    </div>
+                                </div>
+                                <div class="approval-flow-item">
+                                    <div class="d-flex flex-column align-items-center">
+                                        <div class="badge bg-primary mb-1">3</div>
+                                        <div>管理本部長</div>
+                                        <small>鈴木一郎</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="approvalTable">
+                            <thead>
+                                <tr>
+                                    <th style="width: 10%">順序</th>
+                                    <th style="width: 40%">承認者</th>
+                                    <th style="width: 30%">役割</th>
+                                    <th style="width: 20%">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <input type="number" class="form-control form-control-sm" value="1" min="1">
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm">
+                                            <option>選択してください</option>
+                                            <option selected>山田太郎</option>
+                                            <option>佐藤花子</option>
+                                            <option>伊藤誠</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm">
+                                            <option>選択してください</option>
+                                            <option selected>経理担当</option>
+                                            <option>管理者</option>
+                                            <option>部長</option>
+                                            <option>社長</option>
+                                        </select>
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-approver"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input type="number" class="form-control form-control-sm" value="2" min="1">
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm">
+                                            <option>選択してください</option>
+                                            <option>山田太郎</option>
+                                            <option>佐藤花子</option>
+                                            <option selected>佐藤雄二</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm">
+                                            <option>選択してください</option>
+                                            <option>経理担当</option>
+                                            <option>管理者</option>
+                                            <option selected>経理部長</option>
+                                            <option>社長</option>
+                                        </select>
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-approver"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <input type="number" class="form-control form-control-sm" value="3" min="1">
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm">
+                                            <option>選択してください</option>
+                                            <option>山田太郎</option>
+                                            <option>佐藤花子</option>
+                                            <option selected>鈴木一郎</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select class="form-select form-select-sm">
+                                            <option>選択してください</option>
+                                            <option>経理担当</option>
+                                            <option>管理者</option>
+                                            <option selected>管理本部長</option>
+                                            <option>社長</option>
+                                        </select>
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-approver"><i class="bi bi-trash"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="4" class="text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-primary" id="addApproverRow">
+                                            <i class="bi bi-plus-circle"></i> 承認者を追加
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 操作ボタン -->
+            <div class="d-flex justify-content-between mb-5">
+                <div>
+                    <a href="#" class="btn btn-link">キャンセル</a>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-outline-secondary me-2">下書き保存</button>
+                    <button type="button" class="btn btn-primary">保存して承認依頼</button>
+                </div>
+            </div>
+        </form>
+
+    </div>
+
+    <!-- 確認モーダル -->
+    <div class="modal fade" id="confirmationModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">承認依頼の確認</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>入力内容で支払登録し、承認依頼を開始しますか？</p>
+                    <p>承認フローが開始されると、承認完了まで編集できなくなります。</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+                    <button type="button" class="btn btn-primary">承認依頼を開始</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap & jQuery JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // 支払先タイプ切り替え
+            $('input[name="payeeType"]').change(function() {
+                if ($(this).val() === 'partner') {
+                    $('#partnerSelection').removeClass('d-none');
+                    $('#engineerSelection').addClass('d-none');
+                    $('#payeeInfo').removeClass('d-none');
+                } else {
+                    $('#partnerSelection').addClass('d-none');
+                    $('#engineerSelection').removeClass('d-none');
+                    $('#payeeInfo').removeClass('d-none');
+                }
+            });
+
+            // 明細行の追加
+            $('#addItemRow').click(function() {
+                var newRow = `
+                <tr>
+                    <td class="text-center"><i class="bi bi-grip-vertical drag-handle"></i></td>
+                    <td>
+                        <select class="form-select form-select-sm">
+                            <option selected>選択してください</option>
+                            <option>人月</option>
+                            <option>固定</option>
+                            <option>従量</option>
+                            <option>諸経費</option>
+                            <option>その他</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" class="form-control form-control-sm" value="">
+                    </td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm quantity" value="1" min="0" step="0.1">
+                    </td>
+                    <td>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">¥</span>
+                            <input type="number" class="form-control unit-price" value="0" min="0">
+                        </div>
+                    </td>
+                    <td>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">¥</span>
+                            <input type="number" class="form-control amount" value="0" readonly>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <div class="form-check d-flex justify-content-center">
+                            <input class="form-check-input" type="checkbox" checked>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-danger delete-row"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+                `;
+                $('#itemsTable tbody').append(newRow);
+                bindEvents();
+            });
+
+            // 承認者の追加
+            $('#addApproverRow').click(function() {
+                var nextOrder = $('#approvalTable tbody tr').length + 1;
+                var newRow = `
+                <tr>
+                    <td>
+                        <input type="number" class="form-control form-control-sm" value="${nextOrder}" min="1">
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm">
+                            <option selected>選択してください</option>
+                            <option>山田太郎</option>
+                            <option>佐藤花子</option>
+                            <option>伊藤誠</option>
+                            <option>鈴木一郎</option>
+                            <option>佐藤雄二</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="form-select form-select-sm">
+                            <option selected>選択してください</option>
+                            <option>経理担当</option>
+                            <option>管理者</option>
+                            <option>部長</option>
+                            <option>社長</option>
+                        </select>
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-danger delete-approver"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>
+                `;
+                $('#approvalTable tbody').append(newRow);
+                bindEvents();
+            });
+
+            // 明細行の削除ボタン
+            function bindEvents() {
+                $('.delete-row').off('click').on('click', function() {
+                    $(this).closest('tr').remove();
+                    calculateTotals();
+                });
+
+                $('.delete-approver').off('click').on('click', function() {
+                    $(this).closest('tr').remove();
+                    // 順番を振り直す
+                    $('#approvalTable tbody tr').each(function(index) {
+                        $(this).find('input[type="number"]').val(index + 1);
+                    });
+                });
+
+                // 数量と単価の変更時に金額を計算
+                $('.quantity, .unit-price').off('input').on('input', function() {
+                    var row = $(this).closest('tr');
+                    var quantity = parseFloat(row.find('.quantity').val()) || 0;
+                    var unitPrice = parseFloat(row.find('.unit-price').val()) || 0;
+                    var amount = quantity * unitPrice;
+                    row.find('.amount').val(amount);
+                    calculateTotals();
+                });
+            }
+
+            // 合計金額計算
+            function calculateTotals() {
+                var subtotal = 0;
+                $('#itemsTable tbody tr').each(function() {
+                    subtotal += parseFloat($(this).find('.amount').val()) || 0;
+                });
+                
+                // 税率取得
+                var taxRate = parseFloat($('input[value="10"]').val()) / 100 || 0.1;
+                
+                // 消費税と税込み金額計算
+                var tax = subtotal * taxRate;
+                var total = subtotal + tax;
+                
+                // 表示更新
+                $('.summary-table tr:eq(0) td').text('¥ ' + subtotal.toLocaleString());
+                $('.summary-table tr:eq(1) td').text('¥ ' + tax.toLocaleString());
+                $('.summary-table tr:eq(2) td').text('¥ ' + total.toLocaleString());
+            }
+
+            // 保存して承認依頼ボタン
+            $('.btn-primary').click(function() {
+                $('#confirmationModal').modal('show');
+            });
+
+            // 初期イベントバインド
+            bindEvents();
+        });
+    </script>
+</body>
+</html>
