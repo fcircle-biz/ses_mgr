@@ -1,0 +1,2128 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 契約管理API
+  description: |
+    契約管理APIは、契約情報の管理、契約書ドキュメントの管理、電子署名、契約テンプレートの機能を提供します。
+  version: 1.0.0
+
+paths:
+  /contracts:
+    get:
+      tags:
+        - contracts
+      summary: 契約一覧の取得
+      description: |
+        契約の一覧を取得します。
+      operationId: getContracts
+      parameters:
+        - name: status
+          in: query
+          description: 契約ステータスでフィルタリング
+          schema:
+            type: string
+            enum: [draft, pending_approval, pending_signature, signed, active, completed, terminated, all]
+            default: all
+        - name: project_id
+          in: query
+          description: 案件IDでフィルタリング
+          schema:
+            type: string
+            format: uuid
+        - name: engineer_id
+          in: query
+          description: 技術者IDでフィルタリング
+          schema:
+            type: string
+            format: uuid
+        - name: client_id
+          in: query
+          description: クライアントIDでフィルタリング
+          schema:
+            type: string
+            format: uuid
+        - name: from_date
+          in: query
+          description: 開始日範囲（YYYY-MM-DD形式）
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          description: 終了日範囲（YYYY-MM-DD形式）
+          schema:
+            type: string
+            format: date
+        - name: sort
+          in: query
+          description: 並べ替え項目
+          schema:
+            type: string
+            enum: [start_date, end_date, created_at, updated_at]
+            default: updated_at
+        - name: order
+          in: query
+          description: 並べ替え順序
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+        - name: page
+          in: query
+          description: ページ番号
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: 1ページあたりの取得件数
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: 契約一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: 全契約数
+                  page:
+                    type: integer
+                    description: 現在のページ番号
+                  limit:
+                    type: integer
+                    description: 1ページあたりの取得件数
+                  contracts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContractSummary'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - contracts
+      summary: 契約の新規作成
+      description: |
+        新しい契約を作成します。
+      operationId: createContract
+      requestBody:
+        description: 作成する契約情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContractCreate'
+      responses:
+        '201':
+          description: 契約の作成に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "契約の作成が完了しました"
+                  contract_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  contract:
+                    $ref: '#/components/schemas/Contract'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /contracts/{contract_id}:
+    get:
+      tags:
+        - contracts
+      summary: 契約詳細の取得
+      description: |
+        指定されたIDの契約詳細を取得します。
+      operationId: getContract
+      parameters:
+        - name: contract_id
+          in: path
+          description: 契約ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 契約詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contract'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - contracts
+      summary: 契約情報の更新
+      description: |
+        指定されたIDの契約情報を更新します。
+      operationId: updateContract
+      parameters:
+        - name: contract_id
+          in: path
+          description: 契約ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新する契約情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContractUpdate'
+      responses:
+        '200':
+          description: 契約情報の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "契約情報の更新が完了しました"
+                  contract:
+                    $ref: '#/components/schemas/Contract'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 契約が更新できない状態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "署名済み契約または完了済み契約は更新できません"
+                  error:
+                    type: string
+                    example: "invalid_contract_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - contracts
+      summary: 契約の削除
+      description: |
+        指定されたIDの契約を削除します。ステータスがdraftの場合のみ可能です。
+      operationId: deleteContract
+      parameters:
+        - name: contract_id
+          in: path
+          description: 契約ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 契約の削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "契約の削除が完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 契約が削除できない状態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ドラフト状態の契約のみ削除できます"
+                  error:
+                    type: string
+                    example: "invalid_contract_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /contracts/{contract_id}/status:
+    put:
+      tags:
+        - contracts
+      summary: 契約ステータスの更新
+      description: |
+        契約のステータスを更新します。
+      operationId: updateContractStatus
+      parameters:
+        - name: contract_id
+          in: path
+          description: 契約ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新するステータス情報
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [draft, pending_approval, pending_signature, signed, active, completed, terminated]
+                  description: 更新後のステータス
+                status_reason:
+                  type: string
+                  description: ステータス変更の理由
+                notes:
+                  type: string
+                  description: 備考
+      responses:
+        '200':
+          description: 契約ステータスの更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "契約ステータスの更新が完了しました"
+                  contract:
+                    $ref: '#/components/schemas/Contract'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 無効なステータス変更
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "現在のステータスからこのステータスへは変更できません"
+                  error:
+                    type: string
+                    example: "invalid_status_transition"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /contract-documents:
+    get:
+      tags:
+        - contract-documents
+      summary: 契約書一覧の取得
+      description: |
+        契約書一覧を取得します。
+      operationId: getContractDocuments
+      parameters:
+        - name: contract_id
+          in: query
+          description: 契約ID
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          description: 契約書ステータス
+          schema:
+            type: string
+            enum: [draft, pending_signature, signed, all]
+            default: all
+        - name: document_type
+          in: query
+          description: 契約書タイプ
+          schema:
+            type: string
+            enum: [primary, amendment, renewal, termination, all]
+            default: all
+        - name: page
+          in: query
+          description: ページ番号
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: 1ページあたりの取得件数
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: 契約書一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: 全契約書数
+                  page:
+                    type: integer
+                    description: 現在のページ番号
+                  limit:
+                    type: integer
+                    description: 1ページあたりの取得件数
+                  documents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContractDocumentSummary'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - contract-documents
+      summary: 契約書の新規作成
+      description: |
+        新しい契約書を作成します。
+      operationId: createContractDocument
+      requestBody:
+        description: 作成する契約書情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContractDocumentCreate'
+      responses:
+        '201':
+          description: 契約書の作成に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "契約書の作成が完了しました"
+                  document_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  document:
+                    $ref: '#/components/schemas/ContractDocument'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /contract-documents/{document_id}:
+    get:
+      tags:
+        - contract-documents
+      summary: 契約書詳細の取得
+      description: |
+        指定されたIDの契約書詳細を取得します。
+      operationId: getContractDocument
+      parameters:
+        - name: document_id
+          in: path
+          description: 契約書ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 契約書詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractDocument'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - contract-documents
+      summary: 契約書情報の更新
+      description: |
+        指定されたIDの契約書情報を更新します。
+      operationId: updateContractDocument
+      parameters:
+        - name: document_id
+          in: path
+          description: 契約書ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新する契約書情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContractDocumentUpdate'
+      responses:
+        '200':
+          description: 契約書情報の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "契約書情報の更新が完了しました"
+                  document:
+                    $ref: '#/components/schemas/ContractDocument'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 無効な編集
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "署名済み契約書は編集できません"
+                  error:
+                    type: string
+                    example: "document_already_signed"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - contract-documents
+      summary: 契約書の削除
+      description: |
+        指定されたIDの契約書を削除します。ステータスがdraftの場合のみ可能です。
+      operationId: deleteContractDocument
+      parameters:
+        - name: document_id
+          in: path
+          description: 契約書ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 契約書の削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "契約書の削除が完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 契約書が削除できない状態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ドラフト状態の契約書のみ削除できます"
+                  error:
+                    type: string
+                    example: "invalid_document_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /contract-documents/{document_id}/download:
+    get:
+      tags:
+        - contract-documents
+      summary: 契約書ファイルのダウンロード
+      description: |
+        契約書のPDFファイルをダウンロードします。
+      operationId: downloadContractDocument
+      parameters:
+        - name: document_id
+          in: path
+          description: 契約書ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: format
+          in: query
+          description: ダウンロード形式
+          schema:
+            type: string
+            enum: [pdf, docx]
+            default: pdf
+      responses:
+        '200':
+          description: 契約書ファイルのダウンロードに成功
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.wordprocessingml.document:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /contract-templates:
+    get:
+      tags:
+        - contract-templates
+      summary: 契約テンプレート一覧の取得
+      description: |
+        契約テンプレートの一覧を取得します。
+      operationId: getContractTemplates
+      parameters:
+        - name: template_type
+          in: query
+          description: テンプレートタイプでフィルタリング
+          schema:
+            type: string
+            enum: [primary, amendment, renewal, termination, all]
+            default: all
+        - name: is_active
+          in: query
+          description: アクティブなテンプレートのみ表示
+          schema:
+            type: boolean
+        - name: keyword
+          in: query
+          description: キーワード検索
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: ページ番号
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: 1ページあたりの取得件数
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: テンプレート一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: 全テンプレート数
+                  page:
+                    type: integer
+                    description: 現在のページ番号
+                  limit:
+                    type: integer
+                    description: 1ページあたりの取得件数
+                  templates:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ContractTemplateSummary'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - contract-templates
+      summary: 契約テンプレートの新規作成
+      description: |
+        新しい契約テンプレートを作成します。
+      operationId: createContractTemplate
+      requestBody:
+        description: 作成するテンプレート情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContractTemplateCreate'
+      responses:
+        '201':
+          description: テンプレートの作成に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "契約テンプレートの作成が完了しました"
+                  template_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  template:
+                    $ref: '#/components/schemas/ContractTemplate'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /contract-templates/{template_id}:
+    get:
+      tags:
+        - contract-templates
+      summary: 契約テンプレート詳細の取得
+      description: |
+        指定されたIDの契約テンプレート詳細を取得します。
+      operationId: getContractTemplate
+      parameters:
+        - name: template_id
+          in: path
+          description: テンプレートID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: テンプレート詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractTemplate'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - contract-templates
+      summary: 契約テンプレート情報の更新
+      description: |
+        指定されたIDの契約テンプレート情報を更新します。
+      operationId: updateContractTemplate
+      parameters:
+        - name: template_id
+          in: path
+          description: テンプレートID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新するテンプレート情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContractTemplateUpdate'
+      responses:
+        '200':
+          description: テンプレート情報の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "契約テンプレートの更新が完了しました"
+                  template:
+                    $ref: '#/components/schemas/ContractTemplate'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - contract-templates
+      summary: 契約テンプレートの削除
+      description: |
+        指定されたIDの契約テンプレートを削除します。
+      operationId: deleteContractTemplate
+      parameters:
+        - name: template_id
+          in: path
+          description: テンプレートID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: テンプレートの削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "契約テンプレートの削除が完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: テンプレートが使用中で削除できない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "このテンプレートは契約で使用されているため削除できません"
+                  error:
+                    type: string
+                    example: "template_in_use"
+                  dependent_contracts_count:
+                    type: integer
+                    example: 5
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /contract-templates/{template_id}/preview:
+    post:
+      tags:
+        - contract-templates
+      summary: 契約テンプレートのプレビュー
+      description: |
+        契約テンプレートのプレビューを生成します。
+      operationId: previewContractTemplate
+      parameters:
+        - name: template_id
+          in: path
+          description: テンプレートID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: format
+          in: query
+          description: プレビュー形式
+          schema:
+            type: string
+            enum: [pdf, docx, html]
+            default: pdf
+      requestBody:
+        description: プレビュー用の変数値
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+              description: テンプレート変数の値
+      responses:
+        '200':
+          description: テンプレートプレビューの生成に成功
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.wordprocessingml.document:
+              schema:
+                type: string
+                format: binary
+            text/html:
+              schema:
+                type: string
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /signatures:
+    get:
+      tags:
+        - signatures
+      summary: 署名情報一覧の取得
+      description: |
+        電子署名の一覧を取得します。
+      operationId: getSignatures
+      parameters:
+        - name: contract_id
+          in: query
+          description: 契約ID
+          schema:
+            type: string
+            format: uuid
+        - name: document_id
+          in: query
+          description: 契約書ID
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          description: 署名ステータス
+          schema:
+            type: string
+            enum: [pending, completed, rejected, expired, all]
+            default: all
+        - name: signer_email
+          in: query
+          description: 署名者メールアドレス
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: ページ番号
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: 1ページあたりの取得件数
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: 署名情報一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: 全署名数
+                  page:
+                    type: integer
+                    description: 現在のページ番号
+                  limit:
+                    type: integer
+                    description: 1ページあたりの取得件数
+                  signatures:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SignatureSummary'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - signatures
+      summary: 署名依頼の作成
+      description: |
+        新しい署名依頼を作成します。
+      operationId: createSignatureRequest
+      requestBody:
+        description: 作成する署名依頼情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignatureRequestCreate'
+      responses:
+        '201':
+          description: 署名依頼の作成に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "署名依頼の作成が完了しました"
+                  signature_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  signature:
+                    $ref: '#/components/schemas/Signature'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /signatures/{signature_id}:
+    get:
+      tags:
+        - signatures
+      summary: 署名情報詳細の取得
+      description: |
+        指定されたIDの署名情報詳細を取得します。
+      operationId: getSignature
+      parameters:
+        - name: signature_id
+          in: path
+          description: 署名ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 署名情報詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Signature'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - signatures
+      summary: 署名依頼のキャンセル
+      description: |
+        指定されたIDの署名依頼をキャンセルします。
+      operationId: cancelSignatureRequest
+      parameters:
+        - name: signature_id
+          in: path
+          description: 署名ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 署名依頼のキャンセルに成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "署名依頼のキャンセルが完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 署名依頼がキャンセルできない状態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "既に署名済みのため署名依頼をキャンセルできません"
+                  error:
+                    type: string
+                    example: "invalid_signature_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /signatures/{signature_id}/resend:
+    post:
+      tags:
+        - signatures
+      summary: 署名依頼の再送信
+      description: |
+        指定されたIDの署名依頼を再送信します。
+      operationId: resendSignatureRequest
+      parameters:
+        - name: signature_id
+          in: path
+          description: 署名ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 署名依頼の再送信に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "署名依頼の再送信が完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 署名依頼が再送信できない状態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "既に署名済みのため署名依頼を再送信できません"
+                  error:
+                    type: string
+                    example: "invalid_signature_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /signatures/{signature_id}/sign:
+    post:
+      tags:
+        - signatures
+      summary: 署名の実行
+      description: |
+        指定されたIDの署名を実行します。
+      operationId: executeSignature
+      parameters:
+        - name: signature_id
+          in: path
+          description: 署名ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 署名情報
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - signature_data
+              properties:
+                signature_data:
+                  type: string
+                  format: binary
+                  description: 署名データ
+                ip_address:
+                  type: string
+                  description: 署名実行IPアドレス
+                geo_location:
+                  type: string
+                  description: 署名実行位置情報
+                device_info:
+                  type: string
+                  description: 署名実行デバイス情報
+      responses:
+        '200':
+          description: 署名の実行に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "署名が完了しました"
+                  signature:
+                    $ref: '#/components/schemas/Signature'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 署名が実行できない状態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "既に署名済みのため署名を実行できません"
+                  error:
+                    type: string
+                    example: "invalid_signature_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    ContractSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 契約ID
+        contract_number:
+          type: string
+          description: 契約番号
+        title:
+          type: string
+          description: 契約タイトル
+        project_id:
+          type: string
+          format: uuid
+          description: 案件ID
+        project_name:
+          type: string
+          description: 案件名
+        engineer_id:
+          type: string
+          format: uuid
+          description: 技術者ID
+        engineer_name:
+          type: string
+          description: 技術者名
+        client_id:
+          type: string
+          format: uuid
+          description: クライアントID
+        client_name:
+          type: string
+          description: クライアント名
+        contract_type:
+          type: string
+          enum: [ses, outsourcing, consulting, other]
+          description: 契約種別
+        status:
+          type: string
+          enum: [draft, pending_approval, pending_signature, signed, active, completed, terminated]
+          description: 契約ステータス
+        start_date:
+          type: string
+          format: date
+          description: 開始日
+        end_date:
+          type: string
+          format: date
+          description: 終了日
+        amount:
+          type: number
+          format: float
+          description: 契約金額
+        currency:
+          type: string
+          description: 通貨
+        payment_terms:
+          type: string
+          description: 支払条件
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+
+    Contract:
+      allOf:
+        - $ref: '#/components/schemas/ContractSummary'
+        - type: object
+          properties:
+            description:
+              type: string
+              description: 契約説明
+            terms_and_conditions:
+              type: string
+              description: 契約条件
+            payment_schedule:
+              type: array
+              items:
+                type: object
+                properties:
+                  payment_date:
+                    type: string
+                    format: date
+                    description: 支払日
+                  amount:
+                    type: number
+                    format: float
+                    description: 支払金額
+                  description:
+                    type: string
+                    description: 支払内容説明
+            documents:
+              type: array
+              items:
+                $ref: '#/components/schemas/ContractDocumentSummary'
+            signatures:
+              type: array
+              items:
+                $ref: '#/components/schemas/SignatureSummary'
+            status_history:
+              type: array
+              items:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [draft, pending_approval, pending_signature, signed, active, completed, terminated]
+                    description: ステータス
+                  changed_at:
+                    type: string
+                    format: date-time
+                    description: 変更日時
+                  changed_by:
+                    type: string
+                    format: uuid
+                    description: 変更者ID
+                  reason:
+                    type: string
+                    description: 変更理由
+            notes:
+              type: string
+              description: 備考
+
+    ContractCreate:
+      type: object
+      required:
+        - title
+        - contract_type
+        - start_date
+        - end_date
+      properties:
+        title:
+          type: string
+          description: 契約タイトル
+        project_id:
+          type: string
+          format: uuid
+          description: 案件ID
+        engineer_id:
+          type: string
+          format: uuid
+          description: 技術者ID
+        client_id:
+          type: string
+          format: uuid
+          description: クライアントID
+        contract_type:
+          type: string
+          enum: [ses, outsourcing, consulting, other]
+          description: 契約種別
+        description:
+          type: string
+          description: 契約説明
+        terms_and_conditions:
+          type: string
+          description: 契約条件
+        start_date:
+          type: string
+          format: date
+          description: 開始日
+        end_date:
+          type: string
+          format: date
+          description: 終了日
+        amount:
+          type: number
+          format: float
+          description: 契約金額
+        currency:
+          type: string
+          description: 通貨
+          default: "JPY"
+        payment_terms:
+          type: string
+          description: 支払条件
+        payment_schedule:
+          type: array
+          items:
+            type: object
+            properties:
+              payment_date:
+                type: string
+                format: date
+                description: 支払日
+              amount:
+                type: number
+                format: float
+                description: 支払金額
+              description:
+                type: string
+                description: 支払内容説明
+        notes:
+          type: string
+          description: 備考
+        status:
+          type: string
+          enum: [draft, pending_approval]
+          default: draft
+          description: 初期ステータス
+
+    ContractUpdate:
+      type: object
+      properties:
+        title:
+          type: string
+          description: 契約タイトル
+        description:
+          type: string
+          description: 契約説明
+        terms_and_conditions:
+          type: string
+          description: 契約条件
+        start_date:
+          type: string
+          format: date
+          description: 開始日
+        end_date:
+          type: string
+          format: date
+          description: 終了日
+        amount:
+          type: number
+          format: float
+          description: 契約金額
+        currency:
+          type: string
+          description: 通貨
+        payment_terms:
+          type: string
+          description: 支払条件
+        payment_schedule:
+          type: array
+          items:
+            type: object
+            properties:
+              payment_date:
+                type: string
+                format: date
+                description: 支払日
+              amount:
+                type: number
+                format: float
+                description: 支払金額
+              description:
+                type: string
+                description: 支払内容説明
+        notes:
+          type: string
+          description: 備考
+
+    ContractDocumentSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 契約書ID
+        contract_id:
+          type: string
+          format: uuid
+          description: 契約ID
+        document_title:
+          type: string
+          description: 契約書タイトル
+        document_type:
+          type: string
+          enum: [primary, amendment, renewal, termination]
+          description: 契約書タイプ
+        version:
+          type: string
+          description: バージョン
+        file_format:
+          type: string
+          enum: [pdf, docx]
+          description: ファイル形式
+        file_size:
+          type: integer
+          description: ファイルサイズ（バイト）
+        status:
+          type: string
+          enum: [draft, pending_signature, signed]
+          description: 契約書ステータス
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+        signed_date:
+          type: string
+          format: date
+          description: 署名日
+
+    ContractDocument:
+      allOf:
+        - $ref: '#/components/schemas/ContractDocumentSummary'
+        - type: object
+          properties:
+            contract:
+              $ref: '#/components/schemas/ContractSummary'
+            content:
+              type: string
+              description: 契約書内容
+            template_id:
+              type: string
+              format: uuid
+              description: 使用したテンプレートID
+            customized_fields:
+              type: object
+              additionalProperties: true
+              description: カスタマイズされたフィールド
+            notes:
+              type: string
+              description: 備考
+            status_history:
+              type: array
+              items:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [draft, pending_signature, signed]
+                    description: ステータス
+                  changed_at:
+                    type: string
+                    format: date-time
+                    description: 変更日時
+                  changed_by:
+                    type: string
+                    format: uuid
+                    description: 変更者ID
+                  reason:
+                    type: string
+                    description: 変更理由
+            file:
+              type: object
+              properties:
+                file_name:
+                  type: string
+                  description: ファイル名
+                file_path:
+                  type: string
+                  description: ファイルパス
+                file_size:
+                  type: integer
+                  description: ファイルサイズ（バイト）
+                mime_type:
+                  type: string
+                  description: MIMEタイプ
+            signatures:
+              type: array
+              items:
+                $ref: '#/components/schemas/SignatureSummary'
+
+    ContractDocumentCreate:
+      type: object
+      required:
+        - contract_id
+        - document_title
+        - document_type
+      properties:
+        contract_id:
+          type: string
+          format: uuid
+          description: 契約ID
+        document_title:
+          type: string
+          description: 契約書タイトル
+        document_type:
+          type: string
+          enum: [primary, amendment, renewal, termination]
+          description: 契約書タイプ
+        version:
+          type: string
+          description: バージョン
+        template_id:
+          type: string
+          format: uuid
+          description: 使用するテンプレートID
+        content:
+          type: string
+          description: 契約書内容
+        customized_fields:
+          type: object
+          additionalProperties: true
+          description: カスタマイズするフィールド
+        notes:
+          type: string
+          description: 備考
+        status:
+          type: string
+          enum: [draft, pending_signature]
+          default: draft
+          description: 初期ステータス
+
+    ContractDocumentUpdate:
+      type: object
+      properties:
+        document_title:
+          type: string
+          description: 契約書タイトル
+        version:
+          type: string
+          description: バージョン
+        content:
+          type: string
+          description: 契約書内容
+        customized_fields:
+          type: object
+          additionalProperties: true
+          description: カスタマイズするフィールド
+        notes:
+          type: string
+          description: 備考
+
+    ContractTemplateSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: テンプレートID
+        name:
+          type: string
+          description: テンプレート名
+        description:
+          type: string
+          description: 説明
+        template_type:
+          type: string
+          enum: [primary, amendment, renewal, termination]
+          description: テンプレートタイプ
+        version:
+          type: string
+          description: バージョン
+        is_active:
+          type: boolean
+          description: アクティブステータス
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+        created_by:
+          type: string
+          format: uuid
+          description: 作成者ID
+
+    ContractTemplate:
+      allOf:
+        - $ref: '#/components/schemas/ContractTemplateSummary'
+        - type: object
+          properties:
+            content:
+              type: string
+              description: テンプレート内容
+            html_content:
+              type: string
+              description: HTMLフォーマットのテンプレート内容
+            variables:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: 変数名
+                  description:
+                    type: string
+                    description: 変数説明
+                  placeholder:
+                    type: string
+                    description: プレースホルダー
+                  data_type:
+                    type: string
+                    enum: [string, number, date, boolean]
+                    description: データタイプ
+                  is_required:
+                    type: boolean
+                    description: 必須項目かどうか
+            usage_count:
+              type: integer
+              description: 使用回数
+            notes:
+              type: string
+              description: 備考
+            file:
+              type: object
+              properties:
+                file_name:
+                  type: string
+                  description: ファイル名
+                file_path:
+                  type: string
+                  description: ファイルパス
+                file_size:
+                  type: integer
+                  description: ファイルサイズ（バイト）
+                mime_type:
+                  type: string
+                  description: MIMEタイプ
+
+    ContractTemplateCreate:
+      type: object
+      required:
+        - name
+        - template_type
+        - content
+      properties:
+        name:
+          type: string
+          description: テンプレート名
+        description:
+          type: string
+          description: 説明
+        template_type:
+          type: string
+          enum: [primary, amendment, renewal, termination]
+          description: テンプレートタイプ
+        version:
+          type: string
+          description: バージョン
+        content:
+          type: string
+          description: テンプレート内容
+        html_content:
+          type: string
+          description: HTMLフォーマットのテンプレート内容
+        variables:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: 変数名
+              description:
+                type: string
+                description: 変数説明
+              placeholder:
+                type: string
+                description: プレースホルダー
+              data_type:
+                type: string
+                enum: [string, number, date, boolean]
+                description: データタイプ
+              is_required:
+                type: boolean
+                description: 必須項目かどうか
+        is_active:
+          type: boolean
+          default: true
+          description: アクティブステータス
+        notes:
+          type: string
+          description: 備考
+
+    ContractTemplateUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: テンプレート名
+        description:
+          type: string
+          description: 説明
+        version:
+          type: string
+          description: バージョン
+        content:
+          type: string
+          description: テンプレート内容
+        html_content:
+          type: string
+          description: HTMLフォーマットのテンプレート内容
+        variables:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: 変数名
+              description:
+                type: string
+                description: 変数説明
+              placeholder:
+                type: string
+                description: プレースホルダー
+              data_type:
+                type: string
+                enum: [string, number, date, boolean]
+                description: データタイプ
+              is_required:
+                type: boolean
+                description: 必須項目かどうか
+        is_active:
+          type: boolean
+          description: アクティブステータス
+        notes:
+          type: string
+          description: 備考
+
+    SignatureSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 署名ID
+        contract_id:
+          type: string
+          format: uuid
+          description: 契約ID
+        document_id:
+          type: string
+          format: uuid
+          description: 契約書ID
+        signer_name:
+          type: string
+          description: 署名者名
+        signer_email:
+          type: string
+          format: email
+          description: 署名者メールアドレス
+        signer_role:
+          type: string
+          enum: [client, engineer, company]
+          description: 署名者役割
+        status:
+          type: string
+          enum: [pending, completed, rejected, expired]
+          description: 署名ステータス
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+        expires_at:
+          type: string
+          format: date-time
+          description: 有効期限
+        completed_at:
+          type: string
+          format: date-time
+          description: 完了日時
+
+    Signature:
+      allOf:
+        - $ref: '#/components/schemas/SignatureSummary'
+        - type: object
+          properties:
+            contract:
+              $ref: '#/components/schemas/ContractSummary'
+            document:
+              $ref: '#/components/schemas/ContractDocumentSummary'
+            signature_request_message:
+              type: string
+              description: 署名依頼メッセージ
+            signature_position:
+              type: object
+              properties:
+                page:
+                  type: integer
+                  description: ページ番号
+                x:
+                  type: integer
+                  description: X座標
+                y:
+                  type: integer
+                  description: Y座標
+                width:
+                  type: integer
+                  description: 幅
+                height:
+                  type: integer
+                  description: 高さ
+            signature_data:
+              type: string
+              description: 署名データ
+            verification_data:
+              type: object
+              properties:
+                ip_address:
+                  type: string
+                  description: 署名実行IPアドレス
+                geo_location:
+                  type: string
+                  description: 署名実行位置情報
+                device_info:
+                  type: string
+                  description: 署名実行デバイス情報
+                verification_method:
+                  type: string
+                  description: 検証方法
+                verification_timestamp:
+                  type: string
+                  format: date-time
+                  description: 検証タイムスタンプ
+            history:
+              type: array
+              items:
+                type: object
+                properties:
+                  action:
+                    type: string
+                    enum: [created, viewed, signed, rejected, reminded, expired]
+                    description: アクション
+                  timestamp:
+                    type: string
+                    format: date-time
+                    description: タイムスタンプ
+                  ip_address:
+                    type: string
+                    description: IPアドレス
+                  user_agent:
+                    type: string
+                    description: ユーザーエージェント
+            notes:
+              type: string
+              description: 備考
+
+    SignatureRequestCreate:
+      type: object
+      required:
+        - document_id
+        - signer_name
+        - signer_email
+        - signer_role
+      properties:
+        document_id:
+          type: string
+          format: uuid
+          description: 契約書ID
+        signer_name:
+          type: string
+          description: 署名者名
+        signer_email:
+          type: string
+          format: email
+          description: 署名者メールアドレス
+        signer_role:
+          type: string
+          enum: [client, engineer, company]
+          description: 署名者役割
+        signature_request_message:
+          type: string
+          description: 署名依頼メッセージ
+        expires_at:
+          type: string
+          format: date-time
+          description: 有効期限
+        signature_position:
+          type: object
+          properties:
+            page:
+              type: integer
+              description: ページ番号
+            x:
+              type: integer
+              description: X座標
+            y:
+              type: integer
+              description: Y座標
+            width:
+              type: integer
+              description: 幅
+            height:
+              type: integer
+              description: 高さ
+        notes:
+          type: string
+          description: 備考

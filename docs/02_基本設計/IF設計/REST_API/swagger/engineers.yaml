@@ -1,0 +1,2648 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 技術者管理API
+  description: |
+    技術者管理APIは、技術者の基本情報、スキル情報、稼働状況など、技術者に関する情報を管理するためのAPIを提供します。
+  version: 1.0.0
+
+paths:
+  /engineers/search:
+    post:
+      tags:
+        - engineers
+      summary: 技術者の詳細検索
+      description: |
+        複数の条件を組み合わせて技術者を検索します。
+      operationId: searchEngineers
+      requestBody:
+        description: 検索条件
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EngineerSearchCriteria'
+      responses:
+        '200':
+          description: 検索結果の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: 全検索結果数
+                  page:
+                    type: integer
+                    description: 現在のページ番号
+                  limit:
+                    type: integer
+                    description: 1ページあたりの取得件数
+                  engineers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EngineerSearchResult'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /engineers/search/skills:
+    post:
+      tags:
+        - engineers
+      summary: スキルベースの技術者検索
+      description: |
+        特定のスキル要件を持つ技術者を検索します。
+      operationId: searchEngineersBySkills
+      requestBody:
+        description: スキル検索条件
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillSearchCriteria'
+      responses:
+        '200':
+          description: 検索結果の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: 全検索結果数
+                  page:
+                    type: integer
+                    description: 現在のページ番号
+                  limit:
+                    type: integer
+                    description: 1ページあたりの取得件数
+                  engineers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EngineerSkillSearchResult'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /engineers/search/availability:
+    post:
+      tags:
+        - engineers
+      summary: 稼働状況ベースの技術者検索
+      description: |
+        稼働状況に基づいて技術者を検索します。
+      operationId: searchEngineersByAvailability
+      requestBody:
+        description: 稼働状況検索条件
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AvailabilitySearchCriteria'
+      responses:
+        '200':
+          description: 検索結果の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: 全検索結果数
+                  page:
+                    type: integer
+                    description: 現在のページ番号
+                  limit:
+                    type: integer
+                    description: 1ページあたりの取得件数
+                  engineers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EngineerAvailabilitySearchResult'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /engineers/search/quick:
+    get:
+      tags:
+        - engineers
+      summary: 技術者のクイック検索
+      description: |
+        キーワードベースで技術者を検索します。名前、スキル、メールアドレスなどから一致するものを返します。
+      operationId: quickSearchEngineers
+      parameters:
+        - name: keyword
+          in: query
+          description: 検索キーワード
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          description: 取得件数
+          schema:
+            type: integer
+            default: 10
+            minimum: 1
+            maximum: 50
+      responses:
+        '200':
+          description: クイック検索結果の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: 全検索結果数
+                  engineers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EngineerSummary'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+        
+  # スキル管理API
+  /skills:
+    get:
+      tags:
+        - skills
+      summary: スキル一覧の取得
+      description: |
+        登録されているスキル一覧を取得します。
+      operationId: getSkills
+      parameters:
+        - name: category
+          in: query
+          description: スキルカテゴリでフィルタリング
+          schema:
+            type: string
+        - name: keyword
+          in: query
+          description: キーワードでフィルタリング
+          schema:
+            type: string
+        - name: sort
+          in: query
+          description: 並べ替え項目
+          schema:
+            type: string
+            enum: [name, category, popularity]
+            default: category
+        - name: order
+          in: query
+          description: 並べ替え順序
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+      responses:
+        '200':
+          description: スキル一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  skills:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Skill'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - skills
+      summary: スキルの新規登録
+      description: |
+        新しいスキルを登録します。
+      operationId: createSkill
+      requestBody:
+        description: 登録するスキル情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillCreate'
+      responses:
+        '201':
+          description: スキルの登録に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "スキルの登録が完了しました"
+                  skill:
+                    $ref: '#/components/schemas/Skill'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '409':
+          description: スキルが既に存在する
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "同じ名前のスキルが既に存在します"
+                  error:
+                    type: string
+                    example: "duplicate_skill"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /skills/categories:
+    get:
+      tags:
+        - skills
+      summary: スキルカテゴリ一覧の取得
+      description: |
+        登録されているスキルカテゴリの一覧を取得します。
+      operationId: getSkillCategories
+      responses:
+        '200':
+          description: スキルカテゴリ一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  categories:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SkillCategory'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - skills
+      summary: スキルカテゴリの新規登録
+      description: |
+        新しいスキルカテゴリを登録します。
+      operationId: createSkillCategory
+      requestBody:
+        description: 登録するスキルカテゴリ情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillCategoryCreate'
+      responses:
+        '201':
+          description: スキルカテゴリの登録に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "スキルカテゴリの登録が完了しました"
+                  category:
+                    $ref: '#/components/schemas/SkillCategory'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '409':
+          description: スキルカテゴリが既に存在する
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "同じ名前のスキルカテゴリが既に存在します"
+                  error:
+                    type: string
+                    example: "duplicate_category"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /skills/{skill_id}:
+    get:
+      tags:
+        - skills
+      summary: スキル情報の取得
+      description: |
+        指定されたIDのスキル情報を取得します。
+      operationId: getSkill
+      parameters:
+        - name: skill_id
+          in: path
+          description: スキルID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: スキル情報の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Skill'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - skills
+      summary: スキル情報の更新
+      description: |
+        指定されたIDのスキル情報を更新します。
+      operationId: updateSkill
+      parameters:
+        - name: skill_id
+          in: path
+          description: スキルID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新するスキル情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillUpdate'
+      responses:
+        '200':
+          description: スキル情報の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "スキル情報の更新が完了しました"
+                  skill:
+                    $ref: '#/components/schemas/Skill'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: スキルが既に存在する
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "同じ名前のスキルが既に存在します"
+                  error:
+                    type: string
+                    example: "duplicate_skill"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - skills
+      summary: スキルの削除
+      description: |
+        指定されたIDのスキルを削除します。
+      operationId: deleteSkill
+      parameters:
+        - name: skill_id
+          in: path
+          description: スキルID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: スキルの削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "スキルの削除が完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: スキルが使用中で削除できない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "このスキルは技術者に関連付けられているため削除できません"
+                  error:
+                    type: string
+                    example: "skill_in_use"
+                  dependent_engineers_count:
+                    type: integer
+                    example: 5
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /skills/categories/{category_id}:
+    get:
+      tags:
+        - skills
+      summary: スキルカテゴリ情報の取得
+      description: |
+        指定されたIDのスキルカテゴリ情報を取得します。
+      operationId: getSkillCategory
+      parameters:
+        - name: category_id
+          in: path
+          description: スキルカテゴリID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: スキルカテゴリ情報の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SkillCategory'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - skills
+      summary: スキルカテゴリの更新
+      description: |
+        指定されたIDのスキルカテゴリを更新します。
+      operationId: updateSkillCategory
+      parameters:
+        - name: category_id
+          in: path
+          description: スキルカテゴリID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新するスキルカテゴリ情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SkillCategoryUpdate'
+      responses:
+        '200':
+          description: スキルカテゴリの更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "スキルカテゴリの更新が完了しました"
+                  category:
+                    $ref: '#/components/schemas/SkillCategory'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: スキルカテゴリが既に存在する
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "同じ名前のスキルカテゴリが既に存在します"
+                  error:
+                    type: string
+                    example: "duplicate_category"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - skills
+      summary: スキルカテゴリの削除
+      description: |
+        指定されたIDのスキルカテゴリを削除します。
+      operationId: deleteSkillCategory
+      parameters:
+        - name: category_id
+          in: path
+          description: スキルカテゴリID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: スキルカテゴリの削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "スキルカテゴリの削除が完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: スキルカテゴリが使用中で削除できない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "このカテゴリにはスキルが関連付けられているため削除できません"
+                  error:
+                    type: string
+                    example: "category_in_use"
+                  dependent_skills_count:
+                    type: integer
+                    example: 10
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /engineers/{engineer_id}/skills:
+    get:
+      tags:
+        - engineers
+        - skills
+      summary: 技術者のスキル一覧取得
+      description: |
+        指定した技術者のスキル一覧を取得します。
+      operationId: getEngineerSkills
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: category
+          in: query
+          description: スキルカテゴリでフィルタリング
+          schema:
+            type: string
+      responses:
+        '200':
+          description: 技術者スキル一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  skills:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EngineerSkill'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - engineers
+        - skills
+      summary: 技術者へのスキル追加
+      description: |
+        技術者に新しいスキルを追加します。
+      operationId: addEngineerSkill
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 追加するスキル情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EngineerSkillCreate'
+      responses:
+        '201':
+          description: 技術者へのスキル追加に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "スキルの追加が完了しました"
+                  skill:
+                    $ref: '#/components/schemas/EngineerSkill'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: スキルが既に追加されている
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "このスキルは既に技術者に登録されています"
+                  error:
+                    type: string
+                    example: "duplicate_engineer_skill"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - engineers
+        - skills
+      summary: 技術者のスキル一括更新
+      description: |
+        技術者のスキル情報を一括で更新します。
+      operationId: updateEngineerSkills
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新するスキル情報の配列
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                skills:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/EngineerSkillCreate'
+      responses:
+        '200':
+          description: 技術者のスキル一括更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "スキル情報の一括更新が完了しました"
+                  updated_count:
+                    type: integer
+                    example: 5
+                  skills:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EngineerSkill'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /engineers/{engineer_id}/skills/{skill_id}:
+    get:
+      tags:
+        - engineers
+        - skills
+      summary: 技術者の特定スキル情報取得
+      description: |
+        技術者の特定のスキル情報を取得します。
+      operationId: getEngineerSkill
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: skill_id
+          in: path
+          description: スキルID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 技術者スキル情報の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EngineerSkill'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - engineers
+        - skills
+      summary: 技術者の特定スキル情報更新
+      description: |
+        技術者の特定のスキル情報を更新します。
+      operationId: updateEngineerSkill
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: skill_id
+          in: path
+          description: スキルID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新するスキル情報
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                level:
+                  type: integer
+                  minimum: 1
+                  maximum: 5
+                  description: スキルレベル（1〜5）
+                years_of_experience:
+                  type: number
+                  format: float
+                  description: 経験年数
+                description:
+                  type: string
+                  description: 詳細説明
+                last_used_date:
+                  type: string
+                  format: date
+                  description: 最終利用日
+      responses:
+        '200':
+          description: 技術者スキル情報の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "スキル情報の更新が完了しました"
+                  skill:
+                    $ref: '#/components/schemas/EngineerSkill'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - engineers
+        - skills
+      summary: 技術者からのスキル削除
+      description: |
+        技術者から特定のスキルを削除します。
+      operationId: deleteEngineerSkill
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: skill_id
+          in: path
+          description: スキルID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 技術者からのスキル削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "スキルの削除が完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+  /engineers:
+    get:
+      tags:
+        - engineers
+      summary: 技術者一覧の取得
+      description: |
+        技術者の一覧を取得します。クエリパラメータによるフィルタリングや並べ替えが可能です。
+      operationId: getEngineers
+      parameters:
+        - name: page
+          in: query
+          description: ページ番号（1から開始）
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: 1ページあたりの取得件数
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+        - name: status
+          in: query
+          description: 技術者のステータス（アクティブ、非アクティブなど）
+          schema:
+            type: string
+            enum: [active, inactive, all]
+            default: active
+        - name: sort
+          in: query
+          description: 並べ替え項目（created_at, updated_at, name）
+          schema:
+            type: string
+            enum: [created_at, updated_at, name]
+            default: updated_at
+        - name: order
+          in: query
+          description: 並べ替え順序（asc, desc）
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+      responses:
+        '200':
+          description: 技術者一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: 全技術者数
+                  page:
+                    type: integer
+                    description: 現在のページ番号
+                  limit:
+                    type: integer
+                    description: 1ページあたりの取得件数
+                  engineers:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EngineerSummary'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - engineers
+      summary: 技術者の新規登録
+      description: |
+        新しい技術者情報を登録します。
+      operationId: createEngineer
+      requestBody:
+        description: 登録する技術者情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EngineerCreate'
+      responses:
+        '201':
+          description: 技術者の登録が成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "技術者の登録が完了しました"
+                  engineer_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  engineer:
+                    $ref: '#/components/schemas/Engineer'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /engineers/{engineer_id}:
+    get:
+      tags:
+        - engineers
+      summary: 技術者情報の取得
+      description: |
+        指定されたIDの技術者情報を取得します。
+      operationId: getEngineer
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 技術者情報の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Engineer'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - engineers
+      summary: 技術者情報の更新
+      description: |
+        指定されたIDの技術者情報を更新します。
+      operationId: updateEngineer
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新する技術者情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EngineerUpdate'
+      responses:
+        '200':
+          description: 技術者情報の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "技術者情報の更新が完了しました"
+                  engineer:
+                    $ref: '#/components/schemas/Engineer'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - engineers
+      summary: 技術者情報の削除
+      description: |
+        指定されたIDの技術者情報を削除します。（論理削除）
+      operationId: deleteEngineer
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 技術者情報の削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "技術者情報の削除が完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /engineers/{engineer_id}/status:
+    put:
+      tags:
+        - engineers
+      summary: 技術者のステータス更新
+      description: |
+        技術者のステータス（アクティブ/非アクティブなど）を更新します。
+      operationId: updateEngineerStatus
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新するステータス情報
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [active, inactive]
+                  description: 技術者のステータス
+                status_reason:
+                  type: string
+                  description: ステータス変更の理由
+                  maxLength: 200
+      responses:
+        '200':
+          description: ステータス更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "技術者のステータスを更新しました"
+                  status:
+                    type: string
+                    enum: [active, inactive]
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /engineers/{engineer_id}/documents:
+    get:
+      tags:
+        - engineers
+      summary: 技術者関連ドキュメント一覧の取得
+      description: |
+        技術者に関連するドキュメント（スキルシート、証明書等）の一覧を取得します。
+      operationId: getEngineerDocuments
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: document_type
+          in: query
+          description: ドキュメントの種類でフィルタリング
+          schema:
+            type: string
+            enum: [skill_sheet, certificate, resume, all]
+            default: all
+      responses:
+        '200':
+          description: ドキュメント一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  documents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EngineerDocument'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - engineers
+      summary: 技術者関連ドキュメントのアップロード
+      description: |
+        技術者に関連するドキュメントをアップロードします。
+      operationId: uploadEngineerDocument
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - document_type
+                - file
+              properties:
+                document_type:
+                  type: string
+                  enum: [skill_sheet, certificate, resume]
+                  description: ドキュメントの種類
+                file:
+                  type: string
+                  format: binary
+                  description: アップロードするファイル
+                description:
+                  type: string
+                  description: ドキュメントの説明
+                  maxLength: 200
+      responses:
+        '201':
+          description: ドキュメントのアップロードに成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ドキュメントのアップロードが完了しました"
+                  document:
+                    $ref: '#/components/schemas/EngineerDocument'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /engineers/{engineer_id}/documents/{document_id}:
+    get:
+      tags:
+        - engineers
+      summary: 技術者関連ドキュメントの取得
+      description: |
+        指定されたIDのドキュメントを取得します。
+      operationId: getEngineerDocument
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: document_id
+          in: path
+          description: ドキュメントID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: ドキュメントの取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EngineerDocument'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - engineers
+      summary: 技術者関連ドキュメントの削除
+      description: |
+        指定されたIDのドキュメントを削除します。
+      operationId: deleteEngineerDocument
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: document_id
+          in: path
+          description: ドキュメントID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: ドキュメントの削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ドキュメントの削除が完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /engineers/{engineer_id}/work-status:
+    get:
+      tags:
+        - engineers
+      summary: 技術者の稼働状況取得
+      description: |
+        技術者の現在および過去の稼働状況を取得します。
+      operationId: getEngineerWorkStatus
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: from_date
+          in: query
+          description: 取得期間の開始日（YYYY-MM-DD形式）
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          description: 取得期間の終了日（YYYY-MM-DD形式）
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: 稼働状況の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  current_status:
+                    $ref: '#/components/schemas/WorkStatus'
+                  history:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkStatusHistory'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - engineers
+      summary: 技術者の稼働状況更新
+      description: |
+        技術者の稼働状況を更新します。
+      operationId: updateEngineerWorkStatus
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新する稼働状況情報
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+                - effective_date
+              properties:
+                status:
+                  type: string
+                  enum: [available, assigned, partially_available, unavailable, tentatively_assigned]
+                  description: 稼働ステータス
+                effective_date:
+                  type: string
+                  format: date
+                  description: 稼働状況変更の適用日
+                project_id:
+                  type: string
+                  format: uuid
+                  description: 稼働中案件ID（assignedの場合に必須）
+                available_hours:
+                  type: integer
+                  minimum: 0
+                  maximum: 200
+                  description: 月間稼働可能時間（partially_availableの場合に必須）
+                unavailable_reason:
+                  type: string
+                  enum: [leave, training, illness, other]
+                  description: 非稼働理由（unavailableの場合に必須）
+                unavailable_until:
+                  type: string
+                  format: date
+                  description: 非稼働予定終了日
+                notes:
+                  type: string
+                  maxLength: 500
+                  description: 備考
+      responses:
+        '200':
+          description: 稼働状況の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "稼働状況の更新が完了しました"
+                  work_status:
+                    $ref: '#/components/schemas/WorkStatus'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    EngineerSearchCriteria:
+      type: object
+      properties:
+        keywords:
+          type: string
+          description: フリーワード検索（名前、スキル、メールアドレスなどを横断検索）
+        status:
+          type: array
+          items:
+            type: string
+            enum: [active, inactive]
+          description: ステータス（複数選択可能）
+        work_status:
+          type: array
+          items:
+            type: string
+            enum: [available, assigned, partially_available, unavailable, tentatively_assigned]
+          description: 稼働状況（複数選択可能）
+        departments:
+          type: array
+          items:
+            type: string
+          description: 所属部署（複数選択可能）
+        positions:
+          type: array
+          items:
+            type: string
+          description: 役職（複数選択可能）
+        min_years_experience:
+          type: integer
+          minimum: 0
+          description: 最小経験年数
+        max_years_experience:
+          type: integer
+          description: 最大経験年数
+        skills:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: スキル名
+              min_level:
+                type: integer
+                minimum: 1
+                maximum: 5
+                description: 最小スキルレベル
+        qualifications:
+          type: array
+          items:
+            type: string
+          description: 保有資格
+        availability_from:
+          type: string
+          format: date
+          description: 稼働可能開始日
+        availability_to:
+          type: string
+          format: date
+          description: 稼働可能終了日
+        min_hours_available:
+          type: integer
+          description: 最小稼働可能時間
+        sort:
+          type: string
+          enum: [name, experience, updated_at, created_at]
+          default: updated_at
+          description: 並べ替え項目
+        order:
+          type: string
+          enum: [asc, desc]
+          default: desc
+          description: 並べ替え順序
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+          description: ページ番号
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+          description: 1ページあたりの取得件数
+
+    SkillSearchCriteria:
+      type: object
+      required:
+        - skills
+      properties:
+        skills:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required:
+              - name
+            properties:
+              name:
+                type: string
+                description: スキル名
+              category:
+                type: string
+                description: スキル種別
+              min_level:
+                type: integer
+                minimum: 1
+                maximum: 5
+                default: 1
+                description: 最小スキルレベル
+              min_years_experience:
+                type: number
+                format: float
+                description: 最小経験年数
+        require_all_skills:
+          type: boolean
+          default: true
+          description: 全スキルを満たす必要があるか（falseの場合はいずれかのスキルを満たせばOK）
+        work_status:
+          type: array
+          items:
+            type: string
+            enum: [available, assigned, partially_available, unavailable, tentatively_assigned]
+          description: 稼働状況でフィルタリング
+        availability_from:
+          type: string
+          format: date
+          description: 稼働可能開始日
+        sort:
+          type: string
+          enum: [skill_match, experience, name]
+          default: skill_match
+          description: 並べ替え項目
+        order:
+          type: string
+          enum: [asc, desc]
+          default: desc
+          description: 並べ替え順序
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+          description: ページ番号
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+          description: 1ページあたりの取得件数
+
+    AvailabilitySearchCriteria:
+      type: object
+      properties:
+        status:
+          type: array
+          items:
+            type: string
+            enum: [available, assigned, partially_available, unavailable, tentatively_assigned]
+          description: 稼働状況（複数選択可能）
+        availability_from:
+          type: string
+          format: date
+          description: 稼働可能開始日
+        availability_to:
+          type: string
+          format: date
+          description: 稼働可能終了日
+        min_hours_available:
+          type: integer
+          minimum: 0
+          description: 最小稼働可能時間/月
+        departments:
+          type: array
+          items:
+            type: string
+          description: 所属部署（複数選択可能）
+        skills:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: スキル名
+              min_level:
+                type: integer
+                minimum: 1
+                maximum: 5
+                description: 最小スキルレベル
+        sort:
+          type: string
+          enum: [availability, hours_available, name]
+          default: availability
+          description: 並べ替え項目
+        order:
+          type: string
+          enum: [asc, desc]
+          default: desc
+          description: 並べ替え順序
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+          description: ページ番号
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+          description: 1ページあたりの取得件数
+
+    EngineerSearchResult:
+      allOf:
+        - $ref: '#/components/schemas/EngineerSummary'
+        - type: object
+          properties:
+            matching_score:
+              type: integer
+              description: 検索条件とのマッチングスコア（0-100）
+            matching_skills:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: スキル名
+                  level:
+                    type: integer
+                    minimum: 1
+                    maximum: 5
+                    description: スキルレベル
+                  years_experience:
+                    type: number
+                    format: float
+                    description: 経験年数
+
+    EngineerSkillSearchResult:
+      allOf:
+        - $ref: '#/components/schemas/EngineerSummary'
+        - type: object
+          properties:
+            skill_score:
+              type: integer
+              description: スキルマッチングスコア（0-100）
+            matched_skills:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: スキル名
+                  level:
+                    type: integer
+                    minimum: 1
+                    maximum: 5
+                    description: スキルレベル
+                  years_experience:
+                    type: number
+                    format: float
+                    description: 経験年数
+                  required_level:
+                    type: integer
+                    minimum: 1
+                    maximum: 5
+                    description: 検索で求められたレベル
+            availability:
+              $ref: '#/components/schemas/WorkStatus'
+
+    EngineerAvailabilitySearchResult:
+      allOf:
+        - $ref: '#/components/schemas/EngineerSummary'
+        - type: object
+          properties:
+            availability:
+              $ref: '#/components/schemas/WorkStatus'
+            availability_score:
+              type: integer
+              description: 稼働状況マッチングスコア（0-100）
+            matched_skills:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: スキル名
+                  level:
+                    type: integer
+                    minimum: 1
+                    maximum: 5
+                    description: スキルレベル
+
+    EngineerSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 技術者ID
+        employee_id:
+          type: string
+          description: 社員番号
+        name:
+          type: string
+          description: 氏名
+        name_kana:
+          type: string
+          description: 氏名（カナ）
+        email:
+          type: string
+          format: email
+          description: メールアドレス
+        department:
+          type: string
+          description: 所属部署
+        position:
+          type: string
+          description: 役職
+        status:
+          type: string
+          enum: [active, inactive]
+          description: ステータス
+        work_status:
+          type: string
+          enum: [available, assigned, partially_available, unavailable, tentatively_assigned]
+          description: 稼働状況
+        primary_skill:
+          type: string
+          description: 主要スキル
+        years_of_experience:
+          type: integer
+          description: 経験年数
+        created_at:
+          type: string
+          format: date-time
+          description: 登録日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+
+    Engineer:
+      allOf:
+        - $ref: '#/components/schemas/EngineerSummary'
+        - type: object
+          properties:
+            phone:
+              type: string
+              description: 電話番号
+            address:
+              type: string
+              description: 住所
+            birth_date:
+              type: string
+              format: date
+              description: 生年月日
+            hire_date:
+              type: string
+              format: date
+              description: 入社日
+            skills:
+              type: array
+              items:
+                $ref: '#/components/schemas/EngineerSkill'
+            qualifications:
+              type: array
+              items:
+                $ref: '#/components/schemas/EngineerQualification'
+            career_history:
+              type: array
+              items:
+                $ref: '#/components/schemas/CareerHistory'
+            education:
+              type: array
+              items:
+                $ref: '#/components/schemas/Education'
+            project_history:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProjectHistory'
+            profile:
+              type: string
+              description: 自己PR
+            notes:
+              type: string
+              description: 備考
+
+    EngineerCreate:
+      type: object
+      required:
+        - name
+        - name_kana
+        - email
+        - department
+        - position
+      properties:
+        employee_id:
+          type: string
+          description: 社員番号
+        name:
+          type: string
+          description: 氏名
+        name_kana:
+          type: string
+          description: 氏名（カナ）
+        email:
+          type: string
+          format: email
+          description: メールアドレス
+        phone:
+          type: string
+          description: 電話番号
+        address:
+          type: string
+          description: 住所
+        birth_date:
+          type: string
+          format: date
+          description: 生年月日
+        hire_date:
+          type: string
+          format: date
+          description: 入社日
+        department:
+          type: string
+          description: 所属部署
+        position:
+          type: string
+          description: 役職
+        primary_skill:
+          type: string
+          description: 主要スキル
+        years_of_experience:
+          type: integer
+          description: 経験年数
+        profile:
+          type: string
+          description: 自己PR
+        notes:
+          type: string
+          description: 備考
+        skills:
+          type: array
+          items:
+            $ref: '#/components/schemas/EngineerSkillCreate'
+        qualifications:
+          type: array
+          items:
+            $ref: '#/components/schemas/EngineerQualificationCreate'
+        career_history:
+          type: array
+          items:
+            $ref: '#/components/schemas/CareerHistoryCreate'
+        education:
+          type: array
+          items:
+            $ref: '#/components/schemas/EducationCreate'
+
+    EngineerUpdate:
+      type: object
+      properties:
+        employee_id:
+          type: string
+          description: 社員番号
+        name:
+          type: string
+          description: 氏名
+        name_kana:
+          type: string
+          description: 氏名（カナ）
+        email:
+          type: string
+          format: email
+          description: メールアドレス
+        phone:
+          type: string
+          description: 電話番号
+        address:
+          type: string
+          description: 住所
+        birth_date:
+          type: string
+          format: date
+          description: 生年月日
+        hire_date:
+          type: string
+          format: date
+          description: 入社日
+        department:
+          type: string
+          description: 所属部署
+        position:
+          type: string
+          description: 役職
+        primary_skill:
+          type: string
+          description: 主要スキル
+        years_of_experience:
+          type: integer
+          description: 経験年数
+        profile:
+          type: string
+          description: 自己PR
+        notes:
+          type: string
+          description: 備考
+
+    EngineerSkill:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: スキルID
+        category:
+          type: string
+          description: スキル種別
+        name:
+          type: string
+          description: スキル名
+        level:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: スキルレベル（1〜5）
+        years_of_experience:
+          type: number
+          format: float
+          description: 経験年数
+        description:
+          type: string
+          description: 詳細説明
+        last_used_date:
+          type: string
+          format: date
+          description: 最終利用日
+
+    EngineerSkillCreate:
+      type: object
+      required:
+        - category
+        - name
+        - level
+      properties:
+        category:
+          type: string
+          description: スキル種別
+        name:
+          type: string
+          description: スキル名
+        level:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: スキルレベル（1〜5）
+        years_of_experience:
+          type: number
+          format: float
+          description: 経験年数
+        description:
+          type: string
+          description: 詳細説明
+        last_used_date:
+          type: string
+          format: date
+          description: 最終利用日
+
+    EngineerQualification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 資格ID
+        name:
+          type: string
+          description: 資格名
+        acquisition_date:
+          type: string
+          format: date
+          description: 取得日
+        expiration_date:
+          type: string
+          format: date
+          description: 有効期限
+        certification_number:
+          type: string
+          description: 認定番号
+        issuing_organization:
+          type: string
+          description: 発行組織
+
+    EngineerQualificationCreate:
+      type: object
+      required:
+        - name
+        - acquisition_date
+      properties:
+        name:
+          type: string
+          description: 資格名
+        acquisition_date:
+          type: string
+          format: date
+          description: 取得日
+        expiration_date:
+          type: string
+          format: date
+          description: 有効期限
+        certification_number:
+          type: string
+          description: 認定番号
+        issuing_organization:
+          type: string
+          description: 発行組織
+
+    CareerHistory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 経歴ID
+        company_name:
+          type: string
+          description: 会社名
+        position:
+          type: string
+          description: 役職
+        start_date:
+          type: string
+          format: date
+          description: 開始日
+        end_date:
+          type: string
+          format: date
+          description: 終了日
+        description:
+          type: string
+          description: 業務内容
+
+    CareerHistoryCreate:
+      type: object
+      required:
+        - company_name
+        - start_date
+      properties:
+        company_name:
+          type: string
+          description: 会社名
+        position:
+          type: string
+          description: 役職
+        start_date:
+          type: string
+          format: date
+          description: 開始日
+        end_date:
+          type: string
+          format: date
+          description: 終了日
+        description:
+          type: string
+          description: 業務内容
+
+    Education:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 学歴ID
+        institution:
+          type: string
+          description: 学校名
+        degree:
+          type: string
+          description: 学位
+        field_of_study:
+          type: string
+          description: 専攻
+        start_date:
+          type: string
+          format: date
+          description: 開始日
+        end_date:
+          type: string
+          format: date
+          description: 終了日
+        description:
+          type: string
+          description: 詳細
+
+    EducationCreate:
+      type: object
+      required:
+        - institution
+        - end_date
+      properties:
+        institution:
+          type: string
+          description: 学校名
+        degree:
+          type: string
+          description: 学位
+        field_of_study:
+          type: string
+          description: 専攻
+        start_date:
+          type: string
+          format: date
+          description: 開始日
+        end_date:
+          type: string
+          format: date
+          description: 終了日
+        description:
+          type: string
+          description: 詳細
+
+    ProjectHistory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 案件ID
+        project_name:
+          type: string
+          description: 案件名
+        client_name:
+          type: string
+          description: 顧客名
+        start_date:
+          type: string
+          format: date
+          description: 開始日
+        end_date:
+          type: string
+          format: date
+          description: 終了日
+        role:
+          type: string
+          description: 役割
+        technologies:
+          type: array
+          items:
+            type: string
+          description: 使用技術
+        description:
+          type: string
+          description: プロジェクト内容
+        responsibilities:
+          type: string
+          description: 担当業務
+
+    EngineerDocument:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ドキュメントID
+        engineer_id:
+          type: string
+          format: uuid
+          description: 技術者ID
+        document_type:
+          type: string
+          enum: [skill_sheet, certificate, resume, other]
+          description: ドキュメント種別
+        file_name:
+          type: string
+          description: ファイル名
+        file_path:
+          type: string
+          description: ファイルパス
+        file_size:
+          type: integer
+          description: ファイルサイズ（バイト）
+        mime_type:
+          type: string
+          description: MIMEタイプ
+        description:
+          type: string
+          description: ドキュメントの説明
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+
+    WorkStatus:
+      type: object
+      properties:
+        engineer_id:
+          type: string
+          format: uuid
+          description: 技術者ID
+        status:
+          type: string
+          enum: [available, assigned, partially_available, unavailable, tentatively_assigned]
+          description: 稼働ステータス
+        effective_date:
+          type: string
+          format: date
+          description: 稼働状況変更の適用日
+        project_id:
+          type: string
+          format: uuid
+          description: 稼働中案件ID
+        project_name:
+          type: string
+          description: 稼働中案件名
+        available_hours:
+          type: integer
+          description: 月間稼働可能時間
+        unavailable_reason:
+          type: string
+          enum: [leave, training, illness, other]
+          description: 非稼働理由
+        unavailable_until:
+          type: string
+          format: date
+          description: 非稼働予定終了日
+        notes:
+          type: string
+          description: 備考
+        last_updated:
+          type: string
+          format: date-time
+          description: 最終更新日時
+
+    WorkStatusHistory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 履歴ID
+        engineer_id:
+          type: string
+          format: uuid
+          description: 技術者ID
+        status:
+          type: string
+          enum: [available, assigned, partially_available, unavailable, tentatively_assigned]
+          description: 稼働ステータス
+        effective_date:
+          type: string
+          format: date
+          description: 稼働状況変更の適用日
+        end_date:
+          type: string
+          format: date
+          description: 適用終了日
+        project_id:
+          type: string
+          format: uuid
+          description: 稼働中案件ID
+        project_name:
+          type: string
+          description: 稼働中案件名
+        available_hours:
+          type: integer
+          description: 月間稼働可能時間
+        unavailable_reason:
+          type: string
+          enum: [leave, training, illness, other]
+          description: 非稼働理由
+        notes:
+          type: string
+          description: 備考
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+          
+    # スキル管理関連スキーマ
+    Skill:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: スキルID
+        name:
+          type: string
+          description: スキル名
+        category_id:
+          type: string
+          format: uuid
+          description: カテゴリID
+        category_name:
+          type: string
+          description: カテゴリ名
+        description:
+          type: string
+          description: 説明
+        popularity:
+          type: integer
+          description: 保有技術者数（人気度）
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+
+    SkillCreate:
+      type: object
+      required:
+        - name
+        - category_id
+      properties:
+        name:
+          type: string
+          description: スキル名
+        category_id:
+          type: string
+          format: uuid
+          description: カテゴリID
+        description:
+          type: string
+          description: 説明
+
+    SkillUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: スキル名
+        category_id:
+          type: string
+          format: uuid
+          description: カテゴリID
+        description:
+          type: string
+          description: 説明
+
+    SkillCategory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: カテゴリID
+        name:
+          type: string
+          description: カテゴリ名
+        description:
+          type: string
+          description: 説明
+        display_order:
+          type: integer
+          description: 表示順
+        skill_count:
+          type: integer
+          description: 所属スキル数
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+
+    SkillCategoryCreate:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: カテゴリ名
+        description:
+          type: string
+          description: 説明
+        display_order:
+          type: integer
+          description: 表示順
+
+    SkillCategoryUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          description: カテゴリ名
+        description:
+          type: string
+          description: 説明
+        display_order:
+          type: integer
+          description: 表示順

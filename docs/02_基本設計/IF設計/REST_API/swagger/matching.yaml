@@ -1,0 +1,1711 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - マッチング機能API
+  description: |
+    マッチング機能APIは、案件と技術者のマッチング検索、提案管理、提案書管理などの機能を提供します。
+  version: 1.0.0
+
+paths:
+  /matching/search:
+    post:
+      tags:
+        - matching
+      summary: マッチング検索の実行
+      description: |
+        案件に対する技術者のマッチング検索、または技術者に対する案件のマッチング検索を実行します。
+      operationId: performMatchingSearch
+      requestBody:
+        description: マッチング検索条件
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MatchingSearchCriteria'
+      responses:
+        '200':
+          description: マッチング検索結果の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: 全マッチング結果数
+                  page:
+                    type: integer
+                    description: 現在のページ番号
+                  limit:
+                    type: integer
+                    description: 1ページあたりの取得件数
+                  matching_results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MatchingResult'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /matching/results:
+    get:
+      tags:
+        - matching
+      summary: マッチング結果一覧の取得
+      description: |
+        過去に実行したマッチング検索の結果一覧を取得します。
+      operationId: getMatchingResults
+      parameters:
+        - name: search_type
+          in: query
+          description: 検索タイプ（project_to_engineers または engineer_to_projects）
+          schema:
+            type: string
+            enum: [project_to_engineers, engineer_to_projects]
+        - name: project_id
+          in: query
+          description: 案件ID（search_type=project_to_engineersの場合に使用）
+          schema:
+            type: string
+            format: uuid
+        - name: engineer_id
+          in: query
+          description: 技術者ID（search_type=engineer_to_projectsの場合に使用）
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          description: マッチング結果ステータス
+          schema:
+            type: string
+            enum: [pending, reviewed, proposed, rejected, all]
+            default: all
+        - name: from_date
+          in: query
+          description: 検索期間の開始日（YYYY-MM-DD形式）
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          description: 検索期間の終了日（YYYY-MM-DD形式）
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          description: ページ番号
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: 1ページあたりの取得件数
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: マッチング結果一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: 全マッチング結果数
+                  page:
+                    type: integer
+                    description: 現在のページ番号
+                  limit:
+                    type: integer
+                    description: 1ページあたりの取得件数
+                  matching_results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MatchingResultSummary'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /matching/results/{result_id}:
+    get:
+      tags:
+        - matching
+      summary: マッチング結果詳細の取得
+      description: |
+        特定のマッチング結果の詳細情報を取得します。
+      operationId: getMatchingResult
+      parameters:
+        - name: result_id
+          in: path
+          description: マッチング結果ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: マッチング結果詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MatchingResult'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - matching
+      summary: マッチング結果ステータスの更新
+      description: |
+        マッチング結果のステータスを更新します。
+      operationId: updateMatchingResultStatus
+      parameters:
+        - name: result_id
+          in: path
+          description: マッチング結果ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新するステータス情報
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [pending, reviewed, proposed, rejected]
+                  description: 更新後のステータス
+                notes:
+                  type: string
+                  description: 備考
+      responses:
+        '200':
+          description: マッチング結果ステータスの更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "マッチング結果ステータスの更新が完了しました"
+                  result:
+                    $ref: '#/components/schemas/MatchingResult'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /proposals:
+    get:
+      tags:
+        - proposals
+      summary: 提案一覧の取得
+      description: |
+        提案一覧を取得します。
+      operationId: getProposals
+      parameters:
+        - name: project_id
+          in: query
+          description: 案件ID
+          schema:
+            type: string
+            format: uuid
+        - name: engineer_id
+          in: query
+          description: 技術者ID
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          description: 提案ステータス
+          schema:
+            type: string
+            enum: [draft, pending, accepted, rejected, cancelled, all]
+            default: all
+        - name: from_date
+          in: query
+          description: 検索期間の開始日（YYYY-MM-DD形式）
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          description: 検索期間の終了日（YYYY-MM-DD形式）
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          description: ページ番号
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: 1ページあたりの取得件数
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: 提案一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: 全提案数
+                  page:
+                    type: integer
+                    description: 現在のページ番号
+                  limit:
+                    type: integer
+                    description: 1ページあたりの取得件数
+                  proposals:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProposalSummary'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - proposals
+      summary: 提案の新規作成
+      description: |
+        新しい提案を作成します。
+      operationId: createProposal
+      requestBody:
+        description: 作成する提案情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProposalCreate'
+      responses:
+        '201':
+          description: 提案の作成に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "提案の作成が完了しました"
+                  proposal_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  proposal:
+                    $ref: '#/components/schemas/Proposal'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /proposals/{proposal_id}:
+    get:
+      tags:
+        - proposals
+      summary: 提案詳細の取得
+      description: |
+        指定されたIDの提案詳細を取得します。
+      operationId: getProposal
+      parameters:
+        - name: proposal_id
+          in: path
+          description: 提案ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 提案詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Proposal'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - proposals
+      summary: 提案情報の更新
+      description: |
+        指定されたIDの提案情報を更新します。
+      operationId: updateProposal
+      parameters:
+        - name: proposal_id
+          in: path
+          description: 提案ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新する提案情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProposalUpdate'
+      responses:
+        '200':
+          description: 提案情報の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "提案情報の更新が完了しました"
+                  proposal:
+                    $ref: '#/components/schemas/Proposal'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - proposals
+      summary: 提案の削除
+      description: |
+        指定されたIDの提案を削除します。ステータスがdraftの場合のみ可能です。
+      operationId: deleteProposal
+      parameters:
+        - name: proposal_id
+          in: path
+          description: 提案ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 提案の削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "提案の削除が完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 提案が削除できない状態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ドラフト状態の提案のみ削除できます"
+                  error:
+                    type: string
+                    example: "invalid_proposal_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /proposals/{proposal_id}/status:
+    put:
+      tags:
+        - proposals
+      summary: 提案ステータスの更新
+      description: |
+        提案のステータスを更新します。
+      operationId: updateProposalStatus
+      parameters:
+        - name: proposal_id
+          in: path
+          description: 提案ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新するステータス情報
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [draft, pending, accepted, rejected, cancelled]
+                  description: 更新後のステータス
+                status_reason:
+                  type: string
+                  description: ステータス変更の理由
+                notes:
+                  type: string
+                  description: 備考
+      responses:
+        '200':
+          description: 提案ステータスの更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "提案ステータスの更新が完了しました"
+                  proposal:
+                    $ref: '#/components/schemas/Proposal'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 無効なステータス変更
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "現在のステータスからこのステータスへは変更できません"
+                  error:
+                    type: string
+                    example: "invalid_status_transition"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /proposal-documents:
+    get:
+      tags:
+        - proposal-documents
+      summary: 提案書一覧の取得
+      description: |
+        提案書一覧を取得します。
+      operationId: getProposalDocuments
+      parameters:
+        - name: proposal_id
+          in: query
+          description: 提案ID
+          schema:
+            type: string
+            format: uuid
+        - name: project_id
+          in: query
+          description: 案件ID
+          schema:
+            type: string
+            format: uuid
+        - name: engineer_id
+          in: query
+          description: 技術者ID
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          description: 提案書ステータス
+          schema:
+            type: string
+            enum: [draft, sent, revised, all]
+            default: all
+        - name: from_date
+          in: query
+          description: 検索期間の開始日（YYYY-MM-DD形式）
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          description: 検索期間の終了日（YYYY-MM-DD形式）
+          schema:
+            type: string
+            format: date
+        - name: page
+          in: query
+          description: ページ番号
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: 1ページあたりの取得件数
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: 提案書一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: 全提案書数
+                  page:
+                    type: integer
+                    description: 現在のページ番号
+                  limit:
+                    type: integer
+                    description: 1ページあたりの取得件数
+                  documents:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ProposalDocumentSummary'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - proposal-documents
+      summary: 提案書の新規作成
+      description: |
+        新しい提案書を作成します。
+      operationId: createProposalDocument
+      requestBody:
+        description: 作成する提案書情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProposalDocumentCreate'
+      responses:
+        '201':
+          description: 提案書の作成に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "提案書の作成が完了しました"
+                  document_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  document:
+                    $ref: '#/components/schemas/ProposalDocument'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /proposal-documents/{document_id}:
+    get:
+      tags:
+        - proposal-documents
+      summary: 提案書詳細の取得
+      description: |
+        指定されたIDの提案書詳細を取得します。
+      operationId: getProposalDocument
+      parameters:
+        - name: document_id
+          in: path
+          description: 提案書ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 提案書詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProposalDocument'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - proposal-documents
+      summary: 提案書情報の更新
+      description: |
+        指定されたIDの提案書情報を更新します。
+      operationId: updateProposalDocument
+      parameters:
+        - name: document_id
+          in: path
+          description: 提案書ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新する提案書情報
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProposalDocumentUpdate'
+      responses:
+        '200':
+          description: 提案書情報の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "提案書情報の更新が完了しました"
+                  document:
+                    $ref: '#/components/schemas/ProposalDocument'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - proposal-documents
+      summary: 提案書の削除
+      description: |
+        指定されたIDの提案書を削除します。ステータスがdraftの場合のみ可能です。
+      operationId: deleteProposalDocument
+      parameters:
+        - name: document_id
+          in: path
+          description: 提案書ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 提案書の削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "提案書の削除が完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 提案書が削除できない状態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "ドラフト状態の提案書のみ削除できます"
+                  error:
+                    type: string
+                    example: "invalid_document_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /proposal-documents/{document_id}/status:
+    put:
+      tags:
+        - proposal-documents
+      summary: 提案書ステータスの更新
+      description: |
+        提案書のステータスを更新します。
+      operationId: updateProposalDocumentStatus
+      parameters:
+        - name: document_id
+          in: path
+          description: 提案書ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新するステータス情報
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
+                  enum: [draft, sent, revised]
+                  description: 更新後のステータス
+                status_reason:
+                  type: string
+                  description: ステータス変更の理由
+                sent_date:
+                  type: string
+                  format: date
+                  description: 送付日（sent ステータスに変更する場合）
+                notes:
+                  type: string
+                  description: 備考
+      responses:
+        '200':
+          description: 提案書ステータスの更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "提案書ステータスの更新が完了しました"
+                  document:
+                    $ref: '#/components/schemas/ProposalDocument'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 無効なステータス変更
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "現在のステータスからこのステータスへは変更できません"
+                  error:
+                    type: string
+                    example: "invalid_status_transition"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /proposal-documents/{document_id}/download:
+    get:
+      tags:
+        - proposal-documents
+      summary: 提案書ファイルのダウンロード
+      description: |
+        提案書のPDFファイルをダウンロードします。
+      operationId: downloadProposalDocument
+      parameters:
+        - name: document_id
+          in: path
+          description: 提案書ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: format
+          in: query
+          description: ダウンロード形式
+          schema:
+            type: string
+            enum: [pdf, docx]
+            default: pdf
+      responses:
+        '200':
+          description: 提案書ファイルのダウンロードに成功
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.wordprocessingml.document:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    MatchingSearchCriteria:
+      type: object
+      required:
+        - search_type
+      properties:
+        search_type:
+          type: string
+          enum: [project_to_engineers, engineer_to_projects]
+          description: 検索タイプ（案件から技術者か技術者から案件か）
+        project_id:
+          type: string
+          format: uuid
+          description: 案件ID（search_type=project_to_engineersの場合に必須）
+        engineer_id:
+          type: string
+          format: uuid
+          description: 技術者ID（search_type=engineer_to_projectsの場合に必須）
+        min_matching_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          default: 60
+          description: 最小マッチングスコア
+        skills_weight:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 5
+          description: スキルの重み付け（1-10）
+        experience_weight:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 3
+          description: 経験年数の重み付け（1-10）
+        availability_weight:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 5
+          description: 稼働状況の重み付け（1-10）
+        location_weight:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 2
+          description: 勤務地の重み付け（1-10）
+        rate_weight:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 3
+          description: 単金の重み付け（1-10）
+        required_skills:
+          type: array
+          description: 必須スキル（これらのスキルは必ずマッチする必要がある）
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: スキル名
+              min_level:
+                type: integer
+                minimum: 1
+                maximum: 5
+                description: 最小スキルレベル
+        availability_from:
+          type: string
+          format: date
+          description: 稼働開始日
+        availability_to:
+          type: string
+          format: date
+          description: 稼働終了日
+        page:
+          type: integer
+          minimum: 1
+          default: 1
+          description: ページ番号
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+          description: 1ページあたりの取得件数
+
+    MatchingResult:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: マッチング結果ID
+        search_type:
+          type: string
+          enum: [project_to_engineers, engineer_to_projects]
+          description: 検索タイプ
+        project_id:
+          type: string
+          format: uuid
+          description: 案件ID
+        project:
+          $ref: '#/components/schemas/ProjectSummary'
+        engineer_id:
+          type: string
+          format: uuid
+          description: 技術者ID
+        engineer:
+          $ref: '#/components/schemas/EngineerSummary'
+        matching_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: 総合マッチングスコア（0-100）
+        skill_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: スキルマッチングスコア（0-100）
+        experience_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: 経験マッチングスコア（0-100）
+        availability_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: 稼働状況マッチングスコア（0-100）
+        location_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: 勤務地マッチングスコア（0-100）
+        rate_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: 単金マッチングスコア（0-100）
+        matching_details:
+          type: object
+          properties:
+            matched_skills:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: スキル名
+                  required_level:
+                    type: integer
+                    minimum: 1
+                    maximum: 5
+                    description: 要求レベル
+                  actual_level:
+                    type: integer
+                    minimum: 1
+                    maximum: 5
+                    description: 実際のレベル
+                  score:
+                    type: integer
+                    minimum: 0
+                    maximum: 100
+                    description: 個別スキルスコア
+            missing_skills:
+              type: array
+              items:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    description: スキル名
+                  required_level:
+                    type: integer
+                    minimum: 1
+                    maximum: 5
+                    description: 要求レベル
+            availability:
+              type: object
+              properties:
+                required_from:
+                  type: string
+                  format: date
+                  description: 要求開始日
+                required_to:
+                  type: string
+                  format: date
+                  description: 要求終了日
+                actual_from:
+                  type: string
+                  format: date
+                  description: 実際の開始可能日
+                actual_to:
+                  type: string
+                  format: date
+                  description: 実際の終了予定日
+            location:
+              type: object
+              properties:
+                required_location:
+                  type: string
+                  description: 要求勤務地
+                actual_location:
+                  type: string
+                  description: 実際の勤務可能地域
+            rate:
+              type: object
+              properties:
+                required_min:
+                  type: integer
+                  description: 要求最低単金
+                required_max:
+                  type: integer
+                  description: 要求最高単金
+                actual:
+                  type: integer
+                  description: 実際の単金
+        status:
+          type: string
+          enum: [pending, reviewed, proposed, rejected]
+          description: マッチング結果ステータス
+        notes:
+          type: string
+          description: 備考
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+
+    MatchingResultSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: マッチング結果ID
+        search_type:
+          type: string
+          enum: [project_to_engineers, engineer_to_projects]
+          description: 検索タイプ
+        project_id:
+          type: string
+          format: uuid
+          description: 案件ID
+        project_name:
+          type: string
+          description: 案件名
+        engineer_id:
+          type: string
+          format: uuid
+          description: 技術者ID
+        engineer_name:
+          type: string
+          description: 技術者名
+        matching_score:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: 総合マッチングスコア（0-100）
+        status:
+          type: string
+          enum: [pending, reviewed, proposed, rejected]
+          description: マッチング結果ステータス
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+
+    ProposalSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 提案ID
+        project_id:
+          type: string
+          format: uuid
+          description: 案件ID
+        project_name:
+          type: string
+          description: 案件名
+        client_name:
+          type: string
+          description: クライアント名
+        engineer_id:
+          type: string
+          format: uuid
+          description: 技術者ID
+        engineer_name:
+          type: string
+          description: 技術者名
+        proposal_title:
+          type: string
+          description: 提案タイトル
+        proposed_start_date:
+          type: string
+          format: date
+          description: 提案開始日
+        proposed_end_date:
+          type: string
+          format: date
+          description: 提案終了日
+        proposed_rate:
+          type: integer
+          description: 提案単金
+        status:
+          type: string
+          enum: [draft, pending, accepted, rejected, cancelled]
+          description: 提案ステータス
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+
+    Proposal:
+      allOf:
+        - $ref: '#/components/schemas/ProposalSummary'
+        - type: object
+          properties:
+            project:
+              $ref: '#/components/schemas/ProjectSummary'
+            engineer:
+              $ref: '#/components/schemas/EngineerSummary'
+            matching_result_id:
+              type: string
+              format: uuid
+              description: 関連するマッチング結果ID
+            proposal_content:
+              type: string
+              description: 提案内容
+            additional_conditions:
+              type: string
+              description: 追加条件
+            notes:
+              type: string
+              description: 備考
+            status_history:
+              type: array
+              items:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [draft, pending, accepted, rejected, cancelled]
+                    description: ステータス
+                  changed_at:
+                    type: string
+                    format: date-time
+                    description: 変更日時
+                  changed_by:
+                    type: string
+                    format: uuid
+                    description: 変更者ID
+                  reason:
+                    type: string
+                    description: 変更理由
+            documents:
+              type: array
+              items:
+                $ref: '#/components/schemas/ProposalDocumentSummary'
+
+    ProposalCreate:
+      type: object
+      required:
+        - project_id
+        - engineer_id
+        - proposal_title
+        - proposed_start_date
+        - proposed_rate
+      properties:
+        project_id:
+          type: string
+          format: uuid
+          description: 案件ID
+        engineer_id:
+          type: string
+          format: uuid
+          description: 技術者ID
+        matching_result_id:
+          type: string
+          format: uuid
+          description: 関連するマッチング結果ID
+        proposal_title:
+          type: string
+          description: 提案タイトル
+        proposal_content:
+          type: string
+          description: 提案内容
+        proposed_start_date:
+          type: string
+          format: date
+          description: 提案開始日
+        proposed_end_date:
+          type: string
+          format: date
+          description: 提案終了日
+        proposed_rate:
+          type: integer
+          description: 提案単金
+        additional_conditions:
+          type: string
+          description: 追加条件
+        notes:
+          type: string
+          description: 備考
+        status:
+          type: string
+          enum: [draft, pending]
+          default: draft
+          description: 初期ステータス
+
+    ProposalUpdate:
+      type: object
+      properties:
+        proposal_title:
+          type: string
+          description: 提案タイトル
+        proposal_content:
+          type: string
+          description: 提案内容
+        proposed_start_date:
+          type: string
+          format: date
+          description: 提案開始日
+        proposed_end_date:
+          type: string
+          format: date
+          description: 提案終了日
+        proposed_rate:
+          type: integer
+          description: 提案単金
+        additional_conditions:
+          type: string
+          description: 追加条件
+        notes:
+          type: string
+          description: 備考
+
+    ProposalDocumentSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 提案書ID
+        proposal_id:
+          type: string
+          format: uuid
+          description: 関連する提案ID
+        document_title:
+          type: string
+          description: 提案書タイトル
+        version:
+          type: string
+          description: バージョン
+        file_format:
+          type: string
+          enum: [pdf, docx]
+          description: ファイル形式
+        file_size:
+          type: integer
+          description: ファイルサイズ（バイト）
+        status:
+          type: string
+          enum: [draft, sent, revised]
+          description: 提案書ステータス
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+        sent_date:
+          type: string
+          format: date
+          description: 送付日
+
+    ProposalDocument:
+      allOf:
+        - $ref: '#/components/schemas/ProposalDocumentSummary'
+        - type: object
+          properties:
+            proposal:
+              $ref: '#/components/schemas/ProposalSummary'
+            content:
+              type: string
+              description: 提案書内容
+            template_id:
+              type: string
+              format: uuid
+              description: 使用したテンプレートID
+            customized_fields:
+              type: object
+              additionalProperties: true
+              description: カスタマイズされたフィールド
+            notes:
+              type: string
+              description: 備考
+            status_history:
+              type: array
+              items:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [draft, sent, revised]
+                    description: ステータス
+                  changed_at:
+                    type: string
+                    format: date-time
+                    description: 変更日時
+                  changed_by:
+                    type: string
+                    format: uuid
+                    description: 変更者ID
+                  reason:
+                    type: string
+                    description: 変更理由
+            file:
+              type: object
+              properties:
+                file_name:
+                  type: string
+                  description: ファイル名
+                file_path:
+                  type: string
+                  description: ファイルパス
+                file_size:
+                  type: integer
+                  description: ファイルサイズ（バイト）
+                mime_type:
+                  type: string
+                  description: MIMEタイプ
+
+    ProposalDocumentCreate:
+      type: object
+      required:
+        - proposal_id
+        - document_title
+        - content
+      properties:
+        proposal_id:
+          type: string
+          format: uuid
+          description: 関連する提案ID
+        document_title:
+          type: string
+          description: 提案書タイトル
+        version:
+          type: string
+          description: バージョン
+        template_id:
+          type: string
+          format: uuid
+          description: 使用するテンプレートID
+        content:
+          type: string
+          description: 提案書内容
+        customized_fields:
+          type: object
+          additionalProperties: true
+          description: カスタマイズするフィールド
+        notes:
+          type: string
+          description: 備考
+        status:
+          type: string
+          enum: [draft, sent]
+          default: draft
+          description: 初期ステータス
+        sent_date:
+          type: string
+          format: date
+          description: 送付日（status=sentの場合）
+
+    ProposalDocumentUpdate:
+      type: object
+      properties:
+        document_title:
+          type: string
+          description: 提案書タイトル
+        version:
+          type: string
+          description: バージョン
+        content:
+          type: string
+          description: 提案書内容
+        customized_fields:
+          type: object
+          additionalProperties: true
+          description: カスタマイズするフィールド
+        notes:
+          type: string
+          description: 備考
+
+    ProjectSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 案件ID
+        project_code:
+          type: string
+          description: 案件コード
+        project_name:
+          type: string
+          description: 案件名
+        client_id:
+          type: string
+          format: uuid
+          description: クライアントID
+        client_name:
+          type: string
+          description: クライアント名
+        status:
+          type: string
+          enum: [draft, active, pending, completed, cancelled]
+          description: 案件ステータス
+        start_date:
+          type: string
+          format: date
+          description: 開始日
+        end_date:
+          type: string
+          format: date
+          description: 終了日
+        location:
+          type: string
+          description: 勤務地
+        required_skills:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: スキル名
+              level:
+                type: integer
+                minimum: 1
+                maximum: 5
+                description: 要求レベル
+        rate_min:
+          type: integer
+          description: 最低単金
+        rate_max:
+          type: integer
+          description: 最高単金
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+
+    EngineerSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 技術者ID
+        employee_id:
+          type: string
+          description: 社員番号
+        name:
+          type: string
+          description: 氏名
+        name_kana:
+          type: string
+          description: 氏名（カナ）
+        email:
+          type: string
+          format: email
+          description: メールアドレス
+        department:
+          type: string
+          description: 所属部署
+        position:
+          type: string
+          description: 役職
+        status:
+          type: string
+          enum: [active, inactive]
+          description: ステータス
+        work_status:
+          type: string
+          enum: [available, assigned, partially_available, unavailable, tentatively_assigned]
+          description: 稼働状況
+        primary_skill:
+          type: string
+          description: 主要スキル
+        years_of_experience:
+          type: integer
+          description: 経験年数
+        skills:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: スキル名
+              level:
+                type: integer
+                minimum: 1
+                maximum: 5
+                description: スキルレベル
+        created_at:
+          type: string
+          format: date-time
+          description: 登録日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時

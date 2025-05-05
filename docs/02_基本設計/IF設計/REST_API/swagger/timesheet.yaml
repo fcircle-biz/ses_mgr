@@ -1,0 +1,2501 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 勤怠工数管理API
+  description: |
+    勤怠工数管理APIは、勤怠管理、工数管理、承認管理、集計レポートの機能を提供します。
+  version: 1.0.0
+
+paths:
+  /timesheets:
+    get:
+      tags:
+        - timesheets
+      summary: 勤怠データ一覧の取得
+      description: |
+        勤怠データの一覧を取得します。
+      operationId: getTimesheets
+      parameters:
+        - name: engineer_id
+          in: query
+          description: 技術者ID
+          schema:
+            type: string
+            format: uuid
+        - name: year_month
+          in: query
+          description: 年月（YYYY-MM形式）
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}$'
+        - name: status
+          in: query
+          description: ステータス
+          schema:
+            type: string
+            enum: [draft, submitted, approved, rejected, all]
+            default: all
+        - name: page
+          in: query
+          description: ページ番号
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: 1ページあたりの取得件数
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: 勤怠データ一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: 全勤怠データ数
+                  page:
+                    type: integer
+                    description: 現在のページ番号
+                  limit:
+                    type: integer
+                    description: 1ページあたりの取得件数
+                  timesheets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TimesheetSummary'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - timesheets
+      summary: 勤怠データの新規作成
+      description: |
+        新しい勤怠データを作成します。
+      operationId: createTimesheet
+      requestBody:
+        description: 作成する勤怠データ
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimesheetCreate'
+      responses:
+        '201':
+          description: 勤怠データの作成に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "勤怠データの作成が完了しました"
+                  timesheet_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  timesheet:
+                    $ref: '#/components/schemas/Timesheet'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '409':
+          description: 同一期間の勤怠データが既に存在する
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "指定された期間の勤怠データは既に存在します"
+                  error:
+                    type: string
+                    example: "duplicate_timesheet"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /timesheets/{timesheet_id}:
+    get:
+      tags:
+        - timesheets
+      summary: 勤怠データ詳細の取得
+      description: |
+        指定されたIDの勤怠データ詳細を取得します。
+      operationId: getTimesheet
+      parameters:
+        - name: timesheet_id
+          in: path
+          description: 勤怠データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 勤怠データ詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Timesheet'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - timesheets
+      summary: 勤怠データの更新
+      description: |
+        指定されたIDの勤怠データを更新します。
+      operationId: updateTimesheet
+      parameters:
+        - name: timesheet_id
+          in: path
+          description: 勤怠データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新する勤怠データ
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimesheetUpdate'
+      responses:
+        '200':
+          description: 勤怠データの更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "勤怠データの更新が完了しました"
+                  timesheet:
+                    $ref: '#/components/schemas/Timesheet'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 承認済みの勤怠データは更新できない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "承認済みの勤怠データは更新できません"
+                  error:
+                    type: string
+                    example: "invalid_timesheet_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - timesheets
+      summary: 勤怠データの削除
+      description: |
+        指定されたIDの勤怠データを削除します。
+      operationId: deleteTimesheet
+      parameters:
+        - name: timesheet_id
+          in: path
+          description: 勤怠データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 勤怠データの削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "勤怠データの削除が完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 承認済みや提出済みの勤怠データは削除できない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "承認済みまたは提出済みの勤怠データは削除できません"
+                  error:
+                    type: string
+                    example: "invalid_timesheet_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /timesheets/{timesheet_id}/entries:
+    get:
+      tags:
+        - timesheet-entries
+      summary: 勤怠エントリ一覧の取得
+      description: |
+        指定された勤怠データIDに紐づく勤怠エントリの一覧を取得します。
+      operationId: getTimesheetEntries
+      parameters:
+        - name: timesheet_id
+          in: path
+          description: 勤怠データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 勤怠エントリ一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  entries:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TimesheetEntry'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - timesheet-entries
+      summary: 勤怠エントリの追加
+      description: |
+        指定された勤怠データIDに紐づく勤怠エントリを追加します。
+      operationId: addTimesheetEntry
+      parameters:
+        - name: timesheet_id
+          in: path
+          description: 勤怠データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 追加する勤怠エントリ
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimesheetEntryCreate'
+      responses:
+        '201':
+          description: 勤怠エントリの追加に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "勤怠エントリの追加が完了しました"
+                  entry_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  entry:
+                    $ref: '#/components/schemas/TimesheetEntry'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 承認済みの勤怠データにはエントリを追加できない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "承認済みの勤怠データには新しいエントリを追加できません"
+                  error:
+                    type: string
+                    example: "invalid_timesheet_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - timesheet-entries
+      summary: 勤怠エントリの一括更新
+      description: |
+        指定された勤怠データIDに紐づく勤怠エントリを一括で更新します。
+      operationId: updateTimesheetEntries
+      parameters:
+        - name: timesheet_id
+          in: path
+          description: 勤怠データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新する勤怠エントリのリスト
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entries:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/TimesheetEntryUpdate'
+      responses:
+        '200':
+          description: 勤怠エントリの一括更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "勤怠エントリの一括更新が完了しました"
+                  updated_count:
+                    type: integer
+                    example: 5
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 承認済みの勤怠データはエントリを更新できない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "承認済みの勤怠データのエントリは更新できません"
+                  error:
+                    type: string
+                    example: "invalid_timesheet_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /timesheets/{timesheet_id}/entries/{entry_id}:
+    get:
+      tags:
+        - timesheet-entries
+      summary: 勤怠エントリ詳細の取得
+      description: |
+        指定された勤怠エントリの詳細を取得します。
+      operationId: getTimesheetEntry
+      parameters:
+        - name: timesheet_id
+          in: path
+          description: 勤怠データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: entry_id
+          in: path
+          description: 勤怠エントリID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 勤怠エントリ詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimesheetEntry'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - timesheet-entries
+      summary: 勤怠エントリの更新
+      description: |
+        指定された勤怠エントリを更新します。
+      operationId: updateTimesheetEntry
+      parameters:
+        - name: timesheet_id
+          in: path
+          description: 勤怠データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: entry_id
+          in: path
+          description: 勤怠エントリID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新する勤怠エントリ
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TimesheetEntryUpdate'
+      responses:
+        '200':
+          description: 勤怠エントリの更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "勤怠エントリの更新が完了しました"
+                  entry:
+                    $ref: '#/components/schemas/TimesheetEntry'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 承認済みの勤怠データはエントリを更新できない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "承認済みの勤怠データのエントリは更新できません"
+                  error:
+                    type: string
+                    example: "invalid_timesheet_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - timesheet-entries
+      summary: 勤怠エントリの削除
+      description: |
+        指定された勤怠エントリを削除します。
+      operationId: deleteTimesheetEntry
+      parameters:
+        - name: timesheet_id
+          in: path
+          description: 勤怠データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: entry_id
+          in: path
+          description: 勤怠エントリID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 勤怠エントリの削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "勤怠エントリの削除が完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 承認済みの勤怠データはエントリを削除できない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "承認済みの勤怠データのエントリは削除できません"
+                  error:
+                    type: string
+                    example: "invalid_timesheet_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /timesheets/{timesheet_id}/submit:
+    post:
+      tags:
+        - timesheets
+      summary: 勤怠データの提出
+      description: |
+        指定された勤怠データを提出します。
+      operationId: submitTimesheet
+      parameters:
+        - name: timesheet_id
+          in: path
+          description: 勤怠データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 提出に関する追加情報
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                  description: 提出時のコメント
+      responses:
+        '200':
+          description: 勤怠データの提出に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "勤怠データの提出が完了しました"
+                  timesheet:
+                    $ref: '#/components/schemas/Timesheet'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 勤怠データが提出できない状態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "既に提出済みまたは承認済みの勤怠データは再提出できません"
+                  error:
+                    type: string
+                    example: "invalid_timesheet_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /timesheets/{timesheet_id}/approve:
+    post:
+      tags:
+        - timesheets
+      summary: 勤怠データの承認
+      description: |
+        指定された勤怠データを承認します。
+      operationId: approveTimesheet
+      parameters:
+        - name: timesheet_id
+          in: path
+          description: 勤怠データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 承認に関する追加情報
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                  description: 承認時のコメント
+      responses:
+        '200':
+          description: 勤怠データの承認に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "勤怠データの承認が完了しました"
+                  timesheet:
+                    $ref: '#/components/schemas/Timesheet'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 勤怠データが承認できない状態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "提出されていない勤怠データは承認できません"
+                  error:
+                    type: string
+                    example: "invalid_timesheet_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /timesheets/{timesheet_id}/reject:
+    post:
+      tags:
+        - timesheets
+      summary: 勤怠データの差し戻し
+      description: |
+        指定された勤怠データを差し戻します。
+      operationId: rejectTimesheet
+      parameters:
+        - name: timesheet_id
+          in: path
+          description: 勤怠データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 差し戻しに関する追加情報
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  description: 差し戻し理由
+                comment:
+                  type: string
+                  description: 差し戻し時のコメント
+      responses:
+        '200':
+          description: 勤怠データの差し戻しに成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "勤怠データの差し戻しが完了しました"
+                  timesheet:
+                    $ref: '#/components/schemas/Timesheet'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 勤怠データが差し戻しできない状態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "提出されていない勤怠データは差し戻しできません"
+                  error:
+                    type: string
+                    example: "invalid_timesheet_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /workitem-records:
+    get:
+      tags:
+        - workitem-records
+      summary: 工数データ一覧の取得
+      description: |
+        工数データの一覧を取得します。
+      operationId: getWorkItemRecords
+      parameters:
+        - name: engineer_id
+          in: query
+          description: 技術者ID
+          schema:
+            type: string
+            format: uuid
+        - name: project_id
+          in: query
+          description: 案件ID
+          schema:
+            type: string
+            format: uuid
+        - name: year_month
+          in: query
+          description: 年月（YYYY-MM形式）
+          schema:
+            type: string
+            pattern: '^\d{4}-\d{2}$'
+        - name: status
+          in: query
+          description: ステータス
+          schema:
+            type: string
+            enum: [draft, submitted, approved, rejected, all]
+            default: all
+        - name: page
+          in: query
+          description: ページ番号
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+        - name: limit
+          in: query
+          description: 1ページあたりの取得件数
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+      responses:
+        '200':
+          description: 工数データ一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    description: 全工数データ数
+                  page:
+                    type: integer
+                    description: 現在のページ番号
+                  limit:
+                    type: integer
+                    description: 1ページあたりの取得件数
+                  records:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkItemRecordSummary'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - workitem-records
+      summary: 工数データの新規作成
+      description: |
+        新しい工数データを作成します。
+      operationId: createWorkItemRecord
+      requestBody:
+        description: 作成する工数データ
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkItemRecordCreate'
+      responses:
+        '201':
+          description: 工数データの作成に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "工数データの作成が完了しました"
+                  record_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  record:
+                    $ref: '#/components/schemas/WorkItemRecord'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '409':
+          description: 同一期間・案件・技術者の工数データが既に存在する
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "指定された期間・案件・技術者の工数データは既に存在します"
+                  error:
+                    type: string
+                    example: "duplicate_workitem_record"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /workitem-records/{record_id}:
+    get:
+      tags:
+        - workitem-records
+      summary: 工数データ詳細の取得
+      description: |
+        指定されたIDの工数データ詳細を取得します。
+      operationId: getWorkItemRecord
+      parameters:
+        - name: record_id
+          in: path
+          description: 工数データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 工数データ詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkItemRecord'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - workitem-records
+      summary: 工数データの更新
+      description: |
+        指定されたIDの工数データを更新します。
+      operationId: updateWorkItemRecord
+      parameters:
+        - name: record_id
+          in: path
+          description: 工数データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新する工数データ
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkItemRecordUpdate'
+      responses:
+        '200':
+          description: 工数データの更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "工数データの更新が完了しました"
+                  record:
+                    $ref: '#/components/schemas/WorkItemRecord'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 承認済みの工数データは更新できない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "承認済みの工数データは更新できません"
+                  error:
+                    type: string
+                    example: "invalid_workitem_record_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - workitem-records
+      summary: 工数データの削除
+      description: |
+        指定されたIDの工数データを削除します。
+      operationId: deleteWorkItemRecord
+      parameters:
+        - name: record_id
+          in: path
+          description: 工数データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 工数データの削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "工数データの削除が完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 承認済みや提出済みの工数データは削除できない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "承認済みまたは提出済みの工数データは削除できません"
+                  error:
+                    type: string
+                    example: "invalid_workitem_record_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /workitem-records/{record_id}/items:
+    get:
+      tags:
+        - workitem-items
+      summary: 工数項目一覧の取得
+      description: |
+        指定された工数データIDに紐づく工数項目の一覧を取得します。
+      operationId: getWorkItems
+      parameters:
+        - name: record_id
+          in: path
+          description: 工数データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 工数項目一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/WorkItem'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    post:
+      tags:
+        - workitem-items
+      summary: 工数項目の追加
+      description: |
+        指定された工数データIDに紐づく工数項目を追加します。
+      operationId: addWorkItem
+      parameters:
+        - name: record_id
+          in: path
+          description: 工数データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 追加する工数項目
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkItemCreate'
+      responses:
+        '201':
+          description: 工数項目の追加に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "工数項目の追加が完了しました"
+                  item_id:
+                    type: string
+                    format: uuid
+                    example: "550e8400-e29b-41d4-a716-446655440000"
+                  item:
+                    $ref: '#/components/schemas/WorkItem'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 承認済みの工数データには項目を追加できない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "承認済みの工数データには新しい項目を追加できません"
+                  error:
+                    type: string
+                    example: "invalid_workitem_record_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - workitem-items
+      summary: 工数項目の一括更新
+      description: |
+        指定された工数データIDに紐づく工数項目を一括で更新します。
+      operationId: updateWorkItems
+      parameters:
+        - name: record_id
+          in: path
+          description: 工数データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新する工数項目のリスト
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/WorkItemUpdate'
+      responses:
+        '200':
+          description: 工数項目の一括更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "工数項目の一括更新が完了しました"
+                  updated_count:
+                    type: integer
+                    example: 5
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 承認済みの工数データは項目を更新できない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "承認済みの工数データの項目は更新できません"
+                  error:
+                    type: string
+                    example: "invalid_workitem_record_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /workitem-records/{record_id}/items/{item_id}:
+    get:
+      tags:
+        - workitem-items
+      summary: 工数項目詳細の取得
+      description: |
+        指定された工数項目の詳細を取得します。
+      operationId: getWorkItem
+      parameters:
+        - name: record_id
+          in: path
+          description: 工数データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: item_id
+          in: path
+          description: 工数項目ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 工数項目詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkItem'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    put:
+      tags:
+        - workitem-items
+      summary: 工数項目の更新
+      description: |
+        指定された工数項目を更新します。
+      operationId: updateWorkItem
+      parameters:
+        - name: record_id
+          in: path
+          description: 工数データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: item_id
+          in: path
+          description: 工数項目ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 更新する工数項目
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkItemUpdate'
+      responses:
+        '200':
+          description: 工数項目の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "工数項目の更新が完了しました"
+                  item:
+                    $ref: '#/components/schemas/WorkItem'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 承認済みの工数データは項目を更新できない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "承認済みの工数データの項目は更新できません"
+                  error:
+                    type: string
+                    example: "invalid_workitem_record_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+    delete:
+      tags:
+        - workitem-items
+      summary: 工数項目の削除
+      description: |
+        指定された工数項目を削除します。
+      operationId: deleteWorkItem
+      parameters:
+        - name: record_id
+          in: path
+          description: 工数データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: item_id
+          in: path
+          description: 工数項目ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 工数項目の削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "工数項目の削除が完了しました"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 承認済みの工数データは項目を削除できない
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "承認済みの工数データの項目は削除できません"
+                  error:
+                    type: string
+                    example: "invalid_workitem_record_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /workitem-records/{record_id}/submit:
+    post:
+      tags:
+        - workitem-records
+      summary: 工数データの提出
+      description: |
+        指定された工数データを提出します。
+      operationId: submitWorkItemRecord
+      parameters:
+        - name: record_id
+          in: path
+          description: 工数データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 提出に関する追加情報
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                  description: 提出時のコメント
+      responses:
+        '200':
+          description: 工数データの提出に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "工数データの提出が完了しました"
+                  record:
+                    $ref: '#/components/schemas/WorkItemRecord'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 工数データが提出できない状態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "既に提出済みまたは承認済みの工数データは再提出できません"
+                  error:
+                    type: string
+                    example: "invalid_workitem_record_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /workitem-records/{record_id}/approve:
+    post:
+      tags:
+        - workitem-records
+      summary: 工数データの承認
+      description: |
+        指定された工数データを承認します。
+      operationId: approveWorkItemRecord
+      parameters:
+        - name: record_id
+          in: path
+          description: 工数データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 承認に関する追加情報
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                  description: 承認時のコメント
+      responses:
+        '200':
+          description: 工数データの承認に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "工数データの承認が完了しました"
+                  record:
+                    $ref: '#/components/schemas/WorkItemRecord'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 工数データが承認できない状態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "提出されていない工数データは承認できません"
+                  error:
+                    type: string
+                    example: "invalid_workitem_record_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /workitem-records/{record_id}/reject:
+    post:
+      tags:
+        - workitem-records
+      summary: 工数データの差し戻し
+      description: |
+        指定された工数データを差し戻します。
+      operationId: rejectWorkItemRecord
+      parameters:
+        - name: record_id
+          in: path
+          description: 工数データID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        description: 差し戻しに関する追加情報
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reason
+              properties:
+                reason:
+                  type: string
+                  description: 差し戻し理由
+                comment:
+                  type: string
+                  description: 差し戻し時のコメント
+      responses:
+        '200':
+          description: 工数データの差し戻しに成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "工数データの差し戻しが完了しました"
+                  record:
+                    $ref: '#/components/schemas/WorkItemRecord'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 工数データが差し戻しできない状態
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "提出されていない工数データは差し戻しできません"
+                  error:
+                    type: string
+                    example: "invalid_workitem_record_status"
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /reports/timesheet:
+    get:
+      tags:
+        - timesheet-reports
+      summary: 勤怠集計レポートの取得
+      description: |
+        勤怠集計レポートを取得します。
+      operationId: getTimesheetReport
+      parameters:
+        - name: engineer_id
+          in: query
+          description: 技術者ID
+          schema:
+            type: string
+            format: uuid
+        - name: department_id
+          in: query
+          description: 部署ID
+          schema:
+            type: string
+            format: uuid
+        - name: from_date
+          in: query
+          description: 集計期間の開始日（YYYY-MM-DD形式）
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          description: 集計期間の終了日（YYYY-MM-DD形式）
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: group_by
+          in: query
+          description: 集計単位
+          schema:
+            type: string
+            enum: [day, week, month, engineer, department]
+            default: month
+        - name: format
+          in: query
+          description: レポート形式
+          schema:
+            type: string
+            enum: [json, csv, pdf, excel]
+            default: json
+      responses:
+        '200':
+          description: 勤怠集計レポートの取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TimesheetReport'
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /reports/workitem:
+    get:
+      tags:
+        - workitem-reports
+      summary: 工数集計レポートの取得
+      description: |
+        工数集計レポートを取得します。
+      operationId: getWorkItemReport
+      parameters:
+        - name: engineer_id
+          in: query
+          description: 技術者ID
+          schema:
+            type: string
+            format: uuid
+        - name: project_id
+          in: query
+          description: 案件ID
+          schema:
+            type: string
+            format: uuid
+        - name: client_id
+          in: query
+          description: クライアントID
+          schema:
+            type: string
+            format: uuid
+        - name: from_date
+          in: query
+          description: 集計期間の開始日（YYYY-MM-DD形式）
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to_date
+          in: query
+          description: 集計期間の終了日（YYYY-MM-DD形式）
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: group_by
+          in: query
+          description: 集計単位
+          schema:
+            type: string
+            enum: [day, week, month, engineer, project, client, worktype]
+            default: month
+        - name: format
+          in: query
+          description: レポート形式
+          schema:
+            type: string
+            enum: [json, csv, pdf, excel]
+            default: json
+      responses:
+        '200':
+          description: 工数集計レポートの取得に成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkItemReport'
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    TimesheetSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 勤怠データID
+        engineer_id:
+          type: string
+          format: uuid
+          description: 技術者ID
+        engineer_name:
+          type: string
+          description: 技術者名
+        year:
+          type: integer
+          description: 年
+        month:
+          type: integer
+          description: 月
+        status:
+          type: string
+          enum: [draft, submitted, approved, rejected]
+          description: ステータス
+        total_working_days:
+          type: integer
+          description: 総勤務日数
+        total_working_hours:
+          type: number
+          format: float
+          description: 総勤務時間
+        total_overtime_hours:
+          type: number
+          format: float
+          description: 総残業時間
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+        submitted_at:
+          type: string
+          format: date-time
+          description: 提出日時
+        approved_at:
+          type: string
+          format: date-time
+          description: 承認日時
+
+    Timesheet:
+      allOf:
+        - $ref: '#/components/schemas/TimesheetSummary'
+        - type: object
+          properties:
+            entries:
+              type: array
+              items:
+                $ref: '#/components/schemas/TimesheetEntry'
+            approver_id:
+              type: string
+              format: uuid
+              description: 承認者ID
+            approver_name:
+              type: string
+              description: 承認者名
+            notes:
+              type: string
+              description: 備考
+            status_history:
+              type: array
+              items:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [draft, submitted, approved, rejected]
+                    description: ステータス
+                  changed_at:
+                    type: string
+                    format: date-time
+                    description: 変更日時
+                  changed_by:
+                    type: string
+                    format: uuid
+                    description: 変更者ID
+                  changed_by_name:
+                    type: string
+                    description: 変更者名
+                  reason:
+                    type: string
+                    description: 変更理由
+                  comment:
+                    type: string
+                    description: コメント
+
+    TimesheetCreate:
+      type: object
+      required:
+        - engineer_id
+        - year
+        - month
+      properties:
+        engineer_id:
+          type: string
+          format: uuid
+          description: 技術者ID
+        year:
+          type: integer
+          description: 年
+        month:
+          type: integer
+          description: 月
+        notes:
+          type: string
+          description: 備考
+        entries:
+          type: array
+          items:
+            $ref: '#/components/schemas/TimesheetEntryCreate'
+
+    TimesheetUpdate:
+      type: object
+      properties:
+        notes:
+          type: string
+          description: 備考
+
+    TimesheetEntry:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 勤怠エントリID
+        timesheet_id:
+          type: string
+          format: uuid
+          description: 勤怠データID
+        date:
+          type: string
+          format: date
+          description: 日付
+        type:
+          type: string
+          enum: [workday, holiday, paid_leave, unpaid_leave, half_day_leave, special_leave, absence]
+          description: 勤怠種別
+        start_time:
+          type: string
+          format: time
+          description: 開始時間
+        end_time:
+          type: string
+          format: time
+          description: 終了時間
+        break_time:
+          type: number
+          format: float
+          description: 休憩時間（時間）
+        working_hours:
+          type: number
+          format: float
+          description: 勤務時間
+        overtime_hours:
+          type: number
+          format: float
+          description: 残業時間
+        location:
+          type: string
+          enum: [office, client_site, remote, other]
+          description: 勤務場所
+        notes:
+          type: string
+          description: 備考
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+
+    TimesheetEntryCreate:
+      type: object
+      required:
+        - date
+        - type
+      properties:
+        date:
+          type: string
+          format: date
+          description: 日付
+        type:
+          type: string
+          enum: [workday, holiday, paid_leave, unpaid_leave, half_day_leave, special_leave, absence]
+          description: 勤怠種別
+        start_time:
+          type: string
+          format: time
+          description: 開始時間
+        end_time:
+          type: string
+          format: time
+          description: 終了時間
+        break_time:
+          type: number
+          format: float
+          description: 休憩時間（時間）
+        location:
+          type: string
+          enum: [office, client_site, remote, other]
+          description: 勤務場所
+        notes:
+          type: string
+          description: 備考
+
+    TimesheetEntryUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 勤怠エントリID
+        type:
+          type: string
+          enum: [workday, holiday, paid_leave, unpaid_leave, half_day_leave, special_leave, absence]
+          description: 勤怠種別
+        start_time:
+          type: string
+          format: time
+          description: 開始時間
+        end_time:
+          type: string
+          format: time
+          description: 終了時間
+        break_time:
+          type: number
+          format: float
+          description: 休憩時間（時間）
+        location:
+          type: string
+          enum: [office, client_site, remote, other]
+          description: 勤務場所
+        notes:
+          type: string
+          description: 備考
+
+    WorkItemRecordSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 工数データID
+        engineer_id:
+          type: string
+          format: uuid
+          description: 技術者ID
+        engineer_name:
+          type: string
+          description: 技術者名
+        project_id:
+          type: string
+          format: uuid
+          description: 案件ID
+        project_name:
+          type: string
+          description: 案件名
+        year:
+          type: integer
+          description: 年
+        month:
+          type: integer
+          description: 月
+        status:
+          type: string
+          enum: [draft, submitted, approved, rejected]
+          description: ステータス
+        total_hours:
+          type: number
+          format: float
+          description: 総工数時間
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+        submitted_at:
+          type: string
+          format: date-time
+          description: 提出日時
+        approved_at:
+          type: string
+          format: date-time
+          description: 承認日時
+
+    WorkItemRecord:
+      allOf:
+        - $ref: '#/components/schemas/WorkItemRecordSummary'
+        - type: object
+          properties:
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/WorkItem'
+            approver_id:
+              type: string
+              format: uuid
+              description: 承認者ID
+            approver_name:
+              type: string
+              description: 承認者名
+            notes:
+              type: string
+              description: 備考
+            status_history:
+              type: array
+              items:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [draft, submitted, approved, rejected]
+                    description: ステータス
+                  changed_at:
+                    type: string
+                    format: date-time
+                    description: 変更日時
+                  changed_by:
+                    type: string
+                    format: uuid
+                    description: 変更者ID
+                  changed_by_name:
+                    type: string
+                    description: 変更者名
+                  reason:
+                    type: string
+                    description: 変更理由
+                  comment:
+                    type: string
+                    description: コメント
+
+    WorkItemRecordCreate:
+      type: object
+      required:
+        - engineer_id
+        - project_id
+        - year
+        - month
+      properties:
+        engineer_id:
+          type: string
+          format: uuid
+          description: 技術者ID
+        project_id:
+          type: string
+          format: uuid
+          description: 案件ID
+        year:
+          type: integer
+          description: 年
+        month:
+          type: integer
+          description: 月
+        notes:
+          type: string
+          description: 備考
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkItemCreate'
+
+    WorkItemRecordUpdate:
+      type: object
+      properties:
+        notes:
+          type: string
+          description: 備考
+
+    WorkItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 工数項目ID
+        record_id:
+          type: string
+          format: uuid
+          description: 工数データID
+        date:
+          type: string
+          format: date
+          description: 日付
+        work_type:
+          type: string
+          description: 作業種別
+        hours:
+          type: number
+          format: float
+          description: 工数時間
+        description:
+          type: string
+          description: 作業内容
+        deliverables:
+          type: string
+          description: 成果物
+        notes:
+          type: string
+          description: 備考
+        created_at:
+          type: string
+          format: date-time
+          description: 作成日時
+        updated_at:
+          type: string
+          format: date-time
+          description: 更新日時
+
+    WorkItemCreate:
+      type: object
+      required:
+        - date
+        - work_type
+        - hours
+      properties:
+        date:
+          type: string
+          format: date
+          description: 日付
+        work_type:
+          type: string
+          description: 作業種別
+        hours:
+          type: number
+          format: float
+          description: 工数時間
+        description:
+          type: string
+          description: 作業内容
+        deliverables:
+          type: string
+          description: 成果物
+        notes:
+          type: string
+          description: 備考
+
+    WorkItemUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 工数項目ID
+        work_type:
+          type: string
+          description: 作業種別
+        hours:
+          type: number
+          format: float
+          description: 工数時間
+        description:
+          type: string
+          description: 作業内容
+        deliverables:
+          type: string
+          description: 成果物
+        notes:
+          type: string
+          description: 備考
+
+    TimesheetReport:
+      type: object
+      properties:
+        report_id:
+          type: string
+          format: uuid
+          description: レポートID
+        report_name:
+          type: string
+          description: レポート名
+        report_type:
+          type: string
+          enum: [timesheet]
+          description: レポート種別
+        from_date:
+          type: string
+          format: date
+          description: 集計期間の開始日
+        to_date:
+          type: string
+          format: date
+          description: 集計期間の終了日
+        group_by:
+          type: string
+          enum: [day, week, month, engineer, department]
+          description: 集計単位
+        generated_at:
+          type: string
+          format: date-time
+          description: 生成日時
+        summary:
+          type: object
+          properties:
+            total_engineers:
+              type: integer
+              description: 集計技術者数
+            total_working_days:
+              type: integer
+              description: 総勤務日数
+            total_working_hours:
+              type: number
+              format: float
+              description: 総勤務時間
+            total_overtime_hours:
+              type: number
+              format: float
+              description: 総残業時間
+            avg_working_hours_per_engineer:
+              type: number
+              format: float
+              description: 技術者あたり平均勤務時間
+            avg_overtime_hours_per_engineer:
+              type: number
+              format: float
+              description: 技術者あたり平均残業時間
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              group_key:
+                type: string
+                description: グループキー（日付、技術者名など）
+              engineer_id:
+                type: string
+                format: uuid
+                description: 技術者ID
+              engineer_name:
+                type: string
+                description: 技術者名
+              department_id:
+                type: string
+                format: uuid
+                description: 部署ID
+              department_name:
+                type: string
+                description: 部署名
+              date:
+                type: string
+                format: date
+                description: 日付
+              year:
+                type: integer
+                description: 年
+              month:
+                type: integer
+                description: 月
+              week:
+                type: integer
+                description: 週
+              working_days:
+                type: integer
+                description: 勤務日数
+              working_hours:
+                type: number
+                format: float
+                description: 勤務時間
+              overtime_hours:
+                type: number
+                format: float
+                description: 残業時間
+              paid_leave_days:
+                type: number
+                format: float
+                description: 有給休暇日数
+              absence_days:
+                type: integer
+                description: 欠勤日数
+
+    WorkItemReport:
+      type: object
+      properties:
+        report_id:
+          type: string
+          format: uuid
+          description: レポートID
+        report_name:
+          type: string
+          description: レポート名
+        report_type:
+          type: string
+          enum: [workitem]
+          description: レポート種別
+        from_date:
+          type: string
+          format: date
+          description: 集計期間の開始日
+        to_date:
+          type: string
+          format: date
+          description: 集計期間の終了日
+        group_by:
+          type: string
+          enum: [day, week, month, engineer, project, client, worktype]
+          description: 集計単位
+        generated_at:
+          type: string
+          format: date-time
+          description: 生成日時
+        summary:
+          type: object
+          properties:
+            total_engineers:
+              type: integer
+              description: 集計技術者数
+            total_projects:
+              type: integer
+              description: 集計案件数
+            total_clients:
+              type: integer
+              description: 集計クライアント数
+            total_hours:
+              type: number
+              format: float
+              description: 総工数時間
+            avg_hours_per_engineer:
+              type: number
+              format: float
+              description: 技術者あたり平均工数時間
+            avg_hours_per_project:
+              type: number
+              format: float
+              description: 案件あたり平均工数時間
+        data:
+          type: array
+          items:
+            type: object
+            properties:
+              group_key:
+                type: string
+                description: グループキー（日付、技術者名、案件名など）
+              engineer_id:
+                type: string
+                format: uuid
+                description: 技術者ID
+              engineer_name:
+                type: string
+                description: 技術者名
+              project_id:
+                type: string
+                format: uuid
+                description: 案件ID
+              project_name:
+                type: string
+                description: 案件名
+              client_id:
+                type: string
+                format: uuid
+                description: クライアントID
+              client_name:
+                type: string
+                description: クライアント名
+              work_type:
+                type: string
+                description: 作業種別
+              date:
+                type: string
+                format: date
+                description: 日付
+              year:
+                type: integer
+                description: 年
+              month:
+                type: integer
+                description: 月
+              week:
+                type: integer
+                description: 週
+              hours:
+                type: number
+                format: float
+                description: 工数時間
