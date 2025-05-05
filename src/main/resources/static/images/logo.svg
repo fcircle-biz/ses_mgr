@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100">
+  <rect width="100" height="100" fill="#0d6efd" rx="10" ry="10"/>
+  <text x="50" y="55" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" fill="white">SES MGR</text>
+  <path d="M30 70 L70 70" stroke="white" stroke-width="2" />
+  <path d="M30 30 L30 70" stroke="white" stroke-width="2" />
+  <path d="M30 30 L70 30" stroke="white" stroke-width="2" />
+  <path d="M70 30 L70 70" stroke="white" stroke-width="2" />
+  <path d="M30 50 L70 50" stroke="white" stroke-width="2" />
+  <path d="M50 30 L50 70" stroke="white" stroke-width="2" />
+</svg>

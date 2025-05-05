@@ -23,6 +23,29 @@
             padding-bottom: 40px;
             background-color: #f5f5f5;
         }
+        .form-signin input[type="text"] {
+            margin-bottom: -1px;
+            border-bottom-right-radius: 0;
+            border-bottom-left-radius: 0;
+        }
+        .form-signin input[type="password"] {
+            margin-bottom: 10px;
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+        .mfa-section {
+            display: none;
+        }
+        .mfa-section.show {
+            display: block;
+        }
+        .validation-error {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: -8px;
+            margin-bottom: 10px;
+            text-align: left;
+        }
     </style>
 </head>
 <body class="text-center">
@@ -32,40 +55,132 @@
                 <img class="logo-img mx-auto d-block" th:src="@{/images/logo.svg}" alt="SES業務システム">
                 <h1 class="system-name">SES業務システム</h1>
                 
+                <!-- アラートメッセージ表示領域 -->
                 <div th:if="${param.error}" class="alert alert-danger" role="alert">
-                    ユーザーIDまたはパスワードが正しくありません。
+                    ユーザーIDまたはパスワードが正しくありません
                 </div>
                 <div th:if="${param.logout}" class="alert alert-success" role="alert">
-                    ログアウトしました。
+                    ログアウトしました
+                </div>
+                <div th:if="${param.locked}" class="alert alert-warning" role="alert">
+                    アカウントがロックされています。管理者にお問い合わせください
+                </div>
+                <div th:if="${param.expired}" class="alert alert-warning" role="alert">
+                    セッションの有効期限が切れました。再度ログインしてください
                 </div>
                 
-                <form th:action="@{/login}" method="post">
-                    <div class="form-floating mb-3">
-                        <input type="text" class="form-control" id="username" name="username" placeholder="ユーザーID" required>
+                <!-- ログインフォーム -->
+                <form id="login-form" th:action="@{/login}" method="post" novalidate>
+                    <div class="form-floating mb-1">
+                        <input type="text" class="form-control" id="username" name="username" 
+                               placeholder="ユーザーID" required 
+                               pattern="[A-Za-z0-9]{8,20}">
                         <label for="username">ユーザーID</label>
                     </div>
-                    <div class="form-floating mb-3">
-                        <input type="password" class="form-control" id="password" name="password" placeholder="パスワード" required>
+                    <div class="validation-error d-none" id="username-error">
+                        半角英数字で8〜20文字で入力してください
+                    </div>
+                    
+                    <div class="form-floating mb-1">
+                        <input type="password" class="form-control" id="password" name="password" 
+                               placeholder="パスワード" required
+                               pattern="[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':\\|,.<>\/?]{12,30}">
                         <label for="password">パスワード</label>
                     </div>
+                    <div class="validation-error d-none" id="password-error">
+                        半角英数記号で12〜30文字で入力してください
+                    </div>
+                    
                     <div class="form-check text-start mb-3">
-                        <input class="form-check-input" type="checkbox" value="remember-me" id="remember-me" name="remember-me">
+                        <input class="form-check-input" type="checkbox" value="true" id="remember-me" name="remember-me">
                         <label class="form-check-label" for="remember-me">
                             ログイン状態を保存する
                         </label>
                     </div>
                     <button class="w-100 btn btn-lg btn-primary mb-3" type="submit">ログイン</button>
                     <div class="d-flex justify-content-between">
-                        <a th:href="@{/forgot-password}" class="text-decoration-none">パスワードをお忘れですか？</a>
+                        <a th:href="@{/reset-password}" class="text-decoration-none">パスワードをお忘れですか？</a>
                     </div>
                 </form>
+                
+                <!-- 多要素認証セクション -->
+                <div class="mfa-section mt-4" id="mfa-section">
+                    <h5 class="mb-3">多要素認証</h5>
+                    <p class="text-muted mb-3">登録済みの認証アプリに表示された6桁のコードを入力してください</p>
+                    <form th:action="@{/mfa-verify}" method="post" id="mfa-form">
+                        <div class="form-floating mb-3">
+                            <input type="text" class="form-control" id="mfa-code" name="code" 
+                                   placeholder="認証コード" required pattern="[0-9]{6}" maxlength="6"
+                                   inputmode="numeric" autocomplete="one-time-code">
+                            <label for="mfa-code">6桁の認証コード</label>
+                        </div>
+                        <input type="hidden" id="mfa-session" name="session">
+                        <button class="w-100 btn btn-primary" type="submit">確認</button>
+                    </form>
+                </div>
             </div>
         </div>
-        <p class="mt-4 mb-3 text-muted">© 2025 SES業務システム</p>
+        <p class="mt-4 mb-3 text-muted">© 2025 SES Management System</p>
     </main>
     
     <!-- Bootstrap JS with Popper -->
     <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
     <script th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.bundle.min.js}"></script>
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            // URLパラメータから多要素認証が必要かどうかをチェック
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('mfa')) {
+                const session = urlParams.get('session');
+                // MFAセクションを表示
+                document.getElementById('mfa-session').value = session;
+                document.getElementById('mfa-section').classList.add('show');
+                // 通常のログインフォームを非表示
+                document.getElementById('login-form').style.display = 'none';
+                // フォーカスをMFAコード入力欄に設定
+                document.getElementById('mfa-code').focus();
+            }
+            
+            // クライアントサイドバリデーション
+            const loginForm = document.getElementById('login-form');
+            const username = document.getElementById('username');
+            const password = document.getElementById('password');
+            const usernameError = document.getElementById('username-error');
+            const passwordError = document.getElementById('password-error');
+            
+            loginForm.addEventListener('submit', function(event) {
+                let isValid = true;
+                
+                // ユーザーID検証
+                if (!username.validity.valid) {
+                    usernameError.classList.remove('d-none');
+                    isValid = false;
+                } else {
+                    usernameError.classList.add('d-none');
+                }
+                
+                // パスワード検証
+                if (!password.validity.valid) {
+                    passwordError.classList.remove('d-none');
+                    isValid = false;
+                } else {
+                    passwordError.classList.add('d-none');
+                }
+                
+                if (!isValid) {
+                    event.preventDefault();
+                }
+            });
+            
+            // フォーカス時にエラーメッセージを非表示
+            username.addEventListener('focus', function() {
+                usernameError.classList.add('d-none');
+            });
+            
+            password.addEventListener('focus', function() {
+                passwordError.classList.add('d-none');
+            });
+        });
+    </script>
 </body>
 </html>
