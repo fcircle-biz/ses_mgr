@@ -68,7 +68,7 @@ public class LogRestController {
         Pageable pageable = createPageable(page, size, sort);
         Page<SystemLogDto> logs = logService.getSystemLogs(from, to, level, module, search, pageable);
         
-        return ResponseEntity.ok(new ApiResponseDto<>(logs));
+        return ResponseEntity.ok(ApiResponseDto.success(logs));
     }
 
     /**
@@ -105,7 +105,7 @@ public class LogRestController {
         Page<AuditLogDto> logs = logService.getAuditLogs(
                 from, to, userId, action, resourceType, resourceId, search, pageable);
         
-        return ResponseEntity.ok(new ApiResponseDto<>(logs));
+        return ResponseEntity.ok(ApiResponseDto.success(logs));
     }
 
     /**
@@ -140,7 +140,7 @@ public class LogRestController {
         Page<ErrorLogDto> logs = logService.getErrorLogs(
                 from, to, level, module, errorCode, search, pageable);
         
-        return ResponseEntity.ok(new ApiResponseDto<>(logs));
+        return ResponseEntity.ok(ApiResponseDto.success(logs));
     }
 
     /**
@@ -177,7 +177,7 @@ public class LogRestController {
         Page<AccessLogDto> logs = logService.getAccessLogs(
                 from, to, userId, action, status, ipAddress, search, pageable);
         
-        return ResponseEntity.ok(new ApiResponseDto<>(logs));
+        return ResponseEntity.ok(ApiResponseDto.success(logs));
     }
 
     /**
@@ -229,7 +229,9 @@ public class LogRestController {
         searchRequest.setTypes(types);
         searchRequest.setUserId(userId);
         searchRequest.setAction(action);
-        searchRequest.setLevel(level);
+        if (level != null) {
+            searchRequest.setLevels(List.of(level));
+        }
         searchRequest.setModule(module);
         searchRequest.setErrorCode(errorCode);
         searchRequest.setResourceType(resourceType);
@@ -243,7 +245,7 @@ public class LogRestController {
         
         Page<BaseLogDto> logs = logService.searchLogs(searchRequest);
         
-        return ResponseEntity.ok(new ApiResponseDto<>(logs));
+        return ResponseEntity.ok(ApiResponseDto.success(logs));
     }
 
     /**
@@ -272,7 +274,7 @@ public class LogRestController {
         
         LogStatisticsResponseDto statistics = logService.getLogStatistics(request);
         
-        return ResponseEntity.ok(new ApiResponseDto<>(statistics));
+        return ResponseEntity.ok(ApiResponseDto.success(statistics));
     }
 
     /**
@@ -291,7 +293,7 @@ public class LogRestController {
         
         return ResponseEntity
                 .status(HttpStatus.ACCEPTED)
-                .body(new ApiResponseDto<>(exportResponse));
+                .body(ApiResponseDto.success(exportResponse));
     }
 
     /**

@@ -69,7 +69,7 @@ public class MasterDataServiceTest {
     }
 
     @Test
-    public void getAllMasterTypes_ShouldReturnAllTypes() {
+    public void getAllMasterTypes_ShouldReturnAllTypes() throws Exception {
         // Arrange
         List<MasterType> masterTypes = new ArrayList<>();
         MasterType type1 = new MasterType();
@@ -104,7 +104,7 @@ public class MasterDataServiceTest {
     }
 
     @Test
-    public void getMasterTypeByCode_ShouldReturnTypeWhenExists() {
+    public void getMasterTypeByCode_ShouldReturnTypeWhenExists() throws Exception {
         // Arrange
         String typeCode = "CODE1";
         MasterType type = new MasterType();
@@ -127,7 +127,7 @@ public class MasterDataServiceTest {
     }
 
     @Test
-    public void getMasterTypeByCode_ShouldThrowExceptionWhenNotExists() {
+    public void getMasterTypeByCode_ShouldThrowExceptionWhenNotExists() throws Exception {
         // Arrange
         String typeCode = "NONEXISTENT";
         when(masterTypeRepository.findByCode(typeCode)).thenReturn(Optional.empty());
@@ -137,7 +137,7 @@ public class MasterDataServiceTest {
     }
 
     @Test
-    public void createMasterType_ShouldCreateNewType() {
+    public void createMasterType_ShouldCreateNewType() throws Exception {
         // Arrange
         MasterTypeDto dto = new MasterTypeDto();
         dto.setCode("NEWTYPE");
@@ -175,7 +175,7 @@ public class MasterDataServiceTest {
     }
 
     @Test
-    public void getMasterDataList_ShouldReturnDataList() {
+    public void getMasterDataList_ShouldReturnDataList() throws Exception {
         // Arrange
         String typeCode = "CODE1";
         MasterType type = new MasterType();
@@ -209,7 +209,7 @@ public class MasterDataServiceTest {
     }
 
     @Test
-    public void importMasterData_ShouldReturnResponse() {
+    public void importMasterData_ShouldReturnResponse() throws Exception {
         // Arrange
         String typeCode = "CODE1";
         MasterTypeDto dto = new MasterTypeDto();

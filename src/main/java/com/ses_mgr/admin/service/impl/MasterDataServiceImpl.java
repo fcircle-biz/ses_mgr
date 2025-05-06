@@ -183,20 +183,15 @@ public class MasterDataServiceImpl implements MasterDataService {
         MasterData savedMasterData = masterDataRepository.save(masterData);
         
         // Save attributes if provided
-        if (masterDataDto.getAttributes() != null && !masterDataDto.getAttributes().isEmpty()) {
-            List<MasterDataAttribute> attributes = masterDataDto.getAttributes().stream()
-                    .map(attr -> {
-                        MasterDataAttribute attribute = new MasterDataAttribute();
-                        attribute.setMasterData(savedMasterData);
-                        attribute.setName(attr.getName());
-                        attribute.setValue(attr.getValue());
-                        attribute.setCreatedAt(LocalDateTime.now());
-                        attribute.setUpdatedAt(LocalDateTime.now());
-                        return attribute;
-                    })
-                    .collect(Collectors.toList());
+        if (masterDataDto.getAttributeList() != null && !masterDataDto.getAttributeList().isEmpty()) {
+            // Convert attribute DTOs to a map and set it directly on the entity
+            Map<String, Object> attributeMap = new HashMap<>();
+            masterDataDto.getAttributeList().forEach(attr -> 
+                attributeMap.put(attr.getName(), attr.getValue())
+            );
             
-            attributeRepository.saveAll(attributes);
+            savedMasterData.setAttributes(attributeMap);
+            masterDataRepository.save(savedMasterData);
         }
         
         // Refresh to get attributes
@@ -219,8 +214,8 @@ public class MasterDataServiceImpl implements MasterDataService {
         MasterData updatedMasterData = masterDataRepository.save(masterData);
         
         // Update attributes if provided
-        if (masterDataDto.getAttributes() != null && !masterDataDto.getAttributes().isEmpty()) {
-            updateAttributes(typeCode, code, masterDataDto.getAttributes());
+        if (masterDataDto.getAttributeList() != null && !masterDataDto.getAttributeList().isEmpty()) {
+            updateAttributes(typeCode, code, masterDataDto.getAttributeList());
         }
         
         // Refresh to get updated attributes
@@ -416,17 +411,23 @@ public class MasterDataServiceImpl implements MasterDataService {
         
         // Convert attributes
         if (masterData.getAttributes() != null) {
-            List<MasterDataAttributeDto> attributeDtos = masterData.getAttributes().stream()
-                    .map(attr -> {
-                        MasterDataAttributeDto attrDto = new MasterDataAttributeDto();
-                        attrDto.setId(attr.getId());
-                        attrDto.setName(attr.getName());
-                        attrDto.setValue(attr.getValue());
-                        return attrDto;
-                    })
-                    .collect(Collectors.toList());
+            // Set the attribute map directly
+            dto.setAttributes(masterData.getAttributes());
+        }
+        
+        // Create attribute list from the attribute map
+        if (masterData.getAttributes() != null && !masterData.getAttributes().isEmpty()) {
+            List<MasterDataAttributeDto> attributeDtos = new ArrayList<>();
             
-            dto.setAttributes(attributeDtos);
+            // Convert the map entries to attribute DTOs
+            masterData.getAttributes().forEach((key, value) -> {
+                MasterDataAttributeDto attrDto = new MasterDataAttributeDto();
+                attrDto.setName(key);
+                attrDto.setValue(value != null ? value.toString() : null);
+                attributeDtos.add(attrDto);
+            });
+            
+            dto.setAttributeList(attributeDtos);
         }
         
         return dto;
@@ -478,8 +479,8 @@ public class MasterDataServiceImpl implements MasterDataService {
             
             // Add attribute values
             Map<String, String> attributeMap = new HashMap<>();
-            if (dto.getAttributes() != null) {
-                for (MasterDataAttributeDto attr : dto.getAttributes()) {
+            if (dto.getAttributeList() != null) {
+                for (MasterDataAttributeDto attr : dto.getAttributeList()) {
                     attributeMap.put(attr.getName(), attr.getValue());
                 }
             }

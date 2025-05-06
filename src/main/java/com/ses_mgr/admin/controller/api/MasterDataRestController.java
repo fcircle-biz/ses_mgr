@@ -48,7 +48,7 @@ public class MasterDataRestController {
     @PreAuthorize("hasAuthority('master_data.read')")
     public ResponseEntity<ApiResponseDto<List<MasterTypeDto>>> getAllMasterTypes() {
         List<MasterTypeDto> masterTypes = masterDataService.getAllMasterTypes();
-        return ResponseEntity.ok(new ApiResponseDto<>(masterTypes));
+        return ResponseEntity.ok(ApiResponseDto.success(masterTypes));
     }
     
     /**
@@ -62,7 +62,7 @@ public class MasterDataRestController {
     @PreAuthorize("hasAuthority('master_data.read')")
     public ResponseEntity<ApiResponseDto<MasterTypeDto>> getMasterTypeByCode(@PathVariable String code) {
         MasterTypeDto masterType = masterDataService.getMasterTypeByCode(code);
-        return ResponseEntity.ok(new ApiResponseDto<>(masterType));
+        return ResponseEntity.ok(ApiResponseDto.success(masterType));
     }
     
     /**
@@ -79,7 +79,7 @@ public class MasterDataRestController {
         MasterTypeDto createdType = masterDataService.createMasterType(masterTypeDto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(new ApiResponseDto<>(createdType));
+                .body(ApiResponseDto.success(createdType));
     }
     
     /**
@@ -96,7 +96,7 @@ public class MasterDataRestController {
             @PathVariable String code,
             @Valid @RequestBody MasterTypeDto masterTypeDto) {
         MasterTypeDto updatedType = masterDataService.updateMasterType(code, masterTypeDto);
-        return ResponseEntity.ok(new ApiResponseDto<>(updatedType));
+        return ResponseEntity.ok(ApiResponseDto.success(updatedType));
     }
     
     /**
@@ -110,7 +110,7 @@ public class MasterDataRestController {
     @PreAuthorize("hasAuthority('master_data.delete')")
     public ResponseEntity<ApiResponseDto<Void>> deleteMasterType(@PathVariable String code) {
         masterDataService.deleteMasterType(code);
-        return ResponseEntity.ok(new ApiResponseDto<>(null, "Master data type deleted successfully"));
+        return ResponseEntity.ok(ApiResponseDto.success(null));
     }
     
     // Master Data endpoints
@@ -143,7 +143,7 @@ public class MasterDataRestController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, property));
         Page<MasterDataDto> masterDataPage = masterDataService.getMasterDataList(typeCode, search, status, pageable);
         
-        return ResponseEntity.ok(new ApiResponseDto<>(masterDataPage));
+        return ResponseEntity.ok(ApiResponseDto.success(masterDataPage));
     }
     
     /**
@@ -160,7 +160,7 @@ public class MasterDataRestController {
             @PathVariable String typeCode,
             @PathVariable String code) {
         MasterDataDto masterData = masterDataService.getMasterDataByCode(typeCode, code);
-        return ResponseEntity.ok(new ApiResponseDto<>(masterData));
+        return ResponseEntity.ok(ApiResponseDto.success(masterData));
     }
     
     /**
@@ -179,7 +179,7 @@ public class MasterDataRestController {
         MasterDataDto createdData = masterDataService.createMasterData(typeCode, masterDataDto);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(new ApiResponseDto<>(createdData));
+                .body(ApiResponseDto.success(createdData));
     }
     
     /**
@@ -198,7 +198,7 @@ public class MasterDataRestController {
             @PathVariable String code,
             @Valid @RequestBody MasterDataDto masterDataDto) {
         MasterDataDto updatedData = masterDataService.updateMasterData(typeCode, code, masterDataDto);
-        return ResponseEntity.ok(new ApiResponseDto<>(updatedData));
+        return ResponseEntity.ok(ApiResponseDto.success(updatedData));
     }
     
     /**
@@ -215,7 +215,7 @@ public class MasterDataRestController {
             @PathVariable String typeCode,
             @PathVariable String code) {
         masterDataService.deleteMasterData(typeCode, code);
-        return ResponseEntity.ok(new ApiResponseDto<>(null, "Master data deleted successfully"));
+        return ResponseEntity.ok(ApiResponseDto.success(null));
     }
     
     /**
@@ -234,7 +234,7 @@ public class MasterDataRestController {
             @PathVariable String code,
             @Valid @RequestBody List<MasterDataAttributeDto> attributes) {
         MasterDataDto updatedData = masterDataService.updateAttributes(typeCode, code, attributes);
-        return ResponseEntity.ok(new ApiResponseDto<>(updatedData));
+        return ResponseEntity.ok(ApiResponseDto.success(updatedData));
     }
     
     /**
@@ -251,7 +251,7 @@ public class MasterDataRestController {
             @PathVariable String typeCode,
             @Valid @RequestBody MasterDataImportRequestDto importRequest) {
         MasterDataImportResponseDto importResult = masterDataService.importMasterData(typeCode, importRequest);
-        return ResponseEntity.ok(new ApiResponseDto<>(importResult));
+        return ResponseEntity.ok(ApiResponseDto.success(importResult));
     }
     
     /**
@@ -270,6 +270,6 @@ public class MasterDataRestController {
             @RequestParam(defaultValue = "csv") String format,
             @RequestParam(required = false) String status) {
         MasterDataExportResponseDto exportResult = masterDataService.exportMasterData(typeCode, format, status);
-        return ResponseEntity.ok(new ApiResponseDto<>(exportResult));
+        return ResponseEntity.ok(ApiResponseDto.success(exportResult));
     }
 }

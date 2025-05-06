@@ -71,4 +71,5 @@ public interface MasterDataAttributeRepository extends JpaRepository<MasterDataA
      * @param masterDataId マスタデータID
      */
     void deleteByMasterDataId(Long masterDataId);
+    
 }
