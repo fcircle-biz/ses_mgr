@@ -1,7 +1,7 @@
 package com.ses_mgr.admin.controller.api;
 
 import com.ses_mgr.admin.dto.*;
-import com.ses_mgr.admin.service.LogManagementService;
+import com.ses_mgr.admin.service.LogService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,14 +29,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(LogManagementRestController.class)
-public class LogManagementRestControllerTest {
+@WebMvcTest(LogRestController.class)
+public class LogRestControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockBean
-    private LogManagementService logManagementService;
+    private LogService logService;
 
     private LocalDateTime testTimestamp;
     private DateTimeFormatter formatter;
@@ -61,7 +61,7 @@ public class LogManagementRestControllerTest {
         logDto.setModule("TestModule");
         systemLogs.add(logDto);
 
-        when(logManagementService.getSystemLogs(
+        when(logService.getSystemLogs(
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(),
@@ -98,7 +98,7 @@ public class LogManagementRestControllerTest {
         logDto.setResourceType("user");
         auditLogs.add(logDto);
 
-        when(logManagementService.getAuditLogs(
+        when(logService.getAuditLogs(
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(),
@@ -138,7 +138,7 @@ public class LogManagementRestControllerTest {
         logDto.setErrorCode("E001");
         errorLogs.add(logDto);
 
-        when(logManagementService.getErrorLogs(
+        when(logService.getErrorLogs(
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(),
@@ -177,7 +177,7 @@ public class LogManagementRestControllerTest {
         logDto.setStatus("success");
         accessLogs.add(logDto);
 
-        when(logManagementService.getAccessLogs(
+        when(logService.getAccessLogs(
                 any(LocalDateTime.class),
                 any(LocalDateTime.class),
                 any(),
@@ -215,7 +215,7 @@ public class LogManagementRestControllerTest {
         systemLogDto.setTimestamp(testTimestamp);
         searchResults.add(systemLogDto);
 
-        when(logManagementService.searchLogs(any(LogSearchRequestDto.class)))
+        when(logService.searchLogs(any(LogSearchRequestDto.class)))
                 .thenReturn(new PageImpl<>(searchResults, PageRequest.of(0, 10), 1));
 
         // Act & Assert
@@ -252,7 +252,7 @@ public class LogManagementRestControllerTest {
         ));
         statisticsResponse.setSummary(summary);
 
-        when(logManagementService.getLogStatistics(any(LogStatisticsRequestDto.class)))
+        when(logService.getLogStatistics(any(LogStatisticsRequestDto.class)))
                 .thenReturn(statisticsResponse);
 
         // Act & Assert
@@ -280,7 +280,7 @@ public class LogManagementRestControllerTest {
         exportResponse.setDownloadToken("abc123");
         exportResponse.setTotalRecords(100);
 
-        when(logManagementService.exportLogs(any(LogExportRequestDto.class)))
+        when(logService.exportLogs(any(LogExportRequestDto.class)))
                 .thenReturn(exportResponse);
 
         String requestJson = "{"

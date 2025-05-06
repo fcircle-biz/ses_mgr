@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ses_mgr.common.dto.*;
 import com.ses_mgr.common.exception.ApiExceptionHandler;
-import com.ses_mgr.common.service.RoleManagementService;
+import com.ses_mgr.common.service.RoleService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,13 +28,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
-public class RoleManagementRestControllerTest {
+public class RoleRestControllerTest {
 
     @Mock
-    private RoleManagementService roleManagementService;
+    private RoleService roleService;
 
     @InjectMocks
-    private RoleManagementRestController roleManagementRestController;
+    private RoleRestController roleRestController;
 
     private MockMvc mockMvc;
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -46,7 +46,7 @@ public class RoleManagementRestControllerTest {
     void setUp() {
         objectMapper.registerModule(new JavaTimeModule());
         mockMvc = MockMvcBuilders
-                .standaloneSetup(roleManagementRestController)
+                .standaloneSetup(roleRestController)
                 .setControllerAdvice(new ApiExceptionHandler())
                 .build();
         
@@ -59,7 +59,7 @@ public class RoleManagementRestControllerTest {
     public void getRoles_ShouldReturnRolesList() throws Exception {
         // Given
         List<RoleResponseDto> rolesList = Arrays.asList(testRoleDto, createAnotherTestRoleResponseDto());
-        when(roleManagementService.getRoles(any(RoleSearchRequestDto.class), any(Pageable.class)))
+        when(roleService.getRoles(any(RoleSearchRequestDto.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(rolesList));
 
         // When & Then
@@ -87,7 +87,7 @@ public class RoleManagementRestControllerTest {
                 .permissionCount(1)
                 .build();
 
-        when(roleManagementService.createRole(any(RoleCreateRequestDto.class))).thenReturn(createdRoleDto);
+        when(roleService.createRole(any(RoleCreateRequestDto.class))).thenReturn(createdRoleDto);
 
         // When & Then
         mockMvc.perform(post("/api/v1/admin/roles")
@@ -102,7 +102,7 @@ public class RoleManagementRestControllerTest {
     @Test
     public void getRoleById_WhenRoleExists_ShouldReturnRole() throws Exception {
         // Given
-        when(roleManagementService.getRoleById(testRoleId)).thenReturn(testRoleDto);
+        when(roleService.getRoleById(testRoleId)).thenReturn(testRoleDto);
 
         // When & Then
         mockMvc.perform(get("/api/v1/admin/roles/{id}", testRoleId))
@@ -115,7 +115,7 @@ public class RoleManagementRestControllerTest {
     @Test
     public void getRoleById_WhenRoleDoesNotExist_ShouldReturnNotFound() throws Exception {
         // Given
-        when(roleManagementService.getRoleById(any(UUID.class)))
+        when(roleService.getRoleById(any(UUID.class)))
                 .thenThrow(new EntityNotFoundException("指定されたロールが見つかりません"));
 
         // When & Then
@@ -138,7 +138,7 @@ public class RoleManagementRestControllerTest {
                 .roleCode("TEST_ROLE")
                 .build();
 
-        when(roleManagementService.updateRole(eq(testRoleId), any(RoleUpdateRequestDto.class)))
+        when(roleService.updateRole(eq(testRoleId), any(RoleUpdateRequestDto.class)))
                 .thenReturn(updatedRoleDto);
 
         // When & Then
@@ -158,7 +158,7 @@ public class RoleManagementRestControllerTest {
         deletionResult.put("message", "ロールが正常に削除されました");
         deletionResult.put("id", testRoleId);
 
-        when(roleManagementService.deleteRole(testRoleId)).thenReturn(deletionResult);
+        when(roleService.deleteRole(testRoleId)).thenReturn(deletionResult);
 
         // When & Then
         mockMvc.perform(delete("/api/v1/admin/roles/{id}", testRoleId))
@@ -171,7 +171,7 @@ public class RoleManagementRestControllerTest {
     public void getRolePermissions_ShouldReturnPermissionsList() throws Exception {
         // Given
         List<PermissionResponseDto> permissionsList = Arrays.asList(testPermissionDto);
-        when(roleManagementService.getRolePermissions(testRoleId)).thenReturn(permissionsList);
+        when(roleService.getRolePermissions(testRoleId)).thenReturn(permissionsList);
 
         // When & Then
         mockMvc.perform(get("/api/v1/admin/roles/{id}/permissions", testRoleId))
@@ -194,7 +194,7 @@ public class RoleManagementRestControllerTest {
         updateResult.put("added", Collections.singletonList("new.permission"));
         updateResult.put("removed", Collections.emptyList());
 
-        when(roleManagementService.updateRolePermissions(eq(testRoleId), any(RolePermissionUpdateRequestDto.class)))
+        when(roleService.updateRolePermissions(eq(testRoleId), any(RolePermissionUpdateRequestDto.class)))
                 .thenReturn(updateResult);
 
         // When & Then
@@ -211,7 +211,7 @@ public class RoleManagementRestControllerTest {
     public void getAllPermissions_ShouldReturnPermissionsList() throws Exception {
         // Given
         List<PermissionResponseDto> permissionsList = Arrays.asList(testPermissionDto);
-        when(roleManagementService.getAllPermissions(null, null)).thenReturn(permissionsList);
+        when(roleService.getAllPermissions(null, null)).thenReturn(permissionsList);
 
         // When & Then
         mockMvc.perform(get("/api/v1/admin/permissions"))
@@ -225,7 +225,7 @@ public class RoleManagementRestControllerTest {
     public void getAllPermissions_WithFilters_ShouldReturnFilteredPermissions() throws Exception {
         // Given
         List<PermissionResponseDto> permissionsList = Arrays.asList(testPermissionDto);
-        when(roleManagementService.getAllPermissions("test", null)).thenReturn(permissionsList);
+        when(roleService.getAllPermissions("test", null)).thenReturn(permissionsList);
 
         // When & Then
         mockMvc.perform(get("/api/v1/admin/permissions")

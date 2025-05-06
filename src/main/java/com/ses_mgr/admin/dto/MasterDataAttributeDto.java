@@ -19,6 +19,7 @@ public class MasterDataAttributeDto {
     private String defaultValue;
     private String validationRule;
     private Integer displayOrder;
+    private String value; // テスト互換性のための値（MasterDataAttributeValueから参照）
 
     public MasterDataAttributeDto() {
     }
@@ -129,5 +130,37 @@ public class MasterDataAttributeDto {
 
     public void setDisplayOrder(Integer displayOrder) {
         this.displayOrder = displayOrder;
+    }
+    
+    /**
+     * テスト互換性のための値ゲッター
+     * Value getter for test compatibility
+     */
+    public String getValue() {
+        return value;
+    }
+
+    /**
+     * テスト互換性のための値セッター
+     * Value setter for test compatibility
+     */
+    public void setValue(String value) {
+        this.value = value;
+    }
+    
+    /**
+     * テスト互換性のための名前ゲッター
+     * Name getter for test compatibility
+     */
+    public String getName() {
+        return attributeName;
+    }
+
+    /**
+     * テスト互換性のための名前セッター
+     * Name setter for test compatibility
+     */
+    public void setName(String name) {
+        this.attributeName = name;
     }
 }

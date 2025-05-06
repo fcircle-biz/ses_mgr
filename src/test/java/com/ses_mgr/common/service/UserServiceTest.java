@@ -10,7 +10,7 @@ import com.ses_mgr.common.repository.DepartmentRepository;
 import com.ses_mgr.common.repository.RoleRepository;
 import com.ses_mgr.common.repository.UserRepository;
 import com.ses_mgr.common.repository.UserRoleRepository;
-import com.ses_mgr.common.service.impl.UserManagementServiceImpl;
+import com.ses_mgr.common.service.impl.UserServiceImpl;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.doNothing;
 
 @ExtendWith(MockitoExtension.class)
-public class UserManagementServiceTest {
+public class UserServiceTest {
 
     @Mock
     private UserRepository userRepository;
@@ -51,7 +51,7 @@ public class UserManagementServiceTest {
     private UserRoleRepository userRoleRepository;
 
     private PasswordEncoder passwordEncoder;
-    private UserManagementServiceImpl userManagementService;
+    private UserServiceImpl userService;
 
     private UUID testUserId;
     private User testUser;
@@ -62,7 +62,7 @@ public class UserManagementServiceTest {
     @BeforeEach
     void setUp() {
         passwordEncoder = new BCryptPasswordEncoder();
-        userManagementService = new UserManagementServiceImpl(
+        userService = new UserServiceImpl(
                 userRepository, departmentRepository, roleRepository, userRoleRepository, passwordEncoder);
 
         testUserId = UUID.randomUUID();
@@ -83,7 +83,7 @@ public class UserManagementServiceTest {
         when(userRepository.findByLoginId("test.login")).thenReturn(Optional.of(testUser));
 
         // When
-        UserDetails result = userManagementService.loadUserByUsername("test.login");
+        UserDetails result = userService.loadUserByUsername("test.login");
 
         // Then
         assertNotNull(result);
@@ -98,7 +98,7 @@ public class UserManagementServiceTest {
 
         // When & Then
         assertThrows(UsernameNotFoundException.class, () -> {
-            userManagementService.loadUserByUsername("nonexistent");
+            userService.loadUserByUsername("nonexistent");
         });
     }
 
@@ -108,7 +108,7 @@ public class UserManagementServiceTest {
         when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
 
         // When
-        UserResponseDto result = userManagementService.getUserById(testUserId);
+        UserResponseDto result = userService.getUserById(testUserId);
 
         // Then
         assertNotNull(result);
@@ -127,7 +127,7 @@ public class UserManagementServiceTest {
 
         // When & Then
         assertThrows(EntityNotFoundException.class, () -> {
-            userManagementService.getUserById(nonExistentId);
+            userService.getUserById(nonExistentId);
         });
     }
 
@@ -138,7 +138,7 @@ public class UserManagementServiceTest {
         when(userRepository.findAll()).thenReturn(userList);
 
         // When
-        List<UserResponseDto> result = userManagementService.getAllUsers();
+        List<UserResponseDto> result = userService.getAllUsers();
 
         // Then
         assertNotNull(result);
@@ -157,7 +157,7 @@ public class UserManagementServiceTest {
         when(userRepository.findAll(pageable)).thenReturn(userPage);
 
         // When
-        Page<UserResponseDto> result = userManagementService.getAllUsers(pageable);
+        Page<UserResponseDto> result = userService.getAllUsers(pageable);
 
         // Then
         assertNotNull(result);
@@ -186,7 +186,7 @@ public class UserManagementServiceTest {
         )).thenReturn(userPage);
 
         // When
-        Page<UserResponseDto> result = userManagementService.searchUsers(searchRequestDto, pageable);
+        Page<UserResponseDto> result = userService.searchUsers(searchRequestDto, pageable);
 
         // Then
         assertNotNull(result);
@@ -215,7 +215,7 @@ public class UserManagementServiceTest {
         when(roleRepository.findByRoleCode(anyString())).thenReturn(Optional.of(testRole));
 
         // When
-        UserResponseDto result = userManagementService.createUser(createRequestDto);
+        UserResponseDto result = userService.createUser(createRequestDto);
 
         // Then
         assertNotNull(result);
@@ -241,7 +241,7 @@ public class UserManagementServiceTest {
 
         // When & Then
         assertThrows(IllegalArgumentException.class, () -> {
-            userManagementService.createUser(createRequestDto);
+            userService.createUser(createRequestDto);
         });
         
         // Verify that save was never called
@@ -260,7 +260,7 @@ public class UserManagementServiceTest {
 
         // When & Then
         assertThrows(IllegalArgumentException.class, () -> {
-            userManagementService.createUser(createRequestDto);
+            userService.createUser(createRequestDto);
         });
         
         // Verify that save was never called
@@ -282,7 +282,7 @@ public class UserManagementServiceTest {
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
-        UserResponseDto result = userManagementService.updateUser(testUserId, updateRequestDto);
+        UserResponseDto result = userService.updateUser(testUserId, updateRequestDto);
 
         // Then
         assertNotNull(result);
@@ -309,7 +309,7 @@ public class UserManagementServiceTest {
 
         // When & Then
         assertThrows(EntityNotFoundException.class, () -> {
-            userManagementService.updateUser(nonExistentId, updateRequestDto);
+            userService.updateUser(nonExistentId, updateRequestDto);
         });
         
         // Verify that save was never called
@@ -326,7 +326,7 @@ public class UserManagementServiceTest {
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
-        UserResponseDto result = userManagementService.updateUserStatus(testUserId, statusRequestDto);
+        UserResponseDto result = userService.updateUserStatus(testUserId, statusRequestDto);
 
         // Then
         assertNotNull(result);
@@ -345,7 +345,7 @@ public class UserManagementServiceTest {
         when(userRepository.save(any(User.class))).thenReturn(testUser);
 
         // When
-        userManagementService.resetUserPassword(testUserId);
+        userService.resetUserPassword(testUserId);
 
         // Then
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
@@ -371,7 +371,7 @@ public class UserManagementServiceTest {
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // When
-        UserResponseDto result = userManagementService.unlockUserAccount(testUserId);
+        UserResponseDto result = userService.unlockUserAccount(testUserId);
 
         // Then
         assertNotNull(result);
@@ -391,7 +391,7 @@ public class UserManagementServiceTest {
 
         // When & Then
         assertThrows(IllegalStateException.class, () -> {
-            userManagementService.unlockUserAccount(testUserId);
+            userService.unlockUserAccount(testUserId);
         });
         
         // Verify that save was never called
@@ -409,7 +409,7 @@ public class UserManagementServiceTest {
         when(userRepository.updateStatusForUsers(userIds, "inactive")).thenReturn(2);
 
         // When
-        int updatedCount = userManagementService.updateBulkUserStatus(bulkStatusRequestDto);
+        int updatedCount = userService.updateBulkUserStatus(bulkStatusRequestDto);
 
         // Then
         assertEquals(2, updatedCount);
@@ -426,7 +426,7 @@ public class UserManagementServiceTest {
         when(userRepository.unlockUsers(userIds)).thenReturn(2);
 
         // When
-        int unlockedCount = userManagementService.unlockBulkUserAccounts(bulkUnlockRequestDto);
+        int unlockedCount = userService.unlockBulkUserAccounts(bulkUnlockRequestDto);
 
         // Then
         assertEquals(2, unlockedCount);
@@ -441,7 +441,7 @@ public class UserManagementServiceTest {
         when(userRoleRepository.existsByUserUserIdAndRoleRoleId(testUserId, testRole.getRoleId())).thenReturn(false);
 
         // When
-        userManagementService.assignRoleToUser(testUserId, "ADMIN");
+        userService.assignRoleToUser(testUserId, "ADMIN");
 
         // Then
         ArgumentCaptor<UserRole> userRoleCaptor = ArgumentCaptor.forClass(UserRole.class);
@@ -462,7 +462,7 @@ public class UserManagementServiceTest {
         when(userRoleRepository.findById(userRoleId)).thenReturn(Optional.of(testUserRole));
 
         // When
-        userManagementService.removeRoleFromUser(testUserId, "USER");
+        userService.removeRoleFromUser(testUserId, "USER");
 
         // Then
         verify(userRoleRepository).delete(testUserRole);
@@ -474,7 +474,7 @@ public class UserManagementServiceTest {
         when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
 
         // When
-        List<RoleResponseDto> roles = userManagementService.getUserRoles(testUserId);
+        List<RoleResponseDto> roles = userService.getUserRoles(testUserId);
 
         // Then
         assertNotNull(roles);
@@ -488,7 +488,7 @@ public class UserManagementServiceTest {
         when(userRepository.findByEmail("test.user@example.com")).thenReturn(Optional.of(testUser));
 
         // When
-        UserResponseDto result = userManagementService.findByEmail("test.user@example.com");
+        UserResponseDto result = userService.findByEmail("test.user@example.com");
 
         // Then
         assertNotNull(result);
@@ -502,7 +502,7 @@ public class UserManagementServiceTest {
         when(userRepository.findByLoginId("test.login")).thenReturn(Optional.of(testUser));
 
         // When
-        UserResponseDto result = userManagementService.findByLoginId("test.login");
+        UserResponseDto result = userService.findByLoginId("test.login");
 
         // Then
         assertNotNull(result);
@@ -516,7 +516,7 @@ public class UserManagementServiceTest {
         when(userRepository.existsById(testUserId)).thenReturn(true);
 
         // When
-        boolean result = userManagementService.existsById(testUserId);
+        boolean result = userService.existsById(testUserId);
 
         // Then
         assertTrue(result);
@@ -528,7 +528,7 @@ public class UserManagementServiceTest {
         when(userRepository.existsByEmail("test.user@example.com")).thenReturn(true);
 
         // When
-        boolean result = userManagementService.existsByEmail("test.user@example.com");
+        boolean result = userService.existsByEmail("test.user@example.com");
 
         // Then
         assertTrue(result);
@@ -540,7 +540,7 @@ public class UserManagementServiceTest {
         when(userRepository.existsByLoginId("test.login")).thenReturn(true);
 
         // When
-        boolean result = userManagementService.existsByLoginId("test.login");
+        boolean result = userService.existsByLoginId("test.login");
 
         // Then
         assertTrue(result);
@@ -549,7 +549,7 @@ public class UserManagementServiceTest {
     @Test
     void updateLastLoginTime_ShouldCallRepository() {
         // When
-        userManagementService.updateLastLoginTime(testUserId);
+        userService.updateLastLoginTime(testUserId);
 
         // Then
         verify(userRepository).updateLastLoginTime(testUserId);

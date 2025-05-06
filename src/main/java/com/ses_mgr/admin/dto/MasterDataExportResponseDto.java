@@ -29,6 +29,42 @@ public class MasterDataExportResponseDto {
      * Number of exported records
      */
     private Integer recordCount;
+    
+    /**
+     * マスタデータタイプコード
+     * Master data type code
+     */
+    private String typeCode;
+    
+    /**
+     * マスタデータタイプ名
+     * Master data type name
+     */
+    private String typeName;
+    
+    /**
+     * 出力フォーマット
+     * Output format
+     */
+    private String format;
+    
+    /**
+     * 総レコード数
+     * Total number of records
+     */
+    private Integer totalRecords;
+    
+    /**
+     * コンテントタイプ
+     * Content type
+     */
+    private String contentType;
+    
+    /**
+     * エンコードされたデータ
+     * Encoded data
+     */
+    private String data;
 
     public MasterDataExportResponseDto() {
     }
@@ -72,5 +108,53 @@ public class MasterDataExportResponseDto {
 
     public void setRecordCount(Integer recordCount) {
         this.recordCount = recordCount;
+    }
+    
+    public String getTypeCode() {
+        return typeCode;
+    }
+
+    public void setTypeCode(String typeCode) {
+        this.typeCode = typeCode;
+    }
+
+    public String getTypeName() {
+        return typeName;
+    }
+
+    public void setTypeName(String typeName) {
+        this.typeName = typeName;
+    }
+
+    public String getFormat() {
+        return format;
+    }
+
+    public void setFormat(String format) {
+        this.format = format;
+    }
+
+    public Integer getTotalRecords() {
+        return totalRecords;
+    }
+
+    public void setTotalRecords(Integer totalRecords) {
+        this.totalRecords = totalRecords;
+    }
+
+    public String getContentType() {
+        return contentType;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
     }
 }

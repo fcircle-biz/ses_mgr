@@ -8,7 +8,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import java.util.List;
 import java.util.UUID;
 
-public interface UserManagementService extends UserDetailsService {
+public interface UserService extends UserDetailsService {
 
     // ユーザー一覧取得
     List<UserResponseDto> getAllUsers();

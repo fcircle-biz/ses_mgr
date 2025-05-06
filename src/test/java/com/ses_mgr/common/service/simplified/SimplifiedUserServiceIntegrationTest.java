@@ -7,7 +7,7 @@ import com.ses_mgr.common.entity.Role;
 import com.ses_mgr.common.repository.DepartmentRepository;
 import com.ses_mgr.common.repository.RoleRepository;
 import com.ses_mgr.common.repository.UserRepository;
-import com.ses_mgr.common.service.UserManagementService;
+import com.ses_mgr.common.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,10 +24,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-public class SimplifiedUserManagementServiceIntegrationTest {
+public class SimplifiedUserServiceIntegrationTest {
 
     @Autowired
-    private UserManagementService userManagementService;
+    private UserService userService;
 
     @Autowired
     private UserRepository userRepository;
@@ -67,14 +67,14 @@ public class SimplifiedUserManagementServiceIntegrationTest {
         createUserDto.setDepartment("Test Department");
         createUserDto.setRole("USER");
 
-        UserResponseDto createdUser = userManagementService.createUser(createUserDto);
+        UserResponseDto createdUser = userService.createUser(createUserDto);
         testUserId = createdUser.getId();
     }
 
     @Test
     void getUserById_WhenUserExists_ShouldReturnUser() {
         // When
-        UserResponseDto user = userManagementService.getUserById(testUserId);
+        UserResponseDto user = userService.getUserById(testUserId);
 
         // Then
         assertNotNull(user);
@@ -89,13 +89,13 @@ public class SimplifiedUserManagementServiceIntegrationTest {
         UUID nonExistentId = UUID.randomUUID();
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> userManagementService.getUserById(nonExistentId));
+        assertThrows(EntityNotFoundException.class, () -> userService.getUserById(nonExistentId));
     }
 
     @Test
     void getAllUsers_ShouldReturnAllUsers() {
         // When
-        List<UserResponseDto> users = userManagementService.getAllUsers();
+        List<UserResponseDto> users = userService.getAllUsers();
 
         // Then
         assertFalse(users.isEmpty());
@@ -114,7 +114,7 @@ public class SimplifiedUserManagementServiceIntegrationTest {
         createRequestDto.setRole("USER");
 
         // When
-        UserResponseDto createdUser = userManagementService.createUser(createRequestDto);
+        UserResponseDto createdUser = userService.createUser(createRequestDto);
 
         // Then
         assertNotNull(createdUser);

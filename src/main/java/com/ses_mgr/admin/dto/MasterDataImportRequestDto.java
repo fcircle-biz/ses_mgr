@@ -2,6 +2,8 @@ package com.ses_mgr.admin.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * マスタデータインポートリクエストDTO
@@ -49,6 +51,18 @@ public class MasterDataImportRequestDto {
      */
     @NotNull(message = "ヘッダー行フラグは必須です")
     private Boolean hasHeaderRow = true;
+    
+    /**
+     * データ上書きフラグ
+     * Data overwrite flag
+     */
+    private boolean overwrite = true;
+    
+    /**
+     * インポートデータリスト
+     * Import data list
+     */
+    private List<MasterDataDto> data = new ArrayList<>();
 
     // Getters and Setters
 
@@ -98,5 +112,21 @@ public class MasterDataImportRequestDto {
 
     public void setHasHeaderRow(Boolean hasHeaderRow) {
         this.hasHeaderRow = hasHeaderRow;
+    }
+    
+    public boolean isOverwrite() {
+        return overwrite;
+    }
+
+    public void setOverwrite(boolean overwrite) {
+        this.overwrite = overwrite;
+    }
+    
+    public List<MasterDataDto> getData() {
+        return data;
+    }
+    
+    public void setData(List<MasterDataDto> data) {
+        this.data = data;
     }
 }

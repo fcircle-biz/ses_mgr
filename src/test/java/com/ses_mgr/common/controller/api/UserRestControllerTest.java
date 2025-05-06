@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.ses_mgr.common.dto.*;
 import com.ses_mgr.common.exception.ApiExceptionHandler;
-import com.ses_mgr.common.service.UserManagementService;
+import com.ses_mgr.common.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,13 +31,13 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(MockitoExtension.class)
-public class UserManagementRestControllerTest {
+public class UserRestControllerTest {
 
     @Mock
-    private UserManagementService userManagementService;
+    private UserService userService;
 
     @InjectMocks
-    private UserManagementRestController userManagementRestController;
+    private UserRestController userRestController;
 
     private MockMvc mockMvc;
     private ObjectMapper objectMapper = new ObjectMapper();
@@ -48,7 +48,7 @@ public class UserManagementRestControllerTest {
     void setUp() {
         objectMapper.registerModule(new JavaTimeModule());
         mockMvc = MockMvcBuilders
-                .standaloneSetup(userManagementRestController)
+                .standaloneSetup(userRestController)
                 .setControllerAdvice(new ApiExceptionHandler())
                 .build();
         
@@ -60,7 +60,7 @@ public class UserManagementRestControllerTest {
     public void getAllUsers_ShouldReturnUsersList() throws Exception {
         // Given
         List<UserResponseDto> usersList = Arrays.asList(testUserDto, createAnotherTestUserResponseDto());
-        when(userManagementService.getAllUsers()).thenReturn(usersList);
+        when(userService.getAllUsers()).thenReturn(usersList);
 
         // When & Then
         mockMvc.perform(get("/api/v1/admin/users"))
@@ -79,7 +79,7 @@ public class UserManagementRestControllerTest {
         searchRequestDto.setStatus("active");
 
         List<UserResponseDto> matchingUsers = Collections.singletonList(testUserDto);
-        when(userManagementService.searchUsers(any(UserSearchRequestDto.class), any(Pageable.class)))
+        when(userService.searchUsers(any(UserSearchRequestDto.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(matchingUsers));
 
         // When & Then
@@ -92,7 +92,7 @@ public class UserManagementRestControllerTest {
     @Test
     public void getUserById_WhenUserExists_ShouldReturnUser() throws Exception {
         // Given
-        when(userManagementService.getUserById(testUserId)).thenReturn(testUserDto);
+        when(userService.getUserById(testUserId)).thenReturn(testUserDto);
 
         // When & Then
         mockMvc.perform(get("/api/v1/admin/users/{userId}", testUserId))
@@ -105,7 +105,7 @@ public class UserManagementRestControllerTest {
     @Test
     public void getUserById_WhenUserDoesNotExist_ShouldReturnNotFound() throws Exception {
         // Given
-        when(userManagementService.getUserById(any(UUID.class)))
+        when(userService.getUserById(any(UUID.class)))
                 .thenThrow(new EntityNotFoundException("ユーザーが見つかりません"));
 
         // When & Then
@@ -132,7 +132,7 @@ public class UserManagementRestControllerTest {
                 .status("active")
                 .build();
 
-        when(userManagementService.createUser(any(UserCreateRequestDto.class))).thenReturn(createdUserDto);
+        when(userService.createUser(any(UserCreateRequestDto.class))).thenReturn(createdUserDto);
 
         // When & Then
         mockMvc.perform(post("/api/v1/admin/users")
@@ -159,7 +159,7 @@ public class UserManagementRestControllerTest {
                 .status("active")
                 .build();
 
-        when(userManagementService.updateUser(eq(testUserId), any(UserUpdateRequestDto.class)))
+        when(userService.updateUser(eq(testUserId), any(UserUpdateRequestDto.class)))
                 .thenReturn(updatedUserDto);
 
         // When & Then
@@ -186,7 +186,7 @@ public class UserManagementRestControllerTest {
                 .status("inactive")
                 .build();
 
-        when(userManagementService.updateUserStatus(eq(testUserId), any(UserStatusRequestDto.class)))
+        when(userService.updateUserStatus(eq(testUserId), any(UserStatusRequestDto.class)))
                 .thenReturn(updatedUserDto);
 
         // When & Then

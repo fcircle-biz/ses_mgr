@@ -20,19 +20,19 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class SimplifiedUserManagementServiceTest {
+public class SimplifiedUserServiceTest {
 
     @Mock
     private UserRepository userRepository;
 
-    private SimplifiedUserManagementService userManagementService;
+    private SimplifiedUserService userService;
 
     private UUID testUserId;
     private User testUser;
 
     @BeforeEach
     void setUp() {
-        userManagementService = new SimplifiedUserManagementService(userRepository);
+        userService = new SimplifiedUserService(userRepository);
         testUserId = UUID.randomUUID();
         testUser = createTestUser();
     }
@@ -43,7 +43,7 @@ public class SimplifiedUserManagementServiceTest {
         when(userRepository.findById(testUserId)).thenReturn(Optional.of(testUser));
 
         // When
-        UserResponseDto result = userManagementService.getUserById(testUserId);
+        UserResponseDto result = userService.getUserById(testUserId);
 
         // Then
         assertNotNull(result);
@@ -53,10 +53,10 @@ public class SimplifiedUserManagementServiceTest {
     }
 
     // より簡素化したサービス実装
-    private static class SimplifiedUserManagementService {
+    private static class SimplifiedUserService {
         private final UserRepository userRepository;
 
-        public SimplifiedUserManagementService(UserRepository userRepository) {
+        public SimplifiedUserService(UserRepository userRepository) {
             this.userRepository = userRepository;
         }
 

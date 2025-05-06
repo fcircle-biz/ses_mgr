@@ -4,7 +4,7 @@ import com.ses_mgr.common.dto.ApiResponseDto;
 import com.ses_mgr.common.dto.LoginRequestDto;
 import com.ses_mgr.common.dto.LoginResponseDto;
 import com.ses_mgr.common.entity.User;
-import com.ses_mgr.common.service.UserManagementService;
+import com.ses_mgr.common.service.UserService;
 import com.ses_mgr.config.JwtTokenProvider;
 import jakarta.validation.Valid;
 import org.springframework.http.MediaType;
@@ -32,16 +32,16 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
-    private final UserManagementService userManagementService;
+    private final UserService userService;
     private final ObjectMapper objectMapper;
 
     public AuthController(
             AuthenticationManager authenticationManager,
             JwtTokenProvider tokenProvider,
-            UserManagementService userManagementService) {
+            UserService userService) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
-        this.userManagementService = userManagementService;
+        this.userService = userService;
         this.objectMapper = new ObjectMapper();
     }
 
@@ -65,7 +65,7 @@ public class AuthController {
 
             try {
                 // 最終ログイン時間の更新
-                userManagementService.updateLastLoginTime(user.getUserId());
+                userService.updateLastLoginTime(user.getUserId());
             } catch (Exception e) {
                 // 最終ログイン時間の更新に失敗しても、認証は続行
             }

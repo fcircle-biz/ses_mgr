@@ -70,6 +70,107 @@ public interface MasterDataRepository extends JpaRepository<MasterData, Long> {
     @Query("SELECT md FROM MasterData md JOIN md.masterType mt " +
            "WHERE mt.typeCode = :typeCode AND md.isActive = true")
     Page<MasterData> findByMasterTypeCodeAndIsActiveTrue(@Param("typeCode") String typeCode, Pageable pageable);
+    
+    /**
+     * マスタデータタイプのコードでマスタデータのリストを検索
+     * Find list of master data by master type code
+     *
+     * @param typeCode     マスタデータタイプコード
+     * @param pageable     ページング情報
+     * @return マスタデータのページ
+     */
+    @Query("SELECT md FROM MasterData md JOIN md.masterType mt " +
+           "WHERE mt.typeCode = :typeCode")
+    Page<MasterData> findByTypeCode(@Param("typeCode") String typeCode, Pageable pageable);
+    
+    /**
+     * タイプコードとコードでマスタデータを検索
+     * Find master data by type code and code
+     *
+     * @param typeCode  マスタデータタイプコード
+     * @param code      コード
+     * @return マスタデータ（オプショナル）
+     */
+    @Query("SELECT md FROM MasterData md JOIN md.masterType mt " +
+           "WHERE mt.typeCode = :typeCode AND md.code = :code")
+    Optional<MasterData> findByTypeCodeAndCode(@Param("typeCode") String typeCode, @Param("code") String code);
+    
+    /**
+     * タイプコードに基づくマスタデータの数をカウント
+     * Count master data based on type code
+     *
+     * @param typeCode  マスタデータタイプコード
+     * @return カウント
+     */
+    @Query("SELECT COUNT(md) FROM MasterData md JOIN md.masterType mt " +
+           "WHERE mt.typeCode = :typeCode")
+    long countByTypeCode(@Param("typeCode") String typeCode);
+    
+    /**
+     * タイプコードとステータスでマスタデータを検索
+     * Find master data by type code and status
+     *
+     * @param typeCode  マスタデータタイプコード
+     * @param status    ステータス（"active"または"inactive"）
+     * @param pageable  ページング情報
+     * @return マスタデータのページ
+     */
+    @Query("SELECT md FROM MasterData md JOIN md.masterType mt " +
+           "WHERE mt.typeCode = :typeCode AND (:status = 'active' AND md.isActive = true OR :status = 'inactive' AND md.isActive = false)")
+    Page<MasterData> findByTypeCodeAndStatus(@Param("typeCode") String typeCode, @Param("status") String status, Pageable pageable);
+    
+    /**
+     * タイプコードと名前の部分一致でマスタデータを検索
+     * Find master data by type code and partial name match
+     *
+     * @param typeCode  マスタデータタイプコード
+     * @param name      検索名
+     * @param pageable  ページング情報
+     * @return マスタデータのページ
+     */
+    @Query("SELECT md FROM MasterData md JOIN md.masterType mt " +
+           "WHERE mt.typeCode = :typeCode AND LOWER(md.nameJa) LIKE LOWER(CONCAT('%', :name, '%'))")
+    Page<MasterData> findByTypeCodeAndNameContainingIgnoreCase(@Param("typeCode") String typeCode, @Param("name") String name, Pageable pageable);
+    
+    /**
+     * タイプコード、ステータス、名前の部分一致でマスタデータを検索
+     * Find master data by type code, status, and partial name match
+     *
+     * @param typeCode  マスタデータタイプコード
+     * @param status    ステータス（"active"または"inactive"）
+     * @param name      検索名
+     * @param pageable  ページング情報
+     * @return マスタデータのページ
+     */
+    @Query("SELECT md FROM MasterData md JOIN md.masterType mt " +
+           "WHERE mt.typeCode = :typeCode AND (:status = 'active' AND md.isActive = true OR :status = 'inactive' AND md.isActive = false) " +
+           "AND LOWER(md.nameJa) LIKE LOWER(CONCAT('%', :name, '%'))")
+    Page<MasterData> findByTypeCodeAndStatusAndNameContainingIgnoreCase(@Param("typeCode") String typeCode, @Param("status") String status, @Param("name") String name, Pageable pageable);
+    
+    /**
+     * タイプコードとステータスでマスタデータのリストを取得し、表示順でソート
+     * Get a list of master data by type code and status, sorted by display order
+     * 
+     * @param typeCode タイプコード
+     * @param status ステータス（"active"または"inactive"）
+     * @return マスタデータのリスト
+     */
+    @Query("SELECT md FROM MasterData md JOIN md.masterType mt " +
+           "WHERE mt.typeCode = :typeCode AND (:status = 'active' AND md.isActive = true OR :status = 'inactive' AND md.isActive = false) " +
+           "ORDER BY md.displayOrder ASC NULLS LAST, md.nameJa ASC")
+    List<MasterData> findByTypeCodeAndStatusOrderByDisplayOrderAsc(@Param("typeCode") String typeCode, @Param("status") String status);
+    
+    /**
+     * タイプコードでマスタデータのリストを取得し、表示順でソート
+     * Get a list of master data by type code, sorted by display order
+     * 
+     * @param typeCode タイプコード
+     * @return マスタデータのリスト
+     */
+    @Query("SELECT md FROM MasterData md JOIN md.masterType mt " +
+           "WHERE mt.typeCode = :typeCode " +
+           "ORDER BY md.displayOrder ASC NULLS LAST, md.nameJa ASC")
+    List<MasterData> findByTypeCodeOrderByDisplayOrderAsc(@Param("typeCode") String typeCode);
 
     /**
      * キーワードで検索（部分一致）

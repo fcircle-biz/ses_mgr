@@ -7,7 +7,7 @@ import com.ses_mgr.common.entity.User;
 import com.ses_mgr.common.repository.DepartmentRepository;
 import com.ses_mgr.common.repository.RoleRepository;
 import com.ses_mgr.common.repository.UserRepository;
-import com.ses_mgr.common.service.UserManagementService;
+import com.ses_mgr.common.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ import static org.mockito.Mockito.when;
 public class MinimalUserServiceWithMocksTest {
 
     @Autowired
-    private UserManagementService userManagementService;
+    private UserService userService;
 
     @MockBean
     private UserRepository userRepository;
@@ -64,7 +64,7 @@ public class MinimalUserServiceWithMocksTest {
     @Test
     void getUserById_ShouldReturnUser() {
         // When
-        UserResponseDto result = userManagementService.getUserById(testUserId);
+        UserResponseDto result = userService.getUserById(testUserId);
         
         // Then
         assertNotNull(result);
@@ -76,7 +76,7 @@ public class MinimalUserServiceWithMocksTest {
     @Test
     void getAllUsers_ShouldReturnUsersList() {
         // When
-        List<UserResponseDto> results = userManagementService.getAllUsers();
+        List<UserResponseDto> results = userService.getAllUsers();
         
         // Then
         assertNotNull(results);

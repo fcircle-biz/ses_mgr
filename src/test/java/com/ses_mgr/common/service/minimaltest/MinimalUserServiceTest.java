@@ -1,7 +1,7 @@
 package com.ses_mgr.common.service.minimaltest;
 
 import com.ses_mgr.common.repository.UserRepository;
-import com.ses_mgr.common.service.UserManagementService;
+import com.ses_mgr.common.service.UserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class MinimalUserServiceTest {
 
     @Autowired
-    private UserManagementService userManagementService;
+    private UserService userService;
 
     @MockBean
     private UserRepository userRepository;
@@ -27,7 +27,7 @@ public class MinimalUserServiceTest {
     @Test
     void contextLoads() {
         // Spring コンテキストが正常にロードされるかテスト
-        assertNotNull(userManagementService);
+        assertNotNull(userService);
         assertNotNull(userRepository);
     }
 }

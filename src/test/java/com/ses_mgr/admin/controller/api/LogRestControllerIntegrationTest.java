@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 @Transactional
-public class LogManagementRestControllerIntegrationTest {
+public class LogRestControllerIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;

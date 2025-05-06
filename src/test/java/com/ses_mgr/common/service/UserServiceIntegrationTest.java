@@ -25,10 +25,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional
-public class UserManagementServiceIntegrationTest {
+public class UserServiceIntegrationTest {
 
     @Autowired
-    private UserManagementService userManagementService;
+    private UserService userService;
 
     @Autowired
     private UserRepository userRepository;
@@ -79,7 +79,7 @@ public class UserManagementServiceIntegrationTest {
         createUserDto.setDepartment("Test Department");
         createUserDto.setRole("USER");
 
-        UserResponseDto createdUser = userManagementService.createUser(createUserDto);
+        UserResponseDto createdUser = userService.createUser(createUserDto);
         testUserId = createdUser.getId();
         testUser = userRepository.findById(testUserId).orElseThrow();
     }
@@ -87,7 +87,7 @@ public class UserManagementServiceIntegrationTest {
     @Test
     void getAllUsers_ShouldReturnAllUsers() {
         // When
-        List<UserResponseDto> users = userManagementService.getAllUsers();
+        List<UserResponseDto> users = userService.getAllUsers();
 
         // Then
         assertFalse(users.isEmpty());
@@ -97,7 +97,7 @@ public class UserManagementServiceIntegrationTest {
     @Test
     void getUserById_WhenUserExists_ShouldReturnUser() {
         // When
-        UserResponseDto user = userManagementService.getUserById(testUserId);
+        UserResponseDto user = userService.getUserById(testUserId);
 
         // Then
         assertNotNull(user);
@@ -112,7 +112,7 @@ public class UserManagementServiceIntegrationTest {
         UUID nonExistentId = UUID.randomUUID();
 
         // When & Then
-        assertThrows(EntityNotFoundException.class, () -> userManagementService.getUserById(nonExistentId));
+        assertThrows(EntityNotFoundException.class, () -> userService.getUserById(nonExistentId));
     }
 
     //@Test
@@ -127,7 +127,7 @@ public class UserManagementServiceIntegrationTest {
         createRequestDto.setRole("ADMIN");
 
         // When
-        UserResponseDto createdUser = userManagementService.createUser(createRequestDto);
+        UserResponseDto createdUser = userService.createUser(createRequestDto);
 
         // Then
         assertNotNull(createdUser);
@@ -154,7 +154,7 @@ public class UserManagementServiceIntegrationTest {
         updateRequestDto.setPosition("Senior Developer");
 
         // When
-        UserResponseDto updatedUser = userManagementService.updateUser(testUserId, updateRequestDto);
+        UserResponseDto updatedUser = userService.updateUser(testUserId, updateRequestDto);
 
         // Then
         assertNotNull(updatedUser);
@@ -177,7 +177,7 @@ public class UserManagementServiceIntegrationTest {
         statusRequestDto.setStatus("inactive");
 
         // When
-        UserResponseDto updatedUser = userManagementService.updateUserStatus(testUserId, statusRequestDto);
+        UserResponseDto updatedUser = userService.updateUserStatus(testUserId, statusRequestDto);
 
         // Then
         assertNotNull(updatedUser);
@@ -196,7 +196,7 @@ public class UserManagementServiceIntegrationTest {
         userRepository.save(testUser);
 
         // When
-        UserResponseDto unlockedUser = userManagementService.unlockUserAccount(testUserId);
+        UserResponseDto unlockedUser = userService.unlockUserAccount(testUserId);
 
         // Then
         assertNotNull(unlockedUser);
@@ -219,7 +219,7 @@ public class UserManagementServiceIntegrationTest {
         user1Dto.setPassword("Password123");
         user1Dto.setDepartment("Test Department");
         user1Dto.setRole("USER");
-        UserResponseDto createdUser1 = userManagementService.createUser(user1Dto);
+        UserResponseDto createdUser1 = userService.createUser(user1Dto);
 
         UserCreateRequestDto user2Dto = new UserCreateRequestDto();
         user2Dto.setLoginId("user2");
@@ -228,14 +228,14 @@ public class UserManagementServiceIntegrationTest {
         user2Dto.setPassword("Password123");
         user2Dto.setDepartment("Test Department");
         user2Dto.setRole("USER");
-        UserResponseDto createdUser2 = userManagementService.createUser(user2Dto);
+        UserResponseDto createdUser2 = userService.createUser(user2Dto);
 
         UserBulkStatusRequestDto bulkStatusRequestDto = new UserBulkStatusRequestDto();
         bulkStatusRequestDto.setUserIds(Arrays.asList(testUserId, createdUser1.getId(), createdUser2.getId()));
         bulkStatusRequestDto.setStatus("inactive");
 
         // When
-        int updatedCount = userManagementService.updateBulkUserStatus(bulkStatusRequestDto);
+        int updatedCount = userService.updateBulkUserStatus(bulkStatusRequestDto);
 
         // Then
         assertEquals(3, updatedCount);
@@ -258,7 +258,7 @@ public class UserManagementServiceIntegrationTest {
         adminUserDto.setPassword("Password123");
         adminUserDto.setDepartment("Test Department");
         adminUserDto.setRole("ADMIN");
-        userManagementService.createUser(adminUserDto);
+        userService.createUser(adminUserDto);
 
         UserCreateRequestDto regularUserDto = new UserCreateRequestDto();
         regularUserDto.setLoginId("regular.user");
@@ -267,13 +267,13 @@ public class UserManagementServiceIntegrationTest {
         regularUserDto.setPassword("Password123");
         regularUserDto.setDepartment("Test Department");
         regularUserDto.setRole("USER");
-        userManagementService.createUser(regularUserDto);
+        userService.createUser(regularUserDto);
 
         UserSearchRequestDto searchRequestDto = new UserSearchRequestDto();
         searchRequestDto.setKeyword("admin");
 
         // When
-        Page<UserResponseDto> searchResults = userManagementService.searchUsers(searchRequestDto, PageRequest.of(0, 10));
+        Page<UserResponseDto> searchResults = userService.searchUsers(searchRequestDto, PageRequest.of(0, 10));
 
         // Then
         assertEquals(1, searchResults.getTotalElements());
@@ -282,13 +282,13 @@ public class UserManagementServiceIntegrationTest {
         // ステータスでの検索
         searchRequestDto = new UserSearchRequestDto();
         searchRequestDto.setStatus("active");
-        searchResults = userManagementService.searchUsers(searchRequestDto, PageRequest.of(0, 10));
+        searchResults = userService.searchUsers(searchRequestDto, PageRequest.of(0, 10));
         assertTrue(searchResults.getTotalElements() >= 3);
 
         // ロールでの検索
         searchRequestDto = new UserSearchRequestDto();
         searchRequestDto.setRole("ADMIN");
-        searchResults = userManagementService.searchUsers(searchRequestDto, PageRequest.of(0, 10));
+        searchResults = userService.searchUsers(searchRequestDto, PageRequest.of(0, 10));
         assertEquals(1, searchResults.getTotalElements());
         assertEquals("admin@example.com", searchResults.getContent().get(0).getEmail());
     }

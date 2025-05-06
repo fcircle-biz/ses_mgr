@@ -26,6 +26,17 @@ public interface MasterTypeRepository extends JpaRepository<MasterType, Long> {
      * @return マスタデータタイプ（オプショナル）
      */
     Optional<MasterType> findByTypeCode(String typeCode);
+    
+    /**
+     * コードでマスタデータタイプを検索（getCode()互換用）
+     * Find master data type by code (for getCode() compatibility)
+     *
+     * @param code コード（typeCodeと同じ）
+     * @return マスタデータタイプ（オプショナル）
+     */
+    default Optional<MasterType> findByCode(String code) {
+        return findByTypeCode(code);
+    }
 
     /**
      * アクティブなマスタデータタイプのみを検索

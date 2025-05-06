@@ -3,7 +3,7 @@ package com.ses_mgr.common.service.impl;
 import com.ses_mgr.common.dto.*;
 import com.ses_mgr.common.entity.*;
 import com.ses_mgr.common.repository.*;
-import com.ses_mgr.common.service.UserManagementService;
+import com.ses_mgr.common.service.UserService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-public class UserManagementServiceImpl implements UserManagementService {
+public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
@@ -30,7 +30,7 @@ public class UserManagementServiceImpl implements UserManagementService {
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserManagementServiceImpl(
+    public UserServiceImpl(
             UserRepository userRepository,
             DepartmentRepository departmentRepository,
             RoleRepository roleRepository,

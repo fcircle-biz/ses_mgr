@@ -355,4 +355,53 @@ public class MasterData {
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
     }
+    
+    /**
+     * nameJaのエイリアスとしてのname getter
+     * Name getter as an alias for nameJa
+     */
+    public String getName() {
+        return this.nameJa;
+    }
+    
+    /**
+     * nameJaのエイリアスとしてのname setter
+     * Name setter as an alias for nameJa
+     */
+    public void setName(String name) {
+        this.nameJa = name;
+    }
+    
+    /**
+     * isActiveのエイリアスとしてのstatus getter
+     * Status getter as an alias for isActive
+     */
+    public String getStatus() {
+        return this.isActive ? "active" : "inactive";
+    }
+    
+    /**
+     * isActiveのエイリアスとしてのstatus setter
+     * Status setter as an alias for isActive
+     */
+    public void setStatus(String status) {
+        this.isActive = "active".equals(status);
+    }
+    
+    /**
+     * masterTypeからtypeCodeを取得するエイリアスメソッド
+     * Alias method to get typeCode from masterType
+     */
+    public String getTypeCode() {
+        return this.masterType != null ? this.masterType.getTypeCode() : null;
+    }
+    
+    /**
+     * masterTypeにtypeCodeを設定するエイリアスメソッド
+     * Alias method to set typeCode for masterType
+     */
+    public void setTypeCode(String typeCode) {
+        // このメソッドは直接設定はせず、互換性のためだけに存在します
+        // This method exists only for compatibility and does not set directly
+    }
 }

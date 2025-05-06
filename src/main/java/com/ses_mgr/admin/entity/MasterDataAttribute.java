@@ -2,6 +2,7 @@ package com.ses_mgr.admin.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * マスタデータの属性定義を表すエンティティクラス
@@ -243,5 +244,60 @@ public class MasterDataAttribute {
     @PreUpdate
     public void preUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+    
+    /**
+     * 属性名を取得するエイリアスメソッド
+     * Alias method to get name
+     */
+    public String getName() {
+        return this.attributeName;
+    }
+    
+    /**
+     * 属性名を設定するエイリアスメソッド
+     * Alias method to set name
+     */
+    public void setName(String name) {
+        this.attributeName = name;
+    }
+    
+    /**
+     * 属性値
+     * Attribute value
+     */
+    @Transient
+    private String value;
+    
+    /**
+     * 属性値を取得
+     * Get attribute value
+     */
+    public String getValue() {
+        return this.value;
+    }
+    
+    /**
+     * 属性値を設定
+     * Set attribute value
+     */
+    public void setValue(String value) {
+        this.value = value;
+    }
+    
+    /**
+     * 説明を取得
+     * Get description
+     */
+    public String getDescription() {
+        return Optional.ofNullable(this.displayNameJa).orElse("");
+    }
+    
+    /**
+     * マスタデータを設定
+     * Set master data
+     */
+    public void setMasterData(MasterData masterData) {
+        this.masterType = masterData != null ? masterData.getMasterType() : null;
     }
 }

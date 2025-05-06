@@ -6,6 +6,12 @@ plugins {
     id 'jacoco'
 }
 
+import TestSingleTask
+
+task testMasterDataService(type: TestSingleTask) {
+    testClassName = 'com.ses_mgr.admin.service.MasterDataServiceTest'
+}
+
 group = 'com.ses_mgr'
 version = '0.0.1-SNAPSHOT'
 

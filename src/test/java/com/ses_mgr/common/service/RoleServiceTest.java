@@ -9,7 +9,7 @@ import com.ses_mgr.common.repository.PermissionRepository;
 import com.ses_mgr.common.repository.RolePermissionRepository;
 import com.ses_mgr.common.repository.RoleRepository;
 import com.ses_mgr.common.repository.UserRepository;
-import com.ses_mgr.common.service.impl.RoleManagementServiceImpl;
+import com.ses_mgr.common.service.impl.RoleServiceImpl;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +29,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class RoleManagementServiceTest {
+public class RoleServiceTest {
 
     @Mock
     private RoleRepository roleRepository;
@@ -43,7 +43,7 @@ public class RoleManagementServiceTest {
     @Mock
     private UserRepository userRepository;
 
-    private RoleManagementServiceImpl roleManagementService;
+    private RoleServiceImpl roleService;
 
     private UUID testRoleId;
     private Role testRole;
@@ -52,7 +52,7 @@ public class RoleManagementServiceTest {
 
     @BeforeEach
     void setUp() {
-        roleManagementService = new RoleManagementServiceImpl(
+        roleService = new RoleServiceImpl(
                 roleRepository, permissionRepository, rolePermissionRepository, userRepository);
 
         testRoleId = UUID.randomUUID();
@@ -76,7 +76,7 @@ public class RoleManagementServiceTest {
         when(roleRepository.findAll(pageable)).thenReturn(rolePage);
 
         // When
-        Page<RoleResponseDto> result = roleManagementService.getRoles(null, pageable);
+        Page<RoleResponseDto> result = roleService.getRoles(null, pageable);
 
         // Then
         assertNotNull(result);
@@ -99,7 +99,7 @@ public class RoleManagementServiceTest {
         when(roleRepository.searchByNameOrCode("test", pageable)).thenReturn(rolePage);
 
         // When
-        Page<RoleResponseDto> result = roleManagementService.getRoles(searchDto, pageable);
+        Page<RoleResponseDto> result = roleService.getRoles(searchDto, pageable);
 
         // Then
         assertNotNull(result);
@@ -113,7 +113,7 @@ public class RoleManagementServiceTest {
         when(roleRepository.findById(testRoleId)).thenReturn(Optional.of(testRole));
 
         // When
-        RoleResponseDto result = roleManagementService.getRoleById(testRoleId);
+        RoleResponseDto result = roleService.getRoleById(testRoleId);
 
         // Then
         assertNotNull(result);
@@ -132,7 +132,7 @@ public class RoleManagementServiceTest {
 
         // When & Then
         assertThrows(EntityNotFoundException.class, () -> {
-            roleManagementService.getRoleById(nonExistentId);
+            roleService.getRoleById(nonExistentId);
         });
     }
 
@@ -161,7 +161,7 @@ public class RoleManagementServiceTest {
         });
 
         // When
-        RoleResponseDto result = roleManagementService.createRole(createDto);
+        RoleResponseDto result = roleService.createRole(createDto);
 
         // Then
         assertNotNull(result);
@@ -181,7 +181,7 @@ public class RoleManagementServiceTest {
         when(roleRepository.save(any(Role.class))).thenReturn(testRole);
 
         // When
-        RoleResponseDto result = roleManagementService.updateRole(testRoleId, updateDto);
+        RoleResponseDto result = roleService.updateRole(testRoleId, updateDto);
 
         // Then
         assertNotNull(result);
@@ -205,7 +205,7 @@ public class RoleManagementServiceTest {
 
         // When & Then
         assertThrows(IllegalStateException.class, () -> {
-            roleManagementService.updateRole(testRoleId, updateDto);
+            roleService.updateRole(testRoleId, updateDto);
         });
         
         verify(roleRepository, never()).save(any(Role.class));
@@ -221,7 +221,7 @@ public class RoleManagementServiceTest {
         doNothing().when(roleRepository).delete(any(Role.class));
 
         // When
-        Map<String, Object> result = roleManagementService.deleteRole(testRoleId);
+        Map<String, Object> result = roleService.deleteRole(testRoleId);
 
         // Then
         assertNotNull(result);
@@ -251,7 +251,7 @@ public class RoleManagementServiceTest {
 
         // When & Then
         assertThrows(IllegalStateException.class, () -> {
-            roleManagementService.deleteRole(testRoleId);
+            roleService.deleteRole(testRoleId);
         });
         
         verify(roleRepository, never()).delete(any(Role.class));
@@ -264,7 +264,7 @@ public class RoleManagementServiceTest {
         when(permissionRepository.findAll()).thenReturn(Collections.singletonList(testPermission));
 
         // When
-        List<PermissionResponseDto> result = roleManagementService.getRolePermissions(testRoleId);
+        List<PermissionResponseDto> result = roleService.getRolePermissions(testRoleId);
 
         // Then
         assertNotNull(result);
@@ -299,7 +299,7 @@ public class RoleManagementServiceTest {
         when(roleRepository.save(any(Role.class))).thenReturn(testRole);
 
         // When
-        Map<String, Object> result = roleManagementService.updateRolePermissions(testRoleId, updateDto);
+        Map<String, Object> result = roleService.updateRolePermissions(testRoleId, updateDto);
 
         // Then
         assertNotNull(result);
@@ -314,7 +314,7 @@ public class RoleManagementServiceTest {
         when(permissionRepository.findAll()).thenReturn(Collections.singletonList(testPermission));
 
         // When
-        List<PermissionResponseDto> result = roleManagementService.getAllPermissions(null, null);
+        List<PermissionResponseDto> result = roleService.getAllPermissions(null, null);
 
         // Then
         assertNotNull(result);
@@ -329,7 +329,7 @@ public class RoleManagementServiceTest {
         when(permissionRepository.findByResourceType("test")).thenReturn(Collections.singletonList(testPermission));
 
         // When
-        List<PermissionResponseDto> result = roleManagementService.getAllPermissions("test", null);
+        List<PermissionResponseDto> result = roleService.getAllPermissions("test", null);
 
         // Then
         assertNotNull(result);

@@ -3,7 +3,9 @@ package com.ses_mgr.admin.dto;
 import com.ses_mgr.admin.entity.MasterData;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,10 +26,14 @@ public class MasterDataDto {
     private Integer displayOrder;
     private Long parentId;
     private Map<String, Object> attributes = new HashMap<>();
+    private List<MasterDataAttributeDto> attributeList = new ArrayList<>();
     private Boolean isActive;
     private Boolean isSystemReserved;
+    private String status; // テスト互換性のためのステータス（isActiveのエイリアス）
     private LocalDateTime validFrom;
     private LocalDateTime validTo;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public MasterDataDto() {
     }
@@ -38,8 +44,12 @@ public class MasterDataDto {
      */
     public MasterDataDto(MasterData masterData) {
         this.id = masterData.getId();
-        this.masterTypeId = masterData.getMasterType().getId();
-        this.typeCode = masterData.getMasterType().getTypeCode();
+        
+        if (masterData.getMasterType() != null) {
+            this.masterTypeId = masterData.getMasterType().getId();
+            this.typeCode = masterData.getMasterType().getTypeCode();
+        }
+        
         this.code = masterData.getCode();
         this.nameJa = masterData.getNameJa();
         this.nameEn = masterData.getNameEn();
@@ -48,11 +58,18 @@ public class MasterDataDto {
         this.description = masterData.getDescription();
         this.displayOrder = masterData.getDisplayOrder();
         this.parentId = masterData.getParentId();
-        this.attributes = masterData.getAttributes() != null ? masterData.getAttributes() : new HashMap<>();
+        
+        if (masterData.getAttributes() != null) {
+            this.attributes = masterData.getAttributes();
+        }
+        
         this.isActive = masterData.getIsActive();
+        this.status = masterData.getIsActive() ? "active" : "inactive"; // ステータス設定
         this.isSystemReserved = masterData.getIsSystemReserved();
         this.validFrom = masterData.getValidFrom();
         this.validTo = masterData.getValidTo();
+        this.createdAt = masterData.getCreatedAt();
+        this.updatedAt = masterData.getUpdatedAt();
     }
 
     // Getters and Setters
@@ -183,5 +200,62 @@ public class MasterDataDto {
 
     public void setValidTo(LocalDateTime validTo) {
         this.validTo = validTo;
+    }
+    
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+    
+    /**
+     * テスト互換性のための名前ゲッター
+     * Name getter for test compatibility
+     */
+    public String getName() {
+        return nameJa;
+    }
+
+    /**
+     * テスト互換性のための名前セッター
+     * Name setter for test compatibility
+     */
+    public void setName(String name) {
+        this.nameJa = name;
+    }
+    
+    /**
+     * テスト互換性のためのステータスゲッター
+     * Status getter for test compatibility
+     */
+    public String getStatus() {
+        return status;
+    }
+
+    /**
+     * テスト互換性のためのステータスセッター
+     * Status setter for test compatibility
+     */
+    public void setStatus(String status) {
+        this.status = status;
+        this.isActive = "active".equals(status);
+    }
+    
+    public List<MasterDataAttributeDto> getAttributeList() {
+        return attributeList;
+    }
+
+    public void setAttributeList(List<MasterDataAttributeDto> attributeList) {
+        this.attributeList = attributeList;
     }
 }

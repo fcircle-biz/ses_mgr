@@ -107,6 +107,13 @@ public class MasterType {
      */
     @OneToMany(mappedBy = "masterType", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<MasterDataAttribute> attributeList = new ArrayList<>();
+    
+    /**
+     * 属性定義を表すJSON文字列
+     * JSON string representing attribute definitions
+     */
+    @Column(name = "attribute_definition", columnDefinition = "TEXT")
+    private String attributeDefinition = "[]";
 
     // Getters and Setters
 
@@ -220,6 +227,46 @@ public class MasterType {
 
     public void setAttributeList(List<MasterDataAttribute> attributeList) {
         this.attributeList = attributeList;
+    }
+    
+    public String getAttributeDefinition() {
+        return attributeDefinition;
+    }
+
+    public void setAttributeDefinition(String attributeDefinition) {
+        this.attributeDefinition = attributeDefinition;
+    }
+    
+    /**
+     * typeCodeのエイリアスとしてのcode getter
+     * Code getter as an alias for typeCode
+     */
+    public String getCode() {
+        return this.typeCode;
+    }
+    
+    /**
+     * typeCodeのエイリアスとしてのcode setter
+     * Code setter as an alias for typeCode
+     */
+    public void setCode(String code) {
+        this.typeCode = code;
+    }
+    
+    /**
+     * typeNameJaのエイリアスとしてのname getter
+     * Name getter as an alias for typeNameJa
+     */
+    public String getName() {
+        return this.typeNameJa;
+    }
+    
+    /**
+     * typeNameJaのエイリアスとしてのname setter
+     * Name setter as an alias for typeNameJa
+     */
+    public void setName(String name) {
+        this.typeNameJa = name;
     }
 
     /**

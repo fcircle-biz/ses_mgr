@@ -10,7 +10,7 @@ import com.ses_mgr.common.repository.PermissionRepository;
 import com.ses_mgr.common.repository.RolePermissionRepository;
 import com.ses_mgr.common.repository.RoleRepository;
 import com.ses_mgr.common.repository.UserRepository;
-import com.ses_mgr.common.service.RoleManagementService;
+import com.ses_mgr.common.service.RoleService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class RoleManagementServiceImpl implements RoleManagementService {
+public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository roleRepository;
     private final PermissionRepository permissionRepository;

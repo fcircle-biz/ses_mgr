@@ -63,4 +63,12 @@ public interface MasterDataAttributeRepository extends JpaRepository<MasterDataA
      * @return 属性定義のリスト
      */
     List<MasterDataAttribute> findByMasterTypeIdOrderByDisplayOrderAscDisplayNameJaAsc(Long masterTypeId);
+    
+    /**
+     * マスタデータIDで属性を削除
+     * Delete attributes by master data ID
+     *
+     * @param masterDataId マスタデータID
+     */
+    void deleteByMasterDataId(Long masterDataId);
 }

@@ -1,7 +1,7 @@
 package com.ses_mgr.common.controller.api;
 
 import com.ses_mgr.common.dto.*;
-import com.ses_mgr.common.service.RoleManagementService;
+import com.ses_mgr.common.service.RoleService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -21,9 +21,9 @@ import java.util.UUID;
 @RequestMapping("/api/v1/admin")
 @PreAuthorize("hasAnyAuthority('system.roles.read', 'system.roles.admin', 'system.admin')")
 @RequiredArgsConstructor
-public class RoleManagementRestController {
+public class RoleRestController {
 
-    private final RoleManagementService roleManagementService;
+    private final RoleService roleService;
     
     /**
      * ロール一覧の取得
@@ -46,7 +46,7 @@ public class RoleManagementRestController {
                 .build();
         
         Pageable pageable = PageRequest.of(page, limit);
-        Page<RoleResponseDto> rolesPage = roleManagementService.getRoles(searchRequestDto, pageable);
+        Page<RoleResponseDto> rolesPage = roleService.getRoles(searchRequestDto, pageable);
         
         // ページネーション情報を作成
         PaginationResponseDto pagination = PaginationResponseDto.builder()
@@ -72,7 +72,7 @@ public class RoleManagementRestController {
     public ResponseEntity<ApiResponseDto<RoleResponseDto>> createRole(
             @Valid @RequestBody RoleCreateRequestDto createRequestDto) {
         
-        RoleResponseDto createdRole = roleManagementService.createRole(createRequestDto);
+        RoleResponseDto createdRole = roleService.createRole(createRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(createdRole));
     }
     
@@ -83,7 +83,7 @@ public class RoleManagementRestController {
     public ResponseEntity<ApiResponseDto<RoleResponseDto>> getRoleById(
             @PathVariable UUID id) {
         
-        RoleResponseDto role = roleManagementService.getRoleById(id);
+        RoleResponseDto role = roleService.getRoleById(id);
         return ResponseEntity.ok(ApiResponseDto.success(role));
     }
     
@@ -96,7 +96,7 @@ public class RoleManagementRestController {
             @PathVariable UUID id,
             @Valid @RequestBody RoleUpdateRequestDto updateRequestDto) {
         
-        RoleResponseDto updatedRole = roleManagementService.updateRole(id, updateRequestDto);
+        RoleResponseDto updatedRole = roleService.updateRole(id, updateRequestDto);
         return ResponseEntity.ok(ApiResponseDto.success(updatedRole));
     }
     
@@ -108,7 +108,7 @@ public class RoleManagementRestController {
     public ResponseEntity<ApiResponseDto<Map<String, Object>>> deleteRole(
             @PathVariable UUID id) {
         
-        Map<String, Object> deletionResult = roleManagementService.deleteRole(id);
+        Map<String, Object> deletionResult = roleService.deleteRole(id);
         return ResponseEntity.ok(ApiResponseDto.success(deletionResult));
     }
     
@@ -119,7 +119,7 @@ public class RoleManagementRestController {
     public ResponseEntity<ApiResponseDto<List<PermissionResponseDto>>> getRolePermissions(
             @PathVariable UUID id) {
         
-        List<PermissionResponseDto> permissions = roleManagementService.getRolePermissions(id);
+        List<PermissionResponseDto> permissions = roleService.getRolePermissions(id);
         return ResponseEntity.ok(ApiResponseDto.success(permissions));
     }
     
@@ -132,7 +132,7 @@ public class RoleManagementRestController {
             @PathVariable UUID id,
             @Valid @RequestBody RolePermissionUpdateRequestDto updateRequestDto) {
         
-        Map<String, Object> updateResult = roleManagementService.updateRolePermissions(id, updateRequestDto);
+        Map<String, Object> updateResult = roleService.updateRolePermissions(id, updateRequestDto);
         return ResponseEntity.ok(ApiResponseDto.success(updateResult));
     }
     
@@ -144,7 +144,7 @@ public class RoleManagementRestController {
             @RequestParam(required = false) String resource,
             @RequestParam(required = false) String action) {
         
-        List<PermissionResponseDto> permissions = roleManagementService.getAllPermissions(resource, action);
+        List<PermissionResponseDto> permissions = roleService.getAllPermissions(resource, action);
         return ResponseEntity.ok(ApiResponseDto.success(permissions));
     }
 }

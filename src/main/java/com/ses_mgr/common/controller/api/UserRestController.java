@@ -1,7 +1,7 @@
 package com.ses_mgr.common.controller.api;
 
 import com.ses_mgr.common.dto.*;
-import com.ses_mgr.common.service.UserManagementService;
+import com.ses_mgr.common.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -20,19 +20,19 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/admin/users")
 @PreAuthorize("hasRole('ADMIN')")
-public class UserManagementRestController {
+public class UserRestController {
 
-    private final UserManagementService userManagementService;
+    private final UserService userService;
 
     @Autowired
-    public UserManagementRestController(UserManagementService userManagementService) {
-        this.userManagementService = userManagementService;
+    public UserRestController(UserService userService) {
+        this.userService = userService;
     }
 
     // ユーザー一覧の取得
     @GetMapping
     public ResponseEntity<ApiResponseDto<List<UserResponseDto>>> getAllUsers() {
-        List<UserResponseDto> users = userManagementService.getAllUsers();
+        List<UserResponseDto> users = userService.getAllUsers();
         return ResponseEntity.ok(ApiResponseDto.success(users));
     }
 
@@ -44,7 +44,7 @@ public class UserManagementRestController {
             @RequestParam(defaultValue = "20") int size) {
         
         Pageable pageable = PageRequest.of(page, size);
-        Page<UserResponseDto> users = userManagementService.searchUsers(searchRequestDto, pageable);
+        Page<UserResponseDto> users = userService.searchUsers(searchRequestDto, pageable);
         
         return ResponseEntity.ok(ApiResponseDto.success(users));
     }
@@ -52,14 +52,14 @@ public class UserManagementRestController {
     // 特定ユーザーの詳細取得
     @GetMapping("/{userId}")
     public ResponseEntity<ApiResponseDto<UserResponseDto>> getUserById(@PathVariable UUID userId) {
-        UserResponseDto user = userManagementService.getUserById(userId);
+        UserResponseDto user = userService.getUserById(userId);
         return ResponseEntity.ok(ApiResponseDto.success(user));
     }
 
     // 新規ユーザーの作成
     @PostMapping
     public ResponseEntity<ApiResponseDto<UserResponseDto>> createUser(@Valid @RequestBody UserCreateRequestDto createRequestDto) {
-        UserResponseDto createdUser = userManagementService.createUser(createRequestDto);
+        UserResponseDto createdUser = userService.createUser(createRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(createdUser));
     }
 
@@ -69,7 +69,7 @@ public class UserManagementRestController {
             @PathVariable UUID userId,
             @Valid @RequestBody UserUpdateRequestDto updateRequestDto) {
         
-        UserResponseDto updatedUser = userManagementService.updateUser(userId, updateRequestDto);
+        UserResponseDto updatedUser = userService.updateUser(userId, updateRequestDto);
         return ResponseEntity.ok(ApiResponseDto.success(updatedUser));
     }
 
@@ -79,14 +79,14 @@ public class UserManagementRestController {
             @PathVariable UUID userId,
             @Valid @RequestBody UserStatusRequestDto statusRequestDto) {
         
-        UserResponseDto updatedUser = userManagementService.updateUserStatus(userId, statusRequestDto);
+        UserResponseDto updatedUser = userService.updateUserStatus(userId, statusRequestDto);
         return ResponseEntity.ok(ApiResponseDto.success(updatedUser));
     }
 
     // ユーザーパスワードのリセット
     @PostMapping("/{userId}/reset-password")
     public ResponseEntity<ApiResponseDto<Map<String, Object>>> resetUserPassword(@PathVariable UUID userId) {
-        userManagementService.resetUserPassword(userId);
+        userService.resetUserPassword(userId);
         
         Map<String, Object> response = new HashMap<>();
         response.put("message", "パスワードが正常にリセットされました");
@@ -98,7 +98,7 @@ public class UserManagementRestController {
     // ユーザーアカウントのロック解除
     @PostMapping("/{userId}/unlock")
     public ResponseEntity<ApiResponseDto<Map<String, Object>>> unlockUserAccount(@PathVariable UUID userId) {
-        UserResponseDto unlockedUser = userManagementService.unlockUserAccount(userId);
+        UserResponseDto unlockedUser = userService.unlockUserAccount(userId);
         
         Map<String, Object> response = new HashMap<>();
         response.put("message", "アカウントロックが解除されました");
@@ -113,7 +113,7 @@ public class UserManagementRestController {
     public ResponseEntity<ApiResponseDto<Map<String, Object>>> updateBulkUserStatus(
             @Valid @RequestBody UserBulkStatusRequestDto bulkStatusRequestDto) {
         
-        int updatedCount = userManagementService.updateBulkUserStatus(bulkStatusRequestDto);
+        int updatedCount = userService.updateBulkUserStatus(bulkStatusRequestDto);
         
         Map<String, Object> response = new HashMap<>();
         response.put("message", updatedCount + " 件のユーザーステータスが更新されました");
@@ -127,7 +127,7 @@ public class UserManagementRestController {
     public ResponseEntity<ApiResponseDto<Map<String, Object>>> unlockBulkUserAccounts(
             @Valid @RequestBody UserBulkUnlockRequestDto bulkUnlockRequestDto) {
         
-        int unlockedCount = userManagementService.unlockBulkUserAccounts(bulkUnlockRequestDto);
+        int unlockedCount = userService.unlockBulkUserAccounts(bulkUnlockRequestDto);
         
         Map<String, Object> response = new HashMap<>();
         response.put("message", unlockedCount + " 件のユーザーアカウントのロックが解除されました");
@@ -139,7 +139,7 @@ public class UserManagementRestController {
     // ユーザーのロール一覧取得
     @GetMapping("/{userId}/roles")
     public ResponseEntity<ApiResponseDto<List<RoleResponseDto>>> getUserRoles(@PathVariable UUID userId) {
-        List<RoleResponseDto> roles = userManagementService.getUserRoles(userId);
+        List<RoleResponseDto> roles = userService.getUserRoles(userId);
         return ResponseEntity.ok(ApiResponseDto.success(roles));
     }
 
@@ -149,7 +149,7 @@ public class UserManagementRestController {
             @PathVariable UUID userId,
             @PathVariable String roleCode) {
         
-        userManagementService.assignRoleToUser(userId, roleCode);
+        userService.assignRoleToUser(userId, roleCode);
         
         Map<String, Object> response = new HashMap<>();
         response.put("message", "ロールが正常に割り当てられました");
@@ -165,7 +165,7 @@ public class UserManagementRestController {
             @PathVariable UUID userId,
             @PathVariable String roleCode) {
         
-        userManagementService.removeRoleFromUser(userId, roleCode);
+        userService.removeRoleFromUser(userId, roleCode);
         
         Map<String, Object> response = new HashMap<>();
         response.put("message", "ロールが正常に削除されました");
