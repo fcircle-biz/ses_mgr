@@ -294,10 +294,10 @@ public class MasterDataAttribute {
     }
     
     /**
-     * マスタデータを設定
-     * Set master data
+     * マスタデータタイプを設定（マスタデータから派生）
+     * Set master type (derived from master data)
      */
-    public void setMasterData(MasterData masterData) {
+    public void setMasterTypeFromMasterData(MasterData masterData) {
         this.masterType = masterData != null ? masterData.getMasterType() : null;
     }
 }

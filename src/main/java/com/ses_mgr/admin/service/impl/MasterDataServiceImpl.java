@@ -228,8 +228,11 @@ public class MasterDataServiceImpl implements MasterDataService {
     public void deleteMasterData(String typeCode, String code) {
         MasterData masterData = findMasterDataByCode(typeCode, code);
         
-        // Delete associated attributes first
-        attributeRepository.deleteByMasterDataId(masterData.getId());
+        // Delete associated attributes first (if any)
+        MasterType masterType = masterData.getMasterType();
+        if (masterType != null) {
+            attributeRepository.deleteByMasterTypeId(masterType.getId());
+        }
         
         // Delete master data
         masterDataRepository.delete(masterData);
@@ -240,14 +243,17 @@ public class MasterDataServiceImpl implements MasterDataService {
     public MasterDataDto updateAttributes(String typeCode, String code, List<MasterDataAttributeDto> attributes) {
         MasterData masterData = findMasterDataByCode(typeCode, code);
         
-        // Remove existing attributes
-        attributeRepository.deleteByMasterDataId(masterData.getId());
+        // Remove existing attributes (if any)
+        MasterType masterType = masterData.getMasterType();
+        if (masterType != null) {
+            attributeRepository.deleteByMasterTypeId(masterType.getId());
+        }
         
         // Create new attributes
         List<MasterDataAttribute> newAttributes = attributes.stream()
                 .map(attr -> {
                     MasterDataAttribute attribute = new MasterDataAttribute();
-                    attribute.setMasterData(masterData);
+                    attribute.setMasterTypeFromMasterData(masterData);
                     attribute.setName(attr.getName());
                     attribute.setValue(attr.getValue());
                     attribute.setCreatedAt(LocalDateTime.now());
