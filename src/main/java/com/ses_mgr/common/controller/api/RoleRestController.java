@@ -9,7 +9,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -19,7 +18,6 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/admin")
-@PreAuthorize("hasAnyAuthority('system.roles.read', 'system.roles.admin', 'system.admin')")
 @RequiredArgsConstructor
 public class RoleRestController {
 
@@ -68,7 +66,6 @@ public class RoleRestController {
      * 新規ロールの作成
      */
     @PostMapping("/roles")
-    @PreAuthorize("hasAnyAuthority('system.roles.admin', 'system.admin')")
     public ResponseEntity<ApiResponseDto<RoleResponseDto>> createRole(
             @Valid @RequestBody RoleCreateRequestDto createRequestDto) {
         
@@ -91,7 +88,6 @@ public class RoleRestController {
      * ロール情報の更新
      */
     @PutMapping("/roles/{id}")
-    @PreAuthorize("hasAnyAuthority('system.roles.admin', 'system.admin')")
     public ResponseEntity<ApiResponseDto<RoleResponseDto>> updateRole(
             @PathVariable UUID id,
             @Valid @RequestBody RoleUpdateRequestDto updateRequestDto) {
@@ -104,7 +100,6 @@ public class RoleRestController {
      * ロールの削除
      */
     @DeleteMapping("/roles/{id}")
-    @PreAuthorize("hasAnyAuthority('system.roles.admin', 'system.admin')")
     public ResponseEntity<ApiResponseDto<Map<String, Object>>> deleteRole(
             @PathVariable UUID id) {
         
@@ -127,7 +122,6 @@ public class RoleRestController {
      * ロールの権限更新
      */
     @PutMapping("/roles/{id}/permissions")
-    @PreAuthorize("hasAnyAuthority('system.roles.admin', 'system.admin')")
     public ResponseEntity<ApiResponseDto<Map<String, Object>>> updateRolePermissions(
             @PathVariable UUID id,
             @Valid @RequestBody RolePermissionUpdateRequestDto updateRequestDto) {

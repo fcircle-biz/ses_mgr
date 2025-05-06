@@ -4,6 +4,7 @@ import com.ses_mgr.common.dto.*;
 import com.ses_mgr.common.entity.Department;
 import com.ses_mgr.common.entity.RefreshToken;
 import com.ses_mgr.common.entity.User;
+import com.ses_mgr.common.repository.UserRepository;
 import com.ses_mgr.common.service.PasswordResetService;
 import com.ses_mgr.common.service.RefreshTokenService;
 import com.ses_mgr.common.service.UserService;
@@ -42,6 +43,7 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
     private final UserService userService;
+    private final UserRepository userRepository;
     private final RefreshTokenService refreshTokenService;
     private final PasswordResetService passwordResetService;
     private final ObjectMapper objectMapper;
@@ -50,11 +52,13 @@ public class AuthController {
             AuthenticationManager authenticationManager,
             JwtTokenProvider tokenProvider,
             UserService userService,
+            UserRepository userRepository,
             RefreshTokenService refreshTokenService,
             PasswordResetService passwordResetService) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.userService = userService;
+        this.userRepository = userRepository;
         this.refreshTokenService = refreshTokenService;
         this.passwordResetService = passwordResetService;
         this.objectMapper = new ObjectMapper();
@@ -63,24 +67,24 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDto loginRequest) {
         try {
-            // 認証を実行 - 失敗時は例外がスローされる
+            // 実際の認証処理を実装
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getLoginId(),
                             loginRequest.getPassword()
                     )
             );
-
-            // ここまで来たら認証成功
-            // セキュリティコンテキストに認証情報を設定
+            
+            // 認証情報をセキュリティコンテキストに設定
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            // ユーザー情報を取得
+            
+            // 認証されたユーザー情報を取得
             User user = (User) authentication.getPrincipal();
-
+            UUID userId = user.getUserId();
+            
             try {
                 // 最終ログイン時間の更新
-                userService.updateLastLoginTime(user.getUserId());
+                userService.updateLastLoginTime(userId);
             } catch (Exception e) {
                 // 最終ログイン時間の更新に失敗しても、認証は続行
             }
@@ -91,13 +95,13 @@ public class AuthController {
                     .collect(Collectors.toList());
 
             // JWTトークンを生成
-            String jwt = tokenProvider.generateToken(authentication);
+            String jwt = tokenProvider.generateToken(user);
             
             // リフレッシュトークンを生成（remember_me対応）
             boolean rememberMe = loginRequest.isRememberMe();
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getUserId(), rememberMe);
 
-            // テスト用に強制的に値を設定
+            // ユーザーロールを設定
             String userRole = roles.isEmpty() ? "USER" : roles.get(0);
             
             // レスポンスを直接マップで構築（JsonNodeで構築してもよい）
@@ -179,22 +183,24 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestHeader(value = "Authorization", required = false) String authHeader,
-                                   @RequestBody(required = false) Map<String, String> body) {
+    public ResponseEntity<?> logout(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody(required = false) Map<String, String> body,
+            @AuthenticationPrincipal User currentUser) {
         try {
-            // アクセストークンからユーザーIDを取得
-            String token = extractTokenFromHeader(authHeader);
+            if (currentUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponseDto.error("UNAUTHORIZED", "認証されていないか、セッションが無効です。"));
+            }
             
-            if (StringUtils.hasText(token) && tokenProvider.validateToken(token)) {
-                UUID userId = tokenProvider.getUserIdFromJWT(token);
-                
-                // リフレッシュトークンも一緒に送られてきた場合は、そのトークンのみを無効化
-                if (body != null && StringUtils.hasText(body.get("refreshToken"))) {
-                    refreshTokenService.revokeRefreshToken(body.get("refreshToken"));
-                } else {
-                    // リフレッシュトークンが指定されていない場合は、ユーザーの全てのリフレッシュトークンを無効化
-                    refreshTokenService.revokeAllUserTokens(userId);
-                }
+            UUID userId = currentUser.getUserId();
+            
+            // リフレッシュトークンも一緒に送られてきた場合は、そのトークンのみを無効化
+            if (body != null && StringUtils.hasText(body.get("refreshToken"))) {
+                refreshTokenService.revokeRefreshToken(body.get("refreshToken"));
+            } else {
+                // リフレッシュトークンが指定されていない場合は、ユーザーの全てのリフレッシュトークンを無効化
+                refreshTokenService.revokeAllUserTokens(userId);
             }
 
             // セキュリティコンテキストをクリア
@@ -211,14 +217,14 @@ public class AuthController {
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<?> getProfile(@AuthenticationPrincipal User user) {
+    public ResponseEntity<?> getProfile(@AuthenticationPrincipal User currentUser) {
         try {
-            if (user == null) {
+            if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(ApiResponseDto.error("UNAUTHORIZED", "認証が必要です。"));
+                        .body(ApiResponseDto.error("UNAUTHORIZED", "認証されていないか、セッションが無効です。"));
             }
-
-            UserProfileResponseDto profileDto = convertToProfileDto(user);
+            
+            UserProfileResponseDto profileDto = convertToProfileDto(currentUser);
             return ResponseEntity.ok(ApiResponseDto.success(profileDto));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -227,12 +233,13 @@ public class AuthController {
     }
 
     @PutMapping("/profile")
-    public ResponseEntity<?> updateProfile(@AuthenticationPrincipal User user,
-                                          @Valid @RequestBody UserProfileUpdateRequestDto updateRequest) {
+    public ResponseEntity<?> updateProfile(
+            @Valid @RequestBody UserProfileUpdateRequestDto updateRequest,
+            @AuthenticationPrincipal User currentUser) {
         try {
-            if (user == null) {
+            if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(ApiResponseDto.error("UNAUTHORIZED", "認証が必要です。"));
+                        .body(ApiResponseDto.error("UNAUTHORIZED", "認証されていないか、セッションが無効です。"));
             }
 
             UserUpdateRequestDto userUpdateDto = UserUpdateRequestDto.builder()
@@ -242,10 +249,10 @@ public class AuthController {
                     .phone(updateRequest.getPhone())
                     .build();
 
-            UserResponseDto updatedUser = userService.updateUser(user.getUserId(), userUpdateDto);
+            UserResponseDto updatedUser = userService.updateUser(currentUser.getUserId(), userUpdateDto);
             
             // 更新後の完全なユーザー情報を取得
-            User refreshedUser = (User) userService.loadUserByUsername(user.getUsername());
+            User refreshedUser = (User) userService.loadUserByUsername(currentUser.getUsername());
             UserProfileResponseDto profileDto = convertToProfileDto(refreshedUser);
 
             return ResponseEntity.ok(ApiResponseDto.success(profileDto));
@@ -262,12 +269,13 @@ public class AuthController {
     }
     
     @PutMapping("/password")
-    public ResponseEntity<?> changePassword(@AuthenticationPrincipal User user,
-                                            @Valid @RequestBody PasswordChangeRequestDto passwordChangeRequest) {
+    public ResponseEntity<?> changePassword(
+            @Valid @RequestBody PasswordChangeRequestDto passwordChangeRequest,
+            @AuthenticationPrincipal User currentUser) {
         try {
-            if (user == null) {
+            if (currentUser == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body(ApiResponseDto.error("UNAUTHORIZED", "認証が必要です。"));
+                        .body(ApiResponseDto.error("UNAUTHORIZED", "認証されていないか、セッションが無効です。"));
             }
             
             // 新しいパスワードと確認用パスワードが一致するか確認
@@ -278,7 +286,7 @@ public class AuthController {
             
             // パスワード変更処理を実行
             userService.changePassword(
-                user.getUserId(),
+                currentUser.getUserId(),
                 passwordChangeRequest.getCurrentPassword(),
                 passwordChangeRequest.getNewPassword()
             );

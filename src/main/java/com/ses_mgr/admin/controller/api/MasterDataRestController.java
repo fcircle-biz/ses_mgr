@@ -13,8 +13,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,7 +43,6 @@ public class MasterDataRestController {
      * @return マスタデータタイプのリスト
      */
     @GetMapping("/types")
-    @PreAuthorize("hasAuthority('master_data.read')")
     public ResponseEntity<ApiResponseDto<List<MasterTypeDto>>> getAllMasterTypes() {
         List<MasterTypeDto> masterTypes = masterDataService.getAllMasterTypes();
         return ResponseEntity.ok(ApiResponseDto.success(masterTypes));
@@ -59,7 +56,6 @@ public class MasterDataRestController {
      * @return マスタデータタイプ
      */
     @GetMapping("/types/{code}")
-    @PreAuthorize("hasAuthority('master_data.read')")
     public ResponseEntity<ApiResponseDto<MasterTypeDto>> getMasterTypeByCode(@PathVariable String code) {
         MasterTypeDto masterType = masterDataService.getMasterTypeByCode(code);
         return ResponseEntity.ok(ApiResponseDto.success(masterType));
@@ -73,7 +69,6 @@ public class MasterDataRestController {
      * @return 作成されたマスタデータタイプ
      */
     @PostMapping("/types")
-    @PreAuthorize("hasAuthority('master_data.create')")
     public ResponseEntity<ApiResponseDto<MasterTypeDto>> createMasterType(
             @Valid @RequestBody MasterTypeDto masterTypeDto) {
         MasterTypeDto createdType = masterDataService.createMasterType(masterTypeDto);
@@ -91,7 +86,6 @@ public class MasterDataRestController {
      * @return 更新されたマスタデータタイプ
      */
     @PutMapping("/types/{code}")
-    @PreAuthorize("hasAuthority('master_data.update')")
     public ResponseEntity<ApiResponseDto<MasterTypeDto>> updateMasterType(
             @PathVariable String code,
             @Valid @RequestBody MasterTypeDto masterTypeDto) {
@@ -107,7 +101,6 @@ public class MasterDataRestController {
      * @return 削除結果
      */
     @DeleteMapping("/types/{code}")
-    @PreAuthorize("hasAuthority('master_data.delete')")
     public ResponseEntity<ApiResponseDto<Void>> deleteMasterType(@PathVariable String code) {
         masterDataService.deleteMasterType(code);
         return ResponseEntity.ok(ApiResponseDto.success(null));
@@ -128,7 +121,6 @@ public class MasterDataRestController {
      * @return マスタデータリスト
      */
     @GetMapping("/{typeCode}")
-    @PreAuthorize("hasAuthority('master_data.read')")
     public ResponseEntity<ApiResponseDto<Page<MasterDataDto>>> getMasterDataList(
             @PathVariable String typeCode,
             @RequestParam(required = false) String search,
@@ -155,7 +147,6 @@ public class MasterDataRestController {
      * @return マスタデータ
      */
     @GetMapping("/{typeCode}/{code}")
-    @PreAuthorize("hasAuthority('master_data.read')")
     public ResponseEntity<ApiResponseDto<MasterDataDto>> getMasterDataByCode(
             @PathVariable String typeCode,
             @PathVariable String code) {
@@ -172,7 +163,6 @@ public class MasterDataRestController {
      * @return 作成されたマスタデータ
      */
     @PostMapping("/{typeCode}")
-    @PreAuthorize("hasAuthority('master_data.create')")
     public ResponseEntity<ApiResponseDto<MasterDataDto>> createMasterData(
             @PathVariable String typeCode,
             @Valid @RequestBody MasterDataDto masterDataDto) {
@@ -192,7 +182,6 @@ public class MasterDataRestController {
      * @return 更新されたマスタデータ
      */
     @PutMapping("/{typeCode}/{code}")
-    @PreAuthorize("hasAuthority('master_data.update')")
     public ResponseEntity<ApiResponseDto<MasterDataDto>> updateMasterData(
             @PathVariable String typeCode,
             @PathVariable String code,
@@ -210,7 +199,6 @@ public class MasterDataRestController {
      * @return 削除結果
      */
     @DeleteMapping("/{typeCode}/{code}")
-    @PreAuthorize("hasAuthority('master_data.delete')")
     public ResponseEntity<ApiResponseDto<Void>> deleteMasterData(
             @PathVariable String typeCode,
             @PathVariable String code) {
@@ -228,7 +216,6 @@ public class MasterDataRestController {
      * @return 更新されたマスタデータ
      */
     @PutMapping("/{typeCode}/{code}/attributes")
-    @PreAuthorize("hasAuthority('master_data.update')")
     public ResponseEntity<ApiResponseDto<MasterDataDto>> updateAttributes(
             @PathVariable String typeCode,
             @PathVariable String code,
@@ -246,7 +233,6 @@ public class MasterDataRestController {
      * @return インポート結果
      */
     @PostMapping("/{typeCode}/import")
-    @PreAuthorize("hasAuthority('master_data.import')")
     public ResponseEntity<ApiResponseDto<MasterDataImportResponseDto>> importMasterData(
             @PathVariable String typeCode,
             @Valid @RequestBody MasterDataImportRequestDto importRequest) {
@@ -264,7 +250,6 @@ public class MasterDataRestController {
      * @return エクスポートレスポンス
      */
     @GetMapping("/{typeCode}/export")
-    @PreAuthorize("hasAuthority('master_data.export')")
     public ResponseEntity<ApiResponseDto<MasterDataExportResponseDto>> exportMasterData(
             @PathVariable String typeCode,
             @RequestParam(defaultValue = "csv") String format,

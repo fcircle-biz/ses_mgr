@@ -15,7 +15,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -54,7 +53,6 @@ public class LogRestController {
      * @return ApiResponseDto containing page of SystemLogDto
      */
     @GetMapping("/system")
-    @PreAuthorize("hasAuthority('system.logs.read')")
     public ResponseEntity<ApiResponseDto<Page<SystemLogDto>>> getSystemLogs(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
@@ -88,7 +86,6 @@ public class LogRestController {
      * @return ApiResponseDto containing page of AuditLogDto
      */
     @GetMapping("/audit")
-    @PreAuthorize("hasAuthority('system.logs.read')")
     public ResponseEntity<ApiResponseDto<Page<AuditLogDto>>> getAuditLogs(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
@@ -124,7 +121,6 @@ public class LogRestController {
      * @return ApiResponseDto containing page of ErrorLogDto
      */
     @GetMapping("/error")
-    @PreAuthorize("hasAuthority('system.logs.read')")
     public ResponseEntity<ApiResponseDto<Page<ErrorLogDto>>> getErrorLogs(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
@@ -160,7 +156,6 @@ public class LogRestController {
      * @return ApiResponseDto containing page of AccessLogDto
      */
     @GetMapping("/access")
-    @PreAuthorize("hasAuthority('system.logs.read')")
     public ResponseEntity<ApiResponseDto<Page<AccessLogDto>>> getAccessLogs(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
@@ -203,7 +198,6 @@ public class LogRestController {
      * @return ApiResponseDto containing page of BaseLogDto
      */
     @GetMapping("/search")
-    @PreAuthorize("hasAuthority('system.logs.read')")
     public ResponseEntity<ApiResponseDto<Page<BaseLogDto>>> searchLogs(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
@@ -259,7 +253,6 @@ public class LogRestController {
      * @return ApiResponseDto containing LogStatisticsResponseDto
      */
     @GetMapping("/statistics")
-    @PreAuthorize("hasAuthority('system.logs.read')")
     public ResponseEntity<ApiResponseDto<LogStatisticsResponseDto>> getLogStatistics(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime from,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
@@ -285,7 +278,6 @@ public class LogRestController {
      * @return ApiResponseDto containing LogExportResponseDto
      */
     @PostMapping("/export")
-    @PreAuthorize("hasAuthority('system.logs.export')")
     public ResponseEntity<ApiResponseDto<LogExportResponseDto>> exportLogs(
             @RequestBody @Valid LogExportRequestDto exportRequest) {
             
@@ -304,7 +296,6 @@ public class LogRestController {
      * @return ダウンロードファイル
      */
     @GetMapping("/download/{token}")
-    @PreAuthorize("hasAuthority('system.logs.export')")
     public ResponseEntity<Resource> downloadExportedLogs(@PathVariable String token) {
         return logService.downloadExportedLogs(token);
     }

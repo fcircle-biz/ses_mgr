@@ -44,19 +44,24 @@ public class SecurityConfig {
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                // 公開APIを明示的に許可
                 .requestMatchers("/api/v1/public/**").permitAll()
-                .requestMatchers("/webjars/**", "/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
-                .requestMatchers("/login", "/error").permitAll()
+                // 認証関連のパスを許可
+                .requestMatchers("/api/v1/auth/login").permitAll()
+                .requestMatchers("/api/v1/auth/refresh-token").permitAll()
+                .requestMatchers("/api/v1/auth/password/reset-request").permitAll()
+                .requestMatchers("/api/v1/auth/password/reset").permitAll()
+                // 静的リソースへのアクセスを許可
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                // それ以外のAPIリクエストは認証が必要
+                .requestMatchers("/api/**").authenticated()
+                // Webページへのアクセスは認証が必要
                 .anyRequest().authenticated()
-            )
-            .exceptionHandling(exception -> exception
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
             )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
+            // JWT認証フィルターを追加
             .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
             .formLogin(form -> form
                 .loginPage("/login")
