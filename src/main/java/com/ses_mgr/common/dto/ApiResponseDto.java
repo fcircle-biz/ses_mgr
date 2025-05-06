@@ -54,10 +54,18 @@ public class ApiResponseDto<T> {
         private String message;
     }
 
+    // コンストラクター - エラーレスポンス（コード、メッセージ）
+    public ApiResponseDto(T data, String errorCode, String errorMessage) {
+        this.data = data;
+        this.error = new ErrorDto(errorCode, errorMessage, null);
+        this.success = false;
+    }
+
     // ファクトリーメソッド - 成功レスポンス
     public static <T> ApiResponseDto<T> success(T data) {
         return ApiResponseDto.<T>builder()
                 .data(data)
+                .success(true)
                 .build();
     }
 
@@ -70,6 +78,7 @@ public class ApiResponseDto<T> {
 
         return ApiResponseDto.<T>builder()
                 .error(error)
+                .success(false)
                 .build();
     }
 
@@ -83,6 +92,7 @@ public class ApiResponseDto<T> {
 
         return ApiResponseDto.<T>builder()
                 .error(error)
+                .success(false)
                 .build();
     }
 }
