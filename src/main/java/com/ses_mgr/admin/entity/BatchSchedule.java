@@ -40,7 +40,7 @@ public class BatchSchedule {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive;
 
-    @Column(name = "parameters", columnDefinition = "JSON")
+    @Column(name = "parameters", columnDefinition = "JSONB")
     private String parameters;  // JSON形式のパラメータ
 
     @Column(name = "next_run")

@@ -41,41 +41,63 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            // CSRF保護を無効化
             .csrf(csrf -> csrf.disable())
+            
+            // CORSの設定
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            
+            // HTTP要求の認可設定
             .authorizeHttpRequests(auth -> auth
-                // 公開APIを明示的に許可
-                .requestMatchers("/api/v1/public/**").permitAll()
-                // 認証関連のパスを許可
-                .requestMatchers("/api/v1/auth/login").permitAll()
-                .requestMatchers("/api/v1/auth/refresh-token").permitAll()
-                .requestMatchers("/api/v1/auth/password/reset-request").permitAll()
-                .requestMatchers("/api/v1/auth/password/reset").permitAll()
                 // 静的リソースへのアクセスを許可
-                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico").permitAll()
+                .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/webjars/**", "/*.html", "/*.css", "/*.js").permitAll()
+                
+                // 認証不要なページを許可
+                .requestMatchers("/login", "/", "/test", "/health", "/reset-password", "/reset-password/**", "/html-test", "/test.html").permitAll()
+                
+                // 公開APIを許可
+                .requestMatchers("/api/v1/public/**", "/api/v1/test/public").permitAll()
+                .requestMatchers("/api/v1/auth/login", "/api/v1/auth/refresh-token").permitAll()
+                .requestMatchers("/api/v1/auth/password/reset-request", "/api/v1/auth/password/reset").permitAll()
+                
                 // それ以外のAPIリクエストは認証が必要
                 .requestMatchers("/api/**").authenticated()
-                // Webページへのアクセスは認証が必要
+                
+                // それ以外のWebページへのアクセスは認証が必要
                 .anyRequest().authenticated()
             )
+            
+            // セッション管理の設定
             .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                // セッションが必要なときだけ作成（従来のWeb認証用）
+                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
             )
-            // JWT認証フィルターを追加
-            .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class)
+            
+            // 例外処理の設定
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+            )
+            
+            // フォームベースのログイン設定
             .formLogin(form -> form
                 .loginPage("/login")
+                .loginProcessingUrl("/login")
                 .defaultSuccessUrl("/dashboard", true)
                 .failureUrl("/login?error=true")
                 .permitAll()
             )
+            
+            // ログアウト設定
             .logout(logout -> logout
                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
                 .logoutSuccessUrl("/login?logout=true")
                 .deleteCookies("JSESSIONID")
                 .invalidateHttpSession(true)
                 .permitAll()
-            );
+            )
+            
+            // JWT認証フィルターを追加 (基本認証フィルターの後に配置)
+            .addFilterAfter(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

@@ -53,7 +53,7 @@ public class SearchIndex {
     @Column(name = "access_roles", columnDefinition = "JSON")
     private String accessRoles;
 
-    @Column(name = "created_by", columnDefinition = "BINARY(16)")
+    @Column(name = "created_by", columnDefinition = "UUID")
     private UUID createdBy;
 
     @Column(name = "updated_at")

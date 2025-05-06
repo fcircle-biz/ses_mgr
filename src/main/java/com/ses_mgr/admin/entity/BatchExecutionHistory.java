@@ -58,7 +58,7 @@ public class BatchExecutionHistory {
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
 
-    @Column(name = "parameters", columnDefinition = "JSON")
+    @Column(name = "parameters", columnDefinition = "JSONB")
     private String parameters;  // JSON形式のパラメータ
 
     @Column(name = "description")

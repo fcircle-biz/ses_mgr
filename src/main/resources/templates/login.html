@@ -23,6 +23,15 @@
             padding-bottom: 40px;
             background-color: #f5f5f5;
         }
+        .form-signin {
+            width: 100%;
+            max-width: 400px;
+            padding: 15px;
+            margin: auto;
+        }
+        .form-signin .form-floating:focus-within {
+            z-index: 2;
+        }
         .form-signin input[type="text"] {
             margin-bottom: -1px;
             border-bottom-right-radius: 0;
@@ -46,60 +55,88 @@
             margin-bottom: 10px;
             text-align: left;
         }
+        .alert-container {
+            margin-bottom: 15px;
+        }
+        .login-attempts-warning {
+            font-size: 0.8rem;
+            color: #dc3545;
+            text-align: right;
+            margin-top: 5px;
+        }
     </style>
 </head>
 <body class="text-center">
     <main class="form-signin">
         <div class="card shadow-sm">
             <div class="card-body p-4">
+                <!-- ロゴと見出し -->
                 <img class="logo-img mx-auto d-block" th:src="@{/images/logo.svg}" alt="SES業務システム">
                 <h1 class="system-name">SES業務システム</h1>
                 
                 <!-- アラートメッセージ表示領域 -->
-                <div th:if="${param.error}" class="alert alert-danger" role="alert">
-                    ユーザーIDまたはパスワードが正しくありません
-                </div>
-                <div th:if="${param.logout}" class="alert alert-success" role="alert">
-                    ログアウトしました
-                </div>
-                <div th:if="${param.locked}" class="alert alert-warning" role="alert">
-                    アカウントがロックされています。管理者にお問い合わせください
-                </div>
-                <div th:if="${param.expired}" class="alert alert-warning" role="alert">
-                    セッションの有効期限が切れました。再度ログインしてください
+                <div class="alert-container">
+                    <div th:if="${param.error}" class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>ユーザーIDまたはパスワードが正しくありません
+                    </div>
+                    <div th:if="${param.logout}" class="alert alert-success" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i>ログアウトしました
+                    </div>
+                    <div th:if="${param.locked}" class="alert alert-warning" role="alert">
+                        <i class="bi bi-lock-fill me-2"></i>アカウントがロックされています。管理者にお問い合わせください
+                    </div>
+                    <div th:if="${param.expired}" class="alert alert-warning" role="alert">
+                        <i class="bi bi-clock-history me-2"></i>セッションの有効期限が切れました。再度ログインしてください
+                    </div>
+                    <div th:if="${param.mfa_error}" class="alert alert-danger" role="alert">
+                        <i class="bi bi-shield-exclamation me-2"></i>認証コードが正しくありません
+                    </div>
                 </div>
                 
                 <!-- ログインフォーム -->
                 <form id="login-form" th:action="@{/login}" method="post" novalidate>
+                    <!-- ユーザーID入力フィールド -->
                     <div class="form-floating mb-1">
                         <input type="text" class="form-control" id="username" name="username" 
                                placeholder="ユーザーID" required 
-                               pattern="[A-Za-z0-9]{8,20}">
+                               pattern="[A-Za-z0-9]{8,20}"
+                               autocomplete="username"
+                               th:attr="data-bs-toggle='tooltip', data-bs-placement='left', title='半角英数字で8〜20文字で入力してください'">
                         <label for="username">ユーザーID</label>
                     </div>
                     <div class="validation-error d-none" id="username-error">
-                        半角英数字で8〜20文字で入力してください
+                        <i class="bi bi-info-circle me-1"></i>半角英数字で8〜20文字で入力してください
                     </div>
                     
+                    <!-- パスワード入力フィールド -->
                     <div class="form-floating mb-1">
                         <input type="password" class="form-control" id="password" name="password" 
                                placeholder="パスワード" required
-                               pattern="[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':\\|,.<>\/?]{12,30}">
+                               pattern="[A-Za-z0-9!@#$%^&*()_+\-=\[\]{};':\\|,.<>\/?]{12,30}"
+                               autocomplete="current-password"
+                               th:attr="data-bs-toggle='tooltip', data-bs-placement='left', title='半角英数記号で12〜30文字で入力してください'">
                         <label for="password">パスワード</label>
                     </div>
                     <div class="validation-error d-none" id="password-error">
-                        半角英数記号で12〜30文字で入力してください
+                        <i class="bi bi-info-circle me-1"></i>半角英数記号で12〜30文字で入力してください
                     </div>
                     
+                    <!-- ログイン状態保存チェックボックス -->
                     <div class="form-check text-start mb-3">
                         <input class="form-check-input" type="checkbox" value="true" id="remember-me" name="remember-me">
                         <label class="form-check-label" for="remember-me">
                             ログイン状態を保存する
                         </label>
                     </div>
-                    <button class="w-100 btn btn-lg btn-primary mb-3" type="submit">ログイン</button>
+                    
+                    <!-- ログインボタンとパスワードリセットリンク -->
+                    <button class="w-100 btn btn-lg btn-primary mb-3" type="submit" id="login-button">
+                        <i class="bi bi-box-arrow-in-right me-2"></i>ログイン
+                    </button>
                     <div class="d-flex justify-content-between">
-                        <a th:href="@{/reset-password}" class="text-decoration-none">パスワードをお忘れですか？</a>
+                        <a th:href="@{/reset-password}" class="text-decoration-none">
+                            <i class="bi bi-question-circle me-1"></i>パスワードをお忘れですか？
+                        </a>
                     </div>
                 </form>
                 
@@ -115,7 +152,9 @@
                             <label for="mfa-code">6桁の認証コード</label>
                         </div>
                         <input type="hidden" id="mfa-session" name="session">
-                        <button class="w-100 btn btn-primary" type="submit">確認</button>
+                        <button class="w-100 btn btn-primary" type="submit">
+                            <i class="bi bi-shield-check me-2"></i>確認
+                        </button>
                     </form>
                 </div>
             </div>
@@ -128,6 +167,10 @@
     <script th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.bundle.min.js}"></script>
     <script th:inline="javascript">
         document.addEventListener('DOMContentLoaded', function() {
+            // ツールチップの初期化
+            const tooltips = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            [...tooltips].map(tooltip => new bootstrap.Tooltip(tooltip));
+            
             // URLパラメータから多要素認証が必要かどうかをチェック
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.has('mfa')) {
@@ -141,12 +184,23 @@
                 document.getElementById('mfa-code').focus();
             }
             
+            // ログイン試行回数チェック
+            const loginAttempts = localStorage.getItem('loginAttempts') || 0;
+            if (loginAttempts >= 3) {
+                // 警告メッセージを表示
+                const warning = document.createElement('div');
+                warning.className = 'login-attempts-warning';
+                warning.innerHTML = '<i class="bi bi-exclamation-circle me-1"></i>ログイン試行回数が多くなっています。あと' + (5 - loginAttempts) + '回失敗するとアカウントがロックされます。';
+                document.querySelector('.form-check').after(warning);
+            }
+            
             // クライアントサイドバリデーション
             const loginForm = document.getElementById('login-form');
             const username = document.getElementById('username');
             const password = document.getElementById('password');
             const usernameError = document.getElementById('username-error');
             const passwordError = document.getElementById('password-error');
+            const loginButton = document.getElementById('login-button');
             
             loginForm.addEventListener('submit', function(event) {
                 let isValid = true;
@@ -169,6 +223,15 @@
                 
                 if (!isValid) {
                     event.preventDefault();
+                } else {
+                    // バリデーション成功時
+                    loginButton.disabled = true;
+                    loginButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>ログイン中...';
+                    
+                    // URLにerrorパラメータがある場合はログイン試行回数をインクリメント
+                    if (urlParams.has('error')) {
+                        localStorage.setItem('loginAttempts', parseInt(loginAttempts) + 1);
+                    }
                 }
             });
             
@@ -180,6 +243,21 @@
             password.addEventListener('focus', function() {
                 passwordError.classList.add('d-none');
             });
+            
+            // ログアウト時にログイン試行回数をリセット
+            if (urlParams.has('logout')) {
+                localStorage.removeItem('loginAttempts');
+            }
+            
+            // 多要素認証フォーム送信時のUI更新
+            const mfaForm = document.getElementById('mfa-form');
+            if (mfaForm) {
+                mfaForm.addEventListener('submit', function() {
+                    const submitButton = this.querySelector('button[type="submit"]');
+                    submitButton.disabled = true;
+                    submitButton.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>検証中...';
+                });
+            }
         });
     </script>
 </body>

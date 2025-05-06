@@ -65,7 +65,9 @@ public class FileStorageServiceImpl implements FileStorageService {
     ));
 
     public FileStorageServiceImpl() {
-        this.fileStorageLocation = Paths.get(uploadDir).toAbsolutePath().normalize();
+        // uploadDirがnullの場合、デフォルト値を設定
+        String dir = uploadDir != null ? uploadDir : "./uploads";
+        this.fileStorageLocation = Paths.get(dir).toAbsolutePath().normalize();
     }
 
     @PostConstruct

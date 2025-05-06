@@ -30,7 +30,7 @@ public class FileEntity {
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Column(name = "file_id", columnDefinition = "BINARY(16)")
+    @Column(name = "file_id", columnDefinition = "UUID")
     private UUID fileId;
 
     /**

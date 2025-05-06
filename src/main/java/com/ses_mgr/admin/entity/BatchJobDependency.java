@@ -19,7 +19,7 @@ public class BatchJobDependency {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "dependency_id")
-    private Long dependencyId;
+    private Integer dependencyId;
 
     @Column(name = "job_id", nullable = false)
     private String jobId;

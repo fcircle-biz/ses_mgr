@@ -25,10 +25,10 @@ public class SearchHistory {
     @Id
     @GeneratedValue(generator = "uuid2")
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
-    @Column(name = "search_id", columnDefinition = "BINARY(16)")
+    @Column(name = "search_id", columnDefinition = "UUID")
     private UUID searchId;
 
-    @Column(name = "user_id", columnDefinition = "BINARY(16)", nullable = false)
+    @Column(name = "user_id", columnDefinition = "UUID", nullable = false)
     private UUID userId;
 
     @Column(name = "query", nullable = false)

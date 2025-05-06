@@ -37,7 +37,7 @@ public class BatchJob {
     @Column(name = "status", nullable = false)
     private String status;
 
-    @Column(name = "parameters", columnDefinition = "JSON")
+    @Column(name = "parameters", columnDefinition = "JSONB")
     private String parameters;  // JSON形式のパラメータ
 
     @Column(name = "created_at", nullable = false, updatable = false)

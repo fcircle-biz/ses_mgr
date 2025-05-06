@@ -31,17 +31,58 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             HttpServletResponse response,
             FilterChain filterChain) throws ServletException, IOException {
         
-        // 認証処理を無効化 (テスト用)
-        // JWT認証は行わず、すべてのリクエストを通過させる
+        try {
+            // 静的リソースやページアクセスの場合はフィルターをスキップ
+            String path = request.getRequestURI();
+            if (isPublicPath(path)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+            
+            // APIリクエストのみJWT認証を適用
+            if (path.startsWith("/api/")) {
+                String jwt = getJwtFromRequest(request);
+                if (StringUtils.hasText(jwt) && jwtTokenProvider.validateToken(jwt)) {
+                    String username = jwtTokenProvider.getUsernameFromJWT(jwt);
+                    UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+                    UsernamePasswordAuthenticationToken authentication = 
+                        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                }
+            }
+            
+            filterChain.doFilter(request, response);
+        } catch (Exception e) {
+            logger.error("認証フィルター実行中のエラー: " + e.getMessage(), e);
+            filterChain.doFilter(request, response);
+        }
+    }
+    
+    private boolean isPublicPath(String path) {
+        // 静的リソースパスのチェック
+        if (path.startsWith("/css/") || path.startsWith("/js/") || 
+            path.startsWith("/images/") || path.startsWith("/webjars/") ||
+            path.equals("/favicon.ico")) {
+            return true;
+        }
         
-        // テスト用に認証済みとしてセキュリティコンテキストを設定
-        UserDetails userDetails = userDetailsService.loadUserByUsername("admin");
-        UsernamePasswordAuthenticationToken authentication = 
-            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-        SecurityContextHolder.getContext().setAuthentication(authentication);
+        // 公開ページのチェック
+        String[] publicPaths = {"/login", "/", "/test", "/health", "/reset-password", "/html-test"};
+        for (String publicPath : publicPaths) {
+            if (path.equals(publicPath) || path.startsWith(publicPath + "/")) {
+                return true;
+            }
+        }
         
-        filterChain.doFilter(request, response);
+        // 公開APIのチェック
+        if (path.startsWith("/api/v1/public/") || path.startsWith("/api/v1/test/public") ||
+            path.equals("/api/v1/auth/login") || path.equals("/api/v1/auth/refresh-token") ||
+            path.startsWith("/api/v1/auth/password/reset")) {
+            return true;
+        }
+        
+        return false;
     }
 
     private String getJwtFromRequest(HttpServletRequest request) {
