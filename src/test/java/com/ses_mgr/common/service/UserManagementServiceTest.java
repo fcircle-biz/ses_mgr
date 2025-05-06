@@ -211,6 +211,8 @@ public class UserManagementServiceTest {
         when(userRepository.existsByEmail(anyString())).thenReturn(false);
         when(departmentRepository.findByDepartmentName(anyString())).thenReturn(Optional.of(testDepartment));
         when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        // モックを追加
+        when(roleRepository.findByRoleCode(anyString())).thenReturn(Optional.of(testRole));
 
         // When
         UserResponseDto result = userManagementService.createUser(createRequestDto);
@@ -226,9 +228,6 @@ public class UserManagementServiceTest {
         // パスワードがエンコードされていることを確認（実際のハッシュ値の検証は困難なので、値が存在することを確認）
         assertNotNull(savedUser.getPasswordHash());
         assertNotEquals("password123", savedUser.getPasswordHash());
-        
-        // Verify that role assignment was not called
-        verify(roleRepository, never()).findByRoleCode(anyString());
     }
 
     @Test

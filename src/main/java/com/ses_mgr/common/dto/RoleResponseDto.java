@@ -23,11 +23,28 @@ public class RoleResponseDto {
     private String name;
     private String description;
     private String roleType;
+    private boolean isSystem;
+    private Integer permissionCount;
+    private Integer userCount;
     private List<PermissionResponseDto> permissions;
+    private List<SimpleUserDto> users;
     
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime createdAt;
     
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss'Z'")
     private LocalDateTime updatedAt;
+    
+    private UUID createdBy;
+    private UUID updatedBy;
+    
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class SimpleUserDto {
+        private UUID id;
+        private String username;
+        private String fullName;
+    }
 }

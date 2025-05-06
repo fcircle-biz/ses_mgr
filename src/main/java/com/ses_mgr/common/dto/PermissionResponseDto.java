@@ -23,4 +23,5 @@ public class PermissionResponseDto {
     private String resourceName;
     private String action;
     private String accessLevel;
+    private Boolean isAssigned;
 }
