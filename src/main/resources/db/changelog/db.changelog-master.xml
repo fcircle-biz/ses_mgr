@@ -8,6 +8,9 @@
     <!-- Initial schema creation -->
     <include file="classpath:db/changelog/changes/001-initial-schema.xml"/>
     
+    <!-- Master data management schema -->
+    <include file="classpath:db/changelog/changes/002-master-data-schema.xml"/>
+    
     <!-- Future schema updates will be added here -->
     
 </databaseChangeLog>

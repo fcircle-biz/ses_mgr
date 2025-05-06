@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+
+    <changeSet id="002-master-data-schema" author="s-ichimaru">
+        <!-- マスタデータタイプテーブル作成 - Create master data type table -->
+        <createTable tableName="master_type">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="type_code" type="varchar(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="type_name_ja" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type_name_en" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(500)"/>
+            <column name="display_order" type="int"/>
+            <column name="is_active" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_system_reserved" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_by" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- マスタデータテーブル作成 - Create master data table -->
+        <createTable tableName="master_data">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="master_type_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_master_data_type" references="master_type(id)"/>
+            </column>
+            <column name="code" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name_ja" type="varchar(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name_en" type="varchar(200)"/>
+            <column name="short_name_ja" type="varchar(50)"/>
+            <column name="short_name_en" type="varchar(50)"/>
+            <column name="description" type="varchar(500)"/>
+            <column name="display_order" type="int"/>
+            <column name="parent_id" type="bigint"/>
+            <column name="attributes" type="jsonb"/>
+            <column name="is_active" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_system_reserved" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="valid_from" type="timestamp"/>
+            <column name="valid_to" type="timestamp"/>
+            <column name="created_by" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- マスタデータ属性定義テーブル作成 - Create master data attribute definition table -->
+        <createTable tableName="master_data_attribute">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="master_type_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_attribute_master_type" references="master_type(id)"/>
+            </column>
+            <column name="attribute_name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="display_name_ja" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="display_name_en" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="data_type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_required" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="default_value" type="varchar(500)"/>
+            <column name="validation_rule" type="varchar(500)"/>
+            <column name="display_order" type="int"/>
+            <column name="created_by" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_by" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- インデックス作成 - Create indexes -->
+        <createIndex indexName="idx_master_type_code" tableName="master_type">
+            <column name="type_code"/>
+        </createIndex>
+
+        <createIndex indexName="idx_master_data_type_id" tableName="master_data">
+            <column name="master_type_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_master_data_code" tableName="master_data">
+            <column name="code"/>
+        </createIndex>
+
+        <createIndex indexName="idx_master_data_parent_id" tableName="master_data">
+            <column name="parent_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_master_data_attribute_type_id" tableName="master_data_attribute">
+            <column name="master_type_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_master_data_attribute_name" tableName="master_data_attribute">
+            <column name="attribute_name"/>
+        </createIndex>
+
+        <!-- 一意制約 - Unique constraints -->
+        <addUniqueConstraint 
+            constraintName="uk_master_data_type_code" 
+            tableName="master_data" 
+            columnNames="master_type_id, code"/>
+
+        <addUniqueConstraint 
+            constraintName="uk_master_data_attribute_name" 
+            tableName="master_data_attribute" 
+            columnNames="master_type_id, attribute_name"/>
+    </changeSet>
+
+    <!-- マスタデータ初期値設定 - Insert initial master data -->
+    <changeSet id="002-master-data-initial" author="s-ichimaru">
+        <!-- 部門マスタデータタイプ - Department master data type -->
+        <insert tableName="master_type">
+            <column name="type_code" value="department"/>
+            <column name="type_name_ja" value="部門"/>
+            <column name="type_name_en" value="Department"/>
+            <column name="description" value="組織の部門区分"/>
+            <column name="display_order" value="1"/>
+            <column name="is_active" valueBoolean="true"/>
+            <column name="is_system_reserved" valueBoolean="true"/>
+            <column name="created_by" value="1"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" value="1"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- スキルマスタデータタイプ - Skill master data type -->
+        <insert tableName="master_type">
+            <column name="type_code" value="skill"/>
+            <column name="type_name_ja" value="スキル"/>
+            <column name="type_name_en" value="Skill"/>
+            <column name="description" value="技術者のスキル区分"/>
+            <column name="display_order" value="2"/>
+            <column name="is_active" valueBoolean="true"/>
+            <column name="is_system_reserved" valueBoolean="true"/>
+            <column name="created_by" value="1"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" value="1"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- 業種マスタデータタイプ - Industry master data type -->
+        <insert tableName="master_type">
+            <column name="type_code" value="industry"/>
+            <column name="type_name_ja" value="業種"/>
+            <column name="type_name_en" value="Industry"/>
+            <column name="description" value="企業の業種区分"/>
+            <column name="display_order" value="3"/>
+            <column name="is_active" valueBoolean="true"/>
+            <column name="is_system_reserved" valueBoolean="true"/>
+            <column name="created_by" value="1"/>
+            <column name="created_at" valueDate="CURRENT_TIMESTAMP"/>
+            <column name="updated_by" value="1"/>
+            <column name="updated_at" valueDate="CURRENT_TIMESTAMP"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>

@@ -46,6 +46,7 @@ dependencies {
     
     // Utility libraries
     implementation 'org.apache.commons:commons-lang3:3.14.0'
+    implementation 'commons-codec:commons-codec:1.16.0'
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     implementation 'org.modelmapper:modelmapper:3.2.0'
     

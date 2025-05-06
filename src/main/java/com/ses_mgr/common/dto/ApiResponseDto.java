@@ -18,6 +18,14 @@ public class ApiResponseDto<T> {
 
     private T data;
     private ErrorDto error;
+    private String message;
+    private boolean success;
+    
+    public ApiResponseDto(T data, String message) {
+        this.data = data;
+        this.message = message;
+        this.success = true;
+    }
 
     @Data
     @Builder
