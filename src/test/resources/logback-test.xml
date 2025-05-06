@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- NOP（何も出力しない）アペンダー -->
+    <appender name="NOP" class="ch.qos.logback.core.helpers.NOPAppender" />
+    
+    <!-- ROOTロガーを無効化（何も出力しない） -->
+    <root level="OFF">
+        <appender-ref ref="NOP" />
+    </root>
+    
+    <!-- 全てのログを抑制 -->
+    <logger name="org.hibernate" level="OFF" />
+    <logger name="org.springframework" level="OFF" />
+    <logger name="com.zaxxer.hikari" level="OFF" />
+    <logger name="com.ses_mgr" level="OFF" />
+</configuration>
