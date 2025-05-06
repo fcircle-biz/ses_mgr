@@ -391,6 +391,27 @@ public class UserServiceImpl implements UserService {
     public void updateLastLoginTime(UUID userId) {
         userRepository.updateLastLoginTime(userId);
     }
+    
+    @Override
+    public void changePassword(UUID userId, String currentPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("ユーザーが見つかりません: " + userId));
+
+        // 現在のパスワードを検証
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new IllegalArgumentException("現在のパスワードが正しくありません。");
+        }
+
+        // 新しいパスワードをハッシュ化して保存
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        
+        // パスワード有効期限をリセット（設定されていれば）
+        if (user.getPasswordExpiresAt() != null) {
+            user.setPasswordExpiresAt(null);
+        }
+        
+        userRepository.save(user);
+    }
 
     // ユーティリティメソッド - User エンティティを UserResponseDto に変換
     private UserResponseDto convertToUserResponseDto(User user) {

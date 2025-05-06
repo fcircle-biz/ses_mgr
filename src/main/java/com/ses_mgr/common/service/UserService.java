@@ -65,4 +65,7 @@ public interface UserService extends UserDetailsService {
     
     // 最終ログイン時間を更新
     void updateLastLoginTime(UUID userId);
+    
+    // パスワード変更
+    void changePassword(UUID userId, String currentPassword, String newPassword);
 }
