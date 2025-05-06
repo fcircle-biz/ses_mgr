@@ -83,7 +83,7 @@ public class SecurityConfig {
                 .loginPage("/login")
                 .loginProcessingUrl("/login")
                 .usernameParameter("loginId")
-                .defaultSuccessUrl("/dashboard", true)
+                .defaultSuccessUrl("/menu", true)
                 .failureUrl("/login?error=true")
                 .permitAll()
             )
@@ -113,7 +113,8 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        // データベースに格納されているパスワードのハッシュ強度（6）に合わせる
+        return new BCryptPasswordEncoder(6);
     }
 
     @Bean
