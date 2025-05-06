@@ -53,7 +53,7 @@ public class SecurityConfig {
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/favicon.ico", "/webjars/**", "/*.html", "/*.css", "/*.js").permitAll()
                 
                 // 認証不要なページを許可
-                .requestMatchers("/login", "/", "/test", "/health", "/reset-password", "/reset-password/**", "/html-test", "/test.html").permitAll()
+                .requestMatchers("/login", "/", "/test", "/health", "/reset-password", "/reset-password/**", "/html-test", "/test.html", "/menu").permitAll()
                 
                 // 公開APIを許可
                 .requestMatchers("/api/v1/public/**", "/api/v1/test/public").permitAll()
