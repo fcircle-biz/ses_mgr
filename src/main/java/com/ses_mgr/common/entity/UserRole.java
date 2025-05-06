@@ -1,20 +1,20 @@
 package com.ses_mgr.common.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "user_roles")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"user", "role", "assignedBy"})
+@EqualsAndHashCode(exclude = {"user", "role", "assignedBy"})
 public class UserRole {
 
     @EmbeddedId
@@ -49,7 +49,16 @@ public class UserRole {
     @PrePersist
     public void prePersist() {
         if (this.id == null) {
-            this.id = new UserRoleId(user.getUserId(), role.getRoleId());
+            UUID userId = (user != null) ? user.getUserId() : null;
+            UUID roleId = (role != null) ? role.getRoleId() : null;
+            
+            // 少なくともuserIdはnullでないことを確認
+            if (userId != null) {
+                this.id = new UserRoleId(userId, roleId);
+            } else {
+                // ユーザーIDがない場合はエラー
+                throw new IllegalStateException("UserRole must have a non-null User with userId");
+            }
         }
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();

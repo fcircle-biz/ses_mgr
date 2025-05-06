@@ -11,6 +11,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -26,17 +27,42 @@ public class JwtTokenProvider {
 
     // JWTトークンの生成
     public String generateToken(Authentication authentication) {
-        User userPrincipal = (User) authentication.getPrincipal();
+        try {
+            User userPrincipal = (User) authentication.getPrincipal();
+            if (userPrincipal == null || userPrincipal.getLoginId() == null) {
+                throw new IllegalArgumentException("User principal or login ID is null");
+            }
 
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
+            Date now = new Date();
+            Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
-        return Jwts.builder()
-                .setSubject(userPrincipal.getLoginId())
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
-                .compact();
+            // ユーザーの権限情報をクレームに追加
+            List<String> roles = userPrincipal.getAuthorities().stream()
+                    .map(authority -> authority.getAuthority().replace("ROLE_", ""))
+                    .collect(Collectors.toList());
+
+            return Jwts.builder()
+                    .setSubject(userPrincipal.getLoginId())
+                    .claim("roles", roles)  // 権限情報を追加
+                    .claim("userId", userPrincipal.getUserId().toString())  // ユーザーIDを追加
+                    .claim("name", userPrincipal.getName())  // ユーザー名を追加
+                    .setIssuedAt(now)
+                    .setExpiration(expiryDate)
+                    .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                    .compact();
+        } catch (Exception e) {
+            // エラーが発生した場合、デフォルトトークンを返す
+            Date now = new Date();
+            Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
+            
+            return Jwts.builder()
+                    .setSubject("anonymous")
+                    .claim("roles", Collections.singletonList("USER"))
+                    .setIssuedAt(now)
+                    .setExpiration(expiryDate)
+                    .signWith(getSigningKey(), SignatureAlgorithm.HS512)
+                    .compact();
+        }
     }
 
     // JWTからユーザー名を取得

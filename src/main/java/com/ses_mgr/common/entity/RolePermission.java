@@ -1,19 +1,19 @@
 package com.ses_mgr.common.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "role_permissions")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"role", "permission"})
+@EqualsAndHashCode(exclude = {"role", "permission"})
 public class RolePermission {
 
     @EmbeddedId
@@ -40,7 +40,7 @@ public class RolePermission {
 
     @PrePersist
     public void prePersist() {
-        if (this.id == null) {
+        if (this.id == null && role != null && permission != null) {
             this.id = new RolePermissionId(role.getRoleId(), permission.getPermissionId());
         }
         this.createdAt = LocalDateTime.now();

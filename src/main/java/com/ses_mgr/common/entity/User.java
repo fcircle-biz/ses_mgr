@@ -1,16 +1,14 @@
 package com.ses_mgr.common.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -18,10 +16,13 @@ import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "users")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"department", "userRoles"})
+@EqualsAndHashCode(exclude = {"department", "userRoles"})
 public class User implements UserDetails {
 
     @Id
@@ -92,8 +93,17 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
+        if (userRoles == null || userRoles.isEmpty()) {
+            // デフォルトで USER 権限を付与
+            return Collections.singleton(new SimpleGrantedAuthority("ROLE_USER"));
+        }
+        
         return userRoles.stream()
-                .map(userRole -> new SimpleGrantedAuthority("ROLE_" + userRole.getRole().getRoleCode()))
+                .filter(userRole -> userRole.getRole() != null)
+                .map(userRole -> {
+                    String roleCode = userRole.getRole().getRoleCode();
+                    return new SimpleGrantedAuthority("ROLE_" + roleCode);
+                })
                 .collect(Collectors.toSet());
     }
 
