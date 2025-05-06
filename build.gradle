@@ -56,6 +56,9 @@ dependencies {
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     implementation 'org.modelmapper:modelmapper:3.2.0'
     
+    // Quartz for cron expression parsing
+    implementation 'org.quartz-scheduler:quartz:2.3.2'
+    
     // Lombok for reducing boilerplate code
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
