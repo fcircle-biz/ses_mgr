@@ -14,291 +14,235 @@
         <title>メニュー | SES業務システム</title>
         
         <section>
-            <div class="container-fluid">
-                <h1 class="h2 mb-4">メニュー（グローバルナビゲーション）</h1>
+            <div class="container py-4">
+                <h1 class="mb-4">メインメニュー</h1>
                 
-                <div class="row">
-                    <div class="col-lg-4 mb-4">
-                        <div class="card menu-card">
-                            <div class="card-header">
-                                <i class="bi bi-list me-2"></i>メニュー構成
+                <div class="row g-4">
+                    <!-- ダッシュボード -->
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <div class="card menu-card h-100">
+                            <div class="card-header bg-primary text-white">
+                                <i class="bi bi-house-door me-2"></i>ダッシュボード
                             </div>
                             <div class="card-body">
-                                <p>システム内の各機能へのアクセスを提供するグローバルナビゲーションです。ユーザーのロールに応じて表示項目が変わります。</p>
-                                
-                                <ul class="menu-tree">
-                                    <li th:each="item : ${menuItems}">
-                                        <div class="main-item">
-                                            <i th:class="${item.icon}"></i>
-                                            <span th:text="${item.name}">メインメニュー</span>
-                                        </div>
-                                        <ul class="sub-items" th:if="${item.subItems != null}">
-                                            <li th:each="subItem : ${item.subItems}" th:text="${subItem.name}">サブメニュー項目</li>
-                                        </ul>
-                                    </li>
-                                </ul>
+                                <p class="card-text">システム全体の状況を一目で確認できるダッシュボード画面です。</p>
+                                <a th:href="@{/dashboard}" class="btn btn-outline-primary">
+                                    <i class="bi bi-arrow-right-circle me-2"></i>ダッシュボードへ
+                                </a>
                             </div>
                         </div>
-                        
-                        <div class="card menu-card">
-                            <div class="card-header">
-                                <i class="bi bi-shield-lock me-2"></i>ロール説明
+                    </div>
+                    
+                    <!-- 案件管理 -->
+                    <div class="col-12 col-md-6 col-lg-4" sec:authorize="hasAnyRole('ADMIN', 'SALES', 'EXECUTIVE', 'MANAGER')">
+                        <div class="card menu-card h-100">
+                            <div class="card-header bg-info text-white">
+                                <i class="bi bi-kanban me-2"></i>案件管理
                             </div>
                             <div class="card-body">
-                                <h5>システムロール</h5>
-                                <ul class="list-unstyled">
-                                    <li class="mb-2">
-                                        <span class="role-label admin">ROLE_ADMIN</span>
-                                        <p>システム管理者。全ての機能にアクセス可能。</p>
-                                    </li>
-                                    <li class="mb-2">
-                                        <span class="role-label executive">ROLE_EXECUTIVE</span>
-                                        <p>経営層。KPIや財務関連の機能にアクセス可能。</p>
-                                    </li>
-                                    <li class="mb-2">
-                                        <span class="role-label manager">ROLE_MANAGER</span>
-                                        <p>マネージャー。部下の管理や承認関連の機能にアクセス可能。</p>
-                                    </li>
-                                </ul>
-                                
-                                <h5 class="mt-3">業務ロール</h5>
-                                <ul class="list-unstyled">
-                                    <li class="mb-2">
-                                        <span class="role-label sales">ROLE_SALES</span>
-                                        <p>営業担当。案件や顧客、提案関連の機能にアクセス可能。</p>
-                                    </li>
-                                    <li class="mb-2">
-                                        <span class="role-label hr">ROLE_HR</span>
-                                        <p>人事担当。技術者や勤怠管理関連の機能にアクセス可能。</p>
-                                    </li>
-                                    <li class="mb-2">
-                                        <span class="role-label accounting">ROLE_ACCOUNTING</span>
-                                        <p>経理担当。請求や支払い関連の機能にアクセス可能。</p>
-                                    </li>
-                                    <li class="mb-2">
-                                        <span class="role-label engineer">ROLE_ENGINEER</span>
-                                        <p>技術者。勤怠・工数入力関連の機能にアクセス可能。</p>
-                                    </li>
+                                <p class="card-text">案件の登録・参照・管理を行います。</p>
+                                <ul class="menu-list mt-3">
+                                    <li><a th:href="@{/projects}"><i class="bi bi-list-ul"></i>案件一覧</a></li>
+                                    <li><a th:href="@{/projects/create}"><i class="bi bi-plus-circle"></i>案件登録</a></li>
+                                    <li><a th:href="@{/customers}"><i class="bi bi-building"></i>顧客管理</a></li>
                                 </ul>
                             </div>
                         </div>
                     </div>
                     
-                    <div class="col-lg-8">
-                        <div class="card menu-card">
-                            <div class="card-header">
-                                <i class="bi bi-person-badge me-2"></i>ロール別アクセス権限
+                    <!-- 技術者管理 -->
+                    <div class="col-12 col-md-6 col-lg-4" sec:authorize="hasAnyRole('ADMIN', 'HR', 'SALES', 'EXECUTIVE', 'MANAGER')">
+                        <div class="card menu-card h-100">
+                            <div class="card-header bg-success text-white">
+                                <i class="bi bi-people me-2"></i>技術者管理
                             </div>
                             <div class="card-body">
-                                <div class="mb-3">
-                                    <div class="btn-group mb-3">
-                                        <button type="button" class="btn btn-outline-primary active role-filter" data-role="all">全て表示</button>
-                                        <button type="button" class="btn btn-outline-primary role-filter" data-role="admin">管理者</button>
-                                        <button type="button" class="btn btn-outline-primary role-filter" data-role="executive">経営層</button>
-                                        <button type="button" class="btn btn-outline-primary role-filter" data-role="manager">マネージャー</button>
-                                        <button type="button" class="btn btn-outline-primary role-filter" data-role="sales">営業</button>
-                                        <button type="button" class="btn btn-outline-primary role-filter" data-role="hr">人事</button>
-                                        <button type="button" class="btn btn-outline-primary role-filter" data-role="accounting">経理</button>
-                                        <button type="button" class="btn btn-outline-primary role-filter" data-role="engineer">技術者</button>
-                                    </div>
-                                </div>
-                                
-                                <div class="table-responsive">
-                                    <table class="table table-hover role-access-table">
-                                        <thead>
-                                            <tr>
-                                                <th>メニュー項目</th>
-                                                <th>管理者</th>
-                                                <th>経営層</th>
-                                                <th>マネージャー</th>
-                                                <th>営業</th>
-                                                <th>人事</th>
-                                                <th>経理</th>
-                                                <th>技術者</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr th:each="item : ${menuItems}">
-                                                <td th:text="${item.name}">メニュー名</td>
-                                                <td class="admin-access" th:classappend="${#lists.contains(item.roles, 'ROLE_ADMIN') ? 'access-granted' : 'access-denied'}">
-                                                    <i th:class="${#lists.contains(item.roles, 'ROLE_ADMIN') ? 'bi bi-check-circle-fill text-success' : 'bi bi-x-circle-fill text-danger'}"></i>
-                                                </td>
-                                                <td class="executive-access" th:classappend="${#lists.contains(item.roles, 'ROLE_EXECUTIVE') ? 'access-granted' : 'access-denied'}">
-                                                    <i th:class="${#lists.contains(item.roles, 'ROLE_EXECUTIVE') ? 'bi bi-check-circle-fill text-success' : 'bi bi-x-circle-fill text-danger'}"></i>
-                                                </td>
-                                                <td class="manager-access" th:classappend="${#lists.contains(item.roles, 'ROLE_MANAGER') ? 'access-granted' : 'access-denied'}">
-                                                    <i th:class="${#lists.contains(item.roles, 'ROLE_MANAGER') ? 'bi bi-check-circle-fill text-success' : 'bi bi-x-circle-fill text-danger'}"></i>
-                                                </td>
-                                                <td class="sales-access" th:classappend="${#lists.contains(item.roles, 'ROLE_SALES') ? 'access-granted' : 'access-denied'}">
-                                                    <i th:class="${#lists.contains(item.roles, 'ROLE_SALES') ? 'bi bi-check-circle-fill text-success' : 'bi bi-x-circle-fill text-danger'}"></i>
-                                                </td>
-                                                <td class="hr-access" th:classappend="${#lists.contains(item.roles, 'ROLE_HR') ? 'access-granted' : 'access-denied'}">
-                                                    <i th:class="${#lists.contains(item.roles, 'ROLE_HR') ? 'bi bi-check-circle-fill text-success' : 'bi bi-x-circle-fill text-danger'}"></i>
-                                                </td>
-                                                <td class="accounting-access" th:classappend="${#lists.contains(item.roles, 'ROLE_ACCOUNTING') ? 'access-granted' : 'access-denied'}">
-                                                    <i th:class="${#lists.contains(item.roles, 'ROLE_ACCOUNTING') ? 'bi bi-check-circle-fill text-success' : 'bi bi-x-circle-fill text-danger'}"></i>
-                                                </td>
-                                                <td class="engineer-access" th:classappend="${#lists.contains(item.roles, 'ROLE_ENGINEER') ? 'access-granted' : 'access-denied'}">
-                                                    <i th:class="${#lists.contains(item.roles, 'ROLE_ENGINEER') ? 'bi bi-check-circle-fill text-success' : 'bi bi-x-circle-fill text-danger'}"></i>
-                                                </td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                <p class="card-text">技術者の情報やスキルの管理を行います。</p>
+                                <ul class="menu-list mt-3">
+                                    <li><a th:href="@{/engineers}"><i class="bi bi-list-ul"></i>技術者一覧</a></li>
+                                    <li><a th:href="@{/engineers/create}" sec:authorize="hasAnyRole('ADMIN', 'HR', 'MANAGER')"><i class="bi bi-plus-circle"></i>技術者登録</a></li>
+                                    <li><a th:href="@{/engineers/skills}"><i class="bi bi-file-earmark-text"></i>スキルシート管理</a></li>
+                                </ul>
                             </div>
                         </div>
-                        
-                        <div class="card menu-card">
-                            <div class="card-header">
-                                <i class="bi bi-phone me-2"></i>レスポンシブ対応
+                    </div>
+                    
+                    <!-- マッチング -->
+                    <div class="col-12 col-md-6 col-lg-4" sec:authorize="hasAnyRole('ADMIN', 'SALES', 'HR', 'EXECUTIVE', 'MANAGER')">
+                        <div class="card menu-card h-100">
+                            <div class="card-header bg-warning text-dark">
+                                <i class="bi bi-search me-2"></i>マッチング
                             </div>
                             <div class="card-body">
-                                <table class="table table-bordered responsive-table mb-4">
-                                    <thead>
-                                        <tr>
-                                            <th>画面サイズ</th>
-                                            <th>表示形式</th>
-                                            <th>動作</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr th:each="item : ${responsiveData}">
-                                            <td th:text="${item.size}">画面サイズ</td>
-                                            <td th:text="${item.display}">表示形式</td>
-                                            <td th:text="${item.behavior}">動作</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                                
-                                <h5>デスクトップ表示</h5>
-                                <div class="responsive-preview desktop-preview mb-4">
-                                    <div class="demo-header">
-                                        <div>SES業務システム</div>
-                                        <div>ユーザー名</div>
-                                    </div>
-                                    <div class="d-flex">
-                                        <div class="sidebar-preview">
-                                            <div class="sidebar-menu-item active">
-                                                <i class="bi bi-house"></i> ダッシュボード
-                                            </div>
-                                            <div class="sidebar-menu-item has-submenu">
-                                                <i class="bi bi-kanban"></i> 案件管理
-                                            </div>
-                                            <div class="sidebar-menu-item has-submenu">
-                                                <i class="bi bi-people"></i> 技術者管理
-                                            </div>
-                                            <div class="sidebar-menu-item has-submenu">
-                                                <i class="bi bi-search"></i> マッチング
-                                            </div>
-                                            <div class="sidebar-menu-item has-submenu">
-                                                <i class="bi bi-file-earmark-text"></i> 契約管理
-                                            </div>
-                                        </div>
-                                        <div class="content-preview">
-                                            <p>デスクトップ表示では、サイドメニューは常に表示されています。</p>
-                                            <p>メイン画面は右側に配置され、メニューを閉じる必要はありません。</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <h5>タブレット表示</h5>
-                                <div class="responsive-preview tablet-preview mb-4">
-                                    <div class="demo-header">
-                                        <div>
-                                            <button class="demo-toggle" id="tablet-toggle">
-                                                <i class="bi bi-list"></i>
-                                            </button>
-                                            SES業務システム
-                                        </div>
-                                        <div>ユーザー名</div>
-                                    </div>
-                                    <div class="sidebar-preview" id="tablet-sidebar">
-                                        <div class="sidebar-menu-item active">
-                                            <i class="bi bi-house"></i> ダッシュボード
-                                        </div>
-                                        <div class="sidebar-menu-item has-submenu">
-                                            <i class="bi bi-kanban"></i> 案件管理
-                                        </div>
-                                        <div class="sidebar-menu-item has-submenu">
-                                            <i class="bi bi-people"></i> 技術者管理
-                                        </div>
-                                        <div class="sidebar-menu-item has-submenu">
-                                            <i class="bi bi-search"></i> マッチング
-                                        </div>
-                                    </div>
-                                    <div class="content-preview">
-                                        <p>タブレット表示では、サイドメニューは初期状態では非表示になります。</p>
-                                        <p>左上のメニューボタン（≡）をクリックすると、サイドメニューが表示されます。</p>
-                                        <p><strong>左上のメニューアイコンをクリックしてみてください。</strong></p>
-                                    </div>
-                                </div>
-                                
-                                <h5>モバイル表示</h5>
-                                <div class="responsive-preview mobile-preview">
-                                    <div class="demo-header">
-                                        <div>
-                                            <button class="demo-toggle" id="mobile-toggle">
-                                                <i class="bi bi-list"></i>
-                                            </button>
-                                            SES業務システム
-                                        </div>
-                                        <div>ユーザー名</div>
-                                    </div>
-                                    <div class="sidebar-preview" id="mobile-sidebar">
-                                        <div class="sidebar-menu-item active">
-                                            <i class="bi bi-house"></i> ダッシュボード
-                                        </div>
-                                        <div class="sidebar-menu-item has-submenu">
-                                            <i class="bi bi-kanban"></i> 案件管理
-                                        </div>
-                                        <div class="sidebar-menu-item has-submenu">
-                                            <i class="bi bi-people"></i> 技術者管理
-                                        </div>
-                                    </div>
-                                    <div class="overlay" id="mobile-overlay"></div>
-                                    <div class="content-preview">
-                                        <p>モバイル表示では、サイドメニューは初期状態では非表示になります。</p>
-                                        <p>左上のメニューボタン（≡）をクリックすると、オーバーレイ形式でメニューが表示されます。</p>
-                                        <p>背景をタップすると、メニューは閉じます。</p>
-                                        <p><strong>左上のメニューアイコンをクリックしてみてください。</strong></p>
-                                    </div>
-                                </div>
+                                <p class="card-text">案件と技術者のマッチングを検索・管理します。</p>
+                                <ul class="menu-list mt-3">
+                                    <li><a th:href="@{/matching/search}"><i class="bi bi-search"></i>マッチング検索</a></li>
+                                    <li><a th:href="@{/matching/proposals}" sec:authorize="hasAnyRole('ADMIN', 'SALES', 'EXECUTIVE', 'MANAGER')"><i class="bi bi-file-earmark-text"></i>提案管理</a></li>
+                                </ul>
                             </div>
                         </div>
-                        
-                        <div class="card menu-card">
-                            <div class="card-header">
-                                <i class="bi bi-info-circle me-2"></i>利用時の注意事項
+                    </div>
+                    
+                    <!-- 契約管理 -->
+                    <div class="col-12 col-md-6 col-lg-4" sec:authorize="hasAnyRole('ADMIN', 'SALES', 'ACCOUNTING', 'EXECUTIVE', 'MANAGER')">
+                        <div class="card menu-card h-100">
+                            <div class="card-header bg-secondary text-white">
+                                <i class="bi bi-file-earmark-text me-2"></i>契約管理
                             </div>
                             <div class="card-body">
-                                <div class="doc-note">
-                                    <p><strong>メニュー表示とユーザー権限：</strong> メニューの表示項目はユーザーの権限（ロール）によって動的に制御されます。ユーザーは自分がアクセス権を持つ機能のみがメニューに表示されます。</p>
-                                </div>
-                                
-                                <div class="doc-section">
-                                    <h3>権限エラー</h3>
-                                    <p>権限のない機能へのURLを直接入力してアクセスを試みた場合は、権限エラーページにリダイレクトされます。これはシステムのセキュリティ機能により保護されています。</p>
-                                </div>
-                                
-                                <div class="doc-section">
-                                    <h3>メニュー状態の保存</h3>
-                                    <p>メニューの状態（展開/折りたたみ）はブラウザのローカルストレージに保存され、次回アクセス時に復元されます。これにより、ユーザーは自分が頻繁にアクセスするメニューを常に展開しておくことができます。</p>
-                                </div>
-                                
-                                <div class="doc-section">
-                                    <h3>サブメニューアクセス</h3>
-                                    <p>サブメニューには親メニューを展開してアクセスします。サブメニュー項目をクリックすると、対応する画面に直接遷移します。</p>
-                                </div>
+                                <p class="card-text">契約書の作成・管理・電子署名を行います。</p>
+                                <ul class="menu-list mt-3">
+                                    <li><a th:href="@{/contracts}"><i class="bi bi-list-ul"></i>契約一覧</a></li>
+                                    <li><a th:href="@{/contracts/create}" sec:authorize="hasAnyRole('ADMIN', 'SALES', 'MANAGER')"><i class="bi bi-plus-circle"></i>契約作成</a></li>
+                                    <li><a th:href="@{/contracts/signatures}"><i class="bi bi-pen"></i>電子署名管理</a></li>
+                                </ul>
                             </div>
                         </div>
+                    </div>
+                    
+                    <!-- 勤怠・工数 -->
+                    <div class="col-12 col-md-6 col-lg-4" sec:authorize="hasAnyRole('ADMIN', 'HR', 'ENGINEER', 'MANAGER')">
+                        <div class="card menu-card h-100">
+                            <div class="card-header bg-primary text-white">
+                                <i class="bi bi-calendar-check me-2"></i>勤怠・工数
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">勤怠や工数の入力・承認を行います。</p>
+                                <ul class="menu-list mt-3">
+                                    <li><a th:href="@{/timesheet/daily}" sec:authorize="hasAnyRole('ADMIN', 'ENGINEER')"><i class="bi bi-calendar"></i>勤怠入力</a></li>
+                                    <li><a th:href="@{/timesheet/effort}" sec:authorize="hasAnyRole('ADMIN', 'ENGINEER')"><i class="bi bi-clock"></i>工数入力</a></li>
+                                    <li><a th:href="@{/timesheet/approve}" sec:authorize="hasAnyRole('ADMIN', 'HR', 'MANAGER')"><i class="bi bi-check-circle"></i>勤怠承認</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 請求・支払 -->
+                    <div class="col-12 col-md-6 col-lg-4" sec:authorize="hasAnyRole('ADMIN', 'ACCOUNTING', 'EXECUTIVE', 'MANAGER')">
+                        <div class="card menu-card h-100">
+                            <div class="card-header bg-danger text-white">
+                                <i class="bi bi-cash-stack me-2"></i>請求・支払
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">請求書の発行や入出金の管理を行います。</p>
+                                <ul class="menu-list mt-3">
+                                    <li><a th:href="@{/billing/invoices}"><i class="bi bi-receipt"></i>請求管理</a></li>
+                                    <li><a th:href="@{/billing/payments}"><i class="bi bi-arrow-down-circle"></i>入金管理</a></li>
+                                    <li><a th:href="@{/billing/expenses}"><i class="bi bi-arrow-up-circle"></i>支払管理</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- レポート -->
+                    <div class="col-12 col-md-6 col-lg-4" sec:authorize="hasAnyRole('ADMIN', 'EXECUTIVE', 'MANAGER')">
+                        <div class="card menu-card h-100">
+                            <div class="card-header bg-info text-white">
+                                <i class="bi bi-graph-up me-2"></i>レポート
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">各種レポートの閲覧・分析を行います。</p>
+                                <ul class="menu-list mt-3">
+                                    <li><a th:href="@{/reports/kpi}"><i class="bi bi-speedometer2"></i>KPIダッシュボード</a></li>
+                                    <li><a th:href="@{/reports/financial}"><i class="bi bi-currency-yen"></i>売上・粗利レポート</a></li>
+                                    <li><a th:href="@{/reports/utilization}"><i class="bi bi-person-workspace"></i>稼働・予測レポート</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- システム管理 -->
+                    <div class="col-12 col-md-6 col-lg-4" sec:authorize="hasRole('ADMIN')">
+                        <div class="card menu-card h-100">
+                            <div class="card-header bg-dark text-white">
+                                <i class="bi bi-gear me-2"></i>システム管理
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">システム全体の設定や管理を行います。</p>
+                                <ul class="menu-list mt-3">
+                                    <li><a th:href="@{/admin/users}"><i class="bi bi-people"></i>ユーザー管理</a></li>
+                                    <li><a th:href="@{/admin/roles}"><i class="bi bi-key"></i>ロール管理</a></li>
+                                    <li><a th:href="@{/admin/masters}"><i class="bi bi-database"></i>マスタ管理</a></li>
+                                    <li><a th:href="@{/admin/logs}"><i class="bi bi-journal-text"></i>ログ管理</a></li>
+                                    <li><a th:href="@{/admin/batch}"><i class="bi bi-clock-history"></i>バッチ管理</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-5">
+                    <h2 class="h4 mb-3">アクセス権限について</h2>
+                    <p>ユーザーロールによって表示されるメニューが異なります。現在のロール: <span sec:authentication="principal.authorities"></span></p>
+                    
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <span class="role-label admin">管理者</span>
+                        <span class="role-label executive">経営者</span>
+                        <span class="role-label manager">マネージャー</span>
+                        <span class="role-label sales">営業</span>
+                        <span class="role-label hr">人事</span>
+                        <span class="role-label accounting">経理</span>
+                        <span class="role-label engineer">技術者</span>
                     </div>
                 </div>
             </div>
         </section>
         
         <link th:href="@{/css/menu.css}" rel="stylesheet">
+        <link th:href="@{/css/sidebar.css}" rel="stylesheet">
         
-        <script th:src="@{/js/menu.js}"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // メニューカードのアニメーション
+                const menuCards = document.querySelectorAll('.menu-card');
+                
+                if (menuCards.length > 0) {
+                    menuCards.forEach((card, index) => {
+                        card.style.opacity = '0';
+                        card.style.transform = 'translateY(20px)';
+                        card.style.transition = 'opacity 0.3s ease-out, transform 0.3s ease-out';
+                        
+                        setTimeout(() => {
+                            card.style.opacity = '1';
+                            card.style.transform = 'translateY(0)';
+                        }, 100 * index);
+                    });
+                }
+                
+                // メニューリスト項目のスタイル追加
+                const menuList = document.querySelectorAll('.menu-list');
+                if (menuList.length > 0) {
+                    menuList.forEach(list => {
+                        list.style.listStyle = 'none';
+                        list.style.paddingLeft = '0';
+                        
+                        const listItems = list.querySelectorAll('li');
+                        listItems.forEach(item => {
+                            item.style.marginBottom = '0.75rem';
+                            
+                            const link = item.querySelector('a');
+                            if (link) {
+                                link.style.display = 'flex';
+                                link.style.alignItems = 'center';
+                                link.style.color = '#495057';
+                                link.style.textDecoration = 'none';
+                                link.style.padding = '0.5rem';
+                                link.style.borderRadius = '0.25rem';
+                                link.style.transition = 'background-color 0.2s';
+                                
+                                link.addEventListener('mouseenter', function() {
+                                    this.style.backgroundColor = '#e9ecef';
+                                });
+                                
+                                link.addEventListener('mouseleave', function() {
+                                    this.style.backgroundColor = 'transparent';
+                                });
+                            }
+                        });
+                    });
+                }
+            });
+        </script>
     </th:block>
 </body>
 </html>
