@@ -11,6 +11,9 @@
     <!-- Master data management schema -->
     <include file="classpath:db/changelog/changes/002-master-data-schema.xml"/>
     
+    <!-- Log management schema -->
+    <include file="classpath:db/changelog/changes/003-log-management-schema.xml"/>
+    
     <!-- Future schema updates will be added here -->
     
 </databaseChangeLog>

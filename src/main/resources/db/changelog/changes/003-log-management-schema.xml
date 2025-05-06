@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.5.xsd">
+    
+    <!-- Define a property to handle different database types -->
+    <property name="jsonb.type" value="jsonb" dbms="postgresql"/>
+    <property name="jsonb.type" value="varchar(4000)" dbms="h2"/>
+
+    <changeSet id="003-log-management-schema" author="s-ichimaru">
+        <!-- システムログテーブル作成 - Create system log table -->
+        <createTable tableName="system_log">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="log_type" type="varchar(20)" defaultValue="system">
+                <constraints nullable="false"/>
+            </column>
+            <column name="level" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="varchar(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="details" type="${jsonb.type}"/>
+            <column name="module" type="varchar(100)"/>
+            <column name="function" type="varchar(100)"/>
+            <column name="server" type="varchar(100)"/>
+            <column name="trace_id" type="varchar(100)"/>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- 監査ログテーブル作成 - Create audit log table -->
+        <createTable tableName="audit_log">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="log_type" type="varchar(20)" defaultValue="audit">
+                <constraints nullable="false"/>
+            </column>
+            <column name="level" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="varchar(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="details" type="${jsonb.type}"/>
+            <column name="user_id" type="uuid"/>
+            <column name="username" type="varchar(255)"/>
+            <column name="ip_address" type="varchar(50)"/>
+            <column name="user_agent" type="varchar(500)"/>
+            <column name="resource_type" type="varchar(50)"/>
+            <column name="resource_id" type="varchar(50)"/>
+            <column name="action" type="varchar(20)"/>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- エラーログテーブル作成 - Create error log table -->
+        <createTable tableName="error_log">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="log_type" type="varchar(20)" defaultValue="error">
+                <constraints nullable="false"/>
+            </column>
+            <column name="level" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="varchar(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="details" type="${jsonb.type}"/>
+            <column name="module" type="varchar(100)"/>
+            <column name="function" type="varchar(100)"/>
+            <column name="error_code" type="varchar(50)"/>
+            <column name="error_message" type="varchar(1000)"/>
+            <column name="stack_trace" type="text"/>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- アクセスログテーブル作成 - Create access log table -->
+        <createTable tableName="access_log">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="log_type" type="varchar(20)" defaultValue="access">
+                <constraints nullable="false"/>
+            </column>
+            <column name="level" type="varchar(10)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="varchar(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="details" type="${jsonb.type}"/>
+            <column name="user_id" type="uuid"/>
+            <column name="username" type="varchar(255)"/>
+            <column name="action" type="varchar(20)"/>
+            <column name="status" type="varchar(20)"/>
+            <column name="ip_address" type="varchar(50)"/>
+            <column name="user_agent" type="varchar(500)"/>
+            <column name="request_uri" type="varchar(1000)"/>
+            <column name="request_method" type="varchar(10)"/>
+            <column name="response_status" type="int"/>
+            <column name="response_time" type="int"/>
+            <column name="timestamp" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- インデックス作成 - Create indexes -->
+        <createIndex indexName="idx_system_log_type" tableName="system_log">
+            <column name="log_type"/>
+        </createIndex>
+        <createIndex indexName="idx_system_log_level" tableName="system_log">
+            <column name="level"/>
+        </createIndex>
+        <createIndex indexName="idx_system_log_module" tableName="system_log">
+            <column name="module"/>
+        </createIndex>
+        <createIndex indexName="idx_system_log_timestamp" tableName="system_log">
+            <column name="timestamp"/>
+        </createIndex>
+
+        <createIndex indexName="idx_audit_log_type" tableName="audit_log">
+            <column name="log_type"/>
+        </createIndex>
+        <createIndex indexName="idx_audit_log_level" tableName="audit_log">
+            <column name="level"/>
+        </createIndex>
+        <createIndex indexName="idx_audit_log_user_id" tableName="audit_log">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex indexName="idx_audit_log_action" tableName="audit_log">
+            <column name="action"/>
+        </createIndex>
+        <createIndex indexName="idx_audit_log_resource_type" tableName="audit_log">
+            <column name="resource_type"/>
+        </createIndex>
+        <createIndex indexName="idx_audit_log_timestamp" tableName="audit_log">
+            <column name="timestamp"/>
+        </createIndex>
+
+        <createIndex indexName="idx_error_log_type" tableName="error_log">
+            <column name="log_type"/>
+        </createIndex>
+        <createIndex indexName="idx_error_log_level" tableName="error_log">
+            <column name="level"/>
+        </createIndex>
+        <createIndex indexName="idx_error_log_module" tableName="error_log">
+            <column name="module"/>
+        </createIndex>
+        <createIndex indexName="idx_error_log_error_code" tableName="error_log">
+            <column name="error_code"/>
+        </createIndex>
+        <createIndex indexName="idx_error_log_timestamp" tableName="error_log">
+            <column name="timestamp"/>
+        </createIndex>
+
+        <createIndex indexName="idx_access_log_type" tableName="access_log">
+            <column name="log_type"/>
+        </createIndex>
+        <createIndex indexName="idx_access_log_level" tableName="access_log">
+            <column name="level"/>
+        </createIndex>
+        <createIndex indexName="idx_access_log_user_id" tableName="access_log">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex indexName="idx_access_log_action" tableName="access_log">
+            <column name="action"/>
+        </createIndex>
+        <createIndex indexName="idx_access_log_status" tableName="access_log">
+            <column name="status"/>
+        </createIndex>
+        <createIndex indexName="idx_access_log_timestamp" tableName="access_log">
+            <column name="timestamp"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>
