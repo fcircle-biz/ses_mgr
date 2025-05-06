@@ -18,6 +18,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.context.annotation.Import;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,8 +31,9 @@ import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(BatchRestController.class)
-@WithMockUser(roles = "ADMIN")
+@WebMvcTest(controllers = BatchRestController.class)
+@WithMockUser(username = "admin", roles = "ADMIN")
+@Import(BatchTestConfig.class)
 class BatchRestControllerTest {
 
     @Autowired
@@ -45,6 +47,16 @@ class BatchRestControllerTest {
 
     @MockBean
     private BatchHistoryService batchHistoryService;
+    
+    // Security related mock beans
+    @MockBean
+    private com.ses_mgr.config.JwtTokenProvider jwtTokenProvider;
+    
+    @MockBean
+    private com.ses_mgr.config.JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    
+    @MockBean
+    private org.springframework.security.core.userdetails.UserDetailsService userDetailsService;
 
     @Autowired
     private ObjectMapper objectMapper;

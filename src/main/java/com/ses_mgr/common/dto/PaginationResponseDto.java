@@ -5,12 +5,15 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PaginationResponseDto {
+public class PaginationResponseDto<T> {
 
+    private List<T> items;
     private long total;
     private int page;
     private int limit;

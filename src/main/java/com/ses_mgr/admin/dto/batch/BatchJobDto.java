@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -29,7 +29,7 @@ public class BatchJobDto {
     private LocalDateTime updatedAt;
     
     @Data
-    @Builder
+    @Builder(toBuilder = true)
     @NoArgsConstructor
     @AllArgsConstructor
     @JsonInclude(JsonInclude.Include.NON_NULL)

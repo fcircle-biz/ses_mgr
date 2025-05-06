@@ -23,6 +23,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -81,7 +82,7 @@ public class BatchRestController {
             return ResponseEntity.ok(ApiResponseDto.success(jobDetail));
         } catch (ResponseStatusException e) {
             logger.warn("バッチジョブの取得中にエラーが発生しました: {}", e.getReason());
-            return ResponseEntity.status(e.getStatus())
+            return ResponseEntity.status(e.getStatusCode())
                     .body(ApiResponseDto.error("BATCH_NOT_FOUND", e.getReason()));
         } catch (Exception e) {
             logger.error("バッチジョブの取得中にエラーが発生しました: {}", e.getMessage(), e);
@@ -115,14 +116,14 @@ public class BatchRestController {
                     ? ResponseEntity.status(HttpStatus.ACCEPTED).body(ApiResponseDto.success(result))
                     : ResponseEntity.ok(ApiResponseDto.success(result));
         } catch (ResponseStatusException e) {
-            if (e.getStatus() == HttpStatus.CONFLICT) {
+            if (e.getStatusCode() == HttpStatus.CONFLICT) {
                 // 既に実行中の場合は409 Conflictを返す
                 logger.warn("バッチジョブは既に実行中です: {}", e.getReason());
                 return ResponseEntity.status(HttpStatus.CONFLICT)
                         .body(ApiResponseDto.error("BATCH_ALREADY_RUNNING", "指定されたバッチジョブは既に実行中です"));
             } else {
                 logger.warn("バッチジョブの実行中にエラーが発生しました: {}", e.getReason());
-                return ResponseEntity.status(e.getStatus())
+                return ResponseEntity.status(e.getStatusCode())
                         .body(ApiResponseDto.error("BATCH_EXECUTION_ERROR", e.getReason()));
             }
         } catch (Exception e) {
@@ -150,7 +151,7 @@ public class BatchRestController {
             return ResponseEntity.ok(ApiResponseDto.success(updatedJob));
         } catch (ResponseStatusException e) {
             logger.warn("バッチジョブのステータス変更中にエラーが発生しました: {}", e.getReason());
-            return ResponseEntity.status(e.getStatus())
+            return ResponseEntity.status(e.getStatusCode())
                     .body(ApiResponseDto.error("BATCH_STATUS_ERROR", e.getReason()));
         } catch (Exception e) {
             logger.error("バッチジョブのステータス変更中にエラーが発生しました: {}", e.getMessage(), e);
@@ -206,7 +207,7 @@ public class BatchRestController {
             return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponseDto.success(createdSchedule));
         } catch (ResponseStatusException e) {
             logger.warn("バッチスケジュールの登録中にエラーが発生しました: {}", e.getReason());
-            return ResponseEntity.status(e.getStatus())
+            return ResponseEntity.status(e.getStatusCode())
                     .body(ApiResponseDto.error("BATCH_SCHEDULE_ERROR", e.getReason()));
         } catch (Exception e) {
             logger.error("バッチスケジュールの登録中にエラーが発生しました: {}", e.getMessage(), e);
@@ -233,7 +234,7 @@ public class BatchRestController {
             return ResponseEntity.ok(ApiResponseDto.success(updatedSchedule));
         } catch (ResponseStatusException e) {
             logger.warn("バッチスケジュールの更新中にエラーが発生しました: {}", e.getReason());
-            return ResponseEntity.status(e.getStatus())
+            return ResponseEntity.status(e.getStatusCode())
                     .body(ApiResponseDto.error("BATCH_SCHEDULE_ERROR", e.getReason()));
         } catch (Exception e) {
             logger.error("バッチスケジュールの更新中にエラーが発生しました: {}", e.getMessage(), e);
@@ -263,7 +264,7 @@ public class BatchRestController {
             }
         } catch (ResponseStatusException e) {
             logger.warn("バッチスケジュールの削除中にエラーが発生しました: {}", e.getReason());
-            return ResponseEntity.status(e.getStatus())
+            return ResponseEntity.status(e.getStatusCode())
                     .body(ApiResponseDto.error("BATCH_SCHEDULE_ERROR", e.getReason()));
         } catch (Exception e) {
             logger.error("バッチスケジュールの削除中にエラーが発生しました: {}", e.getMessage(), e);
@@ -300,7 +301,7 @@ public class BatchRestController {
             return ResponseEntity.ok(ApiResponseDto.success(response));
         } catch (ResponseStatusException e) {
             logger.warn("バッチ実行履歴の取得中にエラーが発生しました: {}", e.getReason());
-            return ResponseEntity.status(e.getStatus())
+            return ResponseEntity.status(e.getStatusCode())
                     .body(ApiResponseDto.error("BATCH_HISTORY_ERROR", e.getReason()));
         } catch (Exception e) {
             logger.error("バッチ実行履歴の取得中にエラーが発生しました: {}", e.getMessage(), e);
@@ -319,7 +320,7 @@ public class BatchRestController {
             return ResponseEntity.ok(ApiResponseDto.success(historyItem));
         } catch (ResponseStatusException e) {
             logger.warn("バッチ実行履歴の取得中にエラーが発生しました: {}", e.getReason());
-            return ResponseEntity.status(e.getStatus())
+            return ResponseEntity.status(e.getStatusCode())
                     .body(ApiResponseDto.error("BATCH_HISTORY_ERROR", e.getReason()));
         } catch (Exception e) {
             logger.error("バッチ実行履歴の取得中にエラーが発生しました: {}", e.getMessage(), e);
