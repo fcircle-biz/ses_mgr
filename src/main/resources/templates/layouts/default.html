@@ -2,7 +2,7 @@
 <html lang="ja"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
+<head th:fragment="default(title, content, links, scripts)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:replace="${title}">SES業務システム</title>
@@ -33,7 +33,7 @@
                         <button class="btn btn-dark position-relative" type="button" id="notificationDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <i class="bi bi-bell"></i>
                             <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
-                                  th:if="${notificationCount > 0}" th:text="${notificationCount}">
+                                  th:if="${notificationCount != null && notificationCount > 0}" th:text="${notificationCount}">
                                 0
                                 <span class="visually-hidden">未読通知</span>
                             </span>
@@ -41,11 +41,8 @@
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationDropdown">
                             <li><h6 class="dropdown-header" th:text="|未読通知 (${notificationCount ?: 0})|">未読通知 (0)</h6></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li th:if="${notifications == null || notifications.isEmpty()}">
+                            <li>
                                 <span class="dropdown-item text-muted">通知はありません</span>
-                            </li>
-                            <li th:each="notification : ${notifications}">
-                                <a class="dropdown-item" th:href="${notification.url}" th:text="${notification.message}">通知メッセージ</a>
                             </li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item text-primary" th:href="@{/notifications}">全ての通知を見る</a></li>
@@ -55,9 +52,9 @@
                         <button class="btn btn-dark dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                             <span class="avatar-circle bg-primary text-white me-2" 
                                   th:if="${currentUser != null}">
-                                <span th:text="${#strings.substring(currentUser.fullName, 0, 1)}">U</span>
+                                <span th:text="${#strings.substring(currentUser.name, 0, 1)}">U</span>
                             </span>
-                            <span th:text="${currentUser != null ? currentUser.fullName : 'ゲスト'}">ユーザー名</span>
+                            <span th:text="${currentUser != null ? currentUser.name : 'ゲスト'}">ユーザー名</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li><a class="dropdown-item" th:href="@{/profile}"><i class="bi bi-person me-2"></i>プロフィール</a></li>
@@ -203,7 +200,10 @@
 
         <!-- Main Content -->
         <main class="flex-grow-1 p-4">
-            <th:block th:replace="${content}" />
+            <th:block th:if="${content == null}">
+                <p>コンテンツがありません</p>
+            </th:block>
+            <th:block th:if="${content != null}" th:replace="${content}"></th:block>
         </main>
     </div>
     
@@ -223,5 +223,7 @@
     
     <!-- Additional Scripts -->
     <th:block th:replace="${scripts}" />
+    
+    <!-- Main Content (Removed from here as it's now handled in the main tag) -->
 </body>
 </html>
