@@ -10,7 +10,7 @@ import com.ses_mgr.admin.repository.AccessLogRepository;
 import com.ses_mgr.admin.repository.AuditLogRepository;
 import com.ses_mgr.admin.repository.ErrorLogRepository;
 import com.ses_mgr.admin.repository.SystemLogRepository;
-import com.ses_mgr.admin.service.LogManagementService;
+import com.ses_mgr.admin.service.LogService;
 import com.ses_mgr.common.exception.ResourceAlreadyExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,12 +43,12 @@ import java.util.stream.Collectors;
 
 /**
  * ログ管理サービス実装クラス
- * Log management service implementation
+ * Log service implementation
  */
 @Service
-public class LogManagementServiceImpl implements LogManagementService {
+public class LogServiceImpl implements LogService {
 
-    private static final Logger logger = LoggerFactory.getLogger(LogManagementServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(LogServiceImpl.class);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
     private static final Map<String, LogExportResponseDto> exportCache = new ConcurrentHashMap<>();
 
@@ -68,7 +68,7 @@ public class LogManagementServiceImpl implements LogManagementService {
     private int tokenValidityMinutes;
 
     @Autowired
-    public LogManagementServiceImpl(
+    public LogServiceImpl(
             SystemLogRepository systemLogRepository,
             AuditLogRepository auditLogRepository,
             ErrorLogRepository errorLogRepository,

@@ -11,9 +11,9 @@ import java.util.List;
 
 /**
  * ログ管理サービスインターフェース
- * Log management service interface
+ * Log service interface
  */
-public interface LogManagementService {
+public interface LogService {
 
     /**
      * システムログを取得

@@ -10,7 +10,7 @@ import com.ses_mgr.admin.repository.AccessLogRepository;
 import com.ses_mgr.admin.repository.AuditLogRepository;
 import com.ses_mgr.admin.repository.ErrorLogRepository;
 import com.ses_mgr.admin.repository.SystemLogRepository;
-import com.ses_mgr.admin.service.impl.LogManagementServiceImpl;
+import com.ses_mgr.admin.service.impl.LogServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,7 +34,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class LogManagementServiceTest {
+public class LogServiceTest {
 
     @Mock
     private SystemLogRepository systemLogRepository;
@@ -51,18 +51,18 @@ public class LogManagementServiceTest {
     @Mock
     private ObjectMapper objectMapper;
 
-    private LogManagementService logManagementService;
+    private LogService logService;
     private LocalDateTime testTime;
 
     @BeforeEach
     public void setup() {
-        logManagementService = new LogManagementServiceImpl(
+        logService = new LogServiceImpl(
                 systemLogRepository, auditLogRepository, errorLogRepository, accessLogRepository, objectMapper);
         testTime = LocalDateTime.now();
         
-        ReflectionTestUtils.setField(logManagementService, "exportPath", "/tmp/logs/export");
-        ReflectionTestUtils.setField(logManagementService, "maxExportRecords", 100000);
-        ReflectionTestUtils.setField(logManagementService, "tokenValidityMinutes", 30);
+        ReflectionTestUtils.setField(logService, "exportPath", "/tmp/logs/export");
+        ReflectionTestUtils.setField(logService, "maxExportRecords", 100000);
+        ReflectionTestUtils.setField(logService, "tokenValidityMinutes", 30);
     }
 
     @Test
@@ -87,7 +87,7 @@ public class LogManagementServiceTest {
                 .thenReturn(new PageImpl<>(systemLogs, pageable, 1));
 
         // Act
-        Page<SystemLogDto> result = logManagementService.getSystemLogs(
+        Page<SystemLogDto> result = logService.getSystemLogs(
                 from, to, null, null, null, pageable);
 
         // Assert
@@ -124,7 +124,7 @@ public class LogManagementServiceTest {
                 .thenReturn(new PageImpl<>(auditLogs, pageable, 1));
 
         // Act
-        Page<AuditLogDto> result = logManagementService.getAuditLogs(
+        Page<AuditLogDto> result = logService.getAuditLogs(
                 from, to, null, null, null, null, null, pageable);
 
         // Assert
@@ -162,7 +162,7 @@ public class LogManagementServiceTest {
                 .thenReturn(new PageImpl<>(errorLogs, pageable, 1));
 
         // Act
-        Page<ErrorLogDto> result = logManagementService.getErrorLogs(
+        Page<ErrorLogDto> result = logService.getErrorLogs(
                 from, to, null, null, null, null, pageable);
 
         // Assert
@@ -199,7 +199,7 @@ public class LogManagementServiceTest {
                 .thenReturn(new PageImpl<>(accessLogs, pageable, 1));
 
         // Act
-        Page<AccessLogDto> result = logManagementService.getAccessLogs(
+        Page<AccessLogDto> result = logService.getAccessLogs(
                 from, to, null, null, null, null, null, pageable);
 
         // Assert
@@ -261,7 +261,7 @@ public class LogManagementServiceTest {
                 .thenReturn(accessLogLevels);
 
         // Act
-        LogStatisticsResponseDto result = logManagementService.getLogStatistics(request);
+        LogStatisticsResponseDto result = logService.getLogStatistics(request);
 
         // Assert
         assertNotNull(result);
@@ -308,7 +308,7 @@ public class LogManagementServiceTest {
                 .thenReturn(150L);
 
         // Act
-        LogExportResponseDto result = logManagementService.exportLogs(request);
+        LogExportResponseDto result = logService.exportLogs(request);
 
         // Assert
         assertNotNull(result);
