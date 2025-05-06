@@ -151,7 +151,7 @@ public class FileEntity {
     /**
      * メタデータ (JSON形式)
      */
-    @Column(name = "metadata", columnDefinition = "JSON")
+    @Column(name = "metadata", columnDefinition = "JSONB")
     private String metadata;
 
     /**

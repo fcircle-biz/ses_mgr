@@ -97,15 +97,15 @@
                 <form id="login-form" th:action="@{/login}" method="post" novalidate>
                     <!-- ユーザーID入力フィールド -->
                     <div class="form-floating mb-1">
-                        <input type="text" class="form-control" id="username" name="username" 
+                        <input type="text" class="form-control" id="loginId" name="loginId" 
                                placeholder="ユーザーID" required 
-                               pattern="[A-Za-z0-9]{8,20}"
+                               pattern="[A-Za-z0-9]{3,20}"
                                autocomplete="username"
-                               th:attr="data-bs-toggle='tooltip', data-bs-placement='left', title='半角英数字で8〜20文字で入力してください'">
-                        <label for="username">ユーザーID</label>
+                               th:attr="data-bs-toggle='tooltip', data-bs-placement='left', title='半角英数字で3〜20文字で入力してください'">
+                        <label for="loginId">ユーザーID</label>
                     </div>
-                    <div class="validation-error d-none" id="username-error">
-                        <i class="bi bi-info-circle me-1"></i>半角英数字で8〜20文字で入力してください
+                    <div class="validation-error d-none" id="loginId-error">
+                        <i class="bi bi-info-circle me-1"></i>半角英数字で3〜20文字で入力してください
                     </div>
                     
                     <!-- パスワード入力フィールド -->
@@ -196,9 +196,9 @@
             
             // クライアントサイドバリデーション
             const loginForm = document.getElementById('login-form');
-            const username = document.getElementById('username');
+            const loginId = document.getElementById('loginId');
             const password = document.getElementById('password');
-            const usernameError = document.getElementById('username-error');
+            const loginIdError = document.getElementById('loginId-error');
             const passwordError = document.getElementById('password-error');
             const loginButton = document.getElementById('login-button');
             
@@ -206,11 +206,11 @@
                 let isValid = true;
                 
                 // ユーザーID検証
-                if (!username.validity.valid) {
-                    usernameError.classList.remove('d-none');
+                if (!loginId.validity.valid) {
+                    loginIdError.classList.remove('d-none');
                     isValid = false;
                 } else {
-                    usernameError.classList.add('d-none');
+                    loginIdError.classList.add('d-none');
                 }
                 
                 // パスワード検証
@@ -236,8 +236,8 @@
             });
             
             // フォーカス時にエラーメッセージを非表示
-            username.addEventListener('focus', function() {
-                usernameError.classList.add('d-none');
+            loginId.addEventListener('focus', function() {
+                loginIdError.classList.add('d-none');
             });
             
             password.addEventListener('focus', function() {

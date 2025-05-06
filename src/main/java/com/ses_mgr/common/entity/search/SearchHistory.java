@@ -34,10 +34,10 @@ public class SearchHistory {
     @Column(name = "query", nullable = false)
     private String query;
 
-    @Column(name = "resource_types", columnDefinition = "JSON")
+    @Column(name = "resource_types", columnDefinition = "JSONB")
     private String resourceTypes;
 
-    @Column(name = "filters", columnDefinition = "JSON")
+    @Column(name = "filters", columnDefinition = "JSONB")
     private String filters;
 
     @Column(name = "sort_field")

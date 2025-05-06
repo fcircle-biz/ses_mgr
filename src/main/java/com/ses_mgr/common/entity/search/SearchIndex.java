@@ -41,7 +41,7 @@ public class SearchIndex {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    @Column(name = "attributes", columnDefinition = "JSON")
+    @Column(name = "attributes", columnDefinition = "JSONB")
     private String attributes;
 
     @Column(name = "url")
@@ -50,7 +50,7 @@ public class SearchIndex {
     @Column(name = "is_public")
     private Boolean isPublic;
 
-    @Column(name = "access_roles", columnDefinition = "JSON")
+    @Column(name = "access_roles", columnDefinition = "JSONB")
     private String accessRoles;
 
     @Column(name = "created_by", columnDefinition = "UUID")

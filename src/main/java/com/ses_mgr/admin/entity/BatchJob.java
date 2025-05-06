@@ -46,10 +46,10 @@ public class BatchJob {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    @Column(name = "created_by", columnDefinition = "BINARY(16)")
+    @Column(name = "created_by", columnDefinition = "UUID")
     private UUID createdBy;
 
-    @Column(name = "updated_by", columnDefinition = "BINARY(16)")
+    @Column(name = "updated_by", columnDefinition = "UUID")
     private UUID updatedBy;
 
     @PrePersist
