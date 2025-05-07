@@ -132,7 +132,7 @@
             ここにシステム全体の構成図を挿入
         </div>
     </div>
-    <p>SES業務システムは、マイクロサービスアーキテクチャとクラウドネイティブ設計を採用し、以下のレイヤー構造で構成される。</p>
+    <p>SES業務システムは、モノリシックアーキテクチャを採用し、論理的に分離された機能モジュールを備えた以下のレイヤー構造で構成される。</p>
     
     <h4>3.1.1 アーキテクチャ概要</h4>
     <ul>
@@ -145,30 +145,27 @@
         </li>
         <li><strong>API層</strong>：外部インターフェース
             <ul>
-                <li>API Gateway</li>
-                <li>RESTful API</li>
+                <li>統合RESTful APIエンドポイント</li>
                 <li>GraphQL API（※将来拡張予定）</li>
             </ul>
         </li>
         <li><strong>アプリケーション層</strong>：業務ロジック
             <ul>
-                <li>ドメイン駆動設計に基づくマイクロサービス群</li>
-                <li>イベント駆動アーキテクチャ</li>
+                <li>ドメイン駆動設計に基づく論理的に分離されたモジュール群</li>
+                <li>Spring MVCベースのコントローラ層</li>
                 <li>ワークフロー管理</li>
             </ul>
         </li>
         <li><strong>データ層</strong>：データ管理
             <ul>
-                <li>リレーショナルデータベース（PostgreSQL）</li>
-                <li>NoSQLデータベース（特定用途向け）</li>
+                <li>統合リレーショナルデータベース（PostgreSQL）</li>
                 <li>キャッシュ（Redis）</li>
-                <li>メッセージキュー（RabbitMQ）</li>
                 <li>オブジェクトストレージ（MinIO/S3互換）</li>
             </ul>
         </li>
         <li><strong>インフラストラクチャ層</strong>：基盤
             <ul>
-                <li>Kubernetesによるコンテナオーケストレーション</li>
+                <li>アプリケーションサーバー（Tomcat）</li>
                 <li>クラウドインフラ（AWS/Azure/GCP等）</li>
                 <li>CI/CDパイプライン</li>
                 <li>監視・ロギング基盤</li>
@@ -195,18 +192,18 @@
         </tr>
         <tr>
             <td>データベース</td>
-            <td>PostgreSQL 14, Redis, MongoDB</td>
-            <td>高信頼性、拡張性、特定ユースケースへの最適化</td>
+            <td>PostgreSQL 14, Redis</td>
+            <td>高信頼性、統合データモデル、キャッシング</td>
         </tr>
         <tr>
             <td>インフラ</td>
-            <td>Kubernetes, Docker, Terraform</td>
-            <td>コンテナ化、スケーラビリティ、IaC（Infrastructure as Code）</td>
+            <td>Application Server (Tomcat), Terraform</td>
+            <td>安定性、パフォーマンス、IaC（Infrastructure as Code）</td>
         </tr>
         <tr>
             <td>CI/CD</td>
-            <td>GitLab CI, ArgoCD</td>
-            <td>自動化、継続的デリバリー、GitOpsの実現</td>
+            <td>GitLab CI</td>
+            <td>自動化、継続的デリバリー</td>
         </tr>
         <tr>
             <td>監視・ログ</td>
@@ -216,7 +213,7 @@
     </table>
 
     <h3 id="system-modules">3.2 モジュール構成</h3>
-    <p>SES業務システムは、機能ごとに以下のモジュールに分割される。各モジュールは独立したマイクロサービスとして実装される。</p>
+    <p>SES業務システムは、機能ごとに以下のモジュールに論理的に分割される。各モジュールはモノリシックアプリケーション内の論理的な境界を持つコンポーネントとして実装される。</p>
 
     <h4>3.2.1 業務モジュール</h4>
     <table>
@@ -306,11 +303,11 @@
     </table>
     
     <h4>3.2.3 モジュール間の連携</h4>
-    <p>モジュール間の連携は以下の方法で実現する：</p>
+    <p>モノリシックアーキテクチャ内のモジュール間連携は以下の方法で実現する：</p>
     <ul>
-        <li><strong>サービス呼び出し</strong>: 依存性注入（DI）を用いたサービス間の直接呼び出し</li>
-        <li><strong>イベント駆動</strong>: Spring ApplicationEvent を利用したイベント通知</li>
-        <li><strong>共有データベース</strong>: モジュール間で共有するエンティティの適切な設計</li>
+        <li><strong>直接メソッド呼び出し</strong>: 依存性注入（DI）を用いたモジュール間の直接呼び出し</li>
+        <li><strong>内部イベント通知</strong>: Spring ApplicationEvent を利用したアプリケーション内イベント通知</li>
+        <li><strong>統合データモデル</strong>: 適切に設計されたデータモデルによるモジュール間の情報共有</li>
     </ul>
     
     <h4>3.2.4 共通コンポーネント</h4>
@@ -324,7 +321,7 @@
     </ul>
 
     <h3 id="subsystems">3.3 サブシステム構成</h3>
-    <p>SES業務システムは、以下の主要サブシステムから構成される：</p>
+    <p>SES業務システムは、モノリシックアーキテクチャを採用した以下の主要サブシステムから構成される：</p>
     
     <h4>3.3.1 フロントエンドサブシステム</h4>
     <ul>
@@ -335,30 +332,30 @@
     
     <h4>3.3.2 バックエンドサブシステム</h4>
     <ul>
-        <li><strong>APIサーバー</strong>: RESTful APIを提供するSpring Bootアプリケーション</li>
-        <li><strong>認証サーバー</strong>: OAuth2.0/OpenID Connectベースの認証基盤</li>
-        <li><strong>バッチ処理サーバー</strong>: 定期実行ジョブを管理するSpring Batchアプリケーション</li>
+        <li><strong>統合Webアプリケーション</strong>: Spring Bootで実装された単一のモノリシックアプリケーション</li>
+        <li><strong>認証モジュール</strong>: アプリケーション内部の認証・認可コンポーネント</li>
+        <li><strong>バッチ処理モジュール</strong>: Spring Batchベースの定期実行ジョブコンポーネント</li>
     </ul>
     
     <h4>3.3.3 データストアサブシステム</h4>
     <ul>
-        <li><strong>リレーショナルデータベース</strong>: PostgreSQLクラスタ（マスター/スレーブ構成）</li>
-        <li><strong>キャッシュサーバー</strong>: Redisクラスタ（Sentinelによる高可用性確保）</li>
+        <li><strong>統合データベース</strong>: 単一のPostgreSQL（マスター/スレーブ構成可）</li>
+        <li><strong>キャッシュサーバー</strong>: Redis（アプリケーションキャッシュ）</li>
         <li><strong>オブジェクトストレージ</strong>: MinIO（S3互換ストレージ）</li>
     </ul>
     
     <h4>3.3.4 インテグレーションサブシステム</h4>
     <ul>
-        <li><strong>メッセージブローカー</strong>: RabbitMQによる非同期メッセージング</li>
-        <li><strong>API Gateway</strong>: Spring Cloud Gatewayによるルーティングと認証</li>
-        <li><strong>外部連携アダプター</strong>: 外部システムとの連携インターフェース</li>
+        <li><strong>外部連携コンポーネント</strong>: 外部システムとの連携モジュール</li>
+        <li><strong>メール配信サービス</strong>: 通知メール送信コンポーネント</li>
+        <li><strong>ファイル管理サービス</strong>: ドキュメント・添付ファイル管理コンポーネント</li>
     </ul>
     
     <h4>3.3.5 運用管理サブシステム</h4>
     <ul>
         <li><strong>監視サーバー</strong>: Prometheus/Grafanaによる監視・可視化</li>
-        <li><strong>ログ管理サーバー</strong>: ELK Stackによるログ収集・分析</li>
-        <li><strong>CI/CDパイプライン</strong>: GitLab CI/CDによる継続的インテグレーション・デリバリー</li>
+        <li><strong>ログ管理</strong>: 集中ログ管理システム</li>
+        <li><strong>CI/CDパイプライン</strong>: GitLab CIによる継続的インテグレーション・デリバリー</li>
     </ul>
 
     <div class="navigation">
