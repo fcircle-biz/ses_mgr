@@ -754,28 +754,23 @@
 
     <ul>
         <li><strong>フレームワーク</strong>: Spring Boot + Spring Security</li>
-        <li><strong>ORM</strong>: Spring Data JPA</li>
+        <li><strong>データアクセス</strong>: Spring Data JDBC</li>
         <li><strong>UI</strong>: Thymeleaf + Bootstrap</li>
     </ul>
 
     <h3>6.2 データモデル設計</h3>
 
-    <p>以下のエンティティを実装する：</p>
+    <p>以下のエンティティを実装する。Spring Data JDBCを使用するため、JPAのアノテーションは使用せず、リレーションシップは明示的に管理する：</p>
 
     <pre><code>// Userエンティティ
-@Entity
-@Table(name = "users")
 public class User {
     @Id
     private UUID id;
     
-    @Column(unique = true, nullable = false)
     private String userId;
     
-    @Column(unique = true, nullable = false)
     private String email;
     
-    @Column(nullable = false)
     private String name;
     
     private String department;
@@ -784,12 +779,10 @@ public class User {
     
     private String phone;
     
-    @Column(nullable = false)
     private String passwordHash;
     
     private boolean mfaEnabled;
     
-    @Enumerated(EnumType.STRING)
     private UserStatus status;
     
     private LocalDateTime lastLoginAt;
@@ -798,125 +791,87 @@ public class User {
     
     private LocalDateTime passwordExpiresAt;
     
-    @CreationTimestamp
     private LocalDateTime createdAt;
     
-    @UpdateTimestamp
     private LocalDateTime updatedAt;
     
-    @ManyToMany
-    @JoinTable(
-        name = "user_roles",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    private Set<Role> roles = new HashSet<>();
+    // Spring Data JDBCではリレーションシップは自動的に管理されないため、
+    // ロールIDのみを保持する必要はなく、ロール取得は別のクエリで行う
 }
 
 // Roleエンティティ
-@Entity
-@Table(name = "roles")
 public class Role {
     @Id
     private UUID id;
     
-    @Column(unique = true, nullable = false)
     private String roleId;
     
-    @Column(nullable = false)
     private String name;
     
     private String description;
     
-    @Enumerated(EnumType.STRING)
     private RoleType roleType;
     
-    @CreationTimestamp
     private LocalDateTime createdAt;
     
-    @UpdateTimestamp
     private LocalDateTime updatedAt;
     
-    @ManyToMany(mappedBy = "roles")
-    private Set<User> users = new HashSet<>();
-    
-    @OneToMany(mappedBy = "role", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<RolePermission> rolePermissions = new HashSet<>();
+    // Spring Data JDBCでは多対多リレーションシップは明示的に管理する必要がある
+    // ユーザーやパーミッションとの関連は別テーブルで管理
 }
 
 // Permissionエンティティ
-@Entity
-@Table(name = "permissions")
 public class Permission {
     @Id
     private UUID id;
     
-    @Column(unique = true, nullable = false)
     private String permissionId;
     
-    @Column(nullable = false)
     private String name;
     
     private String description;
     
-    @Column(nullable = false)
     private String resourceType;
     
-    @Column(nullable = false)
     private String resourceName;
     
-    @Column(nullable = false)
     private String action;
     
-    @OneToMany(mappedBy = "permission", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<RolePermission> rolePermissions = new HashSet<>();
+    // Spring Data JDBCではOneToManyリレーションシップは明示的に管理する必要がある
 }
 
 // RolePermissionエンティティ（関連テーブル）
-@Entity
-@Table(name = "role_permissions")
 public class RolePermission {
-    @EmbeddedId
-    private RolePermissionId id;
+    // Spring Data JDBCでは複合キーはAggregateのIDとして扱われる
+    private UUID roleId;
     
-    @ManyToOne
-    @MapsId("roleId")
-    private Role role;
+    private UUID permissionId;
     
-    @ManyToOne
-    @MapsId("permissionId")
-    private Permission permission;
-    
-    @Enumerated(EnumType.STRING)
     private AccessLevel accessLevel;
+    
+    // Spring Data JDBCでは複合キーを単純な構造で表現
+    // コンストラクタやアクセッサなどは省略
 }
 
 // UserRoleHistoryエンティティ（監査用）
-@Entity
-@Table(name = "user_role_history")
 public class UserRoleHistory {
     @Id
     private UUID id;
     
-    @Column(nullable = false)
     private UUID userId;
     
-    @Column(nullable = false)
     private UUID roleId;
     
-    @Enumerated(EnumType.STRING)
     private OperationType operationType;
     
-    @Column(nullable = false)
     private UUID performedBy;
     
-    @CreationTimestamp
     private LocalDateTime performedAt;
 }</code></pre>
 
     <h3>6.3 サービス実装</h3>
 
-    <p>以下の主要サービスを実装する：</p>
+    <p>以下の主要サービスを実装する。Spring Data JDBCを使用するため、エンティティ間のリレーションシップは明示的に管理する必要がある：</p>
 
     <pre><code>// UserServiceインターフェース
 public interface UserService {
@@ -928,6 +883,10 @@ public interface UserService {
     void resetPassword(UUID id);
     void unlockAccount(UUID id);
     void bulkUpdateStatus(List<UUID> ids, UserStatus status);
+    
+    // Spring Data JDBCを使用するため、以下のユーザーとロールの関連を扱うメソッドを追加
+    List<RoleDTO> findRolesByUserId(UUID userId);
+    void assignRolesToUser(UUID userId, List<UUID> roleIds);
 }
 
 // RoleServiceインターフェース
@@ -949,12 +908,17 @@ public interface PermissionService {
 }
 
 // UserRoleServiceインターフェース
+// Spring Data JDBCを使用する場合は、別途関連テーブルを管理するためのリポジトリを作成する
 public interface UserRoleService {
     List<RoleDTO> findRolesByUserId(UUID userId);
     void updateUserRoles(UUID userId, List<UUID> roleIds);
     void assignRoleToUser(UUID userId, UUID roleId);
     void removeRoleFromUser(UUID userId, UUID roleId);
     List<UserDTO> findUsersByRoleId(UUID roleId, Pageable pageable);
+    
+    // Spring Data JDBCの場合、トランザクション管理が重要なため以下のメソッドを追加
+    void bulkAssignRolesToUsers(List<UUID> userIds, List<UUID> roleIds);
+    void bulkRemoveRolesFromUsers(List<UUID> userIds, List<UUID> roleIds);
 }</code></pre>
 
     <h2>7. セキュリティ対策</h2>

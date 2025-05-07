@@ -369,12 +369,13 @@ ON notifications(recipient_id, type);</code></pre>
     <p>大量の通知を効率的に取得するためのページング処理：</p>
 
     <pre><code>@Repository
-public interface NotificationRepository extends JpaRepository<Notification, UUID> {
-
-    @Query("SELECT n FROM Notification n WHERE n.recipient.username = :username " +
+public interface NotificationRepository extends PagingAndSortingRepository<Notification, UUID> {
+    // Spring Data JDBCでは@QueryアノテーションでJPAからSQLに変更
+    @Query("SELECT * FROM notifications n JOIN users u ON n.recipient_id = u.id " +
+           "WHERE u.username = :username " +
            "AND (:type IS NULL OR n.type = :type) " +
            "AND (:read IS NULL OR n.read = :read) " +
-           "ORDER BY n.createdAt DESC")
+           "ORDER BY n.created_at DESC")
     Page<Notification> findByRecipientUsername(
         @Param("username") String username,
         @Param("type") NotificationType type,
@@ -383,9 +384,28 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     );
     
     // カウントクエリの最適化
-    @Query("SELECT COUNT(n) FROM Notification n WHERE n.recipient.username = :username " +
-           "AND n.read = false")
+    @Query("SELECT COUNT(*) FROM notifications n JOIN users u ON n.recipient_id = u.id " +
+           "WHERE u.username = :username AND n.read = false")
     long countByRecipientUsernameAndReadFalse(@Param("username") String username);
+    
+    // Spring Data JDBCではRelational的なクエリが必要
+    @Query("SELECT n.* FROM notifications n " +
+           "JOIN users u ON n.recipient_id = u.id " +
+           "WHERE u.username = :username AND n.type = :type AND n.read = true " +
+           "AND n.created_at < :cutoffDate")
+    List<Notification> findByRecipientAndTypeAndReadIsTrueAndCreatedAtBefore(
+        @Param("username") String username,
+        @Param("type") NotificationType type,
+        @Param("cutoffDate") LocalDateTime cutoffDate);
+        
+    @Query("SELECT n.* FROM notifications n " +
+           "JOIN users u ON n.recipient_id = u.id " +
+           "WHERE u.username = :username AND n.type = :type AND n.read = false " +
+           "AND n.created_at < :cutoffDate")
+    List<Notification> findByRecipientAndTypeAndReadIsFalseAndCreatedAtBefore(
+        @Param("username") String username,
+        @Param("type") NotificationType type,
+        @Param("cutoffDate") LocalDateTime cutoffDate);
 }</code></pre>
 
     <h4>9.3.3 読み取り/書き込み分離</h4>
@@ -393,23 +413,39 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     <p>高負荷環境での最適化として読み取り/書き込み分離パターンを適用：</p>
 
     <pre><code>@Configuration
-@EnableJpaRepositories(
-    basePackages = "com.example.repository.read",
-    entityManagerFactoryRef = "readEntityManagerFactory",
-    transactionManagerRef = "readTransactionManager"
+@EnableJdbcRepositories(
+    basePackages = "com.example.repository.read"
 )
 public class ReadRepositoryConfig {
-    // 読み取り専用リポジトリの設定
+    // Spring Data JDBC用の読み取り専用リポジトリ設定
+    @Bean
+    public DataSource readDataSource() {
+        // 読み取り専用DataSourceの設定
+        return new HikariDataSource(/* 設定詳細 */);
+    }
+    
+    @Bean
+    public JdbcTemplate readJdbcTemplate(DataSource readDataSource) {
+        return new JdbcTemplate(readDataSource);
+    }
 }
 
 @Configuration
-@EnableJpaRepositories(
-    basePackages = "com.example.repository.write",
-    entityManagerFactoryRef = "writeEntityManagerFactory",
-    transactionManagerRef = "writeTransactionManager"
+@EnableJdbcRepositories(
+    basePackages = "com.example.repository.write"
 )
 public class WriteRepositoryConfig {
-    // 書き込み用リポジトリの設定
+    // Spring Data JDBC用の書き込み用リポジトリ設定
+    @Bean
+    public DataSource writeDataSource() {
+        // 書き込み用DataSourceの設定
+        return new HikariDataSource(/* 設定詳細 */);
+    }
+    
+    @Bean
+    public JdbcTemplate writeJdbcTemplate(DataSource writeDataSource) {
+        return new JdbcTemplate(writeDataSource);
+    }
 }</code></pre>
 
     <h2>10. 運用設計</h2>
