@@ -52,3 +52,6 @@ application-local.properties
 
 ### Docker Volumes ###
 postgres_data/
+
+### Obsidian ###
+.obsidian/
