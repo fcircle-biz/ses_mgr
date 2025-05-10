@@ -5,7 +5,7 @@
 本プロジェクトでは、REST API仕様の詳細な定義にOpenAPI（Swagger）形式を採用しています。OpenAPI仕様書は以下のディレクトリに格納されています：
 
 ```
-/docs/02_詳細設計/04_API/OpenAPI/
+/docs/03_詳細設計/04_API/OpenAPI/
 ```
 
 ### 主要ファイル
@@ -95,4 +95,4 @@ APIレスポンスの統一形式：
 ## 4. リンク
 
 - [基本設計: REST API設計概要](/docs/02_基本設計/IF設計/REST_API設計_概要.html)
-- [OpenAPI定義ファイル](/docs/02_詳細設計/04_API/OpenAPI/)
+- [OpenAPI定義ファイル](/docs/03_詳細設計/04_API/OpenAPI/)
