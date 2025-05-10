@@ -53,17 +53,13 @@
 
 ファイル操作の主要エントリポイント。他のモジュールはこのインターフェースを通じてファイル管理機能を利用します。
 
-```java
-public interface FileService {
-    FileMetadata uploadFile(InputStream content, String fileName, String contentType, 
-                         String moduleCode, String entityId, Map<String, String> attributes);
-    Optional<FileContent> downloadFile(String fileId);
-    void deleteFile(String fileId);
-    Optional<FileMetadata> getFileMetadata(String fileId);
-    List<FileMetadata> findFilesByEntityReference(String moduleCode, String entityId);
-    // その他のメソッド
-}
-```
+**FileService インターフェース**
+- uploadFile: ファイルをアップロードし、メタデータを返却
+- downloadFile: ファイルをダウンロード
+- deleteFile: ファイルを削除
+- getFileMetadata: ファイルのメタデータを取得
+- findFilesByEntityReference: エンティティに関連付けられたファイルを検索
+- その他の操作メソッド
 
 ### 2. REST API
 
@@ -83,17 +79,19 @@ public interface FileService {
 
 ### 1. 認証・認可サービス
 
-```java
-public interface AuthorizationService {
-    boolean hasPermission(String userId, String resourceType, String resourceId, String permission);
-}
-```
+**AuthorizationService インターフェース**
+- hasPermission: ユーザーがリソースに対して特定の権限を持っているかを確認
 
 ### 2. 監査ログサービス
 
-```java
-public interface AuditLogService {
-    void logAction(String userId, String action, String resourceType, 
-                  String resourceId, Map<String, Object> details);
-}
-```
+**AuditLogService インターフェース**
+- logAction: ユーザーのアクション（リソースタイプ、リソースID、詳細情報）を記録
+
+## 変更履歴
+
+| バージョン | 日付 | 変更者 | 変更内容 |
+|----------|------|--------|---------|
+| 0.1 | 2023-08-10 | 開発チーム | 初版作成 |
+| 0.2 | 2023-09-15 | 開発チーム | コンポーネント構成の更新 |
+| 0.3 | 2023-11-20 | 開発チーム | インターフェース定義の詳細化 |
+| 0.4 | 2025-05-10 | Claude | 実装コードを削除し、設計情報のみに修正 |
