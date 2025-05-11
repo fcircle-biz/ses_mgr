@@ -1,0 +1,584 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 銀行口座管理API
+  description: |
+    支払・請求に使用する銀行口座情報の管理に関するAPIです。
+  version: 1.0.0
+
+paths:
+  /billing/bank-accounts:
+    get:
+      tags:
+        - billing-bank-accounts
+      summary: 銀行口座一覧の取得
+      description: 銀行口座の一覧を取得します。
+      operationId: getBankAccounts
+      parameters:
+        - name: page
+          in: query
+          description: ページ番号（0始まり）
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: ページサイズ
+          schema:
+            type: integer
+            default: 20
+        - name: accountType
+          in: query
+          description: 口座種別
+          schema:
+            type: string
+            enum: [company, employee, partner, customer, vendor]
+        - name: sort
+          in: query
+          description: ソート項目
+          schema:
+            type: string
+            default: "bankName,accountName"
+      responses:
+        '200':
+          description: 銀行口座一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BankAccount'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+      security:
+        - bearerAuth: []
+    
+    post:
+      tags:
+        - billing-bank-accounts
+      summary: 銀行口座の新規登録
+      description: 新しい銀行口座を登録します。
+      operationId: createBankAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BankAccountCreate'
+      responses:
+        '201':
+          description: 銀行口座の登録に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BankAccount'
+                  message:
+                    type: string
+                    example: "銀行口座の登録が完了しました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+      security:
+        - bearerAuth: []
+
+  /billing/bank-accounts/{account_id}:
+    get:
+      tags:
+        - billing-bank-accounts
+      summary: 銀行口座の詳細取得
+      description: 特定の銀行口座の詳細情報を取得します。
+      operationId: getBankAccount
+      parameters:
+        - name: account_id
+          in: path
+          description: 銀行口座ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 銀行口座詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BankAccount'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+    
+    put:
+      tags:
+        - billing-bank-accounts
+      summary: 銀行口座の更新
+      description: 特定の銀行口座情報を更新します。
+      operationId: updateBankAccount
+      parameters:
+        - name: account_id
+          in: path
+          description: 銀行口座ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BankAccountUpdate'
+      responses:
+        '200':
+          description: 銀行口座の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/BankAccount'
+                  message:
+                    type: string
+                    example: "銀行口座の更新が完了しました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+    
+    delete:
+      tags:
+        - billing-bank-accounts
+      summary: 銀行口座の削除
+      description: 特定の銀行口座を削除します。
+      operationId: deleteBankAccount
+      parameters:
+        - name: account_id
+          in: path
+          description: 銀行口座ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 銀行口座の削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "銀行口座の削除が完了しました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 使用中のため削除不可
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+  /billing/bank-accounts/search:
+    post:
+      tags:
+        - billing-bank-accounts
+      summary: 銀行口座の検索
+      description: |
+        指定条件による銀行口座検索を行います。
+      operationId: searchBankAccounts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BankAccountSearchCriteria'
+      responses:
+        '200':
+          description: 検索結果の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BankAccount'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+      security:
+        - bearerAuth: []
+
+  /billing/bank-accounts/companies/{company_id}:
+    get:
+      tags:
+        - billing-bank-accounts
+      summary: 会社別の銀行口座一覧取得
+      description: 特定の会社に関連する銀行口座の一覧を取得します。
+      operationId: getBankAccountsByCompany
+      parameters:
+        - name: company_id
+          in: path
+          description: 会社ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          description: ページ番号（0始まり）
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: ページサイズ
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 会社別銀行口座一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BankAccount'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+
+  /billing/bank-accounts/engineers/{engineer_id}:
+    get:
+      tags:
+        - billing-bank-accounts
+      summary: 技術者別の銀行口座一覧取得
+      description: 特定の技術者に関連する銀行口座の一覧を取得します。
+      operationId: getBankAccountsByEngineer
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          description: ページ番号（0始まり）
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: ページサイズ
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: 技術者別銀行口座一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BankAccount'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    BankAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 銀行口座ID
+        accountType:
+          type: string
+          enum: [company, employee, partner, customer, vendor]
+          description: 口座種別
+        ownerId:
+          type: string
+          format: uuid
+          description: 所有者ID（会社ID、技術者ID等）
+        ownerName:
+          type: string
+          description: 所有者名
+        bankName:
+          type: string
+          description: 銀行名
+        bankCode:
+          type: string
+          description: 銀行コード
+        branchName:
+          type: string
+          description: 支店名
+        branchCode:
+          type: string
+          description: 支店コード
+        accountNumber:
+          type: string
+          description: 口座番号
+        accountName:
+          type: string
+          description: 口座名義
+        accountNameKana:
+          type: string
+          description: 口座名義（カナ）
+        accountType:
+          type: string
+          enum: [ordinary, checking, savings]
+          description: 口座種別（普通・当座・貯蓄）
+        currency:
+          type: string
+          description: 通貨
+          default: "JPY"
+        isDefault:
+          type: boolean
+          description: デフォルト口座かどうか
+        isActive:
+          type: boolean
+          description: 有効かどうか
+        notes:
+          type: string
+          description: 備考
+        createdAt:
+          type: string
+          format: date-time
+          description: 作成日時
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新日時
+      example:
+        id: "123e4567-e89b-12d3-a456-426614174300"
+        accountType: "company"
+        ownerId: "123e4567-e89b-12d3-a456-426614174001"
+        ownerName: "株式会社テスト"
+        bankName: "テスト銀行"
+        bankCode: "0001"
+        branchName: "本店"
+        branchCode: "001"
+        accountNumber: "1234567"
+        accountName: "カブシキカイシャ テスト"
+        accountNameKana: "カブシキカイシャ テスト"
+        accountType: "ordinary"
+        currency: "JPY"
+        isDefault: true
+        isActive: true
+        notes: "振込手数料は当社負担"
+        createdAt: "2023-04-01T10:00:00Z"
+        updatedAt: "2023-04-01T10:00:00Z"
+
+    BankAccountCreate:
+      type: object
+      required:
+        - accountType
+        - ownerId
+        - bankName
+        - branchName
+        - accountNumber
+        - accountName
+      properties:
+        accountType:
+          type: string
+          enum: [company, employee, partner, customer, vendor]
+          description: 口座種別
+        ownerId:
+          type: string
+          format: uuid
+          description: 所有者ID（会社ID、技術者ID等）
+        bankName:
+          type: string
+          description: 銀行名
+        bankCode:
+          type: string
+          description: 銀行コード
+        branchName:
+          type: string
+          description: 支店名
+        branchCode:
+          type: string
+          description: 支店コード
+        accountNumber:
+          type: string
+          description: 口座番号
+        accountName:
+          type: string
+          description: 口座名義
+        accountNameKana:
+          type: string
+          description: 口座名義（カナ）
+        accountType:
+          type: string
+          enum: [ordinary, checking, savings]
+          description: 口座種別（普通・当座・貯蓄）
+          default: "ordinary"
+        currency:
+          type: string
+          description: 通貨
+          default: "JPY"
+        isDefault:
+          type: boolean
+          description: デフォルト口座かどうか
+          default: false
+        isActive:
+          type: boolean
+          description: 有効かどうか
+          default: true
+        notes:
+          type: string
+          description: 備考
+
+    BankAccountUpdate:
+      type: object
+      properties:
+        bankName:
+          type: string
+          description: 銀行名
+        bankCode:
+          type: string
+          description: 銀行コード
+        branchName:
+          type: string
+          description: 支店名
+        branchCode:
+          type: string
+          description: 支店コード
+        accountNumber:
+          type: string
+          description: 口座番号
+        accountName:
+          type: string
+          description: 口座名義
+        accountNameKana:
+          type: string
+          description: 口座名義（カナ）
+        accountType:
+          type: string
+          enum: [ordinary, checking, savings]
+          description: 口座種別（普通・当座・貯蓄）
+        currency:
+          type: string
+          description: 通貨
+        isDefault:
+          type: boolean
+          description: デフォルト口座かどうか
+        isActive:
+          type: boolean
+          description: 有効かどうか
+        notes:
+          type: string
+          description: 備考
+
+    BankAccountSearchCriteria:
+      type: object
+      properties:
+        keyword:
+          type: string
+          description: キーワード検索（銀行名、支店名、口座名義など）
+        accountTypes:
+          type: array
+          description: 口座種別（複数指定可）
+          items:
+            type: string
+            enum: [company, employee, partner, customer, vendor]
+        ownerIds:
+          type: array
+          description: 所有者ID（複数指定可）
+          items:
+            type: string
+            format: uuid
+        bankNames:
+          type: array
+          description: 銀行名（複数指定可）
+          items:
+            type: string
+        isDefault:
+          type: boolean
+          description: デフォルト口座のみ
+        isActive:
+          type: boolean
+          description: 有効な口座のみ
+        page:
+          type: integer
+          description: ページ番号（0始まり）
+          default: 0
+        size:
+          type: integer
+          description: ページサイズ
+          default: 20
+        sort:
+          type: string
+          description: ソート条件
+          default: "bankName,branchName,accountName"
+      example:
+        accountTypes: ["company", "partner"]
+        isActive: true
+        sort: "bankName,asc"

@@ -1,0 +1,206 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 支払操作API
+  description: |
+    支払のPDF生成やエクスポートなどの操作に関するAPIです。
+  version: 1.0.0
+
+paths:
+  /billing/payments/{payment_id}/generate-pdf:
+    post:
+      tags:
+        - billing-payments
+      summary: 支払書PDF生成
+      description: |
+        支払書のPDFを生成します。
+      operationId: generatePaymentPdf
+      parameters:
+        - name: payment_id
+          in: path
+          description: 支払ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                templateId:
+                  type: string
+                  format: uuid
+                  description: 使用するテンプレートID（指定しない場合はデフォルトテンプレート）
+                options:
+                  type: object
+                  properties:
+                    includeCompanyLogo:
+                      type: boolean
+                      description: 会社ロゴを含める
+                      default: true
+                    includeBankInfo:
+                      type: boolean
+                      description: 銀行口座情報を含める
+                      default: true
+                    includeDetailedItems:
+                      type: boolean
+                      description: 詳細項目を含める
+                      default: true
+                    includeApprovalHistory:
+                      type: boolean
+                      description: 承認履歴を含める
+                      default: false
+      responses:
+        '200':
+          description: PDF生成に成功
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      fileId:
+                        type: string
+                        format: uuid
+                        description: 生成されたファイルID
+                      downloadUrl:
+                        type: string
+                        format: uri
+                        description: ダウンロードURL
+                      expiresAt:
+                        type: string
+                        format: date-time
+                        description: ダウンロードURL有効期限
+                  message:
+                    type: string
+                    example: "支払書PDFが生成されました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /billing/export-payments:
+    post:
+      tags:
+        - billing-payments
+      summary: 支払データのエクスポート
+      description: |
+        支払データをCSV/Excelとしてエクスポートします。
+      operationId: exportPayments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentExportRequest'
+      responses:
+        '200':
+          description: エクスポートに成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      fileId:
+                        type: string
+                        format: uuid
+                        description: 生成されたファイルID
+                      downloadUrl:
+                        type: string
+                        format: uri
+                        description: ダウンロードURL
+                      fileName:
+                        type: string
+                        description: ファイル名
+                      fileFormat:
+                        type: string
+                        enum: [csv, excel]
+                        description: ファイル形式
+                      expiresAt:
+                        type: string
+                        format: date-time
+                        description: ダウンロードURL有効期限
+                  message:
+                    type: string
+                    example: "支払データのエクスポートが完了しました。"
+            text/csv:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    PaymentExportRequest:
+      type: object
+      required:
+        - format
+      properties:
+        format:
+          type: string
+          enum: [csv, excel]
+          description: エクスポート形式
+        criteria:
+          $ref: './billing_payments_search.yaml#/components/schemas/PaymentSearchCriteria'
+        columns:
+          type: array
+          description: エクスポートする列
+          items:
+            type: string
+            enum: [payment_number, payment_type, recipient_name, recipient_type, payment_date, payment_period, amount, status, bank_account, payment_method, created_at, updated_at, notes]
+        includeItems:
+          type: boolean
+          description: 支払項目を含めるか
+          default: true
+        includeBankInfo:
+          type: boolean
+          description: 銀行口座情報を含めるか
+          default: true
+        includeApprovalInfo:
+          type: boolean
+          description: 承認情報を含めるか
+          default: false
+        fileNamePrefix:
+          type: string
+          description: ファイル名のプレフィックス
+      example:
+        format: "excel"
+        criteria:
+          statuses: ["approved", "paid"]
+          paymentDateStart: "2023-04-01"
+          paymentDateEnd: "2023-06-30"
+        columns: ["payment_number", "recipient_name", "payment_date", "amount", "status"]
+        includeItems: true
+        includeBankInfo: true
+        fileNamePrefix: "支払データ_2023年Q2"

@@ -1,0 +1,504 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 支払承認管理API
+  description: |
+    支払の承認ワークフロー管理に関するAPIです。
+  version: 1.0.0
+
+paths:
+  /billing/payments/{payment_id}/approvals:
+    get:
+      tags:
+        - billing-payments
+      summary: 支払承認一覧の取得
+      description: 特定の支払に関する承認履歴と現在の承認状態を取得します。
+      operationId: getPaymentApprovals
+      parameters:
+        - name: payment_id
+          in: path
+          description: 支払ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 支払承認一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      currentStatus:
+                        type: string
+                        enum: [draft, pending_approval, approved, rejected, processing, paid, cancelled]
+                        description: 現在の支払ステータス
+                      approvalStatus:
+                        type: string
+                        enum: [not_submitted, pending, partially_approved, fully_approved, rejected]
+                        description: 承認ステータス
+                      approvals:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PaymentApproval'
+                      history:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PaymentApprovalHistory'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+    
+    post:
+      tags:
+        - billing-payments
+      summary: 支払承認申請
+      description: |
+        支払の承認申請を行います。既存の承認フローに従って承認者が設定されます。
+      operationId: requestPaymentApproval
+      parameters:
+        - name: payment_id
+          in: path
+          description: 支払ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentApprovalRequest'
+      responses:
+        '201':
+          description: 承認申請に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      approvalId:
+                        type: string
+                        format: uuid
+                        description: 承認ID
+                      approvers:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            userId:
+                              type: string
+                              format: uuid
+                              description: 承認者ID
+                            userName:
+                              type: string
+                              description: 承認者名
+                            level:
+                              type: integer
+                              description: 承認レベル
+                      requestedAt:
+                        type: string
+                        format: date-time
+                        description: 申請日時
+                  message:
+                    type: string
+                    example: "承認申請が完了しました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 申請できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+  /billing/payments/{payment_id}/approvals/{approval_id}:
+    get:
+      tags:
+        - billing-payments
+      summary: 支払承認詳細の取得
+      description: 特定の支払承認詳細を取得します。
+      operationId: getPaymentApproval
+      parameters:
+        - name: payment_id
+          in: path
+          description: 支払ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: approval_id
+          in: path
+          description: 承認ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 支払承認詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PaymentApproval'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+    
+    put:
+      tags:
+        - billing-payments
+      summary: 支払承認処理
+      description: |
+        特定の支払承認申請に対して、承認または却下の処理を行います。
+      operationId: processPaymentApproval
+      parameters:
+        - name: payment_id
+          in: path
+          description: 支払ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: approval_id
+          in: path
+          description: 承認ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentApprovalProcess'
+      responses:
+        '200':
+          description: 承認処理に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      approvalId:
+                        type: string
+                        format: uuid
+                        description: 承認ID
+                      status:
+                        type: string
+                        enum: [pending, approved, rejected]
+                        description: 承認ステータス
+                      processedAt:
+                        type: string
+                        format: date-time
+                        description: 処理日時
+                      nextApproval:
+                        type: object
+                        properties:
+                          userId:
+                            type: string
+                            format: uuid
+                            description: 次の承認者ID
+                          userName:
+                            type: string
+                            description: 次の承認者名
+                          level:
+                            type: integer
+                            description: 次の承認レベル
+                      paymentStatus:
+                        type: string
+                        enum: [pending_approval, approved, rejected]
+                        description: 更新後の支払ステータス
+                  message:
+                    type: string
+                    example: "承認処理が完了しました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 処理できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+  /billing/payments/{payment_id}/status:
+    put:
+      tags:
+        - billing-payments
+      summary: 支払ステータスの更新
+      description: |
+        支払のステータスを更新します。
+      operationId: updatePaymentStatus
+      parameters:
+        - name: payment_id
+          in: path
+          description: 支払ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentStatusUpdate'
+      responses:
+        '200':
+          description: ステータス更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: 支払ID
+                      status:
+                        type: string
+                        enum: [draft, pending_approval, approved, rejected, processing, paid, cancelled]
+                        description: 変更後のステータス
+                      previousStatus:
+                        type: string
+                        enum: [draft, pending_approval, approved, rejected, processing, paid, cancelled]
+                        description: 変更前のステータス
+                      changedAt:
+                        type: string
+                        format: date-time
+                        description: 変更日時
+                  message:
+                    type: string
+                    example: "支払ステータスが更新されました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 無効なステータス遷移
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    PaymentApproval:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 承認ID
+        paymentId:
+          type: string
+          format: uuid
+          description: 支払ID
+        level:
+          type: integer
+          description: 承認レベル
+        approverId:
+          type: string
+          format: uuid
+          description: 承認者ID
+        approverName:
+          type: string
+          description: 承認者名
+        approverRole:
+          type: string
+          description: 承認者役割
+        status:
+          type: string
+          enum: [pending, approved, rejected]
+          description: 承認ステータス
+        requestedAt:
+          type: string
+          format: date-time
+          description: 申請日時
+        processedAt:
+          type: string
+          format: date-time
+          description: 処理日時
+        notes:
+          type: string
+          description: 備考
+      example:
+        id: "123e4567-e89b-12d3-a456-426614174100"
+        paymentId: "123e4567-e89b-12d3-a456-426614174000"
+        level: 1
+        approverId: "123e4567-e89b-12d3-a456-426614174101"
+        approverName: "山田 部長"
+        approverRole: "部門承認者"
+        status: "pending"
+        requestedAt: "2023-05-05T10:00:00Z"
+        processedAt: null
+        notes: null
+        
+    PaymentApprovalHistory:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 履歴ID
+        paymentId:
+          type: string
+          format: uuid
+          description: 支払ID
+        approvalId:
+          type: string
+          format: uuid
+          description: 承認ID
+        action:
+          type: string
+          enum: [requested, approved, rejected, cancelled, reassigned]
+          description: 実行されたアクション
+        userId:
+          type: string
+          format: uuid
+          description: 実行者ID
+        userName:
+          type: string
+          description: 実行者名
+        targetUserId:
+          type: string
+          format: uuid
+          description: 対象ユーザーID（再割当時）
+        targetUserName:
+          type: string
+          description: 対象ユーザー名（再割当時）
+        notes:
+          type: string
+          description: 備考
+        createdAt:
+          type: string
+          format: date-time
+          description: 作成日時
+      example:
+        id: "123e4567-e89b-12d3-a456-426614174200"
+        paymentId: "123e4567-e89b-12d3-a456-426614174000"
+        approvalId: "123e4567-e89b-12d3-a456-426614174100"
+        action: "requested"
+        userId: "123e4567-e89b-12d3-a456-426614174201"
+        userName: "鈴木 太郎"
+        targetUserId: null
+        targetUserName: null
+        notes: "承認申請を行いました。"
+        createdAt: "2023-05-05T10:00:00Z"
+
+    PaymentApprovalRequest:
+      type: object
+      properties:
+        notes:
+          type: string
+          description: 申請時の備考
+        approverIds:
+          type: array
+          description: 承認者ID（指定しない場合はワークフローに従って自動設定）
+          items:
+            type: object
+            properties:
+              userId:
+                type: string
+                format: uuid
+                description: 承認者ID
+              level:
+                type: integer
+                description: 承認レベル
+        notifyApprovers:
+          type: boolean
+          description: 承認者に通知を送信するか
+          default: true
+      example:
+        notes: "4月分の委託費支払いです。確認をお願いします。"
+        notifyApprovers: true
+
+    PaymentApprovalProcess:
+      type: object
+      required:
+        - action
+      properties:
+        action:
+          type: string
+          enum: [approve, reject]
+          description: 承認アクション
+        notes:
+          type: string
+          description: 承認・却下の理由や備考
+      example:
+        action: "approve"
+        notes: "内容を確認しました。問題ありません。"
+
+    PaymentStatusUpdate:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [draft, pending_approval, approved, rejected, processing, paid, cancelled]
+          description: 更新後のステータス
+        notes:
+          type: string
+          description: ステータス変更の理由や備考
+        paymentDate:
+          type: string
+          format: date
+          description: 支払日（paidステータスに変更する場合）
+        paymentReference:
+          type: string
+          description: 支払参照番号（paidステータスに変更する場合）
+      example:
+        status: "paid"
+        notes: "2023/5/15に支払い完了"
+        paymentDate: "2023-05-15"
+        paymentReference: "TRX-20230515-001"

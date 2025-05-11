@@ -1,0 +1,164 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 支払管理API（検索）
+  description: |
+    支払管理の検索機能を提供するAPIです。
+  version: 1.0.0
+
+paths:
+  /billing/payments/search:
+    post:
+      tags:
+        - billing-payments
+      summary: 支払の詳細検索
+      description: |
+        詳細な条件指定による支払検索を行います。
+      operationId: searchPayments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentSearchCriteria'
+      responses:
+        '200':
+          description: 検索結果の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: './billing_payments_base.yaml#/components/schemas/PaymentSummary'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    PaymentSearchCriteria:
+      type: object
+      properties:
+        paymentNumber:
+          type: string
+          description: 支払番号（部分一致）
+        paymentTypes:
+          type: array
+          description: 支払種別（複数指定可）
+          items:
+            type: string
+            enum: [salary, outsourcing, expense, other]
+        recipientTypes:
+          type: array
+          description: 受領者種別（複数指定可）
+          items:
+            type: string
+            enum: [employee, partner_company, vendor, other]
+        recipientIds:
+          type: array
+          description: 受領者ID（複数指定可）
+          items:
+            type: string
+            format: uuid
+        statuses:
+          type: array
+          description: 支払ステータス（複数指定可）
+          items:
+            type: string
+            enum: [draft, pending_approval, approved, rejected, processing, paid, cancelled]
+        paymentDateStart:
+          type: string
+          format: date
+          description: 支払日範囲（開始）
+        paymentDateEnd:
+          type: string
+          format: date
+          description: 支払日範囲（終了）
+        paymentPeriodStart:
+          type: string
+          format: date
+          description: 支払対象期間範囲（開始）
+        paymentPeriodEnd:
+          type: string
+          format: date
+          description: 支払対象期間範囲（終了）
+        minAmount:
+          type: number
+          format: double
+          description: 支払金額範囲（最小）
+        maxAmount:
+          type: number
+          format: double
+          description: 支払金額範囲（最大）
+        paymentMethods:
+          type: array
+          description: 支払方法（複数指定可）
+          items:
+            type: string
+            enum: [bank_transfer, cash, credit_card, other]
+        bankAccountIds:
+          type: array
+          description: 銀行口座ID（複数指定可）
+          items:
+            type: string
+            format: uuid
+        fromBankAccountIds:
+          type: array
+          description: 支払元銀行口座ID（複数指定可）
+          items:
+            type: string
+            format: uuid
+        createdByUsers:
+          type: array
+          description: 作成者（複数指定可）
+          items:
+            type: string
+            format: uuid
+        createdDateStart:
+          type: string
+          format: date
+          description: 作成日範囲（開始）
+        createdDateEnd:
+          type: string
+          format: date
+          description: 作成日範囲（終了）
+        approverIds:
+          type: array
+          description: 承認者ID（複数指定可）
+          items:
+            type: string
+            format: uuid
+        keyword:
+          type: string
+          description: キーワード検索（支払番号、受領者名などを横断検索）
+        page:
+          type: integer
+          description: ページ番号（0始まり）
+          default: 0
+        size:
+          type: integer
+          description: ページサイズ
+          default: 20
+        sort:
+          type: string
+          description: ソート条件（例：paymentDate,desc）
+          default: "paymentDate,desc"
+      example:
+        statuses: ["pending_approval", "approved"]
+        paymentTypes: ["outsourcing"]
+        paymentDateStart: "2023-04-01"
+        paymentDateEnd: "2023-05-31"
+        paymentPeriodStart: "2023-03-01"
+        paymentPeriodEnd: "2023-04-30"
+        page: 0
+        size: 20
+        sort: "paymentDate,desc"

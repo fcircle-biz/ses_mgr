@@ -1,0 +1,97 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 入金管理API
+  description: |
+    入金管理モジュールのAPI仕様です。
+    
+    このAPIは入金の作成、管理、検索、および関連処理を提供します。
+  version: 1.0.0
+
+paths:
+  # 入金基本操作
+  /billing/receipts:
+    $ref: './billing_receipts_base.yaml#/paths/~1billing~1receipts'
+  /billing/receipts/{receipt_id}:
+    $ref: './billing_receipts_base.yaml#/paths/~1billing~1receipts~1{receipt_id}'
+
+  # 入金検索
+  /billing/receipts/search:
+    $ref: './billing_receipts_search.yaml#/paths/~1billing~1receipts~1search'
+
+  # 入金配分
+  /billing/receipts/{receipt_id}/allocations:
+    $ref: './billing_receipt_allocations.yaml#/paths/~1billing~1receipts~1{receipt_id}~1allocations'
+  /billing/receipts/{receipt_id}/allocations/{allocation_id}:
+    $ref: './billing_receipt_allocations.yaml#/paths/~1billing~1receipts~1{receipt_id}~1allocations~1{allocation_id}'
+
+  # 請求書関連入金
+  /billing/invoices/{invoice_id}/receipts:
+    get:
+      tags:
+        - billing-receipts
+      summary: 請求書IDによる入金一覧取得
+      description: 指定された請求書IDに関連する入金の一覧を取得します
+      operationId: getReceiptsByInvoiceId
+      parameters:
+        - name: invoice_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 請求書ID
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: ページ番号 (0ベース)
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+          description: 1ページあたりの件数
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        receipt:
+                          $ref: './billing_receipts_base.yaml#/components/schemas/ReceiptSummary'
+                        allocation:
+                          $ref: './billing_receipt_allocations.yaml#/components/schemas/ReceiptAllocation'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '400':
+          $ref: './billing_common.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './billing_common.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './billing_common.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './billing_common.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './billing_common.yaml#/components/responses/InternalServerError'
+
+  # 入金関連操作
+  /billing/receipts/batch-import:
+    $ref: './billing_receipt_operations.yaml#/paths/~1billing~1receipts~1batch-import'
+  /billing/receipts/auto-allocate:
+    $ref: './billing_receipt_operations.yaml#/paths/~1billing~1receipts~1auto-allocate'
+
+components:
+  schemas:
+    # スキーマはそれぞれの詳細ファイルで定義されています
+    
+  responses:
+    # レスポンスはbilling_common.yamlで定義されています

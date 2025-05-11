@@ -1,0 +1,189 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 請求管理API
+  description: |
+    請求管理モジュールのAPI仕様です。
+    
+    このAPIは請求書の作成、管理、検索、および関連処理を提供します。
+  version: 1.0.0
+
+paths:
+  # 請求書基本操作
+  /billing/invoices:
+    $ref: './billing_invoices_base.yaml#/paths/~1billing~1invoices'
+  /billing/invoices/{invoice_id}:
+    $ref: './billing_invoices_base.yaml#/paths/~1billing~1invoices~1{invoice_id}'
+
+  # 請求書関連検索
+  /billing/invoices/customers/{customer_id}:
+    get:
+      tags:
+        - billing-invoices
+      summary: 顧客IDによる請求書一覧取得
+      description: 指定された顧客IDに関連する請求書の一覧を取得します
+      operationId: getInvoicesByCustomerId
+      parameters:
+        - name: customer_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 顧客ID
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [DRAFT, SENT, OVERDUE, PARTIALLY_PAID, PAID, CANCELLED]
+          description: 請求書ステータスによるフィルタ
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: 請求書発行日の開始日
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: 請求書発行日の終了日
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: ページ番号 (0ベース)
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+          description: 1ページあたりの件数
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: './billing_invoices_base.yaml#/components/schemas/InvoiceSummary'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '400':
+          $ref: './billing_common.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './billing_common.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './billing_common.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './billing_common.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './billing_common.yaml#/components/responses/InternalServerError'
+
+  /billing/invoices/projects/{project_id}:
+    get:
+      tags:
+        - billing-invoices
+      summary: 案件IDによる請求書一覧取得
+      description: 指定された案件IDに関連する請求書の一覧を取得します
+      operationId: getInvoicesByProjectId
+      parameters:
+        - name: project_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 案件ID
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [DRAFT, SENT, OVERDUE, PARTIALLY_PAID, PAID, CANCELLED]
+          description: 請求書ステータスによるフィルタ
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: 請求書発行日の開始日
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: 請求書発行日の終了日
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: ページ番号 (0ベース)
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+          description: 1ページあたりの件数
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: './billing_invoices_base.yaml#/components/schemas/InvoiceSummary'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '400':
+          $ref: './billing_common.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './billing_common.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './billing_common.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './billing_common.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './billing_common.yaml#/components/responses/InternalServerError'
+
+  # 請求書検索
+  /billing/invoices/search:
+    $ref: './billing_invoices_search.yaml#/paths/~1billing~1invoices~1search'
+
+  # 請求書明細項目
+  /billing/invoices/{invoice_id}/items:
+    $ref: './billing_invoice_items.yaml#/paths/~1billing~1invoices~1{invoice_id}~1items'
+  /billing/invoices/{invoice_id}/items/{item_id}:
+    $ref: './billing_invoice_items.yaml#/paths/~1billing~1invoices~1{invoice_id}~1items~1{item_id}'
+
+  # 請求書関連操作
+  /billing/invoices/{invoice_id}/status:
+    $ref: './billing_invoice_operations.yaml#/paths/~1billing~1invoices~1{invoice_id}~1status'
+  /billing/invoices/{invoice_id}/generate-pdf:
+    $ref: './billing_invoice_operations.yaml#/paths/~1billing~1invoices~1{invoice_id}~1generate-pdf'
+  /billing/invoices/{invoice_id}/send:
+    $ref: './billing_invoice_operations.yaml#/paths/~1billing~1invoices~1{invoice_id}~1send'
+
+components:
+  schemas:
+    # スキーマはそれぞれの詳細ファイルで定義されています
+    
+  responses:
+    # レスポンスはbilling_common.yamlで定義されています

@@ -1,0 +1,147 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 入金管理API（検索）
+  description: |
+    入金管理の検索機能を提供するAPIです。
+  version: 1.0.0
+
+paths:
+  /billing/receipts/search:
+    post:
+      tags:
+        - billing-receipts
+      summary: 入金の詳細検索
+      description: |
+        詳細な条件指定による入金検索を行います。
+      operationId: searchReceipts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceiptSearchCriteria'
+      responses:
+        '200':
+          description: 検索結果の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: './billing_receipts_base.yaml#/components/schemas/ReceiptSummary'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    ReceiptSearchCriteria:
+      type: object
+      properties:
+        receiptNumber:
+          type: string
+          description: 入金番号（部分一致）
+        customerIds:
+          type: array
+          description: 顧客ID（複数指定可）
+          items:
+            type: string
+            format: uuid
+        invoiceIds:
+          type: array
+          description: 請求ID（複数指定可）
+          items:
+            type: string
+            format: uuid
+        invoiceNumbers:
+          type: array
+          description: 請求番号（複数指定可）
+          items:
+            type: string
+        statuses:
+          type: array
+          description: 入金ステータス（複数指定可）
+          items:
+            type: string
+            enum: [pending, allocated, partially_allocated, unallocated]
+        receiptDateStart:
+          type: string
+          format: date
+          description: 入金日範囲（開始）
+        receiptDateEnd:
+          type: string
+          format: date
+          description: 入金日範囲（終了）
+        minAmount:
+          type: number
+          format: double
+          description: 入金金額範囲（最小）
+        maxAmount:
+          type: number
+          format: double
+          description: 入金金額範囲（最大）
+        paymentMethods:
+          type: array
+          description: 支払方法（複数指定可）
+          items:
+            type: string
+            enum: [bank_transfer, cash, credit_card, other]
+        bankAccountIds:
+          type: array
+          description: 銀行口座ID（複数指定可）
+          items:
+            type: string
+            format: uuid
+        reference:
+          type: string
+          description: 参照情報（部分一致）
+        hasUnallocatedAmount:
+          type: boolean
+          description: 未割当額がある入金のみ
+        createdByUsers:
+          type: array
+          description: 作成者（複数指定可）
+          items:
+            type: string
+            format: uuid
+        createdDateStart:
+          type: string
+          format: date
+          description: 作成日範囲（開始）
+        createdDateEnd:
+          type: string
+          format: date
+          description: 作成日範囲（終了）
+        keyword:
+          type: string
+          description: キーワード検索（入金番号、顧客名、参照情報などを横断検索）
+        page:
+          type: integer
+          description: ページ番号（0始まり）
+          default: 0
+        size:
+          type: integer
+          description: ページサイズ
+          default: 20
+        sort:
+          type: string
+          description: ソート条件（例：receiptDate,desc）
+          default: "receiptDate,desc"
+      example:
+        statuses: ["pending", "partially_allocated"]
+        receiptDateStart: "2023-04-01"
+        receiptDateEnd: "2023-05-31"
+        hasUnallocatedAmount: true
+        page: 0
+        size: 20
+        sort: "receiptDate,desc"

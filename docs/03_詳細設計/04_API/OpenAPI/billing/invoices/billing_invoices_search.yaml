@@ -1,0 +1,141 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 請求管理API（検索）
+  description: |
+    請求管理の検索機能を提供するAPIです。
+  version: 1.0.0
+
+paths:
+  /billing/invoices/search:
+    post:
+      tags:
+        - billing-invoices
+      summary: 請求の詳細検索
+      description: |
+        詳細な条件指定による請求書検索を行います。
+      operationId: searchInvoices
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceSearchCriteria'
+      responses:
+        '200':
+          description: 検索結果の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: './billing_invoices_base.yaml#/components/schemas/InvoiceSummary'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    InvoiceSearchCriteria:
+      type: object
+      properties:
+        invoiceNumber:
+          type: string
+          description: 請求書番号（部分一致）
+        customerIds:
+          type: array
+          description: 顧客ID（複数指定可）
+          items:
+            type: string
+            format: uuid
+        projectIds:
+          type: array
+          description: 案件ID（複数指定可）
+          items:
+            type: string
+            format: uuid
+        statuses:
+          type: array
+          description: 請求ステータス（複数指定可）
+          items:
+            type: string
+            enum: [draft, issued, sent, partially_paid, paid, overdue, cancelled]
+        issueDateStart:
+          type: string
+          format: date
+          description: 発行日範囲（開始）
+        issueDateEnd:
+          type: string
+          format: date
+          description: 発行日範囲（終了）
+        dueDateStart:
+          type: string
+          format: date
+          description: 支払期限範囲（開始）
+        dueDateEnd:
+          type: string
+          format: date
+          description: 支払期限範囲（終了）
+        billingPeriodStart:
+          type: string
+          format: date
+          description: 請求対象期間範囲（開始）
+        billingPeriodEnd:
+          type: string
+          format: date
+          description: 請求対象期間範囲（終了）
+        minAmount:
+          type: number
+          format: double
+          description: 請求金額範囲（最小）
+        maxAmount:
+          type: number
+          format: double
+          description: 請求金額範囲（最大）
+        createdByUsers:
+          type: array
+          description: 作成者（複数指定可）
+          items:
+            type: string
+            format: uuid
+        createdDateStart:
+          type: string
+          format: date
+          description: 作成日範囲（開始）
+        createdDateEnd:
+          type: string
+          format: date
+          description: 作成日範囲（終了）
+        keyword:
+          type: string
+          description: キーワード検索（請求書番号、顧客名、案件名などを横断検索）
+        page:
+          type: integer
+          description: ページ番号（0始まり）
+          default: 0
+        size:
+          type: integer
+          description: ページサイズ
+          default: 20
+        sort:
+          type: string
+          description: ソート条件（例：issueDate,desc）
+          default: "issueDate,desc"
+      example:
+        statuses: ["issued", "sent", "partially_paid"]
+        issueDateStart: "2023-04-01"
+        issueDateEnd: "2023-05-31"
+        billingPeriodStart: "2023-03-01"
+        billingPeriodEnd: "2023-04-30"
+        page: 0
+        size: 20
+        sort: "issueDate,desc"

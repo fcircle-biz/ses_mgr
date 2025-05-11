@@ -1,0 +1,715 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 請求管理API（基本CRUD）
+  description: |
+    請求管理の基本CRUD操作を提供するAPIです。
+  version: 1.0.0
+
+paths:
+  /billing/invoices:
+    get:
+      tags:
+        - billing-invoices
+      summary: 請求一覧の取得
+      description: 請求書の一覧を取得します。
+      operationId: getInvoices
+      parameters:
+        - name: page
+          in: query
+          description: ページ番号（0始まり）
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: ページサイズ
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          description: ソート項目（例：issueDate,desc）
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: 請求ステータス
+          schema:
+            type: string
+            enum: [draft, issued, sent, partially_paid, paid, overdue, cancelled]
+      responses:
+        '200':
+          description: 請求一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InvoiceSummary'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+      security:
+        - bearerAuth: []
+    
+    post:
+      tags:
+        - billing-invoices
+      summary: 請求の新規作成
+      description: 新しい請求書を作成します。
+      operationId: createInvoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceCreate'
+      responses:
+        '201':
+          description: 請求の作成に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Invoice'
+                  message:
+                    type: string
+                    example: "請求書の作成が完了しました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+      security:
+        - bearerAuth: []
+
+  /billing/invoices/{invoice_id}:
+    get:
+      tags:
+        - billing-invoices
+      summary: 請求の詳細取得
+      description: 特定の請求書の詳細情報を取得します。
+      operationId: getInvoice
+      parameters:
+        - name: invoice_id
+          in: path
+          description: 請求ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 請求詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Invoice'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+    
+    put:
+      tags:
+        - billing-invoices
+      summary: 請求の更新
+      description: 特定の請求書情報を更新します。
+      operationId: updateInvoice
+      parameters:
+        - name: invoice_id
+          in: path
+          description: 請求ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceUpdate'
+      responses:
+        '200':
+          description: 請求の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Invoice'
+                  message:
+                    type: string
+                    example: "請求書の更新が完了しました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 更新できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+    
+    delete:
+      tags:
+        - billing-invoices
+      summary: 請求の削除
+      description: 特定の請求書を削除します（ドラフト状態の場合のみ可能）。
+      operationId: deleteInvoice
+      parameters:
+        - name: invoice_id
+          in: path
+          description: 請求ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 請求の削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "請求書の削除が完了しました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 削除できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+  /billing/invoices/customers/{customer_id}:
+    get:
+      tags:
+        - billing-invoices
+      summary: 顧客別の請求一覧取得
+      description: 特定の顧客に関連する請求書の一覧を取得します。
+      operationId: getInvoicesByCustomer
+      parameters:
+        - name: customer_id
+          in: path
+          description: 顧客ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          description: ページ番号（0始まり）
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: ページサイズ
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          description: 請求ステータス
+          schema:
+            type: string
+            enum: [draft, issued, sent, partially_paid, paid, overdue, cancelled]
+      responses:
+        '200':
+          description: 顧客別請求一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InvoiceSummary'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+
+  /billing/invoices/projects/{project_id}:
+    get:
+      tags:
+        - billing-invoices
+      summary: 案件別の請求一覧取得
+      description: 特定の案件に関連する請求書の一覧を取得します。
+      operationId: getInvoicesByProject
+      parameters:
+        - name: project_id
+          in: path
+          description: 案件ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          description: ページ番号（0始まり）
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: ページサイズ
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          description: 請求ステータス
+          schema:
+            type: string
+            enum: [draft, issued, sent, partially_paid, paid, overdue, cancelled]
+      responses:
+        '200':
+          description: 案件別請求一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InvoiceSummary'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    InvoiceSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 請求ID
+        invoiceNumber:
+          type: string
+          description: 請求書番号
+        customerId:
+          type: string
+          format: uuid
+          description: 顧客ID
+        customerName:
+          type: string
+          description: 顧客名
+        projectId:
+          type: string
+          format: uuid
+          description: 案件ID
+        projectName:
+          type: string
+          description: 案件名
+        issueDate:
+          type: string
+          format: date
+          description: 発行日
+        dueDate:
+          type: string
+          format: date
+          description: 支払期限
+        billingPeriod:
+          $ref: './billing_common.yaml#/components/schemas/DateRange'
+        amount:
+          $ref: './billing_common.yaml#/components/schemas/Money'
+        status:
+          type: string
+          enum: [draft, issued, sent, partially_paid, paid, overdue, cancelled]
+          description: 請求ステータス
+        paidAmount:
+          $ref: './billing_common.yaml#/components/schemas/Money'
+        remainingAmount:
+          $ref: './billing_common.yaml#/components/schemas/Money'
+        createdAt:
+          type: string
+          format: date-time
+          description: 作成日時
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新日時
+      example:
+        id: "123e4567-e89b-12d3-a456-426614174000"
+        invoiceNumber: "INV-2023-0001"
+        customerId: "123e4567-e89b-12d3-a456-426614174001"
+        customerName: "株式会社テスト"
+        projectId: "123e4567-e89b-12d3-a456-426614174002"
+        projectName: "システム開発プロジェクト"
+        issueDate: "2023-05-01"
+        dueDate: "2023-05-31"
+        billingPeriod:
+          startDate: "2023-04-01"
+          endDate: "2023-04-30"
+        amount:
+          amount: 1000000
+          currency: "JPY"
+        status: "issued"
+        paidAmount:
+          amount: 0
+          currency: "JPY"
+        remainingAmount:
+          amount: 1000000
+          currency: "JPY"
+        createdAt: "2023-05-01T10:00:00Z"
+        updatedAt: "2023-05-01T10:00:00Z"
+
+    Invoice:
+      allOf:
+        - $ref: '#/components/schemas/InvoiceSummary'
+        - type: object
+          properties:
+            notes:
+              type: string
+              description: 備考
+            paymentTerms:
+              type: string
+              description: 支払条件
+            bankAccountId:
+              type: string
+              format: uuid
+              description: 銀行口座ID
+            bankAccountInfo:
+              type: object
+              properties:
+                bankName:
+                  type: string
+                  description: 銀行名
+                branchName:
+                  type: string
+                  description: 支店名
+                accountType:
+                  type: string
+                  description: 口座種別
+                accountNumber:
+                  type: string
+                  description: 口座番号
+                accountName:
+                  type: string
+                  description: 口座名義
+            billingAddress:
+              type: object
+              properties:
+                postalCode:
+                  type: string
+                  description: 郵便番号
+                address1:
+                  type: string
+                  description: 住所1
+                address2:
+                  type: string
+                  description: 住所2
+                contactName:
+                  type: string
+                  description: 担当者名
+                contactEmail:
+                  type: string
+                  description: 担当者メールアドレス
+                contactPhone:
+                  type: string
+                  description: 担当者電話番号
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/InvoiceItem'
+            taxRate:
+              type: number
+              format: float
+              description: 税率
+            taxAmount:
+              $ref: './billing_common.yaml#/components/schemas/Money'
+            subTotalAmount:
+              $ref: './billing_common.yaml#/components/schemas/Money'
+            totalAmount:
+              $ref: './billing_common.yaml#/components/schemas/Money'
+            receiptHistory:
+              type: array
+              items:
+                type: object
+                properties:
+                  receiptId:
+                    type: string
+                    format: uuid
+                    description: 入金ID
+                  receiptDate:
+                    type: string
+                    format: date
+                    description: 入金日
+                  amount:
+                    $ref: './billing_common.yaml#/components/schemas/Money'
+                  method:
+                    type: string
+                    description: 入金方法
+            statusHistory:
+              type: array
+              items:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [draft, issued, sent, partially_paid, paid, overdue, cancelled]
+                    description: ステータス
+                  changedAt:
+                    type: string
+                    format: date-time
+                    description: 変更日時
+                  changedBy:
+                    type: string
+                    description: 変更者
+                  notes:
+                    type: string
+                    description: 備考
+
+    InvoiceItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 請求項目ID
+        invoiceId:
+          type: string
+          format: uuid
+          description: 請求ID
+        description:
+          type: string
+          description: 項目説明
+        quantity:
+          type: number
+          format: double
+          description: 数量
+        unitPrice:
+          $ref: './billing_common.yaml#/components/schemas/Money'
+        amount:
+          $ref: './billing_common.yaml#/components/schemas/Money'
+        taxable:
+          type: boolean
+          description: 課税対象かどうか
+        sortOrder:
+          type: integer
+          description: 表示順
+      example:
+        id: "123e4567-e89b-12d3-a456-426614174003"
+        invoiceId: "123e4567-e89b-12d3-a456-426614174000"
+        description: "エンジニア派遣サービス（4月分）"
+        quantity: 1
+        unitPrice:
+          amount: 500000
+          currency: "JPY"
+        amount:
+          amount: 500000
+          currency: "JPY"
+        taxable: true
+        sortOrder: 1
+
+    InvoiceCreate:
+      type: object
+      required:
+        - customerId
+        - issueDate
+        - dueDate
+        - billingPeriod
+      properties:
+        customerId:
+          type: string
+          format: uuid
+          description: 顧客ID
+        projectId:
+          type: string
+          format: uuid
+          description: 案件ID
+        invoiceNumber:
+          type: string
+          description: 請求書番号（未指定時は自動採番）
+        issueDate:
+          type: string
+          format: date
+          description: 発行日
+        dueDate:
+          type: string
+          format: date
+          description: 支払期限
+        billingPeriod:
+          $ref: './billing_common.yaml#/components/schemas/DateRange'
+        notes:
+          type: string
+          description: 備考
+        paymentTerms:
+          type: string
+          description: 支払条件
+        bankAccountId:
+          type: string
+          format: uuid
+          description: 銀行口座ID
+        billingAddress:
+          type: object
+          properties:
+            postalCode:
+              type: string
+              description: 郵便番号
+            address1:
+              type: string
+              description: 住所1
+            address2:
+              type: string
+              description: 住所2
+            contactName:
+              type: string
+              description: 担当者名
+            contactEmail:
+              type: string
+              description: 担当者メールアドレス
+            contactPhone:
+              type: string
+              description: 担当者電話番号
+        taxRate:
+          type: number
+          format: float
+          description: 税率
+          default: 10.0
+        items:
+          type: array
+          items:
+            type: object
+            required:
+              - description
+              - quantity
+              - unitPrice
+            properties:
+              description:
+                type: string
+                description: 項目説明
+              quantity:
+                type: number
+                format: double
+                description: 数量
+              unitPrice:
+                $ref: './billing_common.yaml#/components/schemas/Money'
+              taxable:
+                type: boolean
+                description: 課税対象かどうか
+                default: true
+              sortOrder:
+                type: integer
+                description: 表示順
+
+    InvoiceUpdate:
+      type: object
+      properties:
+        customerId:
+          type: string
+          format: uuid
+          description: 顧客ID
+        projectId:
+          type: string
+          format: uuid
+          description: 案件ID
+        invoiceNumber:
+          type: string
+          description: 請求書番号
+        issueDate:
+          type: string
+          format: date
+          description: 発行日
+        dueDate:
+          type: string
+          format: date
+          description: 支払期限
+        billingPeriod:
+          $ref: './billing_common.yaml#/components/schemas/DateRange'
+        notes:
+          type: string
+          description: 備考
+        paymentTerms:
+          type: string
+          description: 支払条件
+        bankAccountId:
+          type: string
+          format: uuid
+          description: 銀行口座ID
+        billingAddress:
+          type: object
+          properties:
+            postalCode:
+              type: string
+              description: 郵便番号
+            address1:
+              type: string
+              description: 住所1
+            address2:
+              type: string
+              description: 住所2
+            contactName:
+              type: string
+              description: 担当者名
+            contactEmail:
+              type: string
+              description: 担当者メールアドレス
+            contactPhone:
+              type: string
+              description: 担当者電話番号
+        taxRate:
+          type: number
+          format: float
+          description: 税率

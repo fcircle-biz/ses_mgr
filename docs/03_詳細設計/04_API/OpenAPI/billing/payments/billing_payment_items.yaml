@@ -1,0 +1,352 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 支払項目管理API
+  description: |
+    支払の項目（明細）管理に関するAPIです。
+  version: 1.0.0
+
+paths:
+  /billing/payments/{payment_id}/items:
+    get:
+      tags:
+        - billing-payments
+      summary: 支払項目一覧の取得
+      description: 特定の支払の項目一覧を取得します。
+      operationId: getPaymentItems
+      parameters:
+        - name: payment_id
+          in: path
+          description: 支払ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 支払項目一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: './billing_payments_base.yaml#/components/schemas/PaymentItem'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+    
+    post:
+      tags:
+        - billing-payments
+      summary: 支払項目の追加
+      description: 特定の支払に新しい項目を追加します。
+      operationId: addPaymentItem
+      parameters:
+        - name: payment_id
+          in: path
+          description: 支払ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentItemCreate'
+      responses:
+        '201':
+          description: 支払項目の追加に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: './billing_payments_base.yaml#/components/schemas/PaymentItem'
+                  message:
+                    type: string
+                    example: "支払項目が追加されました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 追加できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+    
+    put:
+      tags:
+        - billing-payments
+      summary: 支払項目の一括更新
+      description: 特定の支払の項目を一括で更新します。
+      operationId: updatePaymentItems
+      parameters:
+        - name: payment_id
+          in: path
+          description: 支払ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - items
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/PaymentItemUpdate'
+      responses:
+        '200':
+          description: 支払項目の一括更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: './billing_payments_base.yaml#/components/schemas/PaymentItem'
+                  message:
+                    type: string
+                    example: "支払項目が更新されました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 更新できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+  /billing/payments/{payment_id}/items/{item_id}:
+    get:
+      tags:
+        - billing-payments
+      summary: 支払項目の詳細取得
+      description: 特定の支払項目の詳細を取得します。
+      operationId: getPaymentItem
+      parameters:
+        - name: payment_id
+          in: path
+          description: 支払ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: item_id
+          in: path
+          description: 支払項目ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 支払項目の詳細取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: './billing_payments_base.yaml#/components/schemas/PaymentItem'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+    
+    put:
+      tags:
+        - billing-payments
+      summary: 支払項目の更新
+      description: 特定の支払項目を更新します。
+      operationId: updatePaymentItem
+      parameters:
+        - name: payment_id
+          in: path
+          description: 支払ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: item_id
+          in: path
+          description: 支払項目ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentItemUpdate'
+      responses:
+        '200':
+          description: 支払項目の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: './billing_payments_base.yaml#/components/schemas/PaymentItem'
+                  message:
+                    type: string
+                    example: "支払項目が更新されました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 更新できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+    
+    delete:
+      tags:
+        - billing-payments
+      summary: 支払項目の削除
+      description: 特定の支払項目を削除します。
+      operationId: deletePaymentItem
+      parameters:
+        - name: payment_id
+          in: path
+          description: 支払ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: item_id
+          in: path
+          description: 支払項目ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 支払項目の削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "支払項目が削除されました。"
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 削除できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    PaymentItemCreate:
+      type: object
+      required:
+        - description
+        - quantity
+        - unitPrice
+      properties:
+        description:
+          type: string
+          description: 項目説明
+        quantity:
+          type: number
+          format: double
+          description: 数量
+        unitPrice:
+          $ref: './billing_common.yaml#/components/schemas/Money'
+        taxable:
+          type: boolean
+          description: 課税対象かどうか
+          default: true
+        category:
+          type: string
+          description: 項目カテゴリ
+        sortOrder:
+          type: integer
+          description: 表示順
+
+    PaymentItemUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 支払項目ID（一括更新時に必須）
+        description:
+          type: string
+          description: 項目説明
+        quantity:
+          type: number
+          format: double
+          description: 数量
+        unitPrice:
+          $ref: './billing_common.yaml#/components/schemas/Money'
+        taxable:
+          type: boolean
+          description: 課税対象かどうか
+        category:
+          type: string
+          description: 項目カテゴリ
+        sortOrder:
+          type: integer
+          description: 表示順
