@@ -1,0 +1,459 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム KPIダッシュボードAPI
+  description: |
+    SES業務システムのKPIダッシュボード機能を提供するAPIです。
+    KPI指標データの取得、ダッシュボード設定の管理、サマリー情報の取得などの機能を提供します。
+  version: 1.0.0
+
+paths:
+  /reports/dashboard/kpi:
+    get:
+      tags:
+        - dashboard
+      summary: KPI指標一覧の取得
+      description: |
+        設定されているすべてのKPI指標のリストと最新の値を取得します。
+        期間、日付、カテゴリなどによるフィルタリングが可能です。
+      parameters:
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/periodParam'
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/dateParam'
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/categoryParam'
+      responses:
+        '200':
+          description: KPI指標一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '../reporting/reporting_common.yaml#/components/schemas/ReportMeta'
+                  data:
+                    type: array
+                    items:
+                      $ref: '../reporting/reporting_common.yaml#/components/schemas/KPI'
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+  /reports/dashboard/kpi/{kpiId}:
+    get:
+      tags:
+        - dashboard
+      summary: 特定のKPI指標の詳細情報取得
+      description: |
+        特定のKPI指標の詳細情報と履歴データを取得します。
+        指定された期間の履歴データを含みます。
+      parameters:
+        - name: kpiId
+          in: path
+          required: true
+          description: KPI指標のID
+          schema:
+            type: string
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/fromParam'
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/toParam'
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/granularityParam'
+      responses:
+        '200':
+          description: KPI指標詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '../reporting/reporting_common.yaml#/components/schemas/ReportMeta'
+                  data:
+                    $ref: '../reporting/reporting_common.yaml#/components/schemas/KPIDetail'
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+        '404':
+          description: 指定されたKPI指標が見つからない
+      security:
+        - bearerAuth: []
+
+  /reports/dashboard/summary:
+    get:
+      tags:
+        - dashboard
+      summary: ダッシュボードサマリー情報の取得
+      description: |
+        ダッシュボードに表示するサマリー情報を取得します。
+        売上、利益、稼働率、プロジェクト、顧客に関する主要な指標を含みます。
+      parameters:
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/periodParam'
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/dateParam'
+      responses:
+        '200':
+          description: サマリー情報の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '../reporting/reporting_common.yaml#/components/schemas/ReportMeta'
+                  data:
+                    type: object
+                    properties:
+                      salesSummary:
+                        type: object
+                        properties:
+                          currentPeriodSales:
+                            type: number
+                            example: 15000000
+                          previousPeriodSales:
+                            type: number
+                            example: 14300000
+                          changeRate:
+                            type: number
+                            format: float
+                            example: 0.05
+                          targetAchievement:
+                            type: number
+                            format: float
+                            example: 0.9375
+                      profitSummary:
+                        type: object
+                        properties:
+                          currentPeriodProfit:
+                            type: number
+                            example: 4200000
+                          previousPeriodProfit:
+                            type: number
+                            example: 3900000
+                          changeRate:
+                            type: number
+                            format: float
+                            example: 0.08
+                          profitMargin:
+                            type: number
+                            format: float
+                            example: 0.28
+                          targetAchievement:
+                            type: number
+                            format: float
+                            example: 0.93
+                      utilizationSummary:
+                        type: object
+                        properties:
+                          overallUtilizationRate:
+                            type: number
+                            format: float
+                            example: 0.92
+                          previousPeriodRate:
+                            type: number
+                            format: float
+                            example: 0.89
+                          changeRate:
+                            type: number
+                            format: float
+                            example: 0.03
+                          activeEngineers:
+                            type: integer
+                            example: 85
+                          benchEngineers:
+                            type: integer
+                            example: 7
+                          trainingEngineers:
+                            type: integer
+                            example: 3
+                      projectSummary:
+                        type: object
+                        properties:
+                          activeProjects:
+                            type: integer
+                            example: 42
+                          newProjects:
+                            type: integer
+                            example: 5
+                          completedProjects:
+                            type: integer
+                            example: 3
+                          delayedProjects:
+                            type: integer
+                            example: 2
+                      customerSummary:
+                        type: object
+                        properties:
+                          activeCustomers:
+                            type: integer
+                            example: 28
+                          newCustomers:
+                            type: integer
+                            example: 2
+                          topCustomers:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                id:
+                                  type: string
+                                  example: "customer_123"
+                                name:
+                                  type: string
+                                  example: "株式会社ABC"
+                                sales:
+                                  type: number
+                                  example: 3200000
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+  /reports/dashboard/recent-activities:
+    get:
+      tags:
+        - dashboard
+      summary: 最近のシステム活動情報の取得
+      description: |
+        最近のシステム活動情報を取得します。
+        新規案件、技術者アサイン、契約締結などの活動を表示します。
+      parameters:
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/limitParam'
+        - name: type
+          in: query
+          description: アクティビティタイプのフィルター
+          schema:
+            type: string
+            example: "project"
+        - name: since
+          in: query
+          description: この日時以降のアクティビティのみ取得 (ISO 8601形式)
+          schema:
+            type: string
+            format: date-time
+            example: "2023-04-01T00:00:00Z"
+      responses:
+        '200':
+          description: アクティビティ一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2023-05-01T12:00:00Z"
+                      count:
+                        type: integer
+                        example: 5
+                      total:
+                        type: integer
+                        example: 120
+                  data:
+                    type: array
+                    items:
+                      $ref: '../reporting/reporting_common.yaml#/components/schemas/ActivityRecord'
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+  /reports/dashboard/settings:
+    get:
+      tags:
+        - dashboard
+      summary: ダッシュボード設定の取得
+      description: |
+        ユーザーのダッシュボード設定を取得します。
+        ウィジェットのレイアウト、表示設定、お気に入りレポートなどを含みます。
+      parameters:
+        - name: userId
+          in: query
+          description: 設定を取得するユーザーID。指定しない場合は現在のユーザー
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ダッシュボード設定の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2023-05-01T12:00:00Z"
+                      userId:
+                        type: string
+                        example: "user_123"
+                  data:
+                    type: object
+                    properties:
+                      layout:
+                        type: array
+                        items:
+                          $ref: '../reporting/reporting_common.yaml#/components/schemas/DashboardWidget'
+                      preferences:
+                        type: object
+                        properties:
+                          refreshInterval:
+                            type: integer
+                            description: 自動更新間隔（秒）
+                            example: 300
+                          defaultPeriod:
+                            type: string
+                            enum: [daily, weekly, monthly, quarterly, annual]
+                            example: "monthly"
+                          expandedWidgets:
+                            type: array
+                            items:
+                              type: string
+                              example: "widget_sales_overview"
+                          theme:
+                            type: string
+                            enum: [light, dark]
+                            example: "light"
+                      favoriteReports:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "report_123"
+                            name:
+                              type: string
+                              example: "月次売上レポート"
+                            url:
+                              type: string
+                              example: "/api/v1/reports/sales/monthly"
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+        '404':
+          description: 指定されたユーザーが見つからない
+      security:
+        - bearerAuth: []
+    
+    put:
+      tags:
+        - dashboard
+      summary: ダッシュボード設定の更新
+      description: |
+        ユーザーのダッシュボード設定を更新します。
+        ウィジェットのレイアウト、表示設定、お気に入りレポートなどを更新できます。
+      parameters:
+        - name: userId
+          in: query
+          description: 設定を更新するユーザーID。指定しない場合は現在のユーザー
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                layout:
+                  type: array
+                  items:
+                    $ref: '../reporting/reporting_common.yaml#/components/schemas/DashboardWidget'
+                preferences:
+                  type: object
+                  properties:
+                    refreshInterval:
+                      type: integer
+                      description: 自動更新間隔（秒）
+                      example: 600
+                    defaultPeriod:
+                      type: string
+                      enum: [daily, weekly, monthly, quarterly, annual]
+                      example: "monthly"
+                    expandedWidgets:
+                      type: array
+                      items:
+                        type: string
+                        example: "widget_sales_overview"
+                    theme:
+                      type: string
+                      enum: [light, dark]
+                      example: "dark"
+                favoriteReports:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "report_123"
+                      name:
+                        type: string
+                        example: "月次売上レポート"
+                      url:
+                        type: string
+                        example: "/api/v1/reports/sales/monthly"
+      responses:
+        '200':
+          description: ダッシュボード設定の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2023-05-01T12:05:00Z"
+                      userId:
+                        type: string
+                        example: "user_123"
+                  message:
+                    type: string
+                    example: "ダッシュボード設定が正常に更新されました。"
+                  data:
+                    type: object
+                    description: 更新された設定内容
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+        '404':
+          description: 指定されたユーザーが見つからない
+      security:
+        - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT形式のアクセストークンを使用した認証

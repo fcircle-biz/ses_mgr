@@ -1,0 +1,820 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム データ収集API
+  description: |
+    SES業務システムのレポーティングモジュールにおけるデータ収集に関するAPIです。
+    各種業務データの集計、加工、保存などのためのインターフェースを提供します。
+  version: 1.0.0
+
+paths:
+  /reports/data/collect:
+    post:
+      tags:
+        - data-collection
+      summary: 指定データの収集実行
+      description: |
+        指定されたソースからデータを収集し、レポーティングデータストアに保存します。
+        オンデマンドでデータ収集バッチを実行するためのAPIです。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sources
+              properties:
+                sources:
+                  type: array
+                  description: 収集対象のデータソース
+                  items:
+                    type: string
+                    enum: [sales, projects, engineers, contracts, invoices, payments, timesheet]
+                  example: ["sales", "invoices"]
+                from:
+                  type: string
+                  format: date
+                  description: 収集対象期間の開始日
+                  example: "2023-01-01"
+                to:
+                  type: string
+                  format: date
+                  description: 収集対象期間の終了日
+                  example: "2023-01-31"
+                options:
+                  type: object
+                  description: データ収集オプション
+                  properties:
+                    refreshCache:
+                      type: boolean
+                      description: キャッシュを更新するかどうか
+                      default: false
+                    detailLevel:
+                      type: string
+                      enum: [summary, detail, full]
+                      description: 収集するデータの詳細レベル
+                      default: "detail"
+                    includeDeleted:
+                      type: boolean
+                      description: 削除済みデータも含めるかどうか
+                      default: false
+      responses:
+        '202':
+          description: データ収集ジョブが受け付けられた
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId:
+                    type: string
+                    description: データ収集ジョブのID
+                    example: "job_12345"
+                  status:
+                    type: string
+                    description: ジョブのステータス
+                    enum: [queued, processing, completed, failed]
+                    example: "queued"
+                  message:
+                    type: string
+                    description: ジョブに関するメッセージ
+                    example: "データ収集ジョブがキューに追加されました。"
+                  estimatedCompletionTime:
+                    type: string
+                    format: date-time
+                    description: 完了予定時刻
+                    example: "2023-05-01T12:30:00Z"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        description: 現在のリソースへのリンク
+                        example: "/api/v1/reports/data/jobs/job_12345"
+                      status:
+                        type: string
+                        description: ジョブのステータス確認用リンク
+                        example: "/api/v1/reports/data/jobs/job_12345/status"
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+  /reports/data/jobs:
+    get:
+      tags:
+        - data-collection
+      summary: データ収集ジョブ一覧の取得
+      description: |
+        実行中または過去のデータ収集ジョブの一覧を取得します。
+        フィルターや並び順を指定することができます。
+      parameters:
+        - name: status
+          in: query
+          description: ジョブのステータスによるフィルター
+          schema:
+            type: string
+            enum: [queued, processing, completed, failed, all]
+            default: "all"
+        - name: source
+          in: query
+          description: データソースによるフィルター
+          schema:
+            type: string
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/fromParam'
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/toParam'
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/limitParam'
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/pageParam'
+        - name: sort
+          in: query
+          description: 並び順
+          schema:
+            type: string
+            enum: [createdAt_desc, createdAt_asc, completedAt_desc, completedAt_asc]
+            default: "createdAt_desc"
+      responses:
+        '200':
+          description: ジョブ一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2023-05-01T12:00:00Z"
+                      count:
+                        type: integer
+                        example: 10
+                      total:
+                        type: integer
+                        example: 45
+                      page:
+                        type: integer
+                        example: 0
+                      pageSize:
+                        type: integer
+                        example: 20
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        jobId:
+                          type: string
+                          example: "job_12345"
+                        type:
+                          type: string
+                          example: "data_collection"
+                        sources:
+                          type: array
+                          items:
+                            type: string
+                          example: ["sales", "invoices"]
+                        status:
+                          type: string
+                          enum: [queued, processing, completed, failed]
+                          example: "completed"
+                        progress:
+                          type: number
+                          format: float
+                          minimum: 0
+                          maximum: 1
+                          example: 1.0
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2023-05-01T12:00:00Z"
+                        startedAt:
+                          type: string
+                          format: date-time
+                          example: "2023-05-01T12:01:00Z"
+                        completedAt:
+                          type: string
+                          format: date-time
+                          example: "2023-05-01T12:10:00Z"
+                        createdBy:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "user_123"
+                            name:
+                              type: string
+                              example: "管理者太郎"
+                        error:
+                          type: string
+                          example: null
+                        links:
+                          type: object
+                          properties:
+                            self:
+                              type: string
+                              example: "/api/v1/reports/data/jobs/job_12345"
+                            results:
+                              type: string
+                              example: "/api/v1/reports/data/jobs/job_12345/results"
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+  /reports/data/jobs/{jobId}:
+    get:
+      tags:
+        - data-collection
+      summary: 特定のデータ収集ジョブの詳細取得
+      description: |
+        特定のデータ収集ジョブの詳細情報を取得します。
+        処理内容、進捗状況、結果などの詳細情報を含みます。
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: データ収集ジョブのID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ジョブ詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2023-05-01T12:15:00Z"
+                  data:
+                    type: object
+                    properties:
+                      jobId:
+                        type: string
+                        example: "job_12345"
+                      type:
+                        type: string
+                        example: "data_collection"
+                      sources:
+                        type: array
+                        items:
+                          type: string
+                        example: ["sales", "invoices"]
+                      period:
+                        type: object
+                        properties:
+                          from:
+                            type: string
+                            format: date
+                            example: "2023-01-01"
+                          to:
+                            type: string
+                            format: date
+                            example: "2023-01-31"
+                      options:
+                        type: object
+                        properties:
+                          refreshCache:
+                            type: boolean
+                            example: false
+                          detailLevel:
+                            type: string
+                            example: "detail"
+                          includeDeleted:
+                            type: boolean
+                            example: false
+                      status:
+                        type: string
+                        enum: [queued, processing, completed, failed]
+                        example: "completed"
+                      progress:
+                        type: number
+                        format: float
+                        minimum: 0
+                        maximum: 1
+                        example: 1.0
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2023-05-01T12:00:00Z"
+                      startedAt:
+                        type: string
+                        format: date-time
+                        example: "2023-05-01T12:01:00Z"
+                      completedAt:
+                        type: string
+                        format: date-time
+                        example: "2023-05-01T12:10:00Z"
+                      duration:
+                        type: integer
+                        description: 処理時間（秒）
+                        example: 540
+                      createdBy:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            example: "user_123"
+                          name:
+                            type: string
+                            example: "管理者太郎"
+                      sourceDetails:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            source:
+                              type: string
+                              example: "sales"
+                            recordsProcessed:
+                              type: integer
+                              example: 1250
+                            recordsAdded:
+                              type: integer
+                              example: 120
+                            recordsUpdated:
+                              type: integer
+                              example: 1130
+                            recordsSkipped:
+                              type: integer
+                              example: 0
+                            startedAt:
+                              type: string
+                              format: date-time
+                              example: "2023-05-01T12:01:00Z"
+                            completedAt:
+                              type: string
+                              format: date-time
+                              example: "2023-05-01T12:05:00Z"
+                            status:
+                              type: string
+                              enum: [pending, processing, completed, failed]
+                              example: "completed"
+                            error:
+                              type: string
+                              example: null
+                      error:
+                        type: string
+                        example: null
+                      links:
+                        type: object
+                        properties:
+                          self:
+                            type: string
+                            example: "/api/v1/reports/data/jobs/job_12345"
+                          results:
+                            type: string
+                            example: "/api/v1/reports/data/jobs/job_12345/results"
+                          cancel:
+                            type: string
+                            example: "/api/v1/reports/data/jobs/job_12345/cancel"
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+        '404':
+          description: 指定されたジョブが見つからない
+      security:
+        - bearerAuth: []
+
+  /reports/data/jobs/{jobId}/cancel:
+    post:
+      tags:
+        - data-collection
+      summary: データ収集ジョブのキャンセル
+      description: |
+        実行中のデータ収集ジョブをキャンセルします。
+        キューにある、または実行中のジョブのみキャンセル可能です。
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: キャンセルするジョブのID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ジョブのキャンセルに成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId:
+                    type: string
+                    example: "job_12345"
+                  status:
+                    type: string
+                    enum: [cancelled]
+                    example: "cancelled"
+                  message:
+                    type: string
+                    example: "ジョブは正常にキャンセルされました。"
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+        '404':
+          description: 指定されたジョブが見つからない
+        '409':
+          description: ジョブは既に完了しているためキャンセルできない
+      security:
+        - bearerAuth: []
+
+  /reports/data/jobs/{jobId}/results:
+    get:
+      tags:
+        - data-collection
+      summary: データ収集ジョブの結果取得
+      description: |
+        完了したデータ収集ジョブの詳細な結果を取得します。
+        収集されたデータの概要やサマリー情報が含まれます。
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          description: 結果を取得するジョブのID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ジョブ結果の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2023-05-01T12:15:00Z"
+                      jobId:
+                        type: string
+                        example: "job_12345"
+                  data:
+                    type: object
+                    properties:
+                      summary:
+                        type: object
+                        properties:
+                          totalRecordsProcessed:
+                            type: integer
+                            example: 2500
+                          totalRecordsAdded:
+                            type: integer
+                            example: 250
+                          totalRecordsUpdated:
+                            type: integer
+                            example: 2250
+                          totalRecordsSkipped:
+                            type: integer
+                            example: 0
+                          processingTime:
+                            type: integer
+                            description: 処理時間（秒）
+                            example: 540
+                      sourceResults:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            source:
+                              type: string
+                              example: "sales"
+                            recordsProcessed:
+                              type: integer
+                              example: 1250
+                            recordsAdded:
+                              type: integer
+                              example: 120
+                            recordsUpdated:
+                              type: integer
+                              example: 1130
+                            recordsSkipped:
+                              type: integer
+                              example: 0
+                            processingTime:
+                              type: integer
+                              description: 処理時間（秒）
+                              example: 240
+                            dataSummary:
+                              type: object
+                              description: 収集されたデータのサマリー
+                              additionalProperties: true
+                              example:
+                                totalSales: 15000000
+                                averageInvoiceAmount: 750000
+                                largestInvoice: 2500000
+                                smallestInvoice: 100000
+                                invoiceCount: 20
+                      dataTimestamps:
+                        type: object
+                        description: 各データソースの最新更新日時
+                        additionalProperties:
+                          type: string
+                          format: date-time
+                        example:
+                          sales: "2023-01-31T23:59:59Z"
+                          invoices: "2023-01-31T23:59:59Z"
+                      links:
+                        type: object
+                        properties:
+                          reports:
+                            type: array
+                            description: 関連するレポートへのリンク
+                            items:
+                              type: object
+                              properties:
+                                name:
+                                  type: string
+                                  example: "1月売上レポート"
+                                url:
+                                  type: string
+                                  example: "/api/v1/reports/sales/monthly?period=2023-01"
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+        '404':
+          description: 指定されたジョブが見つからない
+        '409':
+          description: ジョブはまだ完了していない
+      security:
+        - bearerAuth: []
+
+  /reports/data/sources:
+    get:
+      tags:
+        - data-collection
+      summary: 利用可能なデータソース一覧の取得
+      description: |
+        レポーティングモジュールが利用可能なデータソースの一覧を取得します。
+        各データソースの情報、更新頻度、最終更新日時などが含まれます。
+      responses:
+        '200':
+          description: データソース一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2023-05-01T12:00:00Z"
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "sales"
+                        name:
+                          type: string
+                          example: "売上データ"
+                        description:
+                          type: string
+                          example: "請求書データから集計された売上情報"
+                        updateFrequency:
+                          type: string
+                          enum: [realtime, hourly, daily, weekly, monthly]
+                          example: "daily"
+                        lastUpdated:
+                          type: string
+                          format: date-time
+                          example: "2023-04-30T23:59:59Z"
+                        dataRange:
+                          type: object
+                          properties:
+                            from:
+                              type: string
+                              format: date
+                              example: "2022-01-01"
+                            to:
+                              type: string
+                              format: date
+                              example: "2023-04-30"
+                        recordCount:
+                          type: integer
+                          example: 12500
+                        status:
+                          type: string
+                          enum: [active, maintenance, deprecated]
+                          example: "active"
+                        dependencies:
+                          type: array
+                          description: このデータソースが依存する他のデータソース
+                          items:
+                            type: string
+                          example: ["invoices", "contracts"]
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+  /reports/data/sources/{sourceId}/status:
+    get:
+      tags:
+        - data-collection
+      summary: 特定のデータソースのステータス取得
+      description: |
+        特定のデータソースの詳細なステータス情報を取得します。
+        データの鮮度、更新履歴、関連ジョブなどの情報が含まれます。
+      parameters:
+        - name: sourceId
+          in: path
+          required: true
+          description: 確認するデータソースのID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: データソースステータスの取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2023-05-01T12:00:00Z"
+                      sourceId:
+                        type: string
+                        example: "sales"
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "sales"
+                      name:
+                        type: string
+                        example: "売上データ"
+                      status:
+                        type: string
+                        enum: [active, maintenance, deprecated]
+                        example: "active"
+                      lastUpdated:
+                        type: string
+                        format: date-time
+                        example: "2023-04-30T23:59:59Z"
+                      currentSyncStatus:
+                        type: string
+                        enum: [idle, syncing, error]
+                        example: "idle"
+                      dataQuality:
+                        type: object
+                        properties:
+                          completeness:
+                            type: number
+                            format: float
+                            minimum: 0
+                            maximum: 1
+                            example: 0.99
+                          accuracy:
+                            type: number
+                            format: float
+                            minimum: 0
+                            maximum: 1
+                            example: 0.98
+                          consistency:
+                            type: number
+                            format: float
+                            minimum: 0
+                            maximum: 1
+                            example: 1.0
+                      updateHistory:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            timestamp:
+                              type: string
+                              format: date-time
+                              example: "2023-04-30T23:59:59Z"
+                            jobId:
+                              type: string
+                              example: "job_12345"
+                            recordsProcessed:
+                              type: integer
+                              example: 1250
+                            status:
+                              type: string
+                              enum: [success, partial, failed]
+                              example: "success"
+                      nextScheduledUpdate:
+                        type: string
+                        format: date-time
+                        example: "2023-05-01T23:59:59Z"
+                      links:
+                        type: object
+                        properties:
+                          refresh:
+                            type: string
+                            example: "/api/v1/reports/data/collect"
+                          latestJob:
+                            type: string
+                            example: "/api/v1/reports/data/jobs/job_12345"
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+        '404':
+          description: 指定されたデータソースが見つからない
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    # データ収集ジョブ
+    DataCollectionJob:
+      type: object
+      properties:
+        jobId:
+          type: string
+          description: ジョブの一意識別子
+          example: "job_12345"
+        type:
+          type: string
+          description: ジョブの種類
+          example: "data_collection"
+        sources:
+          type: array
+          description: 収集対象のデータソース
+          items:
+            type: string
+          example: ["sales", "invoices"]
+        status:
+          type: string
+          description: ジョブのステータス
+          enum: [queued, processing, completed, failed, cancelled]
+          example: "completed"
+        progress:
+          type: number
+          description: 進捗率（0-1）
+          format: float
+          minimum: 0
+          maximum: 1
+          example: 0.75
+        createdAt:
+          type: string
+          description: 作成日時
+          format: date-time
+          example: "2023-05-01T12:00:00Z"
+        startedAt:
+          type: string
+          description: 開始日時
+          format: date-time
+          example: "2023-05-01T12:01:00Z"
+        completedAt:
+          type: string
+          description: 完了日時
+          format: date-time
+          example: "2023-05-01T12:10:00Z"
+        error:
+          type: string
+          description: エラーメッセージ（失敗時）
+          example: null
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT形式のアクセストークンを使用した認証

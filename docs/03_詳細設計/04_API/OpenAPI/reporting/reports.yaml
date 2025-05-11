@@ -1,0 +1,1375 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム レポートAPI
+  description: |
+    SES業務システムのレポーティングモジュールにおける標準レポート機能を提供するAPIです。
+    売上、利益、稼働率などの各種レポートデータを取得できます。
+  version: 1.0.0
+
+paths:
+  /reports/sales/monthly:
+    get:
+      tags:
+        - reports
+        - sales-reports
+      summary: 月次売上レポートの取得
+      description: |
+        指定された期間の月次売上レポートを取得します。
+        顧客別、案件別、技術者別など、さまざまな切り口での売上データを含みます。
+      parameters:
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/fromParam'
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/toParam'
+        - name: groupBy
+          in: query
+          description: グループ化の単位
+          schema:
+            type: string
+            enum: [customer, project, engineer, category, division]
+            default: "customer"
+        - name: includeDetails
+          in: query
+          description: 詳細データを含めるかどうか
+          schema:
+            type: boolean
+            default: false
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/formatParam'
+      responses:
+        '200':
+          description: 月次売上レポートの取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '../reporting/reporting_common.yaml#/components/schemas/ReportMeta'
+                  data:
+                    type: object
+                    properties:
+                      monthly:
+                        type: array
+                        description: 月別の売上データ
+                        items:
+                          type: object
+                          properties:
+                            year:
+                              type: integer
+                              example: 2023
+                            month:
+                              type: integer
+                              example: 1
+                            period:
+                              type: string
+                              example: "2023-01"
+                            totalSales:
+                              type: number
+                              example: 15000000
+                            targetSales:
+                              type: number
+                              example: 16000000
+                            targetAchievement:
+                              type: number
+                              format: float
+                              example: 0.9375
+                            previousYearSales:
+                              type: number
+                              example: 14000000
+                            yearOnYearGrowth:
+                              type: number
+                              format: float
+                              example: 0.071
+                      groupedData:
+                        type: array
+                        description: グループ化された売上データ
+                        items:
+                          type: object
+                          properties:
+                            groupId:
+                              type: string
+                              example: "customer_123"
+                            groupName:
+                              type: string
+                              example: "株式会社ABC"
+                            totalSales:
+                              type: number
+                              example: 3200000
+                            ratio:
+                              type: number
+                              format: float
+                              example: 0.21
+                            previousYearSales:
+                              type: number
+                              example: 3000000
+                            yearOnYearGrowth:
+                              type: number
+                              format: float
+                              example: 0.067
+                            details:
+                              type: array
+                              description: 詳細データ（includeDetails=trueの場合のみ）
+                              items:
+                                type: object
+                                additionalProperties: true
+                      details:
+                        type: array
+                        description: 詳細なエントリーデータ（includeDetails=trueの場合のみ）
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "invoice_12345"
+                            date:
+                              type: string
+                              format: date
+                              example: "2023-01-15"
+                            customerId:
+                              type: string
+                              example: "customer_123"
+                            customerName:
+                              type: string
+                              example: "株式会社ABC"
+                            projectId:
+                              type: string
+                              example: "project_456"
+                            projectName:
+                              type: string
+                              example: "基幹システム再構築"
+                            amount:
+                              type: number
+                              example: 800000
+                            category:
+                              type: string
+                              example: "development"
+                  summary:
+                    type: object
+                    properties:
+                      totalSales:
+                        type: number
+                        example: 45000000
+                      averageMonthlySales:
+                        type: number
+                        example: 15000000
+                      highestMonth:
+                        type: object
+                        properties:
+                          period:
+                            type: string
+                            example: "2023-03"
+                          amount:
+                            type: number
+                            example: 16500000
+                      lowestMonth:
+                        type: object
+                        properties:
+                          period:
+                            type: string
+                            example: "2023-02"
+                          amount:
+                            type: number
+                            example: 13500000
+                      yearOnYearGrowth:
+                        type: number
+                        format: float
+                        example: 0.082
+                      topCustomers:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "customer_123"
+                            name:
+                              type: string
+                              example: "株式会社ABC"
+                            amount:
+                              type: number
+                              example: 8500000
+                            ratio:
+                              type: number
+                              format: float
+                              example: 0.19
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: "/api/v1/reports/sales/monthly?from=2023-01-01&to=2023-03-31"
+                      related:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            rel:
+                              type: string
+                              example: "profit"
+                            href:
+                              type: string
+                              example: "/api/v1/reports/profit/monthly?from=2023-01-01&to=2023-03-31"
+                            title:
+                              type: string
+                              example: "同期間の利益レポート"
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+  /reports/profit/monthly:
+    get:
+      tags:
+        - reports
+        - profit-reports
+      summary: 月次利益レポートの取得
+      description: |
+        指定された期間の月次利益レポートを取得します。
+        売上、コスト、粗利などの情報を含み、さまざまな切り口で集計できます。
+      parameters:
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/fromParam'
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/toParam'
+        - name: groupBy
+          in: query
+          description: グループ化の単位
+          schema:
+            type: string
+            enum: [customer, project, engineer, category, division]
+            default: "project"
+        - name: includeDetails
+          in: query
+          description: 詳細データを含めるかどうか
+          schema:
+            type: boolean
+            default: false
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/formatParam'
+      responses:
+        '200':
+          description: 月次利益レポートの取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '../reporting/reporting_common.yaml#/components/schemas/ReportMeta'
+                  data:
+                    type: object
+                    properties:
+                      monthly:
+                        type: array
+                        description: 月別の利益データ
+                        items:
+                          type: object
+                          properties:
+                            year:
+                              type: integer
+                              example: 2023
+                            month:
+                              type: integer
+                              example: 1
+                            period:
+                              type: string
+                              example: "2023-01"
+                            totalSales:
+                              type: number
+                              example: 15000000
+                            totalCost:
+                              type: number
+                              example: 10800000
+                            grossProfit:
+                              type: number
+                              example: 4200000
+                            grossProfitMargin:
+                              type: number
+                              format: float
+                              example: 0.28
+                            targetProfit:
+                              type: number
+                              example: 4500000
+                            targetAchievement:
+                              type: number
+                              format: float
+                              example: 0.93
+                            previousYearProfit:
+                              type: number
+                              example: 3900000
+                            yearOnYearGrowth:
+                              type: number
+                              format: float
+                              example: 0.077
+                      groupedData:
+                        type: array
+                        description: グループ化された利益データ
+                        items:
+                          type: object
+                          properties:
+                            groupId:
+                              type: string
+                              example: "project_456"
+                            groupName:
+                              type: string
+                              example: "基幹システム再構築"
+                            sales:
+                              type: number
+                              example: 3200000
+                            cost:
+                              type: number
+                              example: 2240000
+                            profit:
+                              type: number
+                              example: 960000
+                            profitMargin:
+                              type: number
+                              format: float
+                              example: 0.3
+                            ratio:
+                              type: number
+                              format: float
+                              example: 0.23
+                            previousYearProfit:
+                              type: number
+                              example: 880000
+                            yearOnYearGrowth:
+                              type: number
+                              format: float
+                              example: 0.091
+                            details:
+                              type: array
+                              description: 詳細データ（includeDetails=trueの場合のみ）
+                              items:
+                                type: object
+                                additionalProperties: true
+                      details:
+                        type: array
+                        description: 詳細なエントリーデータ（includeDetails=trueの場合のみ）
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "invoice_12345"
+                            date:
+                              type: string
+                              format: date
+                              example: "2023-01-15"
+                            projectId:
+                              type: string
+                              example: "project_456"
+                            projectName:
+                              type: string
+                              example: "基幹システム再構築"
+                            sales:
+                              type: number
+                              example: 800000
+                            cost:
+                              type: number
+                              example: 560000
+                            profit:
+                              type: number
+                              example: 240000
+                            profitMargin:
+                              type: number
+                              format: float
+                              example: 0.3
+                  summary:
+                    type: object
+                    properties:
+                      totalSales:
+                        type: number
+                        example: 45000000
+                      totalCost:
+                        type: number
+                        example: 32400000
+                      totalProfit:
+                        type: number
+                        example: 12600000
+                      averageProfitMargin:
+                        type: number
+                        format: float
+                        example: 0.28
+                      highestMonth:
+                        type: object
+                        properties:
+                          period:
+                            type: string
+                            example: "2023-03"
+                          profit:
+                            type: number
+                            example: 4680000
+                          profitMargin:
+                            type: number
+                            format: float
+                            example: 0.29
+                      lowestMonth:
+                        type: object
+                        properties:
+                          period:
+                            type: string
+                            example: "2023-02"
+                          profit:
+                            type: number
+                            example: 3720000
+                          profitMargin:
+                            type: number
+                            format: float
+                            example: 0.27
+                      mostProfitableProjects:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "project_789"
+                            name:
+                              type: string
+                              example: "クラウド移行プロジェクト"
+                            profit:
+                              type: number
+                              example: 1800000
+                            profitMargin:
+                              type: number
+                              format: float
+                              example: 0.36
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: "/api/v1/reports/profit/monthly?from=2023-01-01&to=2023-03-31"
+                      related:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            rel:
+                              type: string
+                              example: "sales"
+                            href:
+                              type: string
+                              example: "/api/v1/reports/sales/monthly?from=2023-01-01&to=2023-03-31"
+                            title:
+                              type: string
+                              example: "同期間の売上レポート"
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+  /reports/utilization:
+    get:
+      tags:
+        - reports
+        - utilization-reports
+      summary: 稼働率レポートの取得
+      description: |
+        指定された期間の技術者稼働率レポートを取得します。
+        全体稼働率、スキル別稼働率、経験年数別稼働率などさまざまな切り口で確認できます。
+      parameters:
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/fromParam'
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/toParam'
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/granularityParam'
+        - name: groupBy
+          in: query
+          description: グループ化の単位
+          schema:
+            type: string
+            enum: [skill, experience, division, location]
+            default: "skill"
+        - name: includeDetails
+          in: query
+          description: 技術者ごとの詳細データを含めるかどうか
+          schema:
+            type: boolean
+            default: false
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/formatParam'
+      responses:
+        '200':
+          description: 稼働率レポートの取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    $ref: '../reporting/reporting_common.yaml#/components/schemas/ReportMeta'
+                  data:
+                    type: object
+                    properties:
+                      periods:
+                        type: array
+                        description: 期間ごとの稼働率データ
+                        items:
+                          type: object
+                          properties:
+                            period:
+                              type: string
+                              example: "2023-01"
+                            totalEngineers:
+                              type: integer
+                              example: 95
+                            activeEngineers:
+                              type: integer
+                              example: 85
+                            benchEngineers:
+                              type: integer
+                              example: 7
+                            trainingEngineers:
+                              type: integer
+                              example: 3
+                            utilizationRate:
+                              type: number
+                              format: float
+                              example: 0.89
+                            targetUtilizationRate:
+                              type: number
+                              format: float
+                              example: 0.90
+                            previousPeriodRate:
+                              type: number
+                              format: float
+                              example: 0.87
+                            yearOnYearRate:
+                              type: number
+                              format: float
+                              example: 0.86
+                      groupedData:
+                        type: array
+                        description: グループ化された稼働率データ
+                        items:
+                          type: object
+                          properties:
+                            groupId:
+                              type: string
+                              example: "skill_java"
+                            groupName:
+                              type: string
+                              example: "Java"
+                            totalEngineers:
+                              type: integer
+                              example: 25
+                            activeEngineers:
+                              type: integer
+                              example: 23
+                            utilizationRate:
+                              type: number
+                              format: float
+                              example: 0.92
+                            previousPeriodRate:
+                              type: number
+                              format: float
+                              example: 0.88
+                            yearOnYearRate:
+                              type: number
+                              format: float
+                              example: 0.86
+                      engineerDetails:
+                        type: array
+                        description: 技術者ごとの詳細データ（includeDetails=trueの場合のみ）
+                        items:
+                          type: object
+                          properties:
+                            engineerId:
+                              type: string
+                              example: "engineer_123"
+                            engineerName:
+                              type: string
+                              example: "開発太郎"
+                            status:
+                              type: string
+                              enum: [active, bench, training, leave]
+                              example: "active"
+                            currentProject:
+                              type: string
+                              example: "基幹システム再構築"
+                            assignmentStartDate:
+                              type: string
+                              format: date
+                              example: "2022-11-01"
+                            assignmentEndDate:
+                              type: string
+                              format: date
+                              example: "2023-04-30"
+                            utilizationHistory:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  period:
+                                    type: string
+                                    example: "2023-01"
+                                  status:
+                                    type: string
+                                    enum: [active, bench, training, leave]
+                                    example: "active"
+                                  projectId:
+                                    type: string
+                                    example: "project_456"
+                                  projectName:
+                                    type: string
+                                    example: "基幹システム再構築"
+                                  workingDays:
+                                    type: integer
+                                    example: 20
+                                  utilization:
+                                    type: number
+                                    format: float
+                                    example: 1.0
+                  summary:
+                    type: object
+                    properties:
+                      averageUtilizationRate:
+                        type: number
+                        format: float
+                        example: 0.89
+                      trendDirection:
+                        type: string
+                        enum: [up, down, stable]
+                        example: "up"
+                      changeRate:
+                        type: number
+                        format: float
+                        example: 0.02
+                      targetAchievement:
+                        type: number
+                        format: float
+                        example: 0.99
+                      highUtilizationGroups:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            groupId:
+                              type: string
+                              example: "skill_java"
+                            groupName:
+                              type: string
+                              example: "Java"
+                            utilizationRate:
+                              type: number
+                              format: float
+                              example: 0.92
+                      lowUtilizationGroups:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            groupId:
+                              type: string
+                              example: "skill_cobol"
+                            groupName:
+                              type: string
+                              example: "COBOL"
+                            utilizationRate:
+                              type: number
+                              format: float
+                              example: 0.78
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: "/api/v1/reports/utilization?from=2023-01-01&to=2023-03-31&granularity=monthly"
+                      related:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            rel:
+                              type: string
+                              example: "engineers"
+                            href:
+                              type: string
+                              example: "/api/v1/engineers?status=bench"
+                            title:
+                              type: string
+                              example: "待機中の技術者一覧"
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+  /reports/custom:
+    get:
+      tags:
+        - reports
+        - custom-reports
+      summary: カスタムレポートの実行
+      description: |
+        保存済みのカスタムレポートを実行し、結果を取得します。
+        レポートIDを指定して実行します。
+      parameters:
+        - name: reportId
+          in: query
+          required: true
+          description: カスタムレポートのID
+          schema:
+            type: string
+        - name: parameters
+          in: query
+          description: レポートに渡すパラメータ（JSON形式）
+          schema:
+            type: string
+          example: '{"from":"2023-01-01","to":"2023-03-31","customer_id":"customer_123"}'
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/formatParam'
+      responses:
+        '200':
+          description: カスタムレポートの実行に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    allOf:
+                      - $ref: '../reporting/reporting_common.yaml#/components/schemas/ReportMeta'
+                      - type: object
+                        properties:
+                          reportId:
+                            type: string
+                            example: "custom_report_123"
+                          reportName:
+                            type: string
+                            example: "プロジェクト別収益性分析"
+                          reportDescription:
+                            type: string
+                            example: "各プロジェクトの収益性と効率性を分析するカスタムレポート"
+                          createdBy:
+                            type: string
+                            example: "user_456"
+                          createdAt:
+                            type: string
+                            format: date-time
+                            example: "2023-04-15T10:30:00Z"
+                          executionTime:
+                            type: number
+                            description: レポート実行時間（ミリ秒）
+                            example: 1250
+                  data:
+                    type: object
+                    description: レポート固有のデータ構造
+                    additionalProperties: true
+                  summary:
+                    type: object
+                    description: レポート固有のサマリー情報
+                    additionalProperties: true
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: "/api/v1/reports/custom?reportId=custom_report_123"
+                      edit:
+                        type: string
+                        example: "/api/v1/reports/custom/custom_report_123/edit"
+                      share:
+                        type: string
+                        example: "/api/v1/reports/custom/custom_report_123/share"
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+        '404':
+          description: 指定されたレポートが見つからない
+      security:
+        - bearerAuth: []
+
+  /reports/custom/{reportId}:
+    get:
+      tags:
+        - reports
+        - custom-reports
+      summary: カスタムレポート定義の取得
+      description: |
+        保存済みのカスタムレポートの定義情報を取得します。
+        レポートの定義内容、パラメータ情報、アクセス権限などを含みます。
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          description: カスタムレポートのID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: カスタムレポート定義の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "custom_report_123"
+                  name:
+                    type: string
+                    example: "プロジェクト別収益性分析"
+                  description:
+                    type: string
+                    example: "各プロジェクトの収益性と効率性を分析するカスタムレポート"
+                  category:
+                    type: string
+                    example: "financial"
+                  query:
+                    type: string
+                    description: レポートを定義するクエリ式
+                    example: "SELECT p.name, SUM(i.amount) as revenue, SUM(c.amount) as cost, ..."
+                  parameters:
+                    type: array
+                    description: レポートパラメータの定義
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          example: "from_date"
+                        displayName:
+                          type: string
+                          example: "開始日"
+                        type:
+                          type: string
+                          enum: [string, number, date, boolean, enum]
+                          example: "date"
+                        required:
+                          type: boolean
+                          example: true
+                        defaultValue:
+                          type: string
+                          example: "2023-01-01"
+                        validations:
+                          type: object
+                          additionalProperties: true
+                          example:
+                            min: "2020-01-01"
+                            max: "today"
+                  createdBy:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "user_456"
+                      name:
+                        type: string
+                        example: "マネージャ花子"
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: "2023-04-15T10:30:00Z"
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: "2023-04-20T15:45:00Z"
+                  access:
+                    type: object
+                    properties:
+                      isPublic:
+                        type: boolean
+                        example: false
+                      sharedWith:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            userId:
+                              type: string
+                              example: "user_789"
+                            userName:
+                              type: string
+                              example: "営業太郎"
+                            permission:
+                              type: string
+                              enum: [view, edit, admin]
+                              example: "view"
+                  lastRun:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2023-05-01T09:15:00Z"
+                      executionTime:
+                        type: number
+                        description: 実行時間（ミリ秒）
+                        example: 1250
+                      user:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            example: "user_456"
+                          name:
+                            type: string
+                            example: "マネージャ花子"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: "/api/v1/reports/custom/custom_report_123"
+                      run:
+                        type: string
+                        example: "/api/v1/reports/custom?reportId=custom_report_123"
+                      edit:
+                        type: string
+                        example: "/api/v1/reports/custom/custom_report_123/edit"
+                      history:
+                        type: string
+                        example: "/api/v1/reports/custom/custom_report_123/history"
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+        '404':
+          description: 指定されたレポートが見つからない
+      security:
+        - bearerAuth: []
+    
+    put:
+      tags:
+        - reports
+        - custom-reports
+      summary: カスタムレポート定義の更新
+      description: |
+        保存済みのカスタムレポートの定義情報を更新します。
+        レポートの定義内容、パラメータ情報、アクセス権限などを更新できます。
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          description: カスタムレポートのID
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "プロジェクト別収益性分析（更新版）"
+                description:
+                  type: string
+                  example: "各プロジェクトの収益性と効率性を詳細分析するカスタムレポート"
+                category:
+                  type: string
+                  example: "financial"
+                query:
+                  type: string
+                  description: レポートを定義するクエリ式
+                  example: "SELECT p.name, SUM(i.amount) as revenue, SUM(c.amount) as cost, ..."
+                parameters:
+                  type: array
+                  description: レポートパラメータの定義
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                        example: "from_date"
+                      displayName:
+                        type: string
+                        example: "開始日"
+                      type:
+                        type: string
+                        enum: [string, number, date, boolean, enum]
+                        example: "date"
+                      required:
+                        type: boolean
+                        example: true
+                      defaultValue:
+                        type: string
+                        example: "2023-01-01"
+                      validations:
+                        type: object
+                        additionalProperties: true
+                access:
+                  type: object
+                  properties:
+                    isPublic:
+                      type: boolean
+                      example: true
+                    sharedWith:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          userId:
+                            type: string
+                            example: "user_789"
+                          permission:
+                            type: string
+                            enum: [view, edit, admin]
+                            example: "view"
+      responses:
+        '200':
+          description: カスタムレポート定義の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "custom_report_123"
+                  message:
+                    type: string
+                    example: "カスタムレポートが正常に更新されました。"
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    example: "2023-05-01T12:30:00Z"
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+        '404':
+          description: 指定されたレポートが見つからない
+      security:
+        - bearerAuth: []
+    
+    delete:
+      tags:
+        - reports
+        - custom-reports
+      summary: カスタムレポートの削除
+      description: |
+        保存済みのカスタムレポートを削除します。
+        レポートの作成者または管理者権限を持つユーザーのみ削除可能です。
+      parameters:
+        - name: reportId
+          in: path
+          required: true
+          description: 削除するカスタムレポートのID
+          schema:
+            type: string
+      responses:
+        '200':
+          description: カスタムレポートの削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "custom_report_123"
+                  message:
+                    type: string
+                    example: "カスタムレポートが正常に削除されました。"
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+        '404':
+          description: 指定されたレポートが見つからない
+      security:
+        - bearerAuth: []
+
+  /reports/custom/list:
+    get:
+      tags:
+        - reports
+        - custom-reports
+      summary: カスタムレポート一覧の取得
+      description: |
+        利用可能なカスタムレポートの一覧を取得します。
+        自分が作成したレポートや共有されているレポートを取得できます。
+      parameters:
+        - name: category
+          in: query
+          description: レポートカテゴリでフィルタリング
+          schema:
+            type: string
+        - name: owner
+          in: query
+          description: レポート所有者でフィルタリング（me, others, all）
+          schema:
+            type: string
+            enum: [me, others, all]
+            default: "all"
+        - name: access
+          in: query
+          description: アクセス権限でフィルタリング（owned, shared, public, all）
+          schema:
+            type: string
+            enum: [owned, shared, public, all]
+            default: "all"
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/limitParam'
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/pageParam'
+      responses:
+        '200':
+          description: カスタムレポート一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2023-05-01T12:00:00Z"
+                      count:
+                        type: integer
+                        example: 5
+                      total:
+                        type: integer
+                        example: 12
+                      page:
+                        type: integer
+                        example: 0
+                      pageSize:
+                        type: integer
+                        example: 20
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "custom_report_123"
+                        name:
+                          type: string
+                          example: "プロジェクト別収益性分析"
+                        description:
+                          type: string
+                          example: "各プロジェクトの収益性と効率性を分析するカスタムレポート"
+                        category:
+                          type: string
+                          example: "financial"
+                        createdBy:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "user_456"
+                            name:
+                              type: string
+                              example: "マネージャ花子"
+                        createdAt:
+                          type: string
+                          format: date-time
+                          example: "2023-04-15T10:30:00Z"
+                        updatedAt:
+                          type: string
+                          format: date-time
+                          example: "2023-04-20T15:45:00Z"
+                        lastRun:
+                          type: string
+                          format: date-time
+                          example: "2023-05-01T09:15:00Z"
+                        isPublic:
+                          type: boolean
+                          example: false
+                        accessLevel:
+                          type: string
+                          enum: [owner, editor, viewer, public]
+                          example: "owner"
+                        links:
+                          type: object
+                          properties:
+                            self:
+                              type: string
+                              example: "/api/v1/reports/custom/custom_report_123"
+                            run:
+                              type: string
+                              example: "/api/v1/reports/custom?reportId=custom_report_123"
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+  /reports/export:
+    post:
+      tags:
+        - reports
+      summary: レポートのエクスポート
+      description: |
+        任意のレポートを指定された形式でエクスポートします。
+        大量データの場合は非同期処理となり、後でダウンロードURLが提供されます。
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reportType
+                - format
+              properties:
+                reportType:
+                  type: string
+                  description: レポートの種類
+                  example: "sales/monthly"
+                parameters:
+                  type: object
+                  description: レポートのパラメータ
+                  additionalProperties: true
+                  example:
+                    from: "2023-01-01"
+                    to: "2023-03-31"
+                    groupBy: "customer"
+                format:
+                  type: string
+                  description: エクスポート形式
+                  enum: [pdf, excel, csv]
+                  example: "excel"
+                options:
+                  type: object
+                  description: エクスポートオプション
+                  properties:
+                    includeCharts:
+                      type: boolean
+                      description: グラフを含めるか（PDF, Excel形式のみ）
+                      default: true
+                    paperSize:
+                      type: string
+                      description: 用紙サイズ（PDF形式のみ）
+                      enum: [A4, A3, Letter]
+                      default: "A4"
+                    orientation:
+                      type: string
+                      description: 用紙の向き（PDF形式のみ）
+                      enum: [portrait, landscape]
+                      default: "landscape"
+                    includeHeaderFooter:
+                      type: boolean
+                      description: ヘッダーとフッターを含めるか
+                      default: true
+                notification:
+                  type: boolean
+                  description: エクスポート完了時に通知するか
+                  default: false
+      responses:
+        '200':
+          description: レポートのエクスポートに成功（同期処理）
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  downloadUrl:
+                    type: string
+                    description: ダウンロードURL
+                    example: "/api/v1/reports/download/export_12345.xlsx"
+                  expiresAt:
+                    type: string
+                    format: date-time
+                    description: ダウンロードURLの有効期限
+                    example: "2023-05-02T12:00:00Z"
+        '202':
+          description: レポートのエクスポートを受け付け（非同期処理）
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  jobId:
+                    type: string
+                    description: エクスポートジョブのID
+                    example: "export_job_12345"
+                  status:
+                    type: string
+                    enum: [queued, processing]
+                    example: "queued"
+                  message:
+                    type: string
+                    description: 処理状況メッセージ
+                    example: "レポートのエクスポート処理をキューに追加しました。完了後に通知されます。"
+                  estimatedCompletionTime:
+                    type: string
+                    format: date-time
+                    example: "2023-05-01T12:10:00Z"
+                  statusUrl:
+                    type: string
+                    description: ステータス確認用URL
+                    example: "/api/v1/reports/export/status/export_job_12345"
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT形式のアクセストークンを使用した認証

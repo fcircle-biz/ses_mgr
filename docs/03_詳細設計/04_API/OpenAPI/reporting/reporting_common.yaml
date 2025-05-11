@@ -1,0 +1,401 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム レポーティングAPI 共通定義
+  description: |
+    SES業務システムのレポーティングモジュールにおける共通定義です。
+    レポートの共通データモデルや標準レスポンス形式などを定義しています。
+  version: 1.0.0
+
+components:
+  schemas:
+    # 共通の時間フィルターパラメータ
+    TimeFilterParams:
+      type: object
+      properties:
+        from:
+          type: string
+          format: date
+          description: 期間の開始日 (YYYY-MM-DD形式)
+          example: "2023-01-01"
+        to:
+          type: string
+          format: date
+          description: 期間の終了日 (YYYY-MM-DD形式)
+          example: "2023-12-31"
+        granularity:
+          type: string
+          description: データの集計単位
+          enum: [daily, weekly, monthly, quarterly, annual]
+          example: "monthly"
+    
+    # レポート共通メタデータ
+    ReportMeta:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          description: レポート生成日時
+          example: "2023-05-01T12:00:00Z"
+        period:
+          type: string
+          enum: [daily, weekly, monthly, quarterly, annual]
+          description: レポート期間の単位
+          example: "monthly"
+        from:
+          type: string
+          format: date
+          description: レポート期間の開始日
+          example: "2023-01-01"
+        to:
+          type: string
+          format: date
+          description: レポート期間の終了日
+          example: "2023-01-31"
+        filters:
+          type: object
+          description: 適用されたフィルター条件
+          additionalProperties: true
+    
+    # 標準レポートレスポンス
+    StandardReportResponse:
+      type: object
+      properties:
+        meta:
+          $ref: '#/components/schemas/ReportMeta'
+        data:
+          type: object
+          description: レポートデータ
+          additionalProperties: true
+        summary:
+          type: object
+          description: レポート全体のサマリー情報
+          additionalProperties: true
+        links:
+          type: object
+          properties:
+            self:
+              type: string
+              description: 現在のリソースへのリンク
+              example: "/api/v1/reports/sales/monthly?from=2023-01-01&to=2023-01-31"
+            related:
+              type: array
+              description: 関連するレポートへのリンク
+              items:
+                type: object
+                properties:
+                  rel:
+                    type: string
+                    description: 関連の種類
+                    example: "previous"
+                  href:
+                    type: string
+                    description: リンク先URL
+                    example: "/api/v1/reports/sales/monthly?from=2022-12-01&to=2022-12-31"
+                  title:
+                    type: string
+                    description: リンクの説明
+                    example: "前月のレポート"
+    
+    # KPI定義
+    KPI:
+      type: object
+      properties:
+        id:
+          type: string
+          description: KPI識別子
+          example: "sales_total"
+        name:
+          type: string
+          description: KPI名称
+          example: "総売上"
+        category:
+          type: string
+          description: KPIカテゴリ
+          example: "sales"
+        value:
+          type: number
+          description: KPI値
+          example: 15000000
+        unit:
+          type: string
+          description: 単位
+          example: "円"
+        trend:
+          type: string
+          enum: [up, down, stable]
+          description: 前期間比較のトレンド
+          example: "up"
+        changeRate:
+          type: number
+          format: float
+          description: 変化率
+          example: 0.05
+        target:
+          type: number
+          description: 目標値
+          example: 16000000
+        targetAchievement:
+          type: number
+          format: float
+          description: 目標達成率
+          example: 0.9375
+        lastUpdated:
+          type: string
+          format: date-time
+          description: 最終更新日時
+          example: "2023-05-01T00:00:00Z"
+    
+    # KPI詳細定義
+    KPIDetail:
+      allOf:
+        - $ref: '#/components/schemas/KPI'
+        - type: object
+          properties:
+            description:
+              type: string
+              description: KPIの詳細説明
+              example: "月間の総売上額（税抜）"
+            formula:
+              type: string
+              description: KPI算出式
+              example: "SUM(invoices.amount) WHERE status = 'confirmed' AND date BETWEEN period_start AND period_end"
+            history:
+              type: array
+              description: 過去の実績値
+              items:
+                type: object
+                properties:
+                  date:
+                    type: string
+                    format: date
+                    example: "2023-01-01"
+                  value:
+                    type: number
+                    example: 14200000
+                  target:
+                    type: number
+                    example: 15000000
+            relatedKpis:
+              type: array
+              description: 関連するKPI
+              items:
+                type: string
+                example: "monthly_sales_per_employee"
+    
+    # ダッシュボードウィジェット
+    DashboardWidget:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ウィジェット識別子
+          example: "widget_sales_overview"
+        type:
+          type: string
+          description: ウィジェットの種類
+          example: "kpi_group"
+        title:
+          type: string
+          description: ウィジェットタイトル
+          example: "売上概況"
+        position:
+          type: object
+          properties:
+            row:
+              type: integer
+              description: 行位置
+              example: 0
+            col:
+              type: integer
+              description: 列位置
+              example: 0
+            width:
+              type: integer
+              description: 幅
+              example: 6
+            height:
+              type: integer
+              description: 高さ
+              example: 2
+        config:
+          type: object
+          description: ウィジェット固有の設定
+          additionalProperties: true
+    
+    # レポート活動記録
+    ActivityRecord:
+      type: object
+      properties:
+        id:
+          type: string
+          description: 活動記録識別子
+          example: "activity_123"
+        type:
+          type: string
+          description: 活動の種類
+          example: "project"
+        action:
+          type: string
+          description: 活動内容
+          example: "created"
+        timestamp:
+          type: string
+          format: date-time
+          description: 活動日時
+          example: "2023-05-01T10:30:00Z"
+        description:
+          type: string
+          description: 活動の説明
+          example: "新規案件「クラウド移行支援プロジェクト」が登録されました"
+        actor:
+          type: object
+          properties:
+            id:
+              type: string
+              example: "user_789"
+            name:
+              type: string
+              example: "営業太郎"
+        details:
+          type: object
+          description: 活動の詳細情報
+          additionalProperties: true
+        links:
+          type: object
+          description: 関連リソースへのリンク
+          additionalProperties:
+            type: string
+    
+    # エラーレスポンス
+    Error:
+      type: object
+      properties:
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: エラーコード
+              example: "INVALID_DATE_FORMAT"
+            message:
+              type: string
+              description: エラーメッセージ
+              example: "日付形式が不正です。YYYY-MM-DD形式で指定してください。"
+            details:
+              type: object
+              description: エラーの詳細情報
+              additionalProperties: true
+  
+  parameters:
+    # 共通クエリパラメータ
+    fromParam:
+      name: from
+      in: query
+      description: 期間の開始日 (YYYY-MM-DD形式)
+      schema:
+        type: string
+        format: date
+      example: "2023-01-01"
+    
+    toParam:
+      name: to
+      in: query
+      description: 期間の終了日 (YYYY-MM-DD形式)
+      schema:
+        type: string
+        format: date
+      example: "2023-12-31"
+    
+    granularityParam:
+      name: granularity
+      in: query
+      description: データの集計単位
+      schema:
+        type: string
+        enum: [daily, weekly, monthly, quarterly, annual]
+      example: "monthly"
+    
+    periodParam:
+      name: period
+      in: query
+      description: 集計期間
+      schema:
+        type: string
+        enum: [daily, weekly, monthly, quarterly, annual]
+      example: "monthly"
+    
+    dateParam:
+      name: date
+      in: query
+      description: 基準日 (YYYY-MM-DD形式)
+      schema:
+        type: string
+        format: date
+      example: "2023-05-01"
+    
+    categoryParam:
+      name: category
+      in: query
+      description: 対象カテゴリ
+      schema:
+        type: string
+      example: "sales"
+    
+    limitParam:
+      name: limit
+      in: query
+      description: 結果の最大件数
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+      example: 20
+    
+    pageParam:
+      name: page
+      in: query
+      description: ページ番号 (0から開始)
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+      example: 0
+    
+    formatParam:
+      name: format
+      in: query
+      description: レスポンス形式
+      schema:
+        type: string
+        enum: [json, csv, excel, pdf]
+        default: json
+      example: "json"
+  
+  responses:
+    # 標準レスポンス
+    StandardReportResponse:
+      description: レポートデータ
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/StandardReportResponse'
+    
+    # エラーレスポンス
+    ErrorResponse:
+      description: エラーレスポンス
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT形式のアクセストークンを使用した認証
+
+security:
+  - bearerAuth: []

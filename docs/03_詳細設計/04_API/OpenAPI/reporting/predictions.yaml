@@ -1,0 +1,1260 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム 予測分析API
+  description: |
+    SES業務システムの予測分析機能を提供するAPIです。
+    売上予測、利益予測、リソース需要予測などの将来予測データを提供します。
+  version: 1.0.0
+
+paths:
+  /reports/predictions/sales:
+    get:
+      tags:
+        - predictions
+      summary: 売上予測データの取得
+      description: |
+        将来の売上予測データを取得します。
+        過去のトレンドに基づいて、将来の売上推移を予測します。
+      parameters:
+        - name: start
+          in: query
+          description: 予測開始日 (YYYY-MM-DD形式)
+          schema:
+            type: string
+            format: date
+          required: true
+          example: "2023-06-01"
+        - name: end
+          in: query
+          description: 予測終了日 (YYYY-MM-DD形式)
+          schema:
+            type: string
+            format: date
+          required: true
+          example: "2023-12-31"
+        - name: period
+          in: query
+          description: 予測の集計単位
+          schema:
+            type: string
+            enum: [daily, weekly, monthly, quarterly]
+            default: "monthly"
+        - name: modelId
+          in: query
+          description: 使用する予測モデルのID（指定しない場合はデフォルトモデル）
+          schema:
+            type: string
+        - name: confidenceLevel
+          in: query
+          description: 信頼区間のレベル (0-1)
+          schema:
+            type: number
+            format: float
+            minimum: 0
+            maximum: 1
+            default: 0.95
+        - name: includeFactors
+          in: query
+          description: 予測に影響する要因情報を含めるかどうか
+          schema:
+            type: boolean
+            default: false
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/formatParam'
+      responses:
+        '200':
+          description: 売上予測データの取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    allOf:
+                      - $ref: '../reporting/reporting_common.yaml#/components/schemas/ReportMeta'
+                      - type: object
+                        properties:
+                          predictionModel:
+                            type: string
+                            description: 使用された予測モデル
+                            example: "time_series_arima"
+                          modelVersion:
+                            type: string
+                            description: 予測モデルのバージョン
+                            example: "v2.3.1"
+                          confidenceLevel:
+                            type: number
+                            format: float
+                            description: 信頼区間のレベル
+                            example: 0.95
+                          trainingDataRange:
+                            type: object
+                            properties:
+                              from:
+                                type: string
+                                format: date
+                                example: "2021-01-01"
+                              to:
+                                type: string
+                                format: date
+                                example: "2023-05-31"
+                          lastTrainingDate:
+                            type: string
+                            format: date-time
+                            description: モデルの最終学習日時
+                            example: "2023-06-01T00:00:00Z"
+                          accuracy:
+                            type: object
+                            properties:
+                              mape:
+                                type: number
+                                format: float
+                                description: 平均絶対誤差率
+                                example: 0.084
+                              rmse:
+                                type: number
+                                description: 二乗平均平方根誤差
+                                example: 1250000
+                  data:
+                    type: object
+                    properties:
+                      predictions:
+                        type: array
+                        description: 期間ごとの予測データ
+                        items:
+                          type: object
+                          properties:
+                            period:
+                              type: string
+                              example: "2023-06"
+                            predictedValue:
+                              type: number
+                              example: 15800000
+                            lowerBound:
+                              type: number
+                              example: 14500000
+                            upperBound:
+                              type: number
+                              example: 17100000
+                            trend:
+                              type: string
+                              enum: [up, down, stable]
+                              example: "up"
+                            changeRate:
+                              type: number
+                              format: float
+                              example: 0.053
+                      seasonalFactors:
+                        type: array
+                        description: 季節要因の影響
+                        items:
+                          type: object
+                          properties:
+                            period:
+                              type: string
+                              example: "2023-06"
+                            seasonalFactor:
+                              type: number
+                              format: float
+                              description: 季節要因の影響度
+                              example: 1.05
+                      influencingFactors:
+                        type: array
+                        description: 予測に影響する要因（includeFactors=trueの場合のみ）
+                        items:
+                          type: object
+                          properties:
+                            factor:
+                              type: string
+                              example: "holiday_season"
+                            impact:
+                              type: number
+                              format: float
+                              description: 要因の影響度
+                              example: 0.15
+                            description:
+                              type: string
+                              example: "12月は休暇シーズンにより売上が15%向上する傾向があります"
+                  summary:
+                    type: object
+                    properties:
+                      totalPredictedSales:
+                        type: number
+                        example: 111300000
+                      averageMonthlySales:
+                        type: number
+                        example: 15900000
+                      peakMonth:
+                        type: object
+                        properties:
+                          period:
+                            type: string
+                            example: "2023-12"
+                          amount:
+                            type: number
+                            example: 18200000
+                      lowestMonth:
+                        type: object
+                        properties:
+                          period:
+                            type: string
+                            example: "2023-08"
+                          amount:
+                            type: number
+                            example: 14500000
+                      overallTrend:
+                        type: string
+                        enum: [increasing, decreasing, stable, fluctuating]
+                        example: "increasing"
+                      yearEndProjection:
+                        type: number
+                        example: 189500000
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: "/api/v1/reports/predictions/sales?start=2023-06-01&end=2023-12-31&period=monthly"
+                      related:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            rel:
+                              type: string
+                              example: "profit_prediction"
+                            href:
+                              type: string
+                              example: "/api/v1/reports/predictions/profit?start=2023-06-01&end=2023-12-31&period=monthly"
+                            title:
+                              type: string
+                              example: "同期間の利益予測"
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+  /reports/predictions/profit:
+    get:
+      tags:
+        - predictions
+      summary: 利益予測データの取得
+      description: |
+        将来の利益予測データを取得します。
+        売上予測とコスト予測に基づいて、将来の利益推移を予測します。
+      parameters:
+        - name: start
+          in: query
+          description: 予測開始日 (YYYY-MM-DD形式)
+          schema:
+            type: string
+            format: date
+          required: true
+          example: "2023-06-01"
+        - name: end
+          in: query
+          description: 予測終了日 (YYYY-MM-DD形式)
+          schema:
+            type: string
+            format: date
+          required: true
+          example: "2023-12-31"
+        - name: period
+          in: query
+          description: 予測の集計単位
+          schema:
+            type: string
+            enum: [daily, weekly, monthly, quarterly]
+            default: "monthly"
+        - name: modelId
+          in: query
+          description: 使用する予測モデルのID（指定しない場合はデフォルトモデル）
+          schema:
+            type: string
+        - name: confidenceLevel
+          in: query
+          description: 信頼区間のレベル (0-1)
+          schema:
+            type: number
+            format: float
+            minimum: 0
+            maximum: 1
+            default: 0.95
+        - name: includeFactors
+          in: query
+          description: 予測に影響する要因情報を含めるかどうか
+          schema:
+            type: boolean
+            default: false
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/formatParam'
+      responses:
+        '200':
+          description: 利益予測データの取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    allOf:
+                      - $ref: '../reporting/reporting_common.yaml#/components/schemas/ReportMeta'
+                      - type: object
+                        properties:
+                          predictionModel:
+                            type: string
+                            description: 使用された予測モデル
+                            example: "multivariate_regression"
+                          modelVersion:
+                            type: string
+                            description: 予測モデルのバージョン
+                            example: "v2.1.0"
+                          confidenceLevel:
+                            type: number
+                            format: float
+                            description: 信頼区間のレベル
+                            example: 0.95
+                          trainingDataRange:
+                            type: object
+                            properties:
+                              from:
+                                type: string
+                                format: date
+                                example: "2021-01-01"
+                              to:
+                                type: string
+                                format: date
+                                example: "2023-05-31"
+                          lastTrainingDate:
+                            type: string
+                            format: date-time
+                            description: モデルの最終学習日時
+                            example: "2023-06-01T00:00:00Z"
+                          accuracy:
+                            type: object
+                            properties:
+                              mape:
+                                type: number
+                                format: float
+                                description: 平均絶対誤差率
+                                example: 0.092
+                              rmse:
+                                type: number
+                                description: 二乗平均平方根誤差
+                                example: 450000
+                  data:
+                    type: object
+                    properties:
+                      predictions:
+                        type: array
+                        description: 期間ごとの予測データ
+                        items:
+                          type: object
+                          properties:
+                            period:
+                              type: string
+                              example: "2023-06"
+                            predictedSales:
+                              type: number
+                              example: 15800000
+                            predictedCost:
+                              type: number
+                              example: 11060000
+                            predictedProfit:
+                              type: number
+                              example: 4740000
+                            predictedProfitMargin:
+                              type: number
+                              format: float
+                              example: 0.3
+                            profitLowerBound:
+                              type: number
+                              example: 4200000
+                            profitUpperBound:
+                              type: number
+                              example: 5280000
+                            trend:
+                              type: string
+                              enum: [up, down, stable]
+                              example: "up"
+                            changeRate:
+                              type: number
+                              format: float
+                              example: 0.06
+                      costBreakdown:
+                        type: array
+                        description: コスト内訳の予測
+                        items:
+                          type: object
+                          properties:
+                            period:
+                              type: string
+                              example: "2023-06"
+                            laborCost:
+                              type: number
+                              example: 9500000
+                            operationalCost:
+                              type: number
+                              example: 1200000
+                            overheadCost:
+                              type: number
+                              example: 360000
+                      influencingFactors:
+                        type: array
+                        description: 予測に影響する要因（includeFactors=trueの場合のみ）
+                        items:
+                          type: object
+                          properties:
+                            factor:
+                              type: string
+                              example: "labor_cost_increase"
+                            impact:
+                              type: number
+                              format: float
+                              description: 要因の影響度
+                              example: -0.05
+                            description:
+                              type: string
+                              example: "7月からの労務費上昇により利益率が約5%低下する見込み"
+                  summary:
+                    type: object
+                    properties:
+                      totalPredictedSales:
+                        type: number
+                        example: 111300000
+                      totalPredictedCost:
+                        type: number
+                        example: 78000000
+                      totalPredictedProfit:
+                        type: number
+                        example: 33300000
+                      averageProfitMargin:
+                        type: number
+                        format: float
+                        example: 0.299
+                      bestProfitMarginMonth:
+                        type: object
+                        properties:
+                          period:
+                            type: string
+                            example: "2023-10"
+                          profitMargin:
+                            type: number
+                            format: float
+                            example: 0.31
+                      worstProfitMarginMonth:
+                        type: object
+                        properties:
+                          period:
+                            type: string
+                            example: "2023-07"
+                          profitMargin:
+                            type: number
+                            format: float
+                            example: 0.28
+                      yearEndProjection:
+                        type: number
+                        example: 57000000
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: "/api/v1/reports/predictions/profit?start=2023-06-01&end=2023-12-31&period=monthly"
+                      related:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            rel:
+                              type: string
+                              example: "sales_prediction"
+                            href:
+                              type: string
+                              example: "/api/v1/reports/predictions/sales?start=2023-06-01&end=2023-12-31&period=monthly"
+                            title:
+                              type: string
+                              example: "同期間の売上予測"
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+  /reports/predictions/resource-demand:
+    get:
+      tags:
+        - predictions
+      summary: リソース需要予測データの取得
+      description: |
+        将来の技術者リソース需要予測データを取得します。
+        案件情報と市場トレンドに基づいて、スキル別の技術者需要を予測します。
+      parameters:
+        - name: start
+          in: query
+          description: 予測開始日 (YYYY-MM-DD形式)
+          schema:
+            type: string
+            format: date
+          required: true
+          example: "2023-06-01"
+        - name: end
+          in: query
+          description: 予測終了日 (YYYY-MM-DD形式)
+          schema:
+            type: string
+            format: date
+          required: true
+          example: "2023-12-31"
+        - name: period
+          in: query
+          description: 予測の集計単位
+          schema:
+            type: string
+            enum: [daily, weekly, monthly, quarterly]
+            default: "monthly"
+        - name: skillCategory
+          in: query
+          description: スキルカテゴリでフィルタリング
+          schema:
+            type: string
+        - name: groupBy
+          in: query
+          description: グループ化の単位
+          schema:
+            type: string
+            enum: [skill, skill_category, experience, division]
+            default: "skill"
+        - name: modelId
+          in: query
+          description: 使用する予測モデルのID（指定しない場合はデフォルトモデル）
+          schema:
+            type: string
+        - name: includeSupply
+          in: query
+          description: 供給予測も含めるかどうか
+          schema:
+            type: boolean
+            default: true
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/formatParam'
+      responses:
+        '200':
+          description: リソース需要予測データの取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    allOf:
+                      - $ref: '../reporting/reporting_common.yaml#/components/schemas/ReportMeta'
+                      - type: object
+                        properties:
+                          predictionModel:
+                            type: string
+                            description: 使用された予測モデル
+                            example: "resource_demand_forecast"
+                          modelVersion:
+                            type: string
+                            description: 予測モデルのバージョン
+                            example: "v1.8.2"
+                          dataFactors:
+                            type: array
+                            description: 予測に使用されたデータ要素
+                            items:
+                              type: string
+                            example: ["current_projects", "pipeline_projects", "market_trends", "historical_demand"]
+                  data:
+                    type: object
+                    properties:
+                      overall:
+                        type: array
+                        description: 期間ごとの全体予測データ
+                        items:
+                          type: object
+                          properties:
+                            period:
+                              type: string
+                              example: "2023-06"
+                            demandForecast:
+                              type: integer
+                              description: 必要技術者数の予測
+                              example: 105
+                            supplyForecast:
+                              type: integer
+                              description: 供給可能技術者数の予測
+                              example: 95
+                            gap:
+                              type: integer
+                              description: 需給ギャップ（正：不足、負：余剰）
+                              example: 10
+                            trend:
+                              type: string
+                              enum: [increasing, decreasing, stable]
+                              example: "increasing"
+                      groupedData:
+                        type: array
+                        description: グループ別の予測データ
+                        items:
+                          type: object
+                          properties:
+                            groupId:
+                              type: string
+                              example: "skill_java"
+                            groupName:
+                              type: string
+                              example: "Java"
+                            forecasts:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  period:
+                                    type: string
+                                    example: "2023-06"
+                                  demandForecast:
+                                    type: integer
+                                    example: 25
+                                  supplyForecast:
+                                    type: integer
+                                    example: 20
+                                  gap:
+                                    type: integer
+                                    example: 5
+                                  trend:
+                                    type: string
+                                    enum: [increasing, decreasing, stable]
+                                    example: "increasing"
+                            summary:
+                              type: object
+                              properties:
+                                averageDemand:
+                                  type: number
+                                  format: float
+                                  example: 26.5
+                                averageGap:
+                                  type: number
+                                  format: float
+                                  example: 6.2
+                                peakDemandPeriod:
+                                  type: string
+                                  example: "2023-09"
+                                peakDemand:
+                                  type: integer
+                                  example: 30
+                                marketTrend:
+                                  type: string
+                                  enum: [hot, warm, cool]
+                                  example: "hot"
+                      projectFactors:
+                        type: array
+                        description: 予測に影響するプロジェクト要因
+                        items:
+                          type: object
+                          properties:
+                            projectId:
+                              type: string
+                              example: "project_456"
+                            projectName:
+                              type: string
+                              example: "基幹システム再構築"
+                            status:
+                              type: string
+                              enum: [active, proposed, pipeline]
+                              example: "pipeline"
+                            probability:
+                              type: number
+                              format: float
+                              minimum: 0
+                              maximum: 1
+                              example: 0.8
+                            startDate:
+                              type: string
+                              format: date
+                              example: "2023-07-01"
+                            endDate:
+                              type: string
+                              format: date
+                              example: "2023-12-31"
+                            requiredSkills:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  skillId:
+                                    type: string
+                                    example: "skill_java"
+                                  skillName:
+                                    type: string
+                                    example: "Java"
+                                  count:
+                                    type: integer
+                                    example: 5
+                                  experienceLevel:
+                                    type: string
+                                    enum: [junior, mid, senior]
+                                    example: "senior"
+                  summary:
+                    type: object
+                    properties:
+                      periodWithLargestGap:
+                        type: object
+                        properties:
+                          period:
+                            type: string
+                            example: "2023-09"
+                          gap:
+                            type: integer
+                            example: 15
+                      mostDemandedSkills:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            skillId:
+                              type: string
+                              example: "skill_java"
+                            skillName:
+                              type: string
+                              example: "Java"
+                            averageDemand:
+                              type: number
+                              format: float
+                              example: 26.5
+                            growth:
+                              type: number
+                              format: float
+                              example: 0.15
+                      oversuppliedSkills:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            skillId:
+                              type: string
+                              example: "skill_cobol"
+                            skillName:
+                              type: string
+                              example: "COBOL"
+                            averageSupply:
+                              type: number
+                              format: float
+                              example: 8.2
+                            averageDemand:
+                              type: number
+                              format: float
+                              example: 5.0
+                      recommendedActions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            action:
+                              type: string
+                              example: "recruitment"
+                            targetSkill:
+                              type: string
+                              example: "Java"
+                            recommendedCount:
+                              type: integer
+                              example: 10
+                            priority:
+                              type: string
+                              enum: [high, medium, low]
+                              example: "high"
+                            description:
+                              type: string
+                              example: "Javaエンジニアの採用を優先的に行い、9月までに10名追加することを推奨"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: "/api/v1/reports/predictions/resource-demand?start=2023-06-01&end=2023-12-31&period=monthly"
+                      related:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            rel:
+                              type: string
+                              example: "engineer_search"
+                            href:
+                              type: string
+                              example: "/api/v1/engineers/search?skill=Java&status=available"
+                            title:
+                              type: string
+                              example: "利用可能なJavaエンジニアを検索"
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+  /reports/predictions/trends:
+    get:
+      tags:
+        - predictions
+      summary: 市場トレンド予測データの取得
+      description: |
+        市場トレンドの予測データを取得します。
+        スキル需要の変化、単価の変動、市場の成長率などの将来予測を提供します。
+      parameters:
+        - name: category
+          in: query
+          description: 予測カテゴリ
+          schema:
+            type: string
+            enum: [skills, rates, market_segments, all]
+            default: "all"
+        - name: horizon
+          in: query
+          description: 予測期間（ヶ月）
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 36
+            default: 12
+        - name: region
+          in: query
+          description: 地域でフィルター
+          schema:
+            type: string
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/formatParam'
+      responses:
+        '200':
+          description: 市場トレンド予測の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2023-06-01T12:00:00Z"
+                      category:
+                        type: string
+                        example: "all"
+                      horizon:
+                        type: integer
+                        example: 12
+                      region:
+                        type: string
+                        example: "japan"
+                      dataSource:
+                        type: string
+                        example: "industry_reports_and_internal_data"
+                      lastUpdated:
+                        type: string
+                        format: date-time
+                        example: "2023-06-01T00:00:00Z"
+                  data:
+                    type: object
+                    properties:
+                      skillTrends:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            skillId:
+                              type: string
+                              example: "skill_cloud_native"
+                            skillName:
+                              type: string
+                              example: "クラウドネイティブ開発"
+                            currentDemand:
+                              type: string
+                              enum: [very_high, high, moderate, low, very_low]
+                              example: "high"
+                            demandTrend:
+                              type: string
+                              enum: [rapid_growth, growth, stable, decline, rapid_decline]
+                              example: "rapid_growth"
+                            forecastedGrowth:
+                              type: number
+                              format: float
+                              example: 0.25
+                            timeToReachPeak:
+                              type: integer
+                              description: ピークに達するまでの予測月数
+                              example: 24
+                            skillMaturity:
+                              type: string
+                              enum: [emerging, growing, mature, declining]
+                              example: "growing"
+                            relatedSkills:
+                              type: array
+                              items:
+                                type: string
+                              example: ["kubernetes", "docker", "microservices"]
+                      rateTrends:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            skillId:
+                              type: string
+                              example: "skill_cloud_native"
+                            skillName:
+                              type: string
+                              example: "クラウドネイティブ開発"
+                            currentAverageRate:
+                              type: number
+                              example: 850000
+                            rateTrend:
+                              type: string
+                              enum: [rapid_growth, growth, stable, decline, rapid_decline]
+                              example: "growth"
+                            forecastedGrowth:
+                              type: number
+                              format: float
+                              example: 0.08
+                            forecastedRateIn6Months:
+                              type: number
+                              example: 880000
+                            forecastedRateIn12Months:
+                              type: number
+                              example: 918000
+                      marketSegmentTrends:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            segmentId:
+                              type: string
+                              example: "finance"
+                            segmentName:
+                              type: string
+                              example: "金融業界"
+                            currentDemand:
+                              type: string
+                              enum: [very_high, high, moderate, low, very_low]
+                              example: "high"
+                            demandTrend:
+                              type: string
+                              enum: [rapid_growth, growth, stable, decline, rapid_decline]
+                              example: "growth"
+                            forecastedGrowth:
+                              type: number
+                              format: float
+                              example: 0.12
+                            highDemandSkills:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  skillId:
+                                    type: string
+                                    example: "skill_cloud_native"
+                                  skillName:
+                                    type: string
+                                    example: "クラウドネイティブ開発"
+                                  relevance:
+                                    type: number
+                                    format: float
+                                    minimum: 0
+                                    maximum: 1
+                                    example: 0.85
+                            marketOpportunity:
+                              type: string
+                              enum: [excellent, good, moderate, limited]
+                              example: "excellent"
+                  insights:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        type:
+                          type: string
+                          enum: [opportunity, risk, recommendation]
+                          example: "opportunity"
+                        title:
+                          type: string
+                          example: "クラウドネイティブ人材の戦略的育成"
+                        description:
+                          type: string
+                          example: "クラウドネイティブ開発スキルは今後2年間で25%の成長が予測されています。現在のJavaエンジニアに対してクラウドネイティブ技術のトレーニングを提供することで、市場競争力を高めることができます。"
+                        relevance:
+                          type: number
+                          format: float
+                          minimum: 0
+                          maximum: 1
+                          example: 0.9
+                        relatedSkills:
+                          type: array
+                          items:
+                            type: string
+                          example: ["kubernetes", "docker", "microservices"]
+                        suggestedAction:
+                          type: string
+                          example: "既存のJavaエンジニア20名に対して、3ヶ月以内にクラウドネイティブ開発トレーニングを実施する"
+                  links:
+                    type: object
+                    properties:
+                      self:
+                        type: string
+                        example: "/api/v1/reports/predictions/trends?category=all&horizon=12"
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+  /reports/predictions/models:
+    get:
+      tags:
+        - predictions
+      summary: 予測モデル一覧の取得
+      description: |
+        利用可能な予測モデルの一覧を取得します。
+        モデル情報、パラメータ、精度などの情報を含みます。
+      parameters:
+        - name: type
+          in: query
+          description: モデルタイプでフィルタリング
+          schema:
+            type: string
+            enum: [sales, profit, resource, trend, all]
+            default: "all"
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/limitParam'
+        - $ref: '../reporting/reporting_common.yaml#/components/parameters/pageParam'
+      responses:
+        '200':
+          description: 予測モデル一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  meta:
+                    type: object
+                    properties:
+                      timestamp:
+                        type: string
+                        format: date-time
+                        example: "2023-06-01T12:00:00Z"
+                      count:
+                        type: integer
+                        example: 5
+                      total:
+                        type: integer
+                        example: 12
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "time_series_arima"
+                        name:
+                          type: string
+                          example: "時系列ARIMA予測モデル"
+                        description:
+                          type: string
+                          example: "自己回帰和分移動平均（ARIMA）モデルを使用した時系列データの予測"
+                        version:
+                          type: string
+                          example: "v2.3.1"
+                        type:
+                          type: string
+                          enum: [sales, profit, resource, trend]
+                          example: "sales"
+                        features:
+                          type: array
+                          items:
+                            type: string
+                          example: ["季節性調整", "異常値検出", "信頼区間計算"]
+                        parameters:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                                example: "confidenceLevel"
+                              description:
+                                type: string
+                                example: "信頼区間のレベル (0-1)"
+                              defaultValue:
+                                type: string
+                                example: "0.95"
+                              allowedValues:
+                                type: array
+                                items:
+                                  type: string
+                                example: ["0.8", "0.9", "0.95", "0.99"]
+                        accuracy:
+                          type: object
+                          properties:
+                            mape:
+                              type: number
+                              format: float
+                              description: 平均絶対誤差率
+                              example: 0.084
+                            rmse:
+                              type: number
+                              description: 二乗平均平方根誤差
+                              example: 1250000
+                        lastTrained:
+                          type: string
+                          format: date-time
+                          example: "2023-06-01T00:00:00Z"
+                        trainingDataRange:
+                          type: object
+                          properties:
+                            from:
+                              type: string
+                              format: date
+                              example: "2021-01-01"
+                            to:
+                              type: string
+                              format: date
+                              example: "2023-05-31"
+                        isDefault:
+                          type: boolean
+                          example: true
+                        creator:
+                          type: string
+                          example: "system"
+        '400':
+          $ref: '../reporting/reporting_common.yaml#/components/responses/ErrorResponse'
+        '401':
+          description: 認証エラー
+        '403':
+          description: アクセス権限エラー
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    # 予測モデル情報
+    PredictionModel:
+      type: object
+      properties:
+        id:
+          type: string
+          description: モデルの一意識別子
+          example: "time_series_arima"
+        name:
+          type: string
+          description: モデル名
+          example: "時系列ARIMA予測モデル"
+        description:
+          type: string
+          description: モデルの説明
+          example: "自己回帰和分移動平均（ARIMA）モデルを使用した時系列データの予測"
+        version:
+          type: string
+          description: モデルのバージョン
+          example: "v2.3.1"
+        type:
+          type: string
+          description: モデルタイプ
+          enum: [sales, profit, resource, trend]
+          example: "sales"
+        accuracy:
+          type: object
+          description: モデルの精度情報
+          properties:
+            mape:
+              type: number
+              format: float
+              description: 平均絶対誤差率
+              example: 0.084
+            rmse:
+              type: number
+              description: 二乗平均平方根誤差
+              example: 1250000
+
+    # 予測結果の基本構造
+    PredictionResult:
+      type: object
+      properties:
+        period:
+          type: string
+          description: 予測期間
+          example: "2023-06"
+        predictedValue:
+          type: number
+          description: 予測値
+          example: 15800000
+        lowerBound:
+          type: number
+          description: 信頼区間下限
+          example: 14500000
+        upperBound:
+          type: number
+          description: 信頼区間上限
+          example: 17100000
+        trend:
+          type: string
+          description: トレンド
+          enum: [up, down, stable]
+          example: "up"
+  
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT形式のアクセストークンを使用した認証

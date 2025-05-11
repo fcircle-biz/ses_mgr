@@ -251,6 +251,62 @@ paths:
   /billing/bank-accounts/engineers/{engineer_id}:
     $ref: './billing/bank_accounts/billing_bank_accounts.yaml#/paths/~1billing~1bank-accounts~1engineers~1{engineer_id}'
 
+  # レポーティングAPI - ダッシュボード
+  /reports/dashboard/kpi:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1dashboard~1kpi'
+  /reports/dashboard/kpi/{kpiId}:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1dashboard~1kpi~1{kpiId}'
+  /reports/dashboard/summary:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1dashboard~1summary'
+  /reports/dashboard/recent-activities:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1dashboard~1recent-activities'
+  /reports/dashboard/settings:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1dashboard~1settings'
+
+  # レポーティングAPI - データ収集
+  /reports/data/collect:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1data~1collect'
+  /reports/data/jobs:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1data~1jobs'
+  /reports/data/jobs/{jobId}:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1data~1jobs~1{jobId}'
+  /reports/data/jobs/{jobId}/cancel:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1data~1jobs~1{jobId}~1cancel'
+  /reports/data/jobs/{jobId}/results:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1data~1jobs~1{jobId}~1results'
+  /reports/data/sources:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1data~1sources'
+  /reports/data/sources/{sourceId}/status:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1data~1sources~1{sourceId}~1status'
+
+  # レポーティングAPI - 標準レポート
+  /reports/sales/monthly:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1sales~1monthly'
+  /reports/profit/monthly:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1profit~1monthly'
+  /reports/utilization:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1utilization'
+  /reports/custom:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1custom'
+  /reports/custom/{reportId}:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1custom~1{reportId}'
+  /reports/custom/list:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1custom~1list'
+  /reports/export:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1export'
+
+  # レポーティングAPI - 予測分析
+  /reports/predictions/sales:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1predictions~1sales'
+  /reports/predictions/profit:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1predictions~1profit'
+  /reports/predictions/resource-demand:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1predictions~1resource-demand'
+  /reports/predictions/trends:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1predictions~1trends'
+  /reports/predictions/models:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1predictions~1models'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -306,5 +362,19 @@ tags:
     description: 銀行口座管理API
   - name: reports
     description: レポーティングAPI
+  - name: dashboard
+    description: ダッシュボード関連のAPI
+  - name: data-collection
+    description: データ収集処理関連のAPI
+  - name: sales-reports
+    description: 売上関連のレポートAPI
+  - name: profit-reports
+    description: 利益関連のレポートAPI
+  - name: utilization-reports
+    description: 稼働率関連のレポートAPI
+  - name: custom-reports
+    description: カスタムレポート関連のAPI
+  - name: predictions
+    description: 予測分析関連のAPI
   - name: admin
     description: システム管理API
