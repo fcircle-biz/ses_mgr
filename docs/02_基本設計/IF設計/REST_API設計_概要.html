@@ -130,6 +130,15 @@
             <li>リソース間の関係性はURIパスの階層構造で表現</li>
             <li>CRUD操作はHTTPメソッドで表現</li>
         </ul>
+        
+        <h3>2.3 モノリシックアーキテクチャ対応</h3>
+        <p>モノリシックアーキテクチャを採用しつつも、APIはドメイン領域ごとに論理的に分割設計する：</p>
+        <ul>
+            <li>単一のアプリケーションからすべてのAPIエンドポイントを提供</li>
+            <li>ドメイン領域ごとのコントローラークラスで機能を分割</li>
+            <li>将来的なマイクロサービス化への移行を考慮したインターフェース設計</li>
+            <li>共通の認証・認可メカニズムの一元的な適用</li>
+        </ul>
     </div>
     
     <div class="section">
@@ -412,6 +421,8 @@ Authorization: Bearer {JWT_TOKEN}</code></pre>
         <a href="REST_API/請求支払API.html" class="api-link">・請求・支払管理API設計</a>
         <a href="REST_API/レポーティングAPI.html" class="api-link">・レポーティングAPI設計</a>
         <a href="REST_API/システム管理API.html" class="api-link">・システム管理API設計</a>
+
+        <p class="note">※ OpenAPI (Swagger) による詳細なAPI仕様は詳細設計フェーズの成果物として、<a href="../../03_詳細設計/04_API/OpenAPI/index.yaml">詳細設計 > API > OpenAPI</a> に格納されています。</p>
     </div>
     
     <div class="note">

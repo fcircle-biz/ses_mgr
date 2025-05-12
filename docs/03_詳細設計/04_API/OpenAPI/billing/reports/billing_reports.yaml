@@ -1,0 +1,688 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 請求支払レポートAPI
+  description: |
+    請求支払レポートモジュールのAPI仕様です。
+    
+    このAPIは請求、支払、キャッシュフロー、および各種財務レポートを提供します。
+  version: 1.0.0
+
+paths:
+  # 請求レポート
+  /billing/reports/invoices:
+    get:
+      tags:
+        - billing-reports
+      summary: 請求レポート取得
+      description: 指定された条件に基づく請求レポートを取得します
+      operationId: getInvoicesReport
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: 集計期間の開始日
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: 集計期間の終了日
+        - name: customerId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 顧客IDによるフィルタ
+        - name: groupBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [CUSTOMER, PROJECT, DATE, STATUS]
+            default: DATE
+          description: グループ化の基準
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [JSON, CSV, PDF, EXCEL]
+            default: JSON
+          description: レポート形式
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reportDate:
+                    type: string
+                    format: date-time
+                    description: レポート作成日時
+                  period:
+                    $ref: './billing_common.yaml#/components/schemas/DateRange'
+                  summary:
+                    type: object
+                    properties:
+                      totalInvoices:
+                        type: integer
+                        description: 請求書総数
+                      totalAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 請求総額
+                      paidAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 入金済み金額
+                      overdueAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 延滞金額
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        groupKey:
+                          type: string
+                          description: グループキー (顧客名、案件名、日付、ステータスなど)
+                        count:
+                          type: integer
+                          description: グループ内の請求書数
+                        amount:
+                          $ref: './billing_common.yaml#/components/schemas/Money'
+                          description: グループの合計金額
+                        paidAmount:
+                          $ref: './billing_common.yaml#/components/schemas/Money'
+                          description: グループの入金済み金額
+                        details:
+                          type: array
+                          items:
+                            $ref: './billing_invoices_base.yaml#/components/schemas/InvoiceSummary'
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+        '400':
+          $ref: './billing_common.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './billing_common.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './billing_common.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './billing_common.yaml#/components/responses/InternalServerError'
+
+  # 支払レポート
+  /billing/reports/payments:
+    get:
+      tags:
+        - billing-reports
+      summary: 支払レポート取得
+      description: 指定された条件に基づく支払レポートを取得します
+      operationId: getPaymentsReport
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: 集計期間の開始日
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: 集計期間の終了日
+        - name: companyId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 会社IDによるフィルタ
+        - name: engineerId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 技術者IDによるフィルタ
+        - name: groupBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [COMPANY, ENGINEER, DATE, STATUS]
+            default: DATE
+          description: グループ化の基準
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [JSON, CSV, PDF, EXCEL]
+            default: JSON
+          description: レポート形式
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reportDate:
+                    type: string
+                    format: date-time
+                    description: レポート作成日時
+                  period:
+                    $ref: './billing_common.yaml#/components/schemas/DateRange'
+                  summary:
+                    type: object
+                    properties:
+                      totalPayments:
+                        type: integer
+                        description: 支払総数
+                      totalAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 支払総額
+                      completedPayments:
+                        type: integer
+                        description: 完了した支払数
+                      pendingPayments:
+                        type: integer
+                        description: 保留中の支払数
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        groupKey:
+                          type: string
+                          description: グループキー (会社名、技術者名、日付、ステータスなど)
+                        count:
+                          type: integer
+                          description: グループ内の支払数
+                        amount:
+                          $ref: './billing_common.yaml#/components/schemas/Money'
+                          description: グループの合計金額
+                        details:
+                          type: array
+                          items:
+                            $ref: './billing_payments_base.yaml#/components/schemas/PaymentSummary'
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+        '400':
+          $ref: './billing_common.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './billing_common.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './billing_common.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './billing_common.yaml#/components/responses/InternalServerError'
+
+  # キャッシュフローレポート
+  /billing/reports/cashflow:
+    get:
+      tags:
+        - billing-reports
+      summary: キャッシュフローレポート取得
+      description: 指定された期間のキャッシュフローレポートを取得します
+      operationId: getCashflowReport
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: 集計期間の開始日
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: 集計期間の終了日
+        - name: interval
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [DAY, WEEK, MONTH, QUARTER, YEAR]
+            default: MONTH
+          description: 集計間隔
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [JSON, CSV, PDF, EXCEL]
+            default: JSON
+          description: レポート形式
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reportDate:
+                    type: string
+                    format: date-time
+                    description: レポート作成日時
+                  period:
+                    $ref: './billing_common.yaml#/components/schemas/DateRange'
+                  summary:
+                    type: object
+                    properties:
+                      totalInflow:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 総入金額
+                      totalOutflow:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 総出金額
+                      netCashflow:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 純キャッシュフロー
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        period:
+                          type: string
+                          description: 期間 (日、週、月、四半期、年)
+                        inflow:
+                          $ref: './billing_common.yaml#/components/schemas/Money'
+                          description: 入金額
+                        outflow:
+                          $ref: './billing_common.yaml#/components/schemas/Money'
+                          description: 出金額
+                        netCashflow:
+                          $ref: './billing_common.yaml#/components/schemas/Money'
+                          description: 純キャッシュフロー
+                        inflowDetails:
+                          type: array
+                          items:
+                            $ref: './billing_receipts_base.yaml#/components/schemas/ReceiptSummary'
+                        outflowDetails:
+                          type: array
+                          items:
+                            $ref: './billing_payments_base.yaml#/components/schemas/PaymentSummary'
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+        '400':
+          $ref: './billing_common.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './billing_common.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './billing_common.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './billing_common.yaml#/components/responses/InternalServerError'
+
+  # 請求未回収レポート
+  /billing/reports/aging:
+    get:
+      tags:
+        - billing-reports
+      summary: 請求未回収レポート取得
+      description: 請求の未回収（エイジング）レポートを取得します
+      operationId: getAgingReport
+      parameters:
+        - name: asOfDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: 基準日（デフォルトは当日）
+        - name: customerId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: 顧客IDによるフィルタ
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [JSON, CSV, PDF, EXCEL]
+            default: JSON
+          description: レポート形式
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reportDate:
+                    type: string
+                    format: date-time
+                    description: レポート作成日時
+                  asOfDate:
+                    type: string
+                    format: date
+                    description: 基準日
+                  summary:
+                    type: object
+                    properties:
+                      totalOutstanding:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 未回収総額
+                      current:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 現在の未回収額（期限内）
+                      overdue30:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 30日以内の未回収額
+                      overdue60:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 31-60日の未回収額
+                      overdue90:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 61-90日の未回収額
+                      overdue90Plus:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 90日超の未回収額
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        customerId:
+                          type: string
+                          description: 顧客ID
+                        customerName:
+                          type: string
+                          description: 顧客名
+                        totalOutstanding:
+                          $ref: './billing_common.yaml#/components/schemas/Money'
+                          description: 未回収総額
+                        current:
+                          $ref: './billing_common.yaml#/components/schemas/Money'
+                          description: 現在の未回収額（期限内）
+                        overdue30:
+                          $ref: './billing_common.yaml#/components/schemas/Money'
+                          description: 30日以内の未回収額
+                        overdue60:
+                          $ref: './billing_common.yaml#/components/schemas/Money'
+                          description: 31-60日の未回収額
+                        overdue90:
+                          $ref: './billing_common.yaml#/components/schemas/Money'
+                          description: 61-90日の未回収額
+                        overdue90Plus:
+                          $ref: './billing_common.yaml#/components/schemas/Money'
+                          description: 90日超の未回収額
+                        invoices:
+                          type: array
+                          items:
+                            $ref: './billing_invoices_base.yaml#/components/schemas/InvoiceSummary'
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+        '400':
+          $ref: './billing_common.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './billing_common.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './billing_common.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './billing_common.yaml#/components/responses/InternalServerError'
+
+  # 利益レポート
+  /billing/reports/profit:
+    get:
+      tags:
+        - billing-reports
+      summary: 利益レポート取得
+      description: 指定された期間の利益レポートを取得します
+      operationId: getProfitReport
+      parameters:
+        - name: startDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: 集計期間の開始日
+        - name: endDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+          description: 集計期間の終了日
+        - name: groupBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [PROJECT, CUSTOMER, ENGINEER, DATE]
+            default: PROJECT
+          description: グループ化の基準
+        - name: format
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [JSON, CSV, PDF, EXCEL]
+            default: JSON
+          description: レポート形式
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reportDate:
+                    type: string
+                    format: date-time
+                    description: レポート作成日時
+                  period:
+                    $ref: './billing_common.yaml#/components/schemas/DateRange'
+                  summary:
+                    type: object
+                    properties:
+                      totalRevenue:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 総売上
+                      totalCost:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 総コスト
+                      totalProfit:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                        description: 総利益
+                      profitMargin:
+                        type: number
+                        format: double
+                        description: 利益率（%）
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        groupKey:
+                          type: string
+                          description: グループキー（案件名、顧客名、技術者名、日付など）
+                        revenue:
+                          $ref: './billing_common.yaml#/components/schemas/Money'
+                          description: 売上
+                        cost:
+                          $ref: './billing_common.yaml#/components/schemas/Money'
+                          description: コスト
+                        profit:
+                          $ref: './billing_common.yaml#/components/schemas/Money'
+                          description: 利益
+                        profitMargin:
+                          type: number
+                          format: double
+                          description: 利益率（%）
+                        details:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              invoiceId:
+                                type: string
+                                description: 請求書ID
+                              paymentId:
+                                type: string
+                                description: 支払ID
+                              date:
+                                type: string
+                                format: date
+                                description: 日付
+                              revenue:
+                                $ref: './billing_common.yaml#/components/schemas/Money'
+                                description: 売上
+                              cost:
+                                $ref: './billing_common.yaml#/components/schemas/Money'
+                                description: コスト
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+        '400':
+          $ref: './billing_common.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './billing_common.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './billing_common.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './billing_common.yaml#/components/responses/InternalServerError'
+
+  # レポートエクスポート
+  /billing/reports/export:
+    post:
+      tags:
+        - billing-reports
+      summary: レポートエクスポート
+      description: 指定されたレポート設定に基づいてレポートを生成しエクスポートします
+      operationId: exportReport
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - reportType
+                - format
+              properties:
+                reportType:
+                  type: string
+                  enum: [INVOICES, PAYMENTS, CASHFLOW, AGING, PROFIT]
+                  description: エクスポートするレポートタイプ
+                startDate:
+                  type: string
+                  format: date
+                  description: 開始日
+                endDate:
+                  type: string
+                  format: date
+                  description: 終了日
+                customerId:
+                  type: string
+                  description: 顧客ID
+                companyId:
+                  type: string
+                  description: 会社ID
+                engineerId:
+                  type: string
+                  description: 技術者ID
+                groupBy:
+                  type: string
+                  description: グループ化の基準
+                interval:
+                  type: string
+                  enum: [DAY, WEEK, MONTH, QUARTER, YEAR]
+                  description: 集計間隔
+                format:
+                  type: string
+                  enum: [PDF, EXCEL, CSV]
+                  description: エクスポート形式
+                includeDetails:
+                  type: boolean
+                  default: false
+                  description: 詳細を含めるかどうか
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+            text/csv:
+              schema:
+                type: string
+        '400':
+          $ref: './billing_common.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './billing_common.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './billing_common.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './billing_common.yaml#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    # スキーマはそれぞれの詳細ファイルで定義されています
+    
+  responses:
+    # レスポンスはbilling_common.yamlで定義されています

@@ -1,0 +1,295 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 入金操作API
+  description: |
+    入金の一括インポート・自動割当などの操作に関するAPIです。
+  version: 1.0.0
+
+paths:
+  /billing/receipts/batch-import:
+    post:
+      tags:
+        - billing-receipts
+      summary: 入金の一括インポート
+      description: |
+        銀行明細やCSVファイルから入金データを一括インポートします。
+      operationId: batchImportReceipts
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+                - fileType
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: インポートするファイル
+                fileType:
+                  type: string
+                  enum: [csv, excel, bank_statement]
+                  description: ファイル種別
+                bankType:
+                  type: string
+                  enum: [mizuho, mufg, smbc, other]
+                  description: 銀行種別（bank_statement選択時に必須）
+                dateFormat:
+                  type: string
+                  description: 日付フォーマット（CSV/Excel選択時）
+                  default: "yyyy-MM-dd"
+                encoding:
+                  type: string
+                  description: 文字コード（CSV選択時）
+                  default: "UTF-8"
+                autoAllocate:
+                  type: boolean
+                  description: 自動割当を行うか
+                  default: false
+          application/json:
+            schema:
+              type: object
+              required:
+                - receipts
+              properties:
+                receipts:
+                  type: array
+                  items:
+                    $ref: './billing_receipts_base.yaml#/components/schemas/ReceiptCreate'
+                autoAllocate:
+                  type: boolean
+                  description: 自動割当を行うか
+                  default: false
+      responses:
+        '200':
+          description: インポートに成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      totalCount:
+                        type: integer
+                        description: インポート対象の総件数
+                      successCount:
+                        type: integer
+                        description: インポート成功件数
+                      errorCount:
+                        type: integer
+                        description: インポート失敗件数
+                      warningCount:
+                        type: integer
+                        description: 警告件数
+                      importedReceipts:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            receiptId:
+                              type: string
+                              format: uuid
+                              description: 入金ID
+                            receiptNumber:
+                              type: string
+                              description: 入金番号
+                            amount:
+                              $ref: './billing_common.yaml#/components/schemas/Money'
+                            status:
+                              type: string
+                              enum: [pending, allocated, partially_allocated, unallocated]
+                              description: 入金ステータス
+                            allocatedInvoices:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  invoiceId:
+                                    type: string
+                                    format: uuid
+                                    description: 請求ID
+                                  invoiceNumber:
+                                    type: string
+                                    description: 請求書番号
+                                  amount:
+                                    $ref: './billing_common.yaml#/components/schemas/Money'
+                      errors:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            row:
+                              type: integer
+                              description: エラー発生行数
+                            error:
+                              type: string
+                              description: エラー内容
+                      warnings:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            row:
+                              type: integer
+                              description: 警告発生行数
+                            warning:
+                              type: string
+                              description: 警告内容
+                  message:
+                    type: string
+                    example: "入金データのインポートが完了しました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /billing/receipts/auto-allocate:
+    post:
+      tags:
+        - billing-receipts
+      summary: 入金の自動割当
+      description: |
+        未割当の入金を自動的に請求書に割り当てます。
+      operationId: autoAllocateReceipts
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceiptAutoAllocationRequest'
+      responses:
+        '200':
+          description: 自動割当に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      totalReceiptCount:
+                        type: integer
+                        description: 処理対象の入金総件数
+                      allocatedReceiptCount:
+                        type: integer
+                        description: 割当成功の入金件数
+                      unallocatedReceiptCount:
+                        type: integer
+                        description: 割当できなかった入金件数
+                      totalAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                      allocatedAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                      unallocatedAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                      allocations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            receiptId:
+                              type: string
+                              format: uuid
+                              description: 入金ID
+                            receiptNumber:
+                              type: string
+                              description: 入金番号
+                            invoiceId:
+                              type: string
+                              format: uuid
+                              description: 請求ID
+                            invoiceNumber:
+                              type: string
+                              description: 請求書番号
+                            amount:
+                              $ref: './billing_common.yaml#/components/schemas/Money'
+                            allocationId:
+                              type: string
+                              format: uuid
+                              description: 割当ID
+                      unallocatedReceipts:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            receiptId:
+                              type: string
+                              format: uuid
+                              description: 入金ID
+                            receiptNumber:
+                              type: string
+                              description: 入金番号
+                            amount:
+                              $ref: './billing_common.yaml#/components/schemas/Money'
+                            reason:
+                              type: string
+                              description: 割当できなかった理由
+                  message:
+                    type: string
+                    example: "入金の自動割当が完了しました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    ReceiptAutoAllocationRequest:
+      type: object
+      properties:
+        receiptIds:
+          type: array
+          description: 対象の入金ID（指定しない場合は未割当の全入金が対象）
+          items:
+            type: string
+            format: uuid
+        customerIds:
+          type: array
+          description: 対象の顧客ID（指定しない場合は全顧客が対象）
+          items:
+            type: string
+            format: uuid
+        receiptDateStart:
+          type: string
+          format: date
+          description: 対象の入金日範囲（開始）
+        receiptDateEnd:
+          type: string
+          format: date
+          description: 対象の入金日範囲（終了）
+        allocationStrategy:
+          type: string
+          enum: [oldest_first, matching_amount, matching_reference, full_only]
+          description: 割当戦略（最古請求を優先、金額一致優先、参照情報一致優先、完全一致のみ）
+          default: "oldest_first"
+        allowPartialAllocation:
+          type: boolean
+          description: 部分割当を許可するか
+          default: true
+        forceReallocation:
+          type: boolean
+          description: 既に割当済みの入金も再割当するか
+          default: false
+      example:
+        receiptDateStart: "2023-04-01"
+        receiptDateEnd: "2023-05-31"
+        allocationStrategy: "matching_amount"
+        allowPartialAllocation: true
+        forceReallocation: false

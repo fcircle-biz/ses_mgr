@@ -116,10 +116,10 @@
 
     <h3>1.3 前提条件</h3>
     <ul>
-        <li>システムはマイクロサービスアーキテクチャに基づいて構築されている</li>
+        <li>システムはモノリシックアーキテクチャで論理的なモジュール分割に基づいて構築されている</li>
         <li>バックエンドはSpring Bootを使用</li>
         <li>データベースはPostgreSQLを主要DBとして使用</li>
-        <li>一部のデータはNoSQLデータベース（MongoDB）に格納される</li>
+        <li>一部のデータはRedisなどのキャッシュストアに格納される</li>
     </ul>
 
     <h2>2. 機能概要</h2>
@@ -133,11 +133,11 @@
                 <li>読み取り専用トランザクション最適化</li>
             </ul>
         </li>
-        <li><strong>分散トランザクション管理</strong>
+        <li><strong>モジュール間トランザクション管理</strong>
             <ul>
-                <li>マイクロサービス間トランザクション連携</li>
+                <li>モジュール間トランザクション連携</li>
                 <li>複数データソース間トランザクション制御</li>
-                <li>Saga パターンによる補償トランザクション</li>
+                <li>補償トランザクションパターン</li>
             </ul>
         </li>
         <li><strong>トランザクション例外処理</strong>
@@ -253,36 +253,36 @@ public class ContractService {
     }
 }</code></pre>
 
-    <h3>3.2 分散トランザクション管理</h3>
-    <p>マイクロサービスアーキテクチャでは、複数のサービスやデータソースにまたがるトランザクション管理が必要となります。</p>
+    <h3>3.2 モジュール間トランザクション管理</h3>
+    <p>モノリシックアーキテクチャでも、複数の論理モジュールやデータソースにまたがるトランザクション管理が必要となります。</p>
 
-    <h4>3.2.1 サービス間トランザクション連携パターン</h4>
+    <h4>3.2.1 モジュール間トランザクション連携パターン</h4>
     <p>本システムでは、以下のパターンを採用します：</p>
     <ol>
-        <li><strong>Saga パターン</strong>
+        <li><strong>補償トランザクションパターン</strong>
             <ul>
-                <li>複数のマイクロサービスにまたがる長時間実行トランザクション</li>
+                <li>複数の論理モジュールにまたがる長時間実行トランザクション</li>
                 <li>各ステップに対応する補償トランザクション（補償的アクション）を定義</li>
                 <li>障害発生時は実行済みのステップを補償トランザクションで巻き戻し</li>
             </ul>
         </li>
-        <li><strong>Two-Phase Commit（2PC）の回避</strong>
+        <li><strong>単一トランザクションの活用</strong>
             <ul>
-                <li>パフォーマンスとスケーラビリティの観点から2PCは原則として使用しない</li>
-                <li>代わりに結果整合性（Eventual Consistency）を許容するアプローチを採用</li>
+                <li>モノリシックアーキテクチャの利点を活かし、可能な限り単一トランザクションを使用</li>
+                <li>同一DB内の処理については、Spring管理のトランザクションでACID特性を確保</li>
             </ul>
         </li>
         <li><strong>イベントドリブンアプローチ</strong>
             <ul>
                 <li>トランザクション完了をイベントとして発行</li>
-                <li>後続のサービスはイベントを受け取って処理を実行</li>
+                <li>後続のモジュールはイベントを受け取って処理を実行</li>
                 <li>冪等性を確保して、イベントの重複処理に対応</li>
             </ul>
         </li>
     </ol>
 
-    <h4>3.2.2 Saga パターンの実装</h4>
-    <p><strong>オーケストレーション型Sagaの例（請求書発行処理）</strong>:</p>
+    <h4>3.2.2 補償トランザクションパターンの実装</h4>
+    <p><strong>オーケストレーション型補償トランザクションの例（請求書発行処理）</strong>:</p>
     <pre><code>@Service
 public class InvoiceOrchestrator {
 
@@ -756,8 +756,8 @@ public class TransactionMonitoringAspect {
     <h3>5.1 使用技術</h3>
     <ul>
         <li><strong>トランザクション管理</strong>: Spring Framework の <code>@Transactional</code></li>
-        <li><strong>分散トランザクション</strong>: Saga パターン、Eventual Consistency</li>
-        <li><strong>メッセージング</strong>: RabbitMQ / Apache Kafka（イベント駆動アーキテクチャ用）</li>
+        <li><strong>モジュール間トランザクション</strong>: 補償トランザクションパターン、Spring ApplicationEvent</li>
+        <li><strong>メッセージング</strong>: Spring ApplicationEvent（イベント駆動アプローチ用）</li>
         <li><strong>リトライ機構</strong>: Spring Retry</li>
         <li><strong>モニタリング</strong>: Micrometer + Prometheus + Grafana</li>
     </ul>

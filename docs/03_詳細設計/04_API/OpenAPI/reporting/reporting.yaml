@@ -1,0 +1,148 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム レポーティングAPI全体定義
+  description: |
+    SES業務システムのレポーティングモジュール全体のAPI仕様書です。
+    ダッシュボード、各種レポート、データ収集、予測分析などの機能を提供します。
+  version: 1.0.0
+
+# 共通コンポーネントをインポート
+components:
+  schemas:
+    # 共通スキーマをreporting_common.yamlから参照
+    ReportMeta:
+      $ref: './reporting_common.yaml#/components/schemas/ReportMeta'
+    StandardReportResponse:
+      $ref: './reporting_common.yaml#/components/schemas/StandardReportResponse'
+    Error:
+      $ref: './reporting_common.yaml#/components/schemas/Error'
+    KPI:
+      $ref: './reporting_common.yaml#/components/schemas/KPI'
+    KPIDetail:
+      $ref: './reporting_common.yaml#/components/schemas/KPIDetail'
+    DashboardWidget:
+      $ref: './reporting_common.yaml#/components/schemas/DashboardWidget'
+    ActivityRecord:
+      $ref: './reporting_common.yaml#/components/schemas/ActivityRecord'
+    PredictionModel:
+      $ref: './predictions.yaml#/components/schemas/PredictionModel'
+    PredictionResult:
+      $ref: './predictions.yaml#/components/schemas/PredictionResult'
+    DataCollectionJob:
+      $ref: './data-collection.yaml#/components/schemas/DataCollectionJob'
+
+  parameters:
+    # 共通パラメータをreporting_common.yamlから参照
+    fromParam:
+      $ref: './reporting_common.yaml#/components/parameters/fromParam'
+    toParam:
+      $ref: './reporting_common.yaml#/components/parameters/toParam'
+    granularityParam:
+      $ref: './reporting_common.yaml#/components/parameters/granularityParam'
+    periodParam:
+      $ref: './reporting_common.yaml#/components/parameters/periodParam'
+    dateParam:
+      $ref: './reporting_common.yaml#/components/parameters/dateParam'
+    categoryParam:
+      $ref: './reporting_common.yaml#/components/parameters/categoryParam'
+    limitParam:
+      $ref: './reporting_common.yaml#/components/parameters/limitParam'
+    pageParam:
+      $ref: './reporting_common.yaml#/components/parameters/pageParam'
+    formatParam:
+      $ref: './reporting_common.yaml#/components/parameters/formatParam'
+
+  responses:
+    # 共通レスポンスをreporting_common.yamlから参照
+    StandardReportResponse:
+      $ref: './reporting_common.yaml#/components/responses/StandardReportResponse'
+    ErrorResponse:
+      $ref: './reporting_common.yaml#/components/responses/ErrorResponse'
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT形式のアクセストークンを使用した認証
+
+# 各機能モジュールのAPIを参照
+paths:
+  # ダッシュボードAPI
+  /reports/dashboard/kpi:
+    $ref: './dashboard.yaml#/paths/~1reports~1dashboard~1kpi'
+  /reports/dashboard/kpi/{kpiId}:
+    $ref: './dashboard.yaml#/paths/~1reports~1dashboard~1kpi~1{kpiId}'
+  /reports/dashboard/summary:
+    $ref: './dashboard.yaml#/paths/~1reports~1dashboard~1summary'
+  /reports/dashboard/recent-activities:
+    $ref: './dashboard.yaml#/paths/~1reports~1dashboard~1recent-activities'
+  /reports/dashboard/settings:
+    $ref: './dashboard.yaml#/paths/~1reports~1dashboard~1settings'
+
+  # データ収集API
+  /reports/data/collect:
+    $ref: './data-collection.yaml#/paths/~1reports~1data~1collect'
+  /reports/data/jobs:
+    $ref: './data-collection.yaml#/paths/~1reports~1data~1jobs'
+  /reports/data/jobs/{jobId}:
+    $ref: './data-collection.yaml#/paths/~1reports~1data~1jobs~1{jobId}'
+  /reports/data/jobs/{jobId}/cancel:
+    $ref: './data-collection.yaml#/paths/~1reports~1data~1jobs~1{jobId}~1cancel'
+  /reports/data/jobs/{jobId}/results:
+    $ref: './data-collection.yaml#/paths/~1reports~1data~1jobs~1{jobId}~1results'
+  /reports/data/sources:
+    $ref: './data-collection.yaml#/paths/~1reports~1data~1sources'
+  /reports/data/sources/{sourceId}/status:
+    $ref: './data-collection.yaml#/paths/~1reports~1data~1sources~1{sourceId}~1status'
+
+  # レポートAPI
+  /reports/sales/monthly:
+    $ref: './reports.yaml#/paths/~1reports~1sales~1monthly'
+  /reports/profit/monthly:
+    $ref: './reports.yaml#/paths/~1reports~1profit~1monthly'
+  /reports/utilization:
+    $ref: './reports.yaml#/paths/~1reports~1utilization'
+  /reports/custom:
+    $ref: './reports.yaml#/paths/~1reports~1custom'
+  /reports/custom/{reportId}:
+    $ref: './reports.yaml#/paths/~1reports~1custom~1{reportId}'
+  /reports/custom/list:
+    $ref: './reports.yaml#/paths/~1reports~1custom~1list'
+  /reports/export:
+    $ref: './reports.yaml#/paths/~1reports~1export'
+
+  # 予測分析API
+  /reports/predictions/sales:
+    $ref: './predictions.yaml#/paths/~1reports~1predictions~1sales'
+  /reports/predictions/profit:
+    $ref: './predictions.yaml#/paths/~1reports~1predictions~1profit'
+  /reports/predictions/resource-demand:
+    $ref: './predictions.yaml#/paths/~1reports~1predictions~1resource-demand'
+  /reports/predictions/trends:
+    $ref: './predictions.yaml#/paths/~1reports~1predictions~1trends'
+  /reports/predictions/models:
+    $ref: './predictions.yaml#/paths/~1reports~1predictions~1models'
+
+# API全体にJWT認証を適用
+security:
+  - bearerAuth: []
+
+# タグ定義
+tags:
+  - name: dashboard
+    description: ダッシュボード関連のAPI群
+  - name: data-collection
+    description: データ収集処理関連のAPI群
+  - name: reports
+    description: 標準レポート関連のAPI群
+  - name: sales-reports
+    description: 売上関連のレポートAPI群
+  - name: profit-reports
+    description: 利益関連のレポートAPI群
+  - name: utilization-reports
+    description: 稼働率関連のレポートAPI群
+  - name: custom-reports
+    description: カスタムレポート関連のAPI群
+  - name: predictions
+    description: 予測分析関連のAPI群

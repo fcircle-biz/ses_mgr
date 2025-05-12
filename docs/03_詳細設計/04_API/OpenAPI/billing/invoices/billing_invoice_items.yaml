@@ -1,0 +1,346 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 請求項目管理API
+  description: |
+    請求書の項目（明細）管理に関するAPIです。
+  version: 1.0.0
+
+paths:
+  /billing/invoices/{invoice_id}/items:
+    get:
+      tags:
+        - billing-invoices
+      summary: 請求項目一覧の取得
+      description: 特定の請求書の項目一覧を取得します。
+      operationId: getInvoiceItems
+      parameters:
+        - name: invoice_id
+          in: path
+          description: 請求ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 請求項目一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: './billing_invoices_base.yaml#/components/schemas/InvoiceItem'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+    
+    post:
+      tags:
+        - billing-invoices
+      summary: 請求項目の追加
+      description: 特定の請求書に新しい項目を追加します。
+      operationId: addInvoiceItem
+      parameters:
+        - name: invoice_id
+          in: path
+          description: 請求ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceItemCreate'
+      responses:
+        '201':
+          description: 請求項目の追加に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: './billing_invoices_base.yaml#/components/schemas/InvoiceItem'
+                  message:
+                    type: string
+                    example: "請求項目が追加されました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 追加できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+    
+    put:
+      tags:
+        - billing-invoices
+      summary: 請求項目の一括更新
+      description: 特定の請求書の項目を一括で更新します。
+      operationId: updateInvoiceItems
+      parameters:
+        - name: invoice_id
+          in: path
+          description: 請求ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - items
+              properties:
+                items:
+                  type: array
+                  items:
+                    $ref: '#/components/schemas/InvoiceItemUpdate'
+      responses:
+        '200':
+          description: 請求項目の一括更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: './billing_invoices_base.yaml#/components/schemas/InvoiceItem'
+                  message:
+                    type: string
+                    example: "請求項目が更新されました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 更新できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+  /billing/invoices/{invoice_id}/items/{item_id}:
+    get:
+      tags:
+        - billing-invoices
+      summary: 請求項目の詳細取得
+      description: 特定の請求項目の詳細を取得します。
+      operationId: getInvoiceItem
+      parameters:
+        - name: invoice_id
+          in: path
+          description: 請求ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: item_id
+          in: path
+          description: 請求項目ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 請求項目の詳細取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: './billing_invoices_base.yaml#/components/schemas/InvoiceItem'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+    
+    put:
+      tags:
+        - billing-invoices
+      summary: 請求項目の更新
+      description: 特定の請求項目を更新します。
+      operationId: updateInvoiceItem
+      parameters:
+        - name: invoice_id
+          in: path
+          description: 請求ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: item_id
+          in: path
+          description: 請求項目ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceItemUpdate'
+      responses:
+        '200':
+          description: 請求項目の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: './billing_invoices_base.yaml#/components/schemas/InvoiceItem'
+                  message:
+                    type: string
+                    example: "請求項目が更新されました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 更新できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+    
+    delete:
+      tags:
+        - billing-invoices
+      summary: 請求項目の削除
+      description: 特定の請求項目を削除します。
+      operationId: deleteInvoiceItem
+      parameters:
+        - name: invoice_id
+          in: path
+          description: 請求ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: item_id
+          in: path
+          description: 請求項目ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 請求項目の削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "請求項目が削除されました。"
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 削除できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    InvoiceItemCreate:
+      type: object
+      required:
+        - description
+        - quantity
+        - unitPrice
+      properties:
+        description:
+          type: string
+          description: 項目説明
+        quantity:
+          type: number
+          format: double
+          description: 数量
+        unitPrice:
+          $ref: './billing_common.yaml#/components/schemas/Money'
+        taxable:
+          type: boolean
+          description: 課税対象かどうか
+          default: true
+        sortOrder:
+          type: integer
+          description: 表示順
+
+    InvoiceItemUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 請求項目ID（一括更新時に必須）
+        description:
+          type: string
+          description: 項目説明
+        quantity:
+          type: number
+          format: double
+          description: 数量
+        unitPrice:
+          $ref: './billing_common.yaml#/components/schemas/Money'
+        taxable:
+          type: boolean
+          description: 課税対象かどうか
+        sortOrder:
+          type: integer
+          description: 表示順

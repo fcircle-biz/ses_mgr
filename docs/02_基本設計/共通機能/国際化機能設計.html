@@ -681,65 +681,57 @@ CREATE TABLE project_translations (
 
     <h4>5.6.2 データアクセス実装</h4>
     <p>多言語対応データアクセスの実装例：</p>
-    <pre><code>@Entity
-@Table(name = "projects")
-public class Project {
+    <pre><code>public class Project {
     @Id
     private UUID id;
     
-    @Column(nullable = false, unique = true)
     private String code;
     
-    @Column(nullable = false)
     private String status;
     
     private LocalDate startDate;
     
     private LocalDate endDate;
     
-    @CreatedDate
     private LocalDateTime createdAt;
     
-    @LastModifiedDate
     private LocalDateTime updatedAt;
     
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "project_id")
-    @MapKey(name = "locale")
-    private Map<String, ProjectTranslation> translations = new HashMap<>();
+    // Spring Data JDBCでは@OneToManyリレーションシップは自動的に管理されない
+    // 翻訳データは別途取得する必要がある
     
     // ゲッター、セッター
-    
-    // 翻訳取得ヘルパーメソッド
-    public ProjectTranslation getTranslation(String locale) {
-        return translations.getOrDefault(locale, 
-                translations.getOrDefault(DEFAULT_LOCALE, null));
-    }
 }
 
-@Entity
-@Table(name = "project_translations")
 public class ProjectTranslation {
-    @Id
-    @Column(name = "project_id")
     private UUID projectId;
     
-    @Id
-    @Column(name = "locale")
     private String locale;
     
-    @Column(nullable = false)
     private String name;
     
     private String description;
     
     private String remarks;
     
+    // Spring Data JDBCでは複合キー用の特別な構造が必要
+    @Id
+    private ProjectTranslationId id;
+    
     // ゲッター、セッター
 }
 
+// 複合キー用のクラス
+public class ProjectTranslationId {
+    private UUID projectId;
+    private String locale;
+    
+    // コンストラクタ、equals、hashCodeなどの実装
+}
+
 @Repository
-public interface ProjectRepository extends JpaRepository<Project, UUID> {
+public interface ProjectRepository extends CrudRepository<Project, UUID> {
+    // Spring Data JDBCではJpaRepositoryではなくCrudRepositoryを使用
     // カスタムクエリメソッド
 }
 
@@ -759,7 +751,12 @@ public class ProjectService {
         Locale locale = localeResolver.resolveLocale(request);
         String localeCode = locale.toString();
         
-        ProjectTranslation translation = project.getTranslation(localeCode);
+        // Spring Data JDBCでは関連エンティティを明示的に取得する必要がある
+        ProjectTranslation translation = projectTranslationRepository
+            .findByProjectIdAndLocale(project.getId(), localeCode)
+            .orElse(projectTranslationRepository
+                .findByProjectIdAndLocale(project.getId(), DEFAULT_LOCALE)
+                .orElse(null));
         
         ProjectDTO dto = new ProjectDTO();
         // 基本情報のマッピング

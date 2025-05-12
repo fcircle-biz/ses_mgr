@@ -347,14 +347,14 @@
         <li><strong>ネットワークセグメンテーション</strong>
             <ul>
                 <li>DMZ、アプリケーション層、データベース層の分離</li>
-                <li>マイクロセグメンテーション（サービス間の通信制御）</li>
+                <li>ネットワークACLとセキュリティグループによる通信制御</li>
             </ul>
         </li>
         <li><strong>通信の保護</strong>
             <ul>
                 <li>TLS 1.3による通信の暗号化</li>
-                <li>内部通信のTLS化（Service-to-Service）</li>
-                <li>コンテナ間通信のmTLS（mutual TLS）</li>
+                <li>内部通信の保護（アプリケーション内部とデータベース間）</li>
+                <li>コンテナ環境におけるネットワークセキュリティ</li>
             </ul>
         </li>
     </ol>
@@ -367,7 +367,8 @@
         <li><strong>証明書管理</strong>: 信頼性の高い認証局による証明書の取得と管理</li>
         <li><strong>暗号スイート制限</strong>: 安全な暗号化方式のみを許可</li>
         <li><strong>CSP</strong>: Content Security Policyの適用</li>
-        <li><strong>CORS</strong>: 適切なCross-Origin Resource Sharingの設定</li>
+        <li><strong>X-Content-Type-Options</strong>: nosniffの設定</li>
+        <li><strong>X-Frame-Options</strong>: クリックジャッキング対策</li>
     </ul>
     
     <h3 id="application-security">5.5 アプリケーションセキュリティ</h3>

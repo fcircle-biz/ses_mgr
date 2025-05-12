@@ -1,0 +1,215 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 請求支払管理API
+  description: |
+    請求支払管理モジュールのAPI仕様です。
+    
+    このAPIは以下の機能を提供します：
+    - 請求管理 (invoices)
+    - 支払管理 (payments)
+    - 入金管理 (receipts)
+    - 請求支払レポート (reports)
+  version: 1.0.0
+
+paths:
+  # 請求管理API
+  /billing/invoices:
+    $ref: './billing_invoices.yaml#/paths/~1billing~1invoices'
+  /billing/invoices/{invoice_id}:
+    $ref: './billing_invoices.yaml#/paths/~1billing~1invoices~1{invoice_id}'
+  /billing/invoices/customers/{customer_id}:
+    $ref: './billing_invoices.yaml#/paths/~1billing~1invoices~1customers~1{customer_id}'
+  /billing/invoices/projects/{project_id}:
+    $ref: './billing_invoices.yaml#/paths/~1billing~1invoices~1projects~1{project_id}'
+  /billing/invoices/search:
+    $ref: './billing_invoices.yaml#/paths/~1billing~1invoices~1search'
+  /billing/invoices/{invoice_id}/items:
+    $ref: './billing_invoices.yaml#/paths/~1billing~1invoices~1{invoice_id}~1items'
+  /billing/invoices/{invoice_id}/items/{item_id}:
+    $ref: './billing_invoices.yaml#/paths/~1billing~1invoices~1{invoice_id}~1items~1{item_id}'
+  /billing/invoices/{invoice_id}/status:
+    $ref: './billing_invoices.yaml#/paths/~1billing~1invoices~1{invoice_id}~1status'
+  /billing/invoices/{invoice_id}/generate-pdf:
+    $ref: './billing_invoices.yaml#/paths/~1billing~1invoices~1{invoice_id}~1generate-pdf'
+  /billing/invoices/{invoice_id}/send:
+    $ref: './billing_invoices.yaml#/paths/~1billing~1invoices~1{invoice_id}~1send'
+    
+  # 支払管理API
+  /billing/payments:
+    $ref: './billing_payments.yaml#/paths/~1billing~1payments'
+  /billing/payments/{payment_id}:
+    $ref: './billing_payments.yaml#/paths/~1billing~1payments~1{payment_id}'
+  /billing/payments/search:
+    $ref: './billing_payments.yaml#/paths/~1billing~1payments~1search'  
+  /billing/payments/companies/{company_id}:
+    $ref: './billing_payments.yaml#/paths/~1billing~1payments~1companies~1{company_id}'
+  /billing/payments/engineers/{engineer_id}:
+    $ref: './billing_payments.yaml#/paths/~1billing~1payments~1engineers~1{engineer_id}'
+  /billing/payments/{payment_id}/items:
+    $ref: './billing_payments.yaml#/paths/~1billing~1payments~1{payment_id}~1items'
+  /billing/payments/{payment_id}/items/{item_id}:
+    $ref: './billing_payments.yaml#/paths/~1billing~1payments~1{payment_id}~1items~1{item_id}'
+  /billing/payments/{payment_id}/status:
+    $ref: './billing_payments.yaml#/paths/~1billing~1payments~1{payment_id}~1status'
+  /billing/payments/{payment_id}/approvals:
+    $ref: './billing_payments.yaml#/paths/~1billing~1payments~1{payment_id}~1approvals'
+  /billing/payments/{payment_id}/approvals/{approval_id}:
+    $ref: './billing_payments.yaml#/paths/~1billing~1payments~1{payment_id}~1approvals~1{approval_id}'
+  /billing/payments/{payment_id}/generate-pdf:
+    $ref: './billing_payments.yaml#/paths/~1billing~1payments~1{payment_id}~1generate-pdf'
+  /billing/export-payments:
+    $ref: './billing_payments.yaml#/paths/~1billing~1export-payments'
+    
+  # 入金管理API
+  /billing/receipts:
+    $ref: './billing_receipts.yaml#/paths/~1billing~1receipts'
+  /billing/receipts/{receipt_id}:
+    $ref: './billing_receipts.yaml#/paths/~1billing~1receipts~1{receipt_id}'
+  /billing/receipts/search:
+    $ref: './billing_receipts.yaml#/paths/~1billing~1receipts~1search'
+  /billing/receipts/{receipt_id}/allocations:
+    $ref: './billing_receipts.yaml#/paths/~1billing~1receipts~1{receipt_id}~1allocations'
+  /billing/receipts/{receipt_id}/allocations/{allocation_id}:
+    $ref: './billing_receipts.yaml#/paths/~1billing~1receipts~1{receipt_id}~1allocations~1{allocation_id}'
+  /billing/invoices/{invoice_id}/receipts:
+    $ref: './billing_receipts.yaml#/paths/~1billing~1invoices~1{invoice_id}~1receipts'
+  /billing/receipts/batch-import:
+    $ref: './billing_receipts.yaml#/paths/~1billing~1receipts~1batch-import'
+  /billing/receipts/auto-allocate:
+    $ref: './billing_receipts.yaml#/paths/~1billing~1receipts~1auto-allocate'
+    
+  # 請求支払レポートAPI
+  /billing/reports/invoices:
+    $ref: './billing_reports.yaml#/paths/~1billing~1reports~1invoices'
+  /billing/reports/payments:
+    $ref: './billing_reports.yaml#/paths/~1billing~1reports~1payments'
+  /billing/reports/cashflow:
+    $ref: './billing_reports.yaml#/paths/~1billing~1reports~1cashflow'
+  /billing/reports/aging:
+    $ref: './billing_reports.yaml#/paths/~1billing~1reports~1aging'
+  /billing/reports/profit:
+    $ref: './billing_reports.yaml#/paths/~1billing~1reports~1profit'
+  /billing/reports/export:
+    $ref: './billing_reports.yaml#/paths/~1billing~1reports~1export'
+    
+  # 銀行口座管理API
+  /billing/bank-accounts:
+    $ref: './billing_payments.yaml#/paths/~1billing~1bank-accounts'
+  /billing/bank-accounts/{account_id}:
+    $ref: './billing_payments.yaml#/paths/~1billing~1bank-accounts~1{account_id}'
+  /billing/bank-accounts/search:
+    $ref: './billing_payments.yaml#/paths/~1billing~1bank-accounts~1search'
+  /billing/bank-accounts/companies/{company_id}:
+    $ref: './billing_payments.yaml#/paths/~1billing~1bank-accounts~1companies~1{company_id}'
+  /billing/bank-accounts/engineers/{engineer_id}:
+    $ref: './billing_payments.yaml#/paths/~1billing~1bank-accounts~1engineers~1{engineer_id}'
+
+components:
+  schemas:
+    # 共通スキーマの定義
+    Money:
+      type: object
+      description: 金額
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: number
+          description: 金額
+          format: double
+        currency:
+          type: string
+          description: 通貨コード (ISO 4217)
+          default: JPY
+          enum:
+            - JPY
+            - USD
+            - EUR
+            - CNY
+            - KRW
+      example:
+        amount: 100000
+        currency: JPY
+    
+    DateRange:
+      type: object
+      description: 期間
+      required:
+        - startDate
+        - endDate
+      properties:
+        startDate:
+          type: string
+          format: date
+          description: 開始日
+        endDate:
+          type: string
+          format: date
+          description: 終了日
+      example:
+        startDate: "2023-04-01"
+        endDate: "2023-04-30"
+    
+    PageInfo:
+      type: object
+      description: ページネーション情報
+      properties:
+        page:
+          type: integer
+          description: 現在のページ番号 (0ベース)
+        size:
+          type: integer
+          description: ページサイズ
+        totalElements:
+          type: integer
+          description: 総件数
+        totalPages:
+          type: integer
+          description: 総ページ数
+      example:
+        page: 0
+        size: 20
+        totalElements: 42
+        totalPages: 3
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: エラーコード
+            message:
+              type: string
+              description: エラーメッセージ
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                    description: エラーが発生したフィールド
+                  message:
+                    type: string
+                    description: 詳細なエラーメッセージ
+
+tags:
+  - name: billing-invoices
+    description: 請求管理API
+  - name: billing-payments
+    description: 支払管理API
+  - name: billing-receipts
+    description: 入金管理API
+  - name: billing-reports
+    description: 請求支払レポートAPI
+  - name: billing-bank-accounts
+    description: 銀行口座管理API

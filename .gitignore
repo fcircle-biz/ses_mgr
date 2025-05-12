@@ -1,1 +1,57 @@
 **/.claude/settings.local.json
+
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+### VS Code ###
+.vscode/
+
+### OS Specific ###
+.DS_Store
+Thumbs.db
+
+### Log Files ###
+*.log
+logs/
+
+### Application Specific ###
+application-local.properties
+*.env
+
+### Docker Volumes ###
+postgres_data/
+
+### Obsidian ###
+.obsidian/

@@ -1,0 +1,380 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム API
+  description: |
+    SES業務システムのREST API仕様書です。
+    このファイルは、各機能領域のAPI仕様を統合したものです。
+  version: 1.0.0
+
+# 共通の定義をインポート
+servers:
+  - url: https://api.example.com/api/v1
+    description: 本番環境
+  - url: https://staging-api.example.com/api/v1
+    description: ステージング環境
+  - url: https://dev-api.example.com/api/v1
+    description: 開発環境
+
+# 各API定義ファイルへの参照
+paths:
+  # 認証API
+  /auth/login:
+    $ref: './auth/auth.yaml#/paths/~1auth~1login'
+  /auth/logout:
+    $ref: './auth/auth.yaml#/paths/~1auth~1logout'
+  /auth/refresh-token:
+    $ref: './auth/auth.yaml#/paths/~1auth~1refresh-token'
+  /auth/profile:
+    $ref: './auth/auth.yaml#/paths/~1auth~1profile'
+  /auth/password:
+    $ref: './auth/auth.yaml#/paths/~1auth~1password'
+  /auth/password/reset-request:
+    $ref: './auth/auth.yaml#/paths/~1auth~1password~1reset-request'
+  /auth/password/reset:
+    $ref: './auth/auth.yaml#/paths/~1auth~1password~1reset'
+
+  # 案件管理API
+  /projects:
+    $ref: './projects/projects.yaml#/paths/~1projects'
+  /projects/{id}:
+    $ref: './projects/projects.yaml#/paths/~1projects~1{id}'
+    
+  # 技術者管理API
+  /engineers:
+    $ref: './engineers/engineers.yaml#/paths/~1engineers'
+  /engineers/{engineer_id}:
+    $ref: './engineers/engineers.yaml#/paths/~1engineers~1{engineer_id}'
+  /engineers/{engineer_id}/status:
+    $ref: './engineers/engineers.yaml#/paths/~1engineers~1{engineer_id}~1status'
+  /engineers/{engineer_id}/documents:
+    $ref: './engineers/engineers.yaml#/paths/~1engineers~1{engineer_id}~1documents'
+  /engineers/{engineer_id}/documents/{document_id}:
+    $ref: './engineers/engineers.yaml#/paths/~1engineers~1{engineer_id}~1documents~1{document_id}'
+  /engineers/{engineer_id}/work-status:
+    $ref: './engineers/engineers.yaml#/paths/~1engineers~1{engineer_id}~1work-status'
+  /engineers/{engineer_id}/skills:
+    $ref: './engineers/engineers.yaml#/paths/~1engineers~1{engineer_id}~1skills'
+  /engineers/{engineer_id}/skills/{skill_id}:
+    $ref: './engineers/engineers.yaml#/paths/~1engineers~1{engineer_id}~1skills~1{skill_id}'
+  /engineers/search:
+    $ref: './engineers/engineers.yaml#/paths/~1engineers~1search'
+  /engineers/search/skills:
+    $ref: './engineers/engineers.yaml#/paths/~1engineers~1search~1skills'
+  /engineers/search/availability:
+    $ref: './engineers/engineers.yaml#/paths/~1engineers~1search~1availability'
+  /engineers/search/quick:
+    $ref: './engineers/engineers.yaml#/paths/~1engineers~1search~1quick'
+    
+  # スキル管理API
+  /skills:
+    $ref: './engineers/engineers.yaml#/paths/~1skills'
+  /skills/categories:
+    $ref: './engineers/engineers.yaml#/paths/~1skills~1categories'
+  /skills/{skill_id}:
+    $ref: './engineers/engineers.yaml#/paths/~1skills~1{skill_id}'
+  /skills/categories/{category_id}:
+    $ref: './engineers/engineers.yaml#/paths/~1skills~1categories~1{category_id}'
+    
+  # マッチング機能API
+  /matching/search:
+    $ref: './matching/matching.yaml#/paths/~1matching~1search'
+  /matching/results:
+    $ref: './matching/matching.yaml#/paths/~1matching~1results'
+  /matching/results/{result_id}:
+    $ref: './matching/matching.yaml#/paths/~1matching~1results~1{result_id}'
+  /proposals:
+    $ref: './matching/matching.yaml#/paths/~1proposals'
+  /proposals/{proposal_id}:
+    $ref: './matching/matching.yaml#/paths/~1proposals~1{proposal_id}'
+  /proposals/{proposal_id}/status:
+    $ref: './matching/matching.yaml#/paths/~1proposals~1{proposal_id}~1status'
+  /proposal-documents:
+    $ref: './matching/matching.yaml#/paths/~1proposal-documents'
+  /proposal-documents/{document_id}:
+    $ref: './matching/matching.yaml#/paths/~1proposal-documents~1{document_id}'
+  /proposal-documents/{document_id}/status:
+    $ref: './matching/matching.yaml#/paths/~1proposal-documents~1{document_id}~1status'
+  /proposal-documents/{document_id}/download:
+    $ref: './matching/matching.yaml#/paths/~1proposal-documents~1{document_id}~1download'
+    
+  # 契約管理API
+  /contracts:
+    $ref: './contracts/contracts.yaml#/paths/~1contracts'
+  /contracts/{contract_id}:
+    $ref: './contracts/contracts.yaml#/paths/~1contracts~1{contract_id}'
+  /contracts/{contract_id}/status:
+    $ref: './contracts/contracts.yaml#/paths/~1contracts~1{contract_id}~1status'
+  /contract-documents:
+    $ref: './contracts/contracts.yaml#/paths/~1contract-documents'
+  /contract-documents/{document_id}:
+    $ref: './contracts/contracts.yaml#/paths/~1contract-documents~1{document_id}'
+  /contract-documents/{document_id}/download:
+    $ref: './contracts/contracts.yaml#/paths/~1contract-documents~1{document_id}~1download'
+  /contract-templates:
+    $ref: './contracts/contracts.yaml#/paths/~1contract-templates'
+  /contract-templates/{template_id}:
+    $ref: './contracts/contracts.yaml#/paths/~1contract-templates~1{template_id}'
+  /contract-templates/{template_id}/preview:
+    $ref: './contracts/contracts.yaml#/paths/~1contract-templates~1{template_id}~1preview'
+  /signatures:
+    $ref: './contracts/contracts.yaml#/paths/~1signatures'
+  /signatures/{signature_id}:
+    $ref: './contracts/contracts.yaml#/paths/~1signatures~1{signature_id}'
+  /signatures/{signature_id}/resend:
+    $ref: './contracts/contracts.yaml#/paths/~1signatures~1{signature_id}~1resend'
+  /signatures/{signature_id}/sign:
+    $ref: './contracts/contracts.yaml#/paths/~1signatures~1{signature_id}~1sign'
+
+  # 勤怠工数管理API
+  /timesheets:
+    $ref: './timesheet/timesheet.yaml#/paths/~1timesheets'
+  /timesheets/{timesheet_id}:
+    $ref: './timesheet/timesheet.yaml#/paths/~1timesheets~1{timesheet_id}'
+  /timesheets/{timesheet_id}/entries:
+    $ref: './timesheet/timesheet.yaml#/paths/~1timesheets~1{timesheet_id}~1entries'
+  /timesheets/{timesheet_id}/entries/{entry_id}:
+    $ref: './timesheet/timesheet.yaml#/paths/~1timesheets~1{timesheet_id}~1entries~1{entry_id}'
+  /timesheets/{timesheet_id}/submit:
+    $ref: './timesheet/timesheet.yaml#/paths/~1timesheets~1{timesheet_id}~1submit'
+  /timesheets/{timesheet_id}/approve:
+    $ref: './timesheet/timesheet.yaml#/paths/~1timesheets~1{timesheet_id}~1approve'
+  /timesheets/{timesheet_id}/reject:
+    $ref: './timesheet/timesheet.yaml#/paths/~1timesheets~1{timesheet_id}~1reject'
+  /workitem-records:
+    $ref: './timesheet/timesheet.yaml#/paths/~1workitem-records'
+  /workitem-records/{record_id}:
+    $ref: './timesheet/timesheet.yaml#/paths/~1workitem-records~1{record_id}'
+  /workitem-records/{record_id}/items:
+    $ref: './timesheet/timesheet.yaml#/paths/~1workitem-records~1{record_id}~1items'
+  /workitem-records/{record_id}/items/{item_id}:
+    $ref: './timesheet/timesheet.yaml#/paths/~1workitem-records~1{record_id}~1items~1{item_id}'
+  /workitem-records/{record_id}/submit:
+    $ref: './timesheet/timesheet.yaml#/paths/~1workitem-records~1{record_id}~1submit'
+  /workitem-records/{record_id}/approve:
+    $ref: './timesheet/timesheet.yaml#/paths/~1workitem-records~1{record_id}~1approve'
+  /workitem-records/{record_id}/reject:
+    $ref: './timesheet/timesheet.yaml#/paths/~1workitem-records~1{record_id}~1reject'
+  /reports/timesheet:
+    $ref: './timesheet/timesheet.yaml#/paths/~1reports~1timesheet'
+  /reports/workitem:
+    $ref: './timesheet/timesheet.yaml#/paths/~1reports~1workitem'
+
+  # 請求管理API
+  /billing/invoices:
+    $ref: './billing/invoices/billing_invoices.yaml#/paths/~1billing~1invoices'
+  /billing/invoices/{invoice_id}:
+    $ref: './billing/invoices/billing_invoices.yaml#/paths/~1billing~1invoices~1{invoice_id}'
+  /billing/invoices/customers/{customer_id}:
+    $ref: './billing/invoices/billing_invoices.yaml#/paths/~1billing~1invoices~1customers~1{customer_id}'
+  /billing/invoices/projects/{project_id}:
+    $ref: './billing/invoices/billing_invoices.yaml#/paths/~1billing~1invoices~1projects~1{project_id}'
+  /billing/invoices/search:
+    $ref: './billing/invoices/billing_invoices.yaml#/paths/~1billing~1invoices~1search'
+  /billing/invoices/{invoice_id}/items:
+    $ref: './billing/invoices/billing_invoices.yaml#/paths/~1billing~1invoices~1{invoice_id}~1items'
+  /billing/invoices/{invoice_id}/items/{item_id}:
+    $ref: './billing/invoices/billing_invoices.yaml#/paths/~1billing~1invoices~1{invoice_id}~1items~1{item_id}'
+  /billing/invoices/{invoice_id}/status:
+    $ref: './billing/invoices/billing_invoices.yaml#/paths/~1billing~1invoices~1{invoice_id}~1status'
+  /billing/invoices/{invoice_id}/generate-pdf:
+    $ref: './billing/invoices/billing_invoices.yaml#/paths/~1billing~1invoices~1{invoice_id}~1generate-pdf'
+  /billing/invoices/{invoice_id}/send:
+    $ref: './billing/invoices/billing_invoices.yaml#/paths/~1billing~1invoices~1{invoice_id}~1send'
+    
+  # 支払管理API
+  /billing/payments:
+    $ref: './billing/payments/billing_payments.yaml#/paths/~1billing~1payments'
+  /billing/payments/{payment_id}:
+    $ref: './billing/payments/billing_payments.yaml#/paths/~1billing~1payments~1{payment_id}'
+  /billing/payments/search:
+    $ref: './billing/payments/billing_payments.yaml#/paths/~1billing~1payments~1search'  
+  /billing/payments/companies/{company_id}:
+    $ref: './billing/payments/billing_payments.yaml#/paths/~1billing~1payments~1companies~1{company_id}'
+  /billing/payments/engineers/{engineer_id}:
+    $ref: './billing/payments/billing_payments.yaml#/paths/~1billing~1payments~1engineers~1{engineer_id}'
+  /billing/payments/{payment_id}/items:
+    $ref: './billing/payments/billing_payments.yaml#/paths/~1billing~1payments~1{payment_id}~1items'
+  /billing/payments/{payment_id}/items/{item_id}:
+    $ref: './billing/payments/billing_payments.yaml#/paths/~1billing~1payments~1{payment_id}~1items~1{item_id}'
+  /billing/payments/{payment_id}/status:
+    $ref: './billing/payments/billing_payments.yaml#/paths/~1billing~1payments~1{payment_id}~1status'
+  /billing/payments/{payment_id}/approvals:
+    $ref: './billing/payments/billing_payments.yaml#/paths/~1billing~1payments~1{payment_id}~1approvals'
+  /billing/payments/{payment_id}/approvals/{approval_id}:
+    $ref: './billing/payments/billing_payments.yaml#/paths/~1billing~1payments~1{payment_id}~1approvals~1{approval_id}'
+  /billing/payments/{payment_id}/generate-pdf:
+    $ref: './billing/payments/billing_payments.yaml#/paths/~1billing~1payments~1{payment_id}~1generate-pdf'
+  /billing/export-payments:
+    $ref: './billing/payments/billing_payments.yaml#/paths/~1billing~1export-payments'
+    
+  # 入金管理API
+  /billing/receipts:
+    $ref: './billing/receipts/billing_receipts.yaml#/paths/~1billing~1receipts'
+  /billing/receipts/{receipt_id}:
+    $ref: './billing/receipts/billing_receipts.yaml#/paths/~1billing~1receipts~1{receipt_id}'
+  /billing/receipts/search:
+    $ref: './billing/receipts/billing_receipts.yaml#/paths/~1billing~1receipts~1search'
+  /billing/receipts/{receipt_id}/allocations:
+    $ref: './billing/receipts/billing_receipts.yaml#/paths/~1billing~1receipts~1{receipt_id}~1allocations'
+  /billing/receipts/{receipt_id}/allocations/{allocation_id}:
+    $ref: './billing/receipts/billing_receipts.yaml#/paths/~1billing~1receipts~1{receipt_id}~1allocations~1{allocation_id}'
+  /billing/invoices/{invoice_id}/receipts:
+    $ref: './billing/receipts/billing_receipts.yaml#/paths/~1billing~1invoices~1{invoice_id}~1receipts'
+  /billing/receipts/batch-import:
+    $ref: './billing/receipts/billing_receipts.yaml#/paths/~1billing~1receipts~1batch-import'
+  /billing/receipts/auto-allocate:
+    $ref: './billing/receipts/billing_receipts.yaml#/paths/~1billing~1receipts~1auto-allocate'
+    
+  # 請求支払レポートAPI
+  /billing/reports/invoices:
+    $ref: './billing/reports/billing_reports.yaml#/paths/~1billing~1reports~1invoices'
+  /billing/reports/payments:
+    $ref: './billing/reports/billing_reports.yaml#/paths/~1billing~1reports~1payments'
+  /billing/reports/cashflow:
+    $ref: './billing/reports/billing_reports.yaml#/paths/~1billing~1reports~1cashflow'
+  /billing/reports/aging:
+    $ref: './billing/reports/billing_reports.yaml#/paths/~1billing~1reports~1aging'
+  /billing/reports/profit:
+    $ref: './billing/reports/billing_reports.yaml#/paths/~1billing~1reports~1profit'
+  /billing/reports/export:
+    $ref: './billing/reports/billing_reports.yaml#/paths/~1billing~1reports~1export'
+    
+  # 銀行口座管理API
+  /billing/bank-accounts:
+    $ref: './billing/bank_accounts/billing_bank_accounts.yaml#/paths/~1billing~1bank-accounts'
+  /billing/bank-accounts/{account_id}:
+    $ref: './billing/bank_accounts/billing_bank_accounts.yaml#/paths/~1billing~1bank-accounts~1{account_id}'
+  /billing/bank-accounts/search:
+    $ref: './billing/bank_accounts/billing_bank_accounts.yaml#/paths/~1billing~1bank-accounts~1search'
+  /billing/bank-accounts/companies/{company_id}:
+    $ref: './billing/bank_accounts/billing_bank_accounts.yaml#/paths/~1billing~1bank-accounts~1companies~1{company_id}'
+  /billing/bank-accounts/engineers/{engineer_id}:
+    $ref: './billing/bank_accounts/billing_bank_accounts.yaml#/paths/~1billing~1bank-accounts~1engineers~1{engineer_id}'
+
+  # レポーティングAPI - ダッシュボード
+  /reports/dashboard/kpi:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1dashboard~1kpi'
+  /reports/dashboard/kpi/{kpiId}:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1dashboard~1kpi~1{kpiId}'
+  /reports/dashboard/summary:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1dashboard~1summary'
+  /reports/dashboard/recent-activities:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1dashboard~1recent-activities'
+  /reports/dashboard/settings:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1dashboard~1settings'
+
+  # レポーティングAPI - データ収集
+  /reports/data/collect:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1data~1collect'
+  /reports/data/jobs:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1data~1jobs'
+  /reports/data/jobs/{jobId}:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1data~1jobs~1{jobId}'
+  /reports/data/jobs/{jobId}/cancel:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1data~1jobs~1{jobId}~1cancel'
+  /reports/data/jobs/{jobId}/results:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1data~1jobs~1{jobId}~1results'
+  /reports/data/sources:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1data~1sources'
+  /reports/data/sources/{sourceId}/status:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1data~1sources~1{sourceId}~1status'
+
+  # レポーティングAPI - 標準レポート
+  /reports/sales/monthly:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1sales~1monthly'
+  /reports/profit/monthly:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1profit~1monthly'
+  /reports/utilization:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1utilization'
+  /reports/custom:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1custom'
+  /reports/custom/{reportId}:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1custom~1{reportId}'
+  /reports/custom/list:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1custom~1list'
+  /reports/export:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1export'
+
+  # レポーティングAPI - 予測分析
+  /reports/predictions/sales:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1predictions~1sales'
+  /reports/predictions/profit:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1predictions~1profit'
+  /reports/predictions/resource-demand:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1predictions~1resource-demand'
+  /reports/predictions/trends:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1predictions~1trends'
+  /reports/predictions/models:
+    $ref: './reporting/reporting.yaml#/paths/~1reports~1predictions~1models'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT形式のアクセストークンを使用した認証
+
+tags:
+  - name: auth
+    description: 認証関連のAPI
+  - name: projects
+    description: 案件管理API
+  - name: engineers
+    description: 技術者管理API
+  - name: skills
+    description: スキル管理API
+  - name: matching
+    description: マッチング検索API
+  - name: proposals
+    description: 提案管理API
+  - name: proposal-documents
+    description: 提案書管理API
+  - name: contracts
+    description: 契約基本API
+  - name: contract-documents
+    description: 契約書ドキュメントAPI
+  - name: contract-templates
+    description: 契約テンプレートAPI
+  - name: signatures
+    description: 電子署名API
+  - name: timesheet
+    description: 勤怠管理API
+  - name: timesheet-entries
+    description: 勤怠エントリAPI
+  - name: workitem-records
+    description: 工数記録API
+  - name: workitem-items
+    description: 工数項目API
+  - name: timesheet-reports
+    description: 勤怠集計レポートAPI
+  - name: workitem-reports
+    description: 工数集計レポートAPI
+  - name: billing-invoices
+    description: 請求管理API
+  - name: billing-payments
+    description: 支払管理API
+  - name: billing-receipts
+    description: 入金管理API
+  - name: billing-reports
+    description: 請求支払レポートAPI
+  - name: billing-bank-accounts
+    description: 銀行口座管理API
+  - name: reports
+    description: レポーティングAPI
+  - name: dashboard
+    description: ダッシュボード関連のAPI
+  - name: data-collection
+    description: データ収集処理関連のAPI
+  - name: sales-reports
+    description: 売上関連のレポートAPI
+  - name: profit-reports
+    description: 利益関連のレポートAPI
+  - name: utilization-reports
+    description: 稼働率関連のレポートAPI
+  - name: custom-reports
+    description: カスタムレポート関連のAPI
+  - name: predictions
+    description: 予測分析関連のAPI
+  - name: admin
+    description: システム管理API

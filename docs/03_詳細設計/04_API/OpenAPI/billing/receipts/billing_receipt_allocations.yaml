@@ -1,0 +1,382 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 入金割当管理API
+  description: |
+    入金の請求書への割当管理に関するAPIです。
+  version: 1.0.0
+
+paths:
+  /billing/receipts/{receipt_id}/allocations:
+    get:
+      tags:
+        - billing-receipts
+      summary: 入金割当一覧の取得
+      description: 特定の入金に対する割当一覧を取得します。
+      operationId: getReceiptAllocations
+      parameters:
+        - name: receipt_id
+          in: path
+          description: 入金ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 入金割当一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: './billing_receipts_base.yaml#/components/schemas/ReceiptAllocation'
+                  receipt:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: 入金ID
+                      receiptNumber:
+                        type: string
+                        description: 入金番号
+                      totalAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                      allocatedAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                      unallocatedAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+    
+    post:
+      tags:
+        - billing-receipts
+      summary: 入金割当の追加
+      description: 特定の入金を請求書に割り当てます。
+      operationId: addReceiptAllocation
+      parameters:
+        - name: receipt_id
+          in: path
+          description: 入金ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceiptAllocationCreate'
+      responses:
+        '201':
+          description: 入金割当の追加に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: './billing_receipts_base.yaml#/components/schemas/ReceiptAllocation'
+                  receipt:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: 入金ID
+                      status:
+                        type: string
+                        enum: [pending, allocated, partially_allocated, unallocated]
+                        description: 更新後の入金ステータス
+                      allocatedAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                      unallocatedAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                  invoice:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: 請求ID
+                      status:
+                        type: string
+                        enum: [draft, issued, sent, partially_paid, paid, overdue, cancelled]
+                        description: 更新後の請求ステータス
+                      paidAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                      remainingAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                  message:
+                    type: string
+                    example: "入金割当が完了しました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 割当できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+  /billing/receipts/{receipt_id}/allocations/{allocation_id}:
+    get:
+      tags:
+        - billing-receipts
+      summary: 入金割当詳細の取得
+      description: 特定の入金割当の詳細を取得します。
+      operationId: getReceiptAllocation
+      parameters:
+        - name: receipt_id
+          in: path
+          description: 入金ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: allocation_id
+          in: path
+          description: 割当ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 入金割当詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: './billing_receipts_base.yaml#/components/schemas/ReceiptAllocation'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+    
+    put:
+      tags:
+        - billing-receipts
+      summary: 入金割当の更新
+      description: 特定の入金割当を更新します。
+      operationId: updateReceiptAllocation
+      parameters:
+        - name: receipt_id
+          in: path
+          description: 入金ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: allocation_id
+          in: path
+          description: 割当ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReceiptAllocationUpdate'
+      responses:
+        '200':
+          description: 入金割当の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: './billing_receipts_base.yaml#/components/schemas/ReceiptAllocation'
+                  receipt:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: 入金ID
+                      status:
+                        type: string
+                        enum: [pending, allocated, partially_allocated, unallocated]
+                        description: 更新後の入金ステータス
+                      allocatedAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                      unallocatedAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                  invoice:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: 請求ID
+                      status:
+                        type: string
+                        enum: [draft, issued, sent, partially_paid, paid, overdue, cancelled]
+                        description: 更新後の請求ステータス
+                      paidAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                      remainingAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                  message:
+                    type: string
+                    example: "入金割当が更新されました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 更新できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+    
+    delete:
+      tags:
+        - billing-receipts
+      summary: 入金割当の削除
+      description: 特定の入金割当を削除します。
+      operationId: deleteReceiptAllocation
+      parameters:
+        - name: receipt_id
+          in: path
+          description: 入金ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: allocation_id
+          in: path
+          description: 割当ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 入金割当の削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  receipt:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: 入金ID
+                      status:
+                        type: string
+                        enum: [pending, allocated, partially_allocated, unallocated]
+                        description: 更新後の入金ステータス
+                      allocatedAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                      unallocatedAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                  invoice:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: 請求ID
+                      status:
+                        type: string
+                        enum: [draft, issued, sent, partially_paid, paid, overdue, cancelled]
+                        description: 更新後の請求ステータス
+                      paidAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                      remainingAmount:
+                        $ref: './billing_common.yaml#/components/schemas/Money'
+                  message:
+                    type: string
+                    example: "入金割当が削除されました。"
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 削除できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    ReceiptAllocationCreate:
+      type: object
+      required:
+        - invoiceId
+        - amount
+      properties:
+        invoiceId:
+          type: string
+          format: uuid
+          description: 請求ID
+        amount:
+          $ref: './billing_common.yaml#/components/schemas/Money'
+        notes:
+          type: string
+          description: 備考
+      example:
+        invoiceId: "123e4567-e89b-12d3-a456-426614174000"
+        amount:
+          amount: 1000000
+          currency: "JPY"
+        notes: "4月分請求への割当"
+
+    ReceiptAllocationUpdate:
+      type: object
+      properties:
+        amount:
+          $ref: './billing_common.yaml#/components/schemas/Money'
+        notes:
+          type: string
+          description: 備考
+      example:
+        amount:
+          amount: 500000
+          currency: "JPY"
+        notes: "金額修正（差額は別途請求への割当）"

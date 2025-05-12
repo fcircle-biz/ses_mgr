@@ -125,7 +125,7 @@
     </div>
 
     <h2 id="deployment">4. デプロイメント設計</h2>
-    <p>SES業務システムは、Kubernetesベースのコンテナオーケストレーションプラットフォーム上に展開され、Infrastructure as Code（IaC）の原則に従って管理される。</p>
+    <p>SES業務システムは、モノリシックアーキテクチャを採用し、アプリケーションサーバー上に展開される。設定管理はInfrastructure as Code（IaC）の原則に従って行う。</p>
     
     <h3 id="deployment-diagram">4.1 デプロイメント図</h3>
     <div class="container">
@@ -147,58 +147,58 @@
         <tr>
             <td>開発環境</td>
             <td>開発者による機能開発、単体テスト</td>
-            <td>小規模Kubernetes（3ノード）</td>
+            <td>アプリケーションサーバー×1, DB×1</td>
             <td>開発用データ（匿名化）</td>
         </tr>
         <tr>
             <td>テスト環境</td>
             <td>QAチームによる結合テスト、性能テスト</td>
-            <td>中規模Kubernetes（5ノード）</td>
+            <td>アプリケーションサーバー×2, DB×1</td>
             <td>テスト用データセット</td>
         </tr>
         <tr>
             <td>ステージング環境</td>
             <td>本番リリース前の最終検証</td>
-            <td>本番相当Kubernetes（縮小版）</td>
+            <td>アプリケーションサーバー×2, DB冗長構成</td>
             <td>本番データのコピー（マスキング済み）</td>
         </tr>
         <tr>
             <td>本番環境</td>
             <td>実サービス提供</td>
-            <td>大規模Kubernetes（10+ノード）</td>
+            <td>アプリケーションサーバー×4, DBクラスタ</td>
             <td>実データ</td>
         </tr>
         <tr>
             <td>DR環境</td>
             <td>災害復旧用バックアップ環境</td>
-            <td>本番相当Kubernetes（別リージョン）</td>
+            <td>アプリケーションサーバー×2, DB（スタンバイ）</td>
             <td>本番データのレプリカ</td>
         </tr>
     </table>
     
     <h4>4.1.2 展開方式</h4>
-    <p>各マイクロサービスは、以下の方針でKubernetesクラスタ上に展開される：</p>
+    <p>モノリシックアプリケーションは、以下の方針で展開される：</p>
     <ul>
-        <li><strong>コンテナ化</strong>: 各サービスはDockerコンテナとしてパッケージ化</li>
-        <li><strong>Deployment管理</strong>: Kubernetesのデプロイメントリソースによる管理</li>
-        <li><strong>スケーリング</strong>: Horizontal Pod Autoscaler (HPA)による自動スケーリング</li>
-        <li><strong>ゼロダウンタイムデプロイ</strong>: Rolling UpdateまたはBlue/Green方式の採用</li>
-        <li><strong>ヘルスチェック</strong>: Liveness/Readinessプローブによる健全性検証</li>
-        <li><strong>リソース管理</strong>: CPU/メモリ制約の適切な設定</li>
+        <li><strong>WARファイル</strong>: Spring Bootアプリケーションをビルドし、実行可能なWARファイルとしてパッケージ化</li>
+        <li><strong>ロードバランシング</strong>: 複数のアプリケーションサーバーインスタンス間でのロードバランシング</li>
+        <li><strong>スケーリング</strong>: 負荷に応じたサーバーインスタンスの水平スケーリング</li>
+        <li><strong>ゼロダウンタイムデプロイ</strong>: Blue/Green方式またはローリングアップデートによるデプロイ</li>
+        <li><strong>ヘルスチェック</strong>: アプリケーションのヘルスエンドポイントによる健全性検証</li>
+        <li><strong>リソース管理</strong>: アプリケーションサーバーのCPU/メモリ割り当て管理</li>
     </ul>
     
     <h4>4.1.3 デプロイメントパイプライン</h4>
-    <p>GitOpsの原則に基づき、以下のCI/CDパイプラインを構築する：</p>
+    <p>継続的インテグレーション/デリバリーの原則に基づき、以下のCI/CDパイプラインを構築する：</p>
     <ol>
-        <li><strong>コード変更</strong>: 開発者がgitリポジトリにコードをプッシュ</li>
-        <li><strong>ビルド</strong>: GitLab CIがビルドプロセスを実行
+        <li><strong>コード変更</strong>: 開発者がGitHubリポジトリにコードをプッシュ</li>
+        <li><strong>ビルド</strong>: GitHub Actionsがビルドプロセスを実行
             <ul>
                 <li>依存関係の解決</li>
                 <li>コードのコンパイル</li>
                 <li>単体テストの実行</li>
                 <li>静的コード解析</li>
-                <li>Dockerイメージのビルド</li>
-                <li>イメージのスキャン</li>
+                <li>WARファイルのビルド</li>
+                <li>成果物のスキャン</li>
             </ul>
         </li>
         <li><strong>テスト</strong>: 自動テストの実行
@@ -208,11 +208,11 @@
                 <li>UIテスト</li>
             </ul>
         </li>
-        <li><strong>アーティファクト登録</strong>: Docker Registry（Harbor）にイメージを登録</li>
-        <li><strong>デプロイメント</strong>: ArgoCD/GitOpsによる環境への展開
+        <li><strong>アーティファクト登録</strong>: GitHub Packagesまたはアーティファクトリポジトリに成果物を登録</li>
+        <li><strong>デプロイメント</strong>: GitHub Actionsによる環境への自動展開
             <ul>
-                <li>Kubernetesマニフェストの更新</li>
-                <li>対象環境へのデプロイ</li>
+                <li>デプロイ構成の更新</li>
+                <li>アプリケーションサーバーへのデプロイ</li>
                 <li>ヘルスチェック</li>
             </ul>
         </li>
@@ -239,12 +239,12 @@
         </tr>
         <tr>
             <td>DMZ</td>
-            <td>インターネットからアクセス可能な公開サービス（API Gateway、CDN）</td>
+            <td>インターネットからアクセス可能な公開サービス（Webサーバー、CDN）</td>
             <td>WAF、DDos保護、通信暗号化</td>
         </tr>
         <tr>
             <td>アプリケーションゾーン</td>
-            <td>マイクロサービス、Webアプリケーション</td>
+            <td>アプリケーションサーバー群</td>
             <td>内部通信のみ、セグメント間はファイアウォール制御</td>
         </tr>
         <tr>
@@ -267,35 +267,34 @@
     <h4>4.2.2 ロードバランシング</h4>
     <p>システムの高可用性と負荷分散のため、以下のロードバランシング構成を採用する：</p>
     <ul>
-        <li><strong>L7ロードバランサー</strong>: Nginx Ingress Controller + Cloud Load Balancer
+        <li><strong>L7ロードバランサー</strong>: Nginx + Hardware Load Balancer
             <ul>
                 <li>SSL/TLS終端</li>
                 <li>パスベースルーティング</li>
-                <li>セッションアフィニティ</li>
+                <li>セッションアフィニティ（スティッキーセッション）</li>
                 <li>レートリミット</li>
             </ul>
         </li>
-        <li><strong>サービスメッシュ</strong>: Istio
+        <li><strong>アプリケーションサーバー間の負荷分散</strong>:
             <ul>
-                <li>サービス間の通信制御</li>
-                <li>トラフィック管理（カナリアリリース、A/Bテスト）</li>
-                <li>障害インジェクション</li>
-                <li>分散トレーシング</li>
+                <li>ラウンドロビン方式</li>
+                <li>ヘルスチェックによる障害検知</li>
+                <li>自動フェイルオーバー</li>
             </ul>
         </li>
     </ul>
     
     <h4>4.2.3 ネットワークポリシー</h4>
-    <p>Kubernetesのネットワークポリシーを用いて、マイクロサービス間の通信を制御する：</p>
+    <p>ファイアウォールとアクセス制御を用いて、システムコンポーネント間の通信を制御する：</p>
     <ul>
-        <li>デフォルトでは全ての通信を拒否（deny-all）</li>
+        <li>デフォルトでは外部からの通信を拒否（deny-all）</li>
         <li>必要な通信のみを明示的に許可（least privilege principle）</li>
-        <li>名前空間間の通信制限</li>
+        <li>ネットワークセグメント間の通信制限</li>
         <li>外部通信の制限（egress filtering）</li>
     </ul>
     
-    <h3 id="server">4.3 サーバー/コンテナ構成</h3>
-    <p>SES業務システムの実行環境を構成するサーバーとコンテナの構成を定義する。</p>
+    <h3 id="server">4.3 サーバー構成</h3>
+    <p>SES業務システムの実行環境を構成するサーバー構成を定義する。</p>
     
     <h4>4.3.1 物理/仮想サーバー構成</h4>
     <p>本番環境は、以下のサーバー構成で構築する：</p>
@@ -308,18 +307,18 @@
             <th>スペック</th>
         </tr>
         <tr>
-            <td>Kubernetesマスターノード</td>
-            <td>クラスタ管理</td>
+            <td>Webサーバー</td>
+            <td>リバースプロキシ、静的コンテンツ配信</td>
             <td>Ubuntu 22.04 LTS</td>
-            <td>3台</td>
+            <td>2台</td>
             <td>CPU: 4vCPU<br>Memory: 16GB</td>
         </tr>
         <tr>
-            <td>Kubernetesワーカーノード</td>
-            <td>アプリケーション実行</td>
+            <td>アプリケーションサーバー</td>
+            <td>モノリシックアプリケーション実行</td>
             <td>Ubuntu 22.04 LTS</td>
-            <td>10台</td>
-            <td>CPU: 8vCPU<br>Memory: 32GB</td>
+            <td>4台</td>
+            <td>CPU: 16vCPU<br>Memory: 64GB</td>
         </tr>
         <tr>
             <td>データベースサーバー</td>
@@ -336,11 +335,18 @@
             <td>CPU: 4vCPU<br>Memory: 16GB<br>Storage: 5TB SSD</td>
         </tr>
         <tr>
-            <td>ファイルストレージコンテナ</td>
+            <td>ファイルストレージサーバー</td>
             <td>ファイル保存</td>
-            <td>共有ボリューム</td>
+            <td>Ubuntu 22.04 LTS</td>
             <td>1台</td>
-            <td>CPU: 2vCPU<br>Memory: 8GB<br>Storage: 5TB</td>
+            <td>CPU: 4vCPU<br>Memory: 16GB<br>Storage: 5TB</td>
+        </tr>
+        <tr>
+            <td>Redisサーバー</td>
+            <td>キャッシュ、セッション管理</td>
+            <td>Ubuntu 22.04 LTS</td>
+            <td>2台</td>
+            <td>CPU: 4vCPU<br>Memory: 16GB</td>
         </tr>
         <tr>
             <td>モニタリングサーバー</td>
@@ -353,56 +359,50 @@
             <td>ログサーバー</td>
             <td>Elasticsearch, Kibana</td>
             <td>Ubuntu 22.04 LTS</td>
-            <td>3台</td>
+            <td>2台</td>
             <td>CPU: 8vCPU<br>Memory: 32GB<br>Storage: 2TB SSD</td>
         </tr>
         <tr>
             <td>CI/CDサーバー</td>
-            <td>GitLab, Jenkins</td>
-            <td>Ubuntu 22.04 LTS</td>
-            <td>2台</td>
-            <td>CPU: 8vCPU<br>Memory: 32GB</td>
+            <td>GitHub Actions (クラウドサービス)</td>
+            <td>N/A (SaaS)</td>
+            <td>N/A</td>
+            <td>クラウドサービスのため不要</td>
         </tr>
     </table>
     
-    <h4>4.3.2 コンテナ構成</h4>
-    <p>各マイクロサービスは、以下のコンテナ構成で運用する：</p>
+    <h4>4.3.2 アプリケーションサーバー構成</h4>
+    <p>モノリシックアプリケーションは、以下の構成で運用する：</p>
     <table>
         <tr>
-            <th>コンテナ</th>
-            <th>ベースイメージ</th>
+            <th>コンポーネント</th>
             <th>説明</th>
-            <th>リソース制約</th>
+            <th>設定</th>
         </tr>
         <tr>
+            <td>JVMインスタンス</td>
+            <td>Java Virtual Machine</td>
+            <td>Xms=4GB, Xmx=16GB<br>G1GCコレクター</td>
+        </tr>
+        <tr>
+            <td>Tomcatサーバー</td>
             <td>アプリケーションコンテナ</td>
-            <td>Eclipse Temurin JDK 17</td>
-            <td>Spring Bootアプリケーション</td>
-            <td>CPU: 1-2 cores<br>Memory: 1-4GB</td>
+            <td>接続数: 最大500<br>スレッドプール: 200</td>
         </tr>
         <tr>
-            <td>フロントエンドコンテナ</td>
-            <td>Nginx Alpine</td>
-            <td>静的リソース配信</td>
-            <td>CPU: 0.5 cores<br>Memory: 512MB</td>
+            <td>データソース</td>
+            <td>DB接続プール</td>
+            <td>最小: 10, 最大: 50<br>接続タイムアウト: 30秒</td>
         </tr>
         <tr>
-            <td>Redisコンテナ</td>
-            <td>Redis Alpine</td>
-            <td>キャッシュ、セッション管理</td>
-            <td>CPU: 1 core<br>Memory: 2GB</td>
+            <td>監視エージェント</td>
+            <td>アプリケーション監視</td>
+            <td>JMX、Prometheus連携</td>
         </tr>
         <tr>
-            <td>Fluentdコンテナ</td>
-            <td>Fluentd Alpine</td>
-            <td>ログ収集エージェント</td>
-            <td>CPU: 0.5 cores<br>Memory: 512MB</td>
-        </tr>
-        <tr>
-            <td>Prometheusエージェント</td>
-            <td>Prometheus Node Exporter</td>
-            <td>メトリクス収集</td>
-            <td>CPU: 0.2 cores<br>Memory: 256MB</td>
+            <td>ロギング設定</td>
+            <td>アプリケーションログ</td>
+            <td>レベル: INFO<br>ローテーション: 日次</td>
         </tr>
     </table>
     
@@ -434,6 +434,16 @@
             <td>日次バックアップ</td>
         </tr>
     </table>
+    
+    <h4>4.3.4 高可用性設計</h4>
+    <p>モノリシックアプリケーションの高可用性を確保するため、以下の方針を採用する：</p>
+    <ul>
+        <li><strong>アプリケーションの冗長化</strong>: 複数のアプリケーションサーバーインスタンスで同一のアプリケーションを実行</li>
+        <li><strong>セッション管理</strong>: Redisを利用した集中セッション管理によるステートレス設計</li>
+        <li><strong>障害検知と自動フェイルオーバー</strong>: ヘルスチェックによる障害検知と自動切り替え</li>
+        <li><strong>データベース冗長化</strong>: PostgreSQLのレプリケーションによるデータ冗長化</li>
+        <li><strong>バックアップと復旧</strong>: 定期的なバックアップとリストア手順の整備</li>
+    </ul>
 
     <div class="navigation">
         <a href="index.html">目次へ戻る</a>

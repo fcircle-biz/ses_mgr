@@ -1,0 +1,299 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 請求書操作API
+  description: |
+    請求書のステータス変更やPDF生成、送信などの操作に関するAPIです。
+  version: 1.0.0
+
+paths:
+  /billing/invoices/{invoice_id}/status:
+    put:
+      tags:
+        - billing-invoices
+      summary: 請求ステータスの更新
+      description: |
+        請求書のステータスを更新します。
+      operationId: updateInvoiceStatus
+      parameters:
+        - name: invoice_id
+          in: path
+          description: 請求ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceStatusUpdate'
+      responses:
+        '200':
+          description: ステータス更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: 請求ID
+                      status:
+                        type: string
+                        enum: [draft, issued, sent, partially_paid, paid, overdue, cancelled]
+                        description: 変更後のステータス
+                      previousStatus:
+                        type: string
+                        enum: [draft, issued, sent, partially_paid, paid, overdue, cancelled]
+                        description: 変更前のステータス
+                      changedAt:
+                        type: string
+                        format: date-time
+                        description: 変更日時
+                  message:
+                    type: string
+                    example: "請求ステータスが更新されました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 無効なステータス遷移
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+  /billing/invoices/{invoice_id}/generate-pdf:
+    post:
+      tags:
+        - billing-invoices
+      summary: 請求書PDF生成
+      description: |
+        請求書のPDFを生成します。
+      operationId: generateInvoicePdf
+      parameters:
+        - name: invoice_id
+          in: path
+          description: 請求ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                templateId:
+                  type: string
+                  format: uuid
+                  description: 使用するテンプレートID（指定しない場合はデフォルトテンプレート）
+                options:
+                  type: object
+                  properties:
+                    includeCompanyLogo:
+                      type: boolean
+                      description: 会社ロゴを含める
+                      default: true
+                    includeBankInfo:
+                      type: boolean
+                      description: 銀行口座情報を含める
+                      default: true
+                    includeDetailedItems:
+                      type: boolean
+                      description: 詳細項目を含める
+                      default: true
+                    includePaymentHistory:
+                      type: boolean
+                      description: 支払履歴を含める
+                      default: false
+      responses:
+        '200':
+          description: PDF生成に成功
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      fileId:
+                        type: string
+                        format: uuid
+                        description: 生成されたファイルID
+                      downloadUrl:
+                        type: string
+                        format: uri
+                        description: ダウンロードURL
+                      expiresAt:
+                        type: string
+                        format: date-time
+                        description: ダウンロードURL有効期限
+                  message:
+                    type: string
+                    example: "請求書PDFが生成されました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+  /billing/invoices/{invoice_id}/send:
+    post:
+      tags:
+        - billing-invoices
+      summary: 請求書送信
+      description: |
+        請求書を顧客にメールで送信します。
+      operationId: sendInvoice
+      parameters:
+        - name: invoice_id
+          in: path
+          description: 請求ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvoiceSendRequest'
+      responses:
+        '200':
+          description: 送信に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                        description: 請求ID
+                      sentAt:
+                        type: string
+                        format: date-time
+                        description: 送信日時
+                      sentTo:
+                        type: array
+                        items:
+                          type: string
+                          format: email
+                        description: 送信先メールアドレス
+                      includesPdf:
+                        type: boolean
+                        description: PDFが添付されたか
+                  message:
+                    type: string
+                    example: "請求書が送信されました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 送信できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+        '500':
+          $ref: './openapi.yaml#/components/responses/InternalServerError'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    InvoiceStatusUpdate:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: [draft, issued, sent, partially_paid, paid, overdue, cancelled]
+          description: 更新後のステータス
+        notes:
+          type: string
+          description: ステータス変更の理由や備考
+      example:
+        status: "sent"
+        notes: "2023/5/10 メールにて送信"
+
+    InvoiceSendRequest:
+      type: object
+      required:
+        - recipients
+      properties:
+        recipients:
+          type: array
+          items:
+            type: string
+            format: email
+          description: 送信先メールアドレス
+        cc:
+          type: array
+          items:
+            type: string
+            format: email
+          description: CCアドレス
+        bcc:
+          type: array
+          items:
+            type: string
+            format: email
+          description: BCCアドレス
+        subject:
+          type: string
+          description: メールの件名
+        message:
+          type: string
+          description: メール本文
+        attachPdf:
+          type: boolean
+          description: PDFを添付するか
+          default: true
+        updateStatusToSent:
+          type: boolean
+          description: 送信後にステータスを「送信済み」に更新するか
+          default: true
+      example:
+        recipients: ["client@example.com"]
+        cc: ["sales@ourcompany.com"]
+        subject: "請求書（2023年4月分）のご送付"
+        message: "平素より大変お世話になっております。\n\n添付のとおり、4月分の請求書をお送りいたします。\nご確認のほど、よろしくお願い申し上げます。"
+        attachPdf: true
+        updateStatusToSent: true

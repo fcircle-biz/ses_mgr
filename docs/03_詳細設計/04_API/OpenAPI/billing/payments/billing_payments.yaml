@@ -1,0 +1,209 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 支払管理API
+  description: |
+    支払管理モジュールのAPI仕様です。
+    
+    このAPIは支払の作成、管理、検索、および関連処理を提供します。
+  version: 1.0.0
+
+paths:
+  # 支払基本操作
+  /billing/payments:
+    $ref: './billing_payments_base.yaml#/paths/~1billing~1payments'
+  /billing/payments/{payment_id}:
+    $ref: './billing_payments_base.yaml#/paths/~1billing~1payments~1{payment_id}'
+
+  # 支払検索
+  /billing/payments/search:
+    $ref: './billing_payments_search.yaml#/paths/~1billing~1payments~1search'
+
+  # 会社/技術者関連支払
+  /billing/payments/companies/{company_id}:
+    get:
+      tags:
+        - billing-payments
+      summary: 会社IDによる支払一覧取得
+      description: 指定された会社IDに関連する支払の一覧を取得します
+      operationId: getPaymentsByCompanyId
+      parameters:
+        - name: company_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 会社ID
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, SCHEDULED, COMPLETED, CANCELLED]
+          description: 支払ステータスによるフィルタ
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: 支払予定日の開始日
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: 支払予定日の終了日
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: ページ番号 (0ベース)
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+          description: 1ページあたりの件数
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: './billing_payments_base.yaml#/components/schemas/PaymentSummary'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '400':
+          $ref: './billing_common.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './billing_common.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './billing_common.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './billing_common.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './billing_common.yaml#/components/responses/InternalServerError'
+
+  /billing/payments/engineers/{engineer_id}:
+    get:
+      tags:
+        - billing-payments
+      summary: 技術者IDによる支払一覧取得
+      description: 指定された技術者IDに関連する支払の一覧を取得します
+      operationId: getPaymentsByEngineerId
+      parameters:
+        - name: engineer_id
+          in: path
+          required: true
+          schema:
+            type: string
+          description: 技術者ID
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [DRAFT, PENDING_APPROVAL, APPROVED, REJECTED, SCHEDULED, COMPLETED, CANCELLED]
+          description: 支払ステータスによるフィルタ
+        - name: startDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: 支払予定日の開始日
+        - name: endDate
+          in: query
+          required: false
+          schema:
+            type: string
+            format: date
+          description: 支払予定日の終了日
+        - name: page
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+          description: ページ番号 (0ベース)
+        - name: size
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+          description: 1ページあたりの件数
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  content:
+                    type: array
+                    items:
+                      $ref: './billing_payments_base.yaml#/components/schemas/PaymentSummary'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '400':
+          $ref: './billing_common.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './billing_common.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './billing_common.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './billing_common.yaml#/components/responses/NotFound'
+        '500':
+          $ref: './billing_common.yaml#/components/responses/InternalServerError'
+
+  # 支払明細項目
+  /billing/payments/{payment_id}/items:
+    $ref: './billing_payment_items.yaml#/paths/~1billing~1payments~1{payment_id}~1items'
+  /billing/payments/{payment_id}/items/{item_id}:
+    $ref: './billing_payment_items.yaml#/paths/~1billing~1payments~1{payment_id}~1items~1{item_id}'
+
+  # 支払ステータス
+  /billing/payments/{payment_id}/status:
+    $ref: './billing_payment_operations.yaml#/paths/~1billing~1payments~1{payment_id}~1status'
+
+  # 支払承認
+  /billing/payments/{payment_id}/approvals:
+    $ref: './billing_payment_approvals.yaml#/paths/~1billing~1payments~1{payment_id}~1approvals'
+  /billing/payments/{payment_id}/approvals/{approval_id}:
+    $ref: './billing_payment_approvals.yaml#/paths/~1billing~1payments~1{payment_id}~1approvals~1{approval_id}'
+
+  # 支払関連操作
+  /billing/payments/{payment_id}/generate-pdf:
+    $ref: './billing_payment_operations.yaml#/paths/~1billing~1payments~1{payment_id}~1generate-pdf'
+  /billing/export-payments:
+    $ref: './billing_payment_operations.yaml#/paths/~1billing~1export-payments'
+
+  # 銀行口座管理API
+  /billing/bank-accounts:
+    $ref: './billing_bank_accounts.yaml#/paths/~1billing~1bank-accounts'
+  /billing/bank-accounts/{account_id}:
+    $ref: './billing_bank_accounts.yaml#/paths/~1billing~1bank-accounts~1{account_id}'
+  /billing/bank-accounts/search:
+    $ref: './billing_bank_accounts.yaml#/paths/~1billing~1bank-accounts~1search'
+  /billing/bank-accounts/companies/{company_id}:
+    $ref: './billing_bank_accounts.yaml#/paths/~1billing~1bank-accounts~1companies~1{company_id}'
+  /billing/bank-accounts/engineers/{engineer_id}:
+    $ref: './billing_bank_accounts.yaml#/paths/~1billing~1bank-accounts~1engineers~1{engineer_id}'
+
+components:
+  schemas:
+    # スキーマはそれぞれの詳細ファイルで定義されています
+    
+  responses:
+    # レスポンスはbilling_common.yamlで定義されています

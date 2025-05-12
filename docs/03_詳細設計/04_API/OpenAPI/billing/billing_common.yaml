@@ -1,0 +1,104 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 請求支払管理API（共通定義）
+  description: |
+    請求支払管理モジュールの共通定義です。
+  version: 1.0.0
+
+components:
+  schemas:
+    # 共通スキーマの定義
+    Money:
+      type: object
+      description: 金額
+      required:
+        - amount
+        - currency
+      properties:
+        amount:
+          type: number
+          description: 金額
+          format: double
+        currency:
+          type: string
+          description: 通貨コード (ISO 4217)
+          default: JPY
+          enum:
+            - JPY
+            - USD
+            - EUR
+            - CNY
+            - KRW
+      example:
+        amount: 100000
+        currency: JPY
+    
+    DateRange:
+      type: object
+      description: 期間
+      required:
+        - startDate
+        - endDate
+      properties:
+        startDate:
+          type: string
+          format: date
+          description: 開始日
+        endDate:
+          type: string
+          format: date
+          description: 終了日
+      example:
+        startDate: "2023-04-01"
+        endDate: "2023-04-30"
+    
+    PageInfo:
+      type: object
+      description: ページネーション情報
+      properties:
+        page:
+          type: integer
+          description: 現在のページ番号 (0ベース)
+        size:
+          type: integer
+          description: ページサイズ
+        totalElements:
+          type: integer
+          description: 総件数
+        totalPages:
+          type: integer
+          description: 総ページ数
+      example:
+        page: 0
+        size: 20
+        totalElements: 42
+        totalPages: 3
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: object
+          required:
+            - code
+            - message
+          properties:
+            code:
+              type: string
+              description: エラーコード
+            message:
+              type: string
+              description: エラーメッセージ
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                    description: エラーが発生したフィールド
+                  message:
+                    type: string
+                    description: 詳細なエラーメッセージ

@@ -1,0 +1,688 @@
+openapi: 3.0.3
+info:
+  title: SES業務システム - 支払管理API（基本CRUD）
+  description: |
+    支払管理の基本CRUD操作を提供するAPIです。
+  version: 1.0.0
+
+paths:
+  /billing/payments:
+    get:
+      tags:
+        - billing-payments
+      summary: 支払一覧の取得
+      description: 支払の一覧を取得します。
+      operationId: getPayments
+      parameters:
+        - name: page
+          in: query
+          description: ページ番号（0始まり）
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: ページサイズ
+          schema:
+            type: integer
+            default: 20
+        - name: sort
+          in: query
+          description: ソート項目（例：paymentDate,desc）
+          schema:
+            type: string
+        - name: status
+          in: query
+          description: 支払ステータス
+          schema:
+            type: string
+            enum: [draft, pending_approval, approved, rejected, processing, paid, cancelled]
+      responses:
+        '200':
+          description: 支払一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaymentSummary'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+      security:
+        - bearerAuth: []
+    
+    post:
+      tags:
+        - billing-payments
+      summary: 支払の新規作成
+      description: 新しい支払を作成します。
+      operationId: createPayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCreate'
+      responses:
+        '201':
+          description: 支払の作成に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Payment'
+                  message:
+                    type: string
+                    example: "支払いの作成が完了しました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+      security:
+        - bearerAuth: []
+
+  /billing/payments/{payment_id}:
+    get:
+      tags:
+        - billing-payments
+      summary: 支払の詳細取得
+      description: 特定の支払の詳細情報を取得します。
+      operationId: getPayment
+      parameters:
+        - name: payment_id
+          in: path
+          description: 支払ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 支払詳細の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Payment'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+    
+    put:
+      tags:
+        - billing-payments
+      summary: 支払の更新
+      description: 特定の支払情報を更新します。
+      operationId: updatePayment
+      parameters:
+        - name: payment_id
+          in: path
+          description: 支払ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentUpdate'
+      responses:
+        '200':
+          description: 支払の更新に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Payment'
+                  message:
+                    type: string
+                    example: "支払いの更新が完了しました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 更新できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+    
+    delete:
+      tags:
+        - billing-payments
+      summary: 支払の削除
+      description: 特定の支払を削除します（ドラフト状態の場合のみ可能）。
+      operationId: deletePayment
+      parameters:
+        - name: payment_id
+          in: path
+          description: 支払ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: 支払の削除に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "支払いの削除が完了しました。"
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+        '409':
+          description: 削除できない状態
+          content:
+            application/json:
+              schema:
+                $ref: './billing_common.yaml#/components/schemas/ErrorResponse'
+      security:
+        - bearerAuth: []
+
+  /billing/payments/engineers/{engineer_id}:
+    get:
+      tags:
+        - billing-payments
+      summary: 技術者別の支払一覧取得
+      description: 特定の技術者に関連する支払の一覧を取得します。
+      operationId: getPaymentsByEngineer
+      parameters:
+        - name: engineer_id
+          in: path
+          description: 技術者ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          description: ページ番号（0始まり）
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: ページサイズ
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          description: 支払ステータス
+          schema:
+            type: string
+            enum: [draft, pending_approval, approved, rejected, processing, paid, cancelled]
+      responses:
+        '200':
+          description: 技術者別支払一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaymentSummary'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+
+  /billing/payments/companies/{company_id}:
+    get:
+      tags:
+        - billing-payments
+      summary: 協力会社別の支払一覧取得
+      description: 特定の協力会社に関連する支払の一覧を取得します。
+      operationId: getPaymentsByCompany
+      parameters:
+        - name: company_id
+          in: path
+          description: 協力会社ID
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          description: ページ番号（0始まり）
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          description: ページサイズ
+          schema:
+            type: integer
+            default: 20
+        - name: status
+          in: query
+          description: 支払ステータス
+          schema:
+            type: string
+            enum: [draft, pending_approval, approved, rejected, processing, paid, cancelled]
+      responses:
+        '200':
+          description: 協力会社別支払一覧の取得に成功
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PaymentSummary'
+                  pageInfo:
+                    $ref: './billing_common.yaml#/components/schemas/PageInfo'
+        '400':
+          $ref: './openapi.yaml#/components/responses/BadRequest'
+        '401':
+          $ref: './openapi.yaml#/components/responses/Unauthorized'
+        '403':
+          $ref: './openapi.yaml#/components/responses/Forbidden'
+        '404':
+          $ref: './openapi.yaml#/components/responses/NotFound'
+      security:
+        - bearerAuth: []
+
+components:
+  schemas:
+    PaymentSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 支払ID
+        paymentNumber:
+          type: string
+          description: 支払番号
+        paymentType:
+          type: string
+          enum: [salary, outsourcing, expense, other]
+          description: 支払種別
+        recipientType:
+          type: string
+          enum: [employee, partner_company, vendor, other]
+          description: 受領者種別
+        recipientId:
+          type: string
+          format: uuid
+          description: 受領者ID
+        recipientName:
+          type: string
+          description: 受領者名
+        paymentDate:
+          type: string
+          format: date
+          description: 支払予定日
+        paymentPeriod:
+          $ref: './billing_common.yaml#/components/schemas/DateRange'
+        amount:
+          $ref: './billing_common.yaml#/components/schemas/Money'
+        status:
+          type: string
+          enum: [draft, pending_approval, approved, rejected, processing, paid, cancelled]
+          description: 支払ステータス
+        createdAt:
+          type: string
+          format: date-time
+          description: 作成日時
+        updatedAt:
+          type: string
+          format: date-time
+          description: 更新日時
+      example:
+        id: "123e4567-e89b-12d3-a456-426614174000"
+        paymentNumber: "PAY-2023-0001"
+        paymentType: "outsourcing"
+        recipientType: "partner_company"
+        recipientId: "123e4567-e89b-12d3-a456-426614174001"
+        recipientName: "株式会社パートナー"
+        paymentDate: "2023-05-15"
+        paymentPeriod:
+          startDate: "2023-04-01"
+          endDate: "2023-04-30"
+        amount:
+          amount: 500000
+          currency: "JPY"
+        status: "pending_approval"
+        createdAt: "2023-05-01T10:00:00Z"
+        updatedAt: "2023-05-01T10:00:00Z"
+
+    Payment:
+      allOf:
+        - $ref: '#/components/schemas/PaymentSummary'
+        - type: object
+          properties:
+            notes:
+              type: string
+              description: 備考
+            paymentMethod:
+              type: string
+              enum: [bank_transfer, cash, credit_card, other]
+              description: 支払方法
+            bankAccountId:
+              type: string
+              format: uuid
+              description: 銀行口座ID（支払先）
+            bankAccountInfo:
+              type: object
+              properties:
+                bankName:
+                  type: string
+                  description: 銀行名
+                branchName:
+                  type: string
+                  description: 支店名
+                accountType:
+                  type: string
+                  description: 口座種別
+                accountNumber:
+                  type: string
+                  description: 口座番号
+                accountName:
+                  type: string
+                  description: 口座名義
+            fromBankAccountId:
+              type: string
+              format: uuid
+              description: 銀行口座ID（支払元）
+            fromBankAccountInfo:
+              type: object
+              properties:
+                bankName:
+                  type: string
+                  description: 銀行名
+                branchName:
+                  type: string
+                  description: 支店名
+                accountType:
+                  type: string
+                  description: 口座種別
+                accountNumber:
+                  type: string
+                  description: 口座番号
+                accountName:
+                  type: string
+                  description: 口座名義
+            items:
+              type: array
+              items:
+                $ref: '#/components/schemas/PaymentItem'
+            taxRate:
+              type: number
+              format: float
+              description: 税率
+            taxAmount:
+              $ref: './billing_common.yaml#/components/schemas/Money'
+            subTotalAmount:
+              $ref: './billing_common.yaml#/components/schemas/Money'
+            totalAmount:
+              $ref: './billing_common.yaml#/components/schemas/Money'
+            approvals:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                    description: 承認ID
+                  level:
+                    type: integer
+                    description: 承認レベル
+                  status:
+                    type: string
+                    enum: [pending, approved, rejected]
+                    description: 承認ステータス
+                  approver:
+                    type: string
+                    description: 承認者
+                  approvedAt:
+                    type: string
+                    format: date-time
+                    description: 承認日時
+                  notes:
+                    type: string
+                    description: 備考
+            statusHistory:
+              type: array
+              items:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [draft, pending_approval, approved, rejected, processing, paid, cancelled]
+                    description: ステータス
+                  changedAt:
+                    type: string
+                    format: date-time
+                    description: 変更日時
+                  changedBy:
+                    type: string
+                    description: 変更者
+                  notes:
+                    type: string
+                    description: 備考
+
+    PaymentItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: 支払項目ID
+        paymentId:
+          type: string
+          format: uuid
+          description: 支払ID
+        description:
+          type: string
+          description: 項目説明
+        quantity:
+          type: number
+          format: double
+          description: 数量
+        unitPrice:
+          $ref: './billing_common.yaml#/components/schemas/Money'
+        amount:
+          $ref: './billing_common.yaml#/components/schemas/Money'
+        taxable:
+          type: boolean
+          description: 課税対象かどうか
+        category:
+          type: string
+          description: 項目カテゴリ（例：基本給、交通費、残業代など）
+        sortOrder:
+          type: integer
+          description: 表示順
+      example:
+        id: "123e4567-e89b-12d3-a456-426614174003"
+        paymentId: "123e4567-e89b-12d3-a456-426614174000"
+        description: "システム開発委託費（4月分）"
+        quantity: 1
+        unitPrice:
+          amount: 500000
+          currency: "JPY"
+        amount:
+          amount: 500000
+          currency: "JPY"
+        taxable: true
+        category: "outsourcing"
+        sortOrder: 1
+
+    PaymentCreate:
+      type: object
+      required:
+        - paymentType
+        - recipientType
+        - recipientId
+        - paymentDate
+        - paymentPeriod
+      properties:
+        paymentNumber:
+          type: string
+          description: 支払番号（未指定時は自動採番）
+        paymentType:
+          type: string
+          enum: [salary, outsourcing, expense, other]
+          description: 支払種別
+        recipientType:
+          type: string
+          enum: [employee, partner_company, vendor, other]
+          description: 受領者種別
+        recipientId:
+          type: string
+          format: uuid
+          description: 受領者ID
+        paymentDate:
+          type: string
+          format: date
+          description: 支払予定日
+        paymentPeriod:
+          $ref: './billing_common.yaml#/components/schemas/DateRange'
+        notes:
+          type: string
+          description: 備考
+        paymentMethod:
+          type: string
+          enum: [bank_transfer, cash, credit_card, other]
+          description: 支払方法
+          default: "bank_transfer"
+        bankAccountId:
+          type: string
+          format: uuid
+          description: 銀行口座ID（支払先）
+        fromBankAccountId:
+          type: string
+          format: uuid
+          description: 銀行口座ID（支払元）
+        taxRate:
+          type: number
+          format: float
+          description: 税率
+          default: 10.0
+        items:
+          type: array
+          items:
+            type: object
+            required:
+              - description
+              - quantity
+              - unitPrice
+            properties:
+              description:
+                type: string
+                description: 項目説明
+              quantity:
+                type: number
+                format: double
+                description: 数量
+              unitPrice:
+                $ref: './billing_common.yaml#/components/schemas/Money'
+              taxable:
+                type: boolean
+                description: 課税対象かどうか
+                default: true
+              category:
+                type: string
+                description: 項目カテゴリ
+              sortOrder:
+                type: integer
+                description: 表示順
+
+    PaymentUpdate:
+      type: object
+      properties:
+        paymentNumber:
+          type: string
+          description: 支払番号
+        paymentType:
+          type: string
+          enum: [salary, outsourcing, expense, other]
+          description: 支払種別
+        recipientType:
+          type: string
+          enum: [employee, partner_company, vendor, other]
+          description: 受領者種別
+        recipientId:
+          type: string
+          format: uuid
+          description: 受領者ID
+        paymentDate:
+          type: string
+          format: date
+          description: 支払予定日
+        paymentPeriod:
+          $ref: './billing_common.yaml#/components/schemas/DateRange'
+        notes:
+          type: string
+          description: 備考
+        paymentMethod:
+          type: string
+          enum: [bank_transfer, cash, credit_card, other]
+          description: 支払方法
+        bankAccountId:
+          type: string
+          format: uuid
+          description: 銀行口座ID（支払先）
+        fromBankAccountId:
+          type: string
+          format: uuid
+          description: 銀行口座ID（支払元）
+        taxRate:
+          type: number
+          format: float
+          description: 税率
