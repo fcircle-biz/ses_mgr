@@ -25,90 +25,107 @@ repositories {
     mavenCentral()
 }
 
-ext {
-    set('testcontainersVersion', "1.19.3")
-}
-
 dependencies {
     // Spring Boot
     implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+    implementation 'org.springframework.boot:spring-boot-starter-aop'  // AOP 依存関係
+    implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
-    
+
     // Database
-    implementation 'org.postgresql:postgresql'
+    runtimeOnly 'org.postgresql:postgresql'
     implementation 'org.flywaydb:flyway-core'
     
-    // Authentication
+    // JWT
     implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
     runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
     
-    // Cache
-    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    // OpenAPI Documentation
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0'
     
-    // Utilities
-    implementation 'org.apache.commons:commons-lang3:3.14.0'
-    implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
+    // Utility
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+    implementation 'org.apache.commons:commons-lang3:3.12.0'
+    implementation 'commons-io:commons-io:2.11.0'
+    implementation 'commons-codec:commons-codec:1.15'
     
-    // Logging
-    implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
-    
-    // Testing
+    // Test
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
-    testImplementation 'org.testcontainers:junit-jupiter'
-    testImplementation 'org.testcontainers:postgresql'
     testImplementation 'org.mockito:mockito-core'
-    testImplementation 'org.mockito:mockito-junit-jupiter'
-    
-    // Development tools
-    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+    testImplementation 'org.assertj:assertj-core'
+    testImplementation 'org.testcontainers:postgresql:1.18.3'
+    testImplementation 'org.testcontainers:junit-jupiter:1.18.3'
 }
 
-dependencyManagement {
-    imports {
-        mavenBom "org.testcontainers:testcontainers-bom:${testcontainersVersion}"
-    }
-}
+// プロファイルの取得
+def activeProfile = findProperty('spring.profiles.active') ?: 'test'
 
 tasks.named('test') {
     useJUnitPlatform()
     finalizedBy jacocoTestReport
+    
+    // プロファイルに応じたシステムプロパティの設定
+    systemProperty 'spring.profiles.active', activeProfile
+    
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+        showStandardStreams = true
+    }
 }
 
-jacocoTestReport {
+tasks.named('jacocoTestReport') {
+    dependsOn test
     reports {
         xml.required = true
         html.required = true
     }
 }
 
-// Checkstyle configuration
-checkstyle {
-    toolVersion = '10.12.4'
-    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
+// テスト用のFlywayタスク
+task flywayMigrateTest(type: org.flywaydb.gradle.task.FlywayMigrateTask) {
+    url = 'jdbc:postgresql://localhost:5433/ses_mgr_test'
+    user = 'postgres_test'
+    password = 'postgres_test'
+    locations = ['classpath:db/migration']
+    baselineOnMigrate = true
+    schemas = ['public', 'common', 'engineer', 'project', 'matching', 'contract', 'timesheet', 'billing', 'reporting', 'audit']
+    placeholders = [
+        'schemaPrefix': '',
+        'tablePrefix': ''
+    ]
 }
 
-// Spotless configuration
+// テスト用のFlywayクリーンタスク
+task flywayCleanTest(type: org.flywaydb.gradle.task.FlywayCleanTask) {
+    url = 'jdbc:postgresql://localhost:5433/ses_mgr_test'
+    user = 'postgres_test'
+    password = 'postgres_test'
+    cleanDisabled = false // クリーンを有効化
+}
+
+checkstyle {
+    toolVersion = '10.12.2'
+    configFile = file("${project.rootDir}/config/checkstyle/checkstyle.xml")
+}
+
+flyway {
+    url = 'jdbc:postgresql://localhost:5432/sesapp'
+    user = 'postgres'
+    password = 'postgres'
+    schemas = ['public', 'common', 'engineer', 'project', 'matching', 'contract', 'timesheet', 'billing', 'reporting', 'audit']
+}
+
 spotless {
     java {
         importOrder()
         removeUnusedImports()
         googleJavaFormat()
     }
-}
-
-// Flyway configuration
-flyway {
-    url = 'jdbc:postgresql://localhost:5432/ses_mgr'
-    user = 'postgres'
-    password = 'postgres'
-    locations = ['classpath:db/migration']
 }

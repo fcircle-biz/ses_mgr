@@ -35,6 +35,51 @@ SES業務システムは、SES（システムエンジニアリングサービ�
 │   └── 03_詳細設計/      # 詳細設計ドキュメント
 ```
 
+## 開発環境のセットアップ
+
+### 前提条件
+
+- Java 21
+- Docker と Docker Compose
+- PostgreSQL 17（Dockerで実行可能）
+
+### 開発環境の起動
+
+開発環境のDockerコンテナを起動するには以下のコマンドを実行します：
+
+```bash
+docker compose up -d
+```
+
+これにより以下のサービスが起動します：
+- PostgreSQL: ポート 5432
+- Redis: ポート 6379
+- MinIO: ポート 9000, 9001 (コンソール)
+
+### テスト環境のセットアップ
+
+テスト専用の独立したコンテナを使用することも可能です：
+
+```bash
+# テスト用のDockerコンテナを起動
+docker compose -f docker-compose.test.yml up -d
+
+# データベースマイグレーションを実行
+./gradlew flywayMigrateTest
+
+# テスト実行（Docker環境を使用）
+./gradlew test -Pspring.profiles.active=test-docker
+
+# または専用スクリプトを使用（起動・マイグレーション・テスト実行・停止を自動化）
+./run-tests-with-docker.sh
+```
+
+テスト環境では以下のサービスが起動します：
+- PostgreSQL: ポート 5433（開発環境と競合しないよう変更）
+- MinIO: ポート 9010, 9011（コンソール）
+
+テスト環境はアプリケーションの設定ファイル `application-test-docker.yml` を使用します。開発環境とは別の独立したデータベースとファイルストレージを使用するため、開発作業とテストを安全に並行して行うことができます。
+
 ## ドキュメント
 
 システムの詳細については、[ドキュメントポータル](https://fcircle-biz.github.io/ses_mgr/index.html)を参照してください。

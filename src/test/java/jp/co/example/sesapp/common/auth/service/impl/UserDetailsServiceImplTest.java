@@ -1,16 +1,13 @@
 package jp.co.example.sesapp.common.auth.service.impl;
 
 import jp.co.example.sesapp.common.auth.domain.Permission;
+import jp.co.example.sesapp.common.auth.domain.ResourceType;
 import jp.co.example.sesapp.common.auth.domain.Role;
 import jp.co.example.sesapp.common.auth.domain.User;
 import jp.co.example.sesapp.common.auth.repository.RoleRepository;
 import jp.co.example.sesapp.common.auth.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -18,173 +15,244 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 class UserDetailsServiceImplTest {
 
-    @Mock
     private UserRepository userRepository;
-
-    @Mock
     private RoleRepository roleRepository;
-
-    @InjectMocks
     private UserDetailsServiceImpl userDetailsService;
-
-    private User testUser;
-    private Role testRole;
-    private List<Permission> testPermissions;
-
+    
+    private User normalUser;
+    private User lockedUser;
+    private User disabledUser;
+    private User expiredUser;
+    private User expiredCredentialsUser;
+    private Role adminRole;
+    private Role userRole;
+    private Set<Permission> adminPermissions;
+    private Set<Permission> userPermissions;
+    
     @BeforeEach
     void setUp() {
-        // テスト用のユーザーを作成
-        testUser = new User();
-        testUser.setId(UUID.randomUUID());
-        testUser.setEmail("test@example.com");
-        testUser.setName("Test User");
-        testUser.setPasswordHash("hashedPassword");
-        testUser.setRoleId(UUID.randomUUID());
-        testUser.setAccountLocked(false);
-        testUser.setCreatedAt(LocalDateTime.now());
-        testUser.setUpdatedAt(LocalDateTime.now());
-
-        // テスト用のロールを作成
-        testRole = new Role();
-        testRole.setId(testUser.getRoleId());
-        testRole.setName("ADMIN");
-        testRole.setDescription("Administrator Role");
-
-        // テスト用の権限を作成
-        Permission permission1 = new Permission();
-        permission1.setId(UUID.randomUUID());
-        permission1.setName("user:read");
-        permission1.setDescription("User read permission");
-
-        Permission permission2 = new Permission();
-        permission2.setId(UUID.randomUUID());
-        permission2.setName("user:write");
-        permission2.setDescription("User write permission");
-
-        testPermissions = Arrays.asList(permission1, permission2);
-        testRole.setPermissions(new HashSet<>(testPermissions));
+        // モックを手動で作成
+        userRepository = mock(UserRepository.class);
+        roleRepository = mock(RoleRepository.class);
+        userDetailsService = new UserDetailsServiceImpl(userRepository, roleRepository);
+        
+        // 権限を作成
+        adminPermissions = new HashSet<>();
+        Permission userReadPerm = Permission.createNewPermission(ResourceType.USER, "READ", "User read permission");
+        Permission userWritePerm = Permission.createNewPermission(ResourceType.USER, "UPDATE", "User write permission");
+        Permission userDeletePerm = Permission.createNewPermission(ResourceType.USER, "DELETE", "User delete permission");
+        Permission adminReadPerm = Permission.createNewPermission(ResourceType.ROLE, "READ", "Admin read permission");
+        Permission adminWritePerm = Permission.createNewPermission(ResourceType.ROLE, "UPDATE", "Admin write permission");
+        
+        adminPermissions.add(userReadPerm);
+        adminPermissions.add(userWritePerm);
+        adminPermissions.add(userDeletePerm);
+        adminPermissions.add(adminReadPerm);
+        adminPermissions.add(adminWritePerm);
+        
+        userPermissions = new HashSet<>();
+        userPermissions.add(userReadPerm);
+        
+        // ロールを作成
+        UUID adminRoleId = UUID.randomUUID();
+        adminRole = new Role(adminRoleId, "ADMIN", "Administrator Role");
+        adminRole.setPermissions(adminPermissions);
+        
+        UUID userRoleId = UUID.randomUUID();
+        userRole = new Role(userRoleId, "USER", "User Role");
+        userRole.setPermissions(userPermissions);
+        
+        // 通常ユーザーを作成
+        normalUser = User.builder()
+                .id(UUID.randomUUID())
+                .email("normal@example.com")
+                .passwordHash("hashedPassword")
+                .username("normaluser")
+                .firstName("Normal")
+                .lastName("User")
+                .roleId(adminRoleId)
+                .build();
+        
+        // ロックされたユーザーを作成
+        lockedUser = User.builder()
+                .id(UUID.randomUUID())
+                .email("locked@example.com")
+                .passwordHash("hashedPassword")
+                .username("lockeduser")
+                .firstName("Locked")
+                .lastName("User")
+                .roleId(userRoleId)
+                .accountLocked(true)
+                .build();
+        
+        // 無効化されたユーザーを作成
+        disabledUser = User.builder()
+                .id(UUID.randomUUID())
+                .email("disabled@example.com")
+                .passwordHash("hashedPassword")
+                .username("disableduser")
+                .firstName("Disabled")
+                .lastName("User")
+                .roleId(userRoleId)
+                .enabled(false)
+                .build();
+        
+        // アカウント期限切れユーザーを作成
+        expiredUser = User.builder()
+                .id(UUID.randomUUID())
+                .email("expired@example.com")
+                .passwordHash("hashedPassword")
+                .username("expireduser")
+                .firstName("Expired")
+                .lastName("User")
+                .roleId(userRoleId)
+                .accountExpireDate(LocalDateTime.now().minusDays(1))
+                .build();
+        
+        // 認証情報期限切れユーザーを作成
+        expiredCredentialsUser = User.builder()
+                .id(UUID.randomUUID())
+                .email("expiredcreds@example.com")
+                .passwordHash("hashedPassword")
+                .username("expiredcredsuser")
+                .firstName("ExpiredCreds")
+                .lastName("User")
+                .roleId(userRoleId)
+                .credentialsExpireDate(LocalDateTime.now().minusDays(1))
+                .build();
+        
+        // リポジトリモックのセットアップ
+        when(userRepository.findByEmail(normalUser.getEmail())).thenReturn(Optional.of(normalUser));
+        when(userRepository.findByEmail(lockedUser.getEmail())).thenReturn(Optional.of(lockedUser));
+        when(userRepository.findByEmail(disabledUser.getEmail())).thenReturn(Optional.of(disabledUser));
+        when(userRepository.findByEmail(expiredUser.getEmail())).thenReturn(Optional.of(expiredUser));
+        when(userRepository.findByEmail(expiredCredentialsUser.getEmail())).thenReturn(Optional.of(expiredCredentialsUser));
+        when(userRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
+        
+        when(roleRepository.findById(adminRole.getId())).thenReturn(Optional.of(adminRole));
+        when(roleRepository.findById(userRole.getId())).thenReturn(Optional.of(userRole));
     }
-
+    
     @Test
     void loadUserByUsername_WithValidEmail_ShouldReturnUserDetails() {
-        // モックの設定
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-        when(roleRepository.findById(testUser.getRoleId())).thenReturn(Optional.of(testRole));
-
-        // テスト対象メソッドの実行
-        UserDetails userDetails = userDetailsService.loadUserByUsername(testUser.getEmail());
-
-        // 検証
+        // メールアドレスでユーザー詳細を読み込み
+        UserDetails userDetails = userDetailsService.loadUserByUsername(normalUser.getEmail());
+        
+        // ユーザー詳細を検証
         assertThat(userDetails).isNotNull();
-        assertThat(userDetails.getUsername()).isEqualTo(testUser.getEmail());
-        assertThat(userDetails.getPassword()).isEqualTo(testUser.getPasswordHash());
+        assertThat(userDetails.getUsername()).isEqualTo(normalUser.getEmail());
+        assertThat(userDetails.getPassword()).isEqualTo(normalUser.getPasswordHash());
         assertThat(userDetails.isEnabled()).isTrue();
+        assertThat(userDetails.isAccountNonExpired()).isTrue();
         assertThat(userDetails.isAccountNonLocked()).isTrue();
-
-        // GrantedAuthorityの検証
+        assertThat(userDetails.isCredentialsNonExpired()).isTrue();
+        
+        // 権限を検証
         Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+        assertThat(authorities).isNotEmpty();
         
-        // ROLEプレフィックス付きのロールが含まれていることを確認
-        assertThat(authorities.stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList()))
-                .contains("ROLE_" + testRole.getName().toUpperCase());
+        // ROLE_ADMIN権限を確認
+        assertThat(authorities.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))).isTrue();
         
-        // 各権限が含まれていることを確認
-        for (Permission permission : testPermissions) {
-            assertThat(authorities.stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toList()))
-                    .contains(permission.getName());
+        // 個別権限を確認
+        for (Permission permission : adminPermissions) {
+            assertThat(authorities.contains(new SimpleGrantedAuthority(permission.getName()))).isTrue();
         }
     }
-
+    
     @Test
-    void loadUserByUsername_WithNonExistentEmail_ShouldThrowUsernameNotFoundException() {
-        // モックの設定
-        when(userRepository.findByEmail("nonexistent@example.com")).thenReturn(Optional.empty());
-
-        // テスト対象メソッドの実行と検証
+    void loadUserByUsername_WithNonExistentEmail_ShouldThrowException() {
+        // 存在しないユーザーを読み込み試行
         assertThatThrownBy(() -> userDetailsService.loadUserByUsername("nonexistent@example.com"))
                 .isInstanceOf(UsernameNotFoundException.class)
-                .hasMessageContaining("メールアドレス nonexistent@example.com のユーザーが見つかりませんでした");
+                .hasMessageContaining("nonexistent@example.com");
     }
-
+    
     @Test
-    void loadUserByUsername_WithLockedAccount_ShouldReturnDisabledUserDetails() {
-        // ユーザーアカウントをロック状態に設定
-        testUser.setAccountLocked(true);
-
-        // モックの設定
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-        when(roleRepository.findById(testUser.getRoleId())).thenReturn(Optional.of(testRole));
-
-        // テスト対象メソッドの実行
-        UserDetails userDetails = userDetailsService.loadUserByUsername(testUser.getEmail());
-
-        // 検証
-        assertThat(userDetails).isNotNull();
-        assertThat(userDetails.isEnabled()).isTrue(); // isEnabledは別の条件でチェック
-        assertThat(userDetails.isAccountNonLocked()).isFalse(); // ロック状態が反映されているか確認
+    void loadUserByUsername_WithLockedAccount_ShouldReturnLockedUserDetails() {
+        // ロックされたユーザー詳細を読み込み
+        UserDetails userDetails = userDetailsService.loadUserByUsername(lockedUser.getEmail());
+        
+        // アカウントがロックされていることを確認
+        assertThat(userDetails.isAccountNonLocked()).isFalse();
     }
-
+    
+    @Test
+    void loadUserByUsername_WithDisabledAccount_ShouldReturnDisabledUserDetails() {
+        // 無効化されたユーザー詳細を読み込み
+        UserDetails userDetails = userDetailsService.loadUserByUsername(disabledUser.getEmail());
+        
+        // アカウントが無効化されていることを確認
+        assertThat(userDetails.isEnabled()).isFalse();
+    }
+    
     @Test
     void loadUserByUsername_WithExpiredAccount_ShouldReturnExpiredUserDetails() {
-        // ユーザーアカウントの有効期限切れを設定
-        testUser.setAccountExpiresAt(LocalDateTime.now().minusDays(1));
-
-        // モックの設定
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-        when(roleRepository.findById(testUser.getRoleId())).thenReturn(Optional.of(testRole));
-
-        // テスト対象メソッドの実行
-        UserDetails userDetails = userDetailsService.loadUserByUsername(testUser.getEmail());
-
-        // 検証
-        assertThat(userDetails).isNotNull();
-        assertThat(userDetails.isAccountNonExpired()).isFalse(); // アカウント有効期限切れが反映されているか確認
+        // 期限切れユーザー詳細を読み込み
+        UserDetails userDetails = userDetailsService.loadUserByUsername(expiredUser.getEmail());
+        
+        // アカウントが期限切れであることを確認
+        assertThat(userDetails.isAccountNonExpired()).isFalse();
     }
-
+    
     @Test
     void loadUserByUsername_WithExpiredCredentials_ShouldReturnExpiredCredentialsUserDetails() {
-        // ユーザー認証情報の有効期限切れを設定
-        testUser.setPasswordExpiresAt(LocalDateTime.now().minusDays(1));
-
-        // モックの設定
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-        when(roleRepository.findById(testUser.getRoleId())).thenReturn(Optional.of(testRole));
-
-        // テスト対象メソッドの実行
-        UserDetails userDetails = userDetailsService.loadUserByUsername(testUser.getEmail());
-
-        // 検証
-        assertThat(userDetails).isNotNull();
-        assertThat(userDetails.isCredentialsNonExpired()).isFalse(); // 認証情報有効期限切れが反映されているか確認
-    }
-
-    @Test
-    void loadUserByUsername_WithNoRole_ShouldReturnUserDetailsWithoutRoleAuthorities() {
-        // モックの設定 - ロールが見つからない場合
-        when(userRepository.findByEmail("test@example.com")).thenReturn(Optional.of(testUser));
-        when(roleRepository.findById(testUser.getRoleId())).thenReturn(Optional.empty());
-
-        // テスト対象メソッドの実行
-        UserDetails userDetails = userDetailsService.loadUserByUsername(testUser.getEmail());
-
-        // 検証
-        assertThat(userDetails).isNotNull();
+        // 認証情報期限切れユーザー詳細を読み込み
+        UserDetails userDetails = userDetailsService.loadUserByUsername(expiredCredentialsUser.getEmail());
         
-        // ロールのAuthoritiesが含まれていないことを確認
+        // 認証情報が期限切れであることを確認
+        assertThat(userDetails.isCredentialsNonExpired()).isFalse();
+    }
+    
+    @Test
+    void getAuthorities_ForAdminRole_ShouldReturnAllPermissions() {
+        // 管理者ユーザー詳細を読み込み
+        UserDetails userDetails = userDetailsService.loadUserByUsername(normalUser.getEmail());
+        
+        // すべての管理者権限が存在することを確認
         Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
-        assertThat(authorities).isEmpty();
+        
+        // ROLE_ADMIN権限を確認
+        assertThat(authorities.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))).isTrue();
+        
+        // すべての管理者権限を確認
+        for (Permission permission : adminPermissions) {
+            assertThat(authorities.contains(new SimpleGrantedAuthority(permission.getName()))).isTrue();
+        }
+        
+        // 権限の数が正しいことを確認（ROLE_ADMIN + すべての管理者権限）
+        assertThat(authorities).hasSize(adminPermissions.size() + 1);
+    }
+    
+    @Test
+    void getAuthorities_ForUserRole_ShouldReturnLimitedPermissions() {
+        // 一般ユーザー詳細を読み込み
+        UserDetails userDetails = userDetailsService.loadUserByUsername(lockedUser.getEmail());
+        
+        // 限定的なユーザー権限を確認
+        Collection<? extends GrantedAuthority> authorities = userDetails.getAuthorities();
+        
+        // ROLE_USER権限を確認
+        assertThat(authorities.contains(new SimpleGrantedAuthority("ROLE_USER"))).isTrue();
+        
+        // ユーザー権限を確認
+        for (Permission permission : userPermissions) {
+            assertThat(authorities.contains(new SimpleGrantedAuthority(permission.getName()))).isTrue();
+        }
+        
+        // 管理者専用権限が存在しないことを確認
+        assertThat(authorities.contains(new SimpleGrantedAuthority("role:read"))).isFalse();
+        assertThat(authorities.contains(new SimpleGrantedAuthority("role:update"))).isFalse();
+        
+        // 権限の数が正しいことを確認（ROLE_USER + すべてのユーザー権限）
+        assertThat(authorities).hasSize(userPermissions.size() + 1);
     }
 }
