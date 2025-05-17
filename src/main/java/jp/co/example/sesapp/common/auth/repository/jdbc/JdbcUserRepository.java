@@ -66,7 +66,8 @@ public class JdbcUserRepository implements UserRepository {
     @Override
     public Optional<User> findById(UUID userId) {
         try {
-            String sql = "SELECT * FROM auth.users WHERE id = ?";
+            // Use CAST to explicitly convert string to UUID
+            String sql = "SELECT * FROM auth.users WHERE id = CAST(? AS UUID)";
             User user = jdbcTemplate.queryForObject(sql, userRowMapper, userId.toString());
             return Optional.ofNullable(user);
         } catch (EmptyResultDataAccessException e) {
@@ -104,7 +105,7 @@ public class JdbcUserRepository implements UserRepository {
 
     @Override
     public List<User> findByDepartmentId(UUID departmentId) {
-        String sql = "SELECT * FROM auth.users WHERE department_id = ? ORDER BY username";
+        String sql = "SELECT * FROM auth.users WHERE department_id = CAST(? AS UUID) ORDER BY username";
         return jdbcTemplate.query(sql, userRowMapper, departmentId.toString());
     }
 
@@ -112,7 +113,7 @@ public class JdbcUserRepository implements UserRepository {
     public List<User> findByRoleId(UUID roleId) {
         String sql = "SELECT u.* FROM auth.users u " +
                 "JOIN auth.user_roles ur ON u.id = ur.user_id " +
-                "WHERE ur.role_id = ? " +
+                "WHERE ur.role_id = CAST(? AS UUID) " +
                 "ORDER BY u.username";
         return jdbcTemplate.query(sql, userRowMapper, roleId.toString());
     }
@@ -142,13 +143,13 @@ public class JdbcUserRepository implements UserRepository {
         LocalDateTime now = LocalDateTime.now();
         
         jdbcTemplate.update(sql,
-                userId.toString(),
+                userId.toString(),  // Will be cast to UUID by PostgreSQL
                 user.getUsername(),
                 user.getEmail(),
                 user.getPasswordHash(),
                 user.getFirstName(),
                 user.getLastName(),
-                user.getDepartmentId() != null ? user.getDepartmentId().toString() : null,
+                user.getDepartmentId() != null ? user.getDepartmentId().toString() : null,  // Will be cast to UUID if not null
                 user.isEnabled(),
                 user.isAccountLocked(),
                 user.getAccountExpireDate() != null ? Timestamp.valueOf(user.getAccountExpireDate()) : null,
@@ -174,7 +175,7 @@ public class JdbcUserRepository implements UserRepository {
                 "is_enabled = ?, is_account_locked = ?, account_expire_date = ?, credentials_expire_date = ?, " +
                 "last_login_date = ?, login_fail_count = ?, authentication_method = ?, is_mfa_enabled = ?, " +
                 "mfa_secret = ?, updated_at = ? " +
-                "WHERE id = ?";
+                "WHERE id = CAST(? AS UUID)";
         
         LocalDateTime now = LocalDateTime.now();
         
@@ -195,7 +196,7 @@ public class JdbcUserRepository implements UserRepository {
                 user.isMfaEnabled(),
                 user.getMfaSecret(),
                 Timestamp.valueOf(now),
-                user.getId().toString()
+                user.getId().toString()  // Will be cast to UUID by PostgreSQL
         );
         
         if (updatedRows == 0) {
@@ -209,7 +210,7 @@ public class JdbcUserRepository implements UserRepository {
 
     @Override
     public void deleteById(UUID userId) {
-        String sql = "DELETE FROM auth.users WHERE id = ?";
+        String sql = "DELETE FROM auth.users WHERE id = CAST(? AS UUID)";
         int deletedRows = jdbcTemplate.update(sql, userId.toString());
         
         if (deletedRows == 0) {
