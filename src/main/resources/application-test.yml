@@ -1,0 +1,26 @@
+spring:
+  datasource:
+    url: jdbc:tc:postgresql:14.4:///testdb
+    driver-class-name: org.testcontainers.jdbc.ContainerDatabaseDriver
+  flyway:
+    enabled: true
+  thymeleaf:
+    cache: false
+
+# テスト環境固有の設定
+logging:
+  level:
+    root: WARN
+    jp.co.example.sesapp: DEBUG
+    org.springframework.web: INFO
+    org.springframework.security: INFO
+    org.springframework.data.jdbc: INFO
+
+# アプリケーション固有の設定
+application:
+  security:
+    jwt:
+      secret-key: test-secret-key
+      token-validity-in-seconds: 86400
+  logging:
+    request-response: false

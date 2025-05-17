@@ -1,0 +1,97 @@
+/* SES管理システム 共通スタイル */
+
+/* 全体レイアウト */
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+main {
+    flex: 1 0 auto;
+    min-height: calc(100vh - 120px); /* ヘッダーとフッターの高さを引いた最小高さ */
+}
+
+footer {
+    flex-shrink: 0;
+}
+
+/* ナビゲーションバー */
+.navbar-dark .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.navbar-dark .navbar-nav .nav-link:hover {
+    color: rgba(255, 255, 255, 1);
+}
+
+.navbar-dark .navbar-nav .nav-link .bi {
+    margin-right: 5px;
+}
+
+/* カード */
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* テーブル */
+.table-responsive {
+    margin-bottom: 0;
+}
+
+.table th {
+    background-color: #f8f9fa;
+}
+
+/* フォーム */
+.form-label {
+    font-weight: 500;
+}
+
+.invalid-feedback {
+    font-size: 0.85rem;
+}
+
+/* ボタングループ */
+.btn-group {
+    margin-right: 5px;
+}
+
+/* ページネーション */
+.pagination {
+    margin-bottom: 0;
+}
+
+/* アラート */
+.alert {
+    margin-bottom: 20px;
+}
+
+/* ダッシュボード用スタイル */
+.display-4 {
+    font-weight: 600;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    background-color: #fff;
+}
+
+/* レスポンシブ調整 */
+@media (max-width: 768px) {
+    .card-deck {
+        display: block;
+    }
+    
+    .card-deck .card {
+        margin-bottom: 15px;
+    }
+}

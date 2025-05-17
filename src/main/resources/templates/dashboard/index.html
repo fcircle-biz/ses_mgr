@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{layout/default :: layout(~{::title}, ~{::section})}">
+<head>
+    <title>ダッシュボード - SES管理システム</title>
+</head>
+<body>
+    <section>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="mb-0">ダッシュボード</h1>
+            <div class="text-end">
+                <span class="fs-6 text-muted" th:text="${#temporals.format(now, 'yyyy年MM月dd日 (E)')}">2025年05月17日 (土)</span>
+            </div>
+        </div>
+
+        <!-- アラートメッセージ（必要に応じて表示） -->
+        <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <span th:text="${successMessage}">操作が成功しました</span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="閉じる"></button>
+        </div>
+
+        <!-- KPI概要カード -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card border-primary h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title text-primary">稼働中技術者</h5>
+                        <p class="display-4 mb-0">42</p>
+                        <p class="text-muted">全体の 84%</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-success h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title text-success">今月の売上</h5>
+                        <p class="display-4 mb-0">1,250<small class="fs-6">万円</small></p>
+                        <p class="text-muted">前月比 +8%</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-info h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title text-info">平均単価</h5>
+                        <p class="display-4 mb-0">85<small class="fs-6">万円</small></p>
+                        <p class="text-muted">目標比 +5%</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card border-warning h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title text-warning">公開中案件</h5>
+                        <p class="display-4 mb-0">15</p>
+                        <p class="text-muted">先週比 +3</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <!-- 最近のアクティビティ -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">最近のアクティビティ</h5>
+                            <a href="#" class="btn btn-sm btn-outline-primary">すべて表示</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group list-group-flush">
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">新規案件が登録されました</h6>
+                                    <small class="text-muted">3時間前</small>
+                                </div>
+                                <p class="mb-1">Javaエンジニア（バックエンド開発）- 株式会社テクノシステム</p>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">契約が締結されました</h6>
+                                    <small class="text-muted">1日前</small>
+                                </div>
+                                <p class="mb-1">山田太郎 - インフラエンジニア案件（株式会社ネットワークス）</p>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">請求書が発行されました</h6>
+                                    <small class="text-muted">2日前</small>
+                                </div>
+                                <p class="mb-1">2025年5月分 - 250万円（株式会社ITソリューション）</p>
+                            </a>
+                            <a href="#" class="list-group-item list-group-item-action">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">新規技術者が登録されました</h6>
+                                    <small class="text-muted">3日前</small>
+                                </div>
+                                <p class="mb-1">佐藤花子 - フロントエンドエンジニア（React/Vue.js）</p>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 注目のマッチング -->
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header bg-white">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="mb-0">注目のマッチング</h5>
+                            <a href="#" class="btn btn-sm btn-outline-primary">すべて表示</a>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>技術者</th>
+                                        <th>案件</th>
+                                        <th>マッチ度</th>
+                                        <th>アクション</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>鈴木一郎</td>
+                                        <td>Javaバックエンド開発</td>
+                                        <td>
+                                            <div class="progress" style="height: 15px;">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                    style="width: 92%;" aria-valuenow="92" aria-valuemin="0" 
+                                                    aria-valuemax="100">92%</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">詳細</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>田中花子</td>
+                                        <td>Reactフロントエンド開発</td>
+                                        <td>
+                                            <div class="progress" style="height: 15px;">
+                                                <div class="progress-bar bg-success" role="progressbar" 
+                                                    style="width: 86%;" aria-valuenow="86" aria-valuemin="0" 
+                                                    aria-valuemax="100">86%</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">詳細</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>佐藤次郎</td>
+                                        <td>インフラエンジニア（AWS）</td>
+                                        <td>
+                                            <div class="progress" style="height: 15px;">
+                                                <div class="progress-bar bg-warning" role="progressbar" 
+                                                    style="width: 78%;" aria-valuenow="78" aria-valuemin="0" 
+                                                    aria-valuemax="100">78%</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">詳細</button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>高橋太郎</td>
+                                        <td>プロジェクトマネージャー</td>
+                                        <td>
+                                            <div class="progress" style="height: 15px;">
+                                                <div class="progress-bar bg-warning" role="progressbar" 
+                                                    style="width: 72%;" aria-valuenow="72" aria-valuemin="0" 
+                                                    aria-valuemax="100">72%</div>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary">詳細</button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</body>
+</html>

@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>アクセス権限がありません - SES管理システム</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .error-container {
+            text-align: center;
+            padding: 40px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.05);
+            max-width: 600px;
+        }
+        .error-code {
+            font-size: 72px;
+            font-weight: 700;
+            color: #fd7e14;
+            margin-bottom: 10px;
+        }
+        .error-message {
+            font-size: 24px;
+            margin-bottom: 30px;
+            color: #343a40;
+        }
+        .error-details {
+            color: #6c757d;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="error-container">
+            <div class="error-code">403</div>
+            <div class="error-message">アクセス権限がありません</div>
+            <div class="error-details">
+                <p>このページを表示するために必要な権限がありません。</p>
+                <p th:if="${errorMessage}" th:text="${errorMessage}">権限エラー</p>
+                <p>アクセス権限について確認が必要な場合は、システム管理者にお問い合わせください。</p>
+            </div>
+            <a href="/" class="btn btn-primary">ホームページへ戻る</a>
+        </div>
+    </div>
+</body>
+</html>
