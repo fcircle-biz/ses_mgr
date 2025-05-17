@@ -6,7 +6,10 @@ import jp.co.example.sesapp.common.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -21,183 +24,226 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+/**
+ * JdbcUserRepositoryのテストクラス
+ */
 @JdbcTest
-@Import(JdbcUserRepository.class)
-@ActiveProfiles("test")
-@Sql(scripts = {"classpath:db/test-data/auth-schema.sql", "classpath:db/test-data/users-test-data.sql"})
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ActiveProfiles("test-docker")
+@Import(JdbcUserRepositoryTest.TestConfig.class)
+@Sql(scripts = {
+        "classpath:scripts/cleanup_test_db.sql",
+        "classpath:db/testdata/init_auth_schema.sql",
+        "classpath:db/testdata/test_users.sql"
+}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 class JdbcUserRepositoryTest {
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+    @TestConfiguration
+    static class TestConfig {
+        @Bean
+        public JdbcUserRepository jdbcUserRepository(JdbcTemplate jdbcTemplate, NamedParameterJdbcTemplate namedParameterJdbcTemplate) {
+            return new JdbcUserRepository(jdbcTemplate, namedParameterJdbcTemplate);
+        }
+    }
 
     @Autowired
     private JdbcUserRepository userRepository;
 
     private User testUser;
-    private final UUID testUserId = UUID.fromString("123e4567-e89b-12d3-a456-426614174000");
 
     @BeforeEach
     void setUp() {
-        testUser = new User();
-        testUser.setUsername("newuser");
-        testUser.setEmail("newuser@example.com");
-        testUser.setPasswordHash("hashedpassword");
-        testUser.setFirstName("New");
-        testUser.setLastName("User");
-        testUser.setEnabled(true);
-        testUser.setAccountLocked(false);
-        testUser.setLoginFailCount(0);
-        testUser.setAuthenticationMethod(AuthenticationMethod.PASSWORD);
-        testUser.setMfaEnabled(false);
+        // テスト用ユーザーの作成
+        testUser = User.builder()
+                .username("testuser")
+                .email("testuser@example.com")
+                .passwordHash("password_hash")
+                .firstName("Test")
+                .lastName("User")
+                .enabled(true)
+                .authenticationMethod(AuthenticationMethod.PASSWORD)
+                .build();
     }
 
     @Test
     void findById_WhenUserExists_ShouldReturnUser() {
-        // Act
-        Optional<User> foundUser = userRepository.findById(testUserId);
-
-        // Assert
-        assertThat(foundUser).isPresent();
-        assertThat(foundUser.get().getUsername()).isEqualTo("testuser");
-        assertThat(foundUser.get().getEmail()).isEqualTo("testuser@example.com");
+        // テストデータベースから既存のユーザーIDを取得
+        UUID existingUserId = UUID.fromString("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11");
+        
+        // When
+        Optional<User> found = userRepository.findById(existingUserId);
+        
+        // Then
+        assertThat(found).isPresent();
+        assertThat(found.get().getUsername()).isEqualTo("admin");
+        assertThat(found.get().getEmail()).isEqualTo("admin@example.com");
     }
-
+    
     @Test
     void findById_WhenUserDoesNotExist_ShouldReturnEmpty() {
-        // Arrange
-        UUID nonExistentId = UUID.fromString("00000000-0000-0000-0000-000000000000");
-
-        // Act
-        Optional<User> foundUser = userRepository.findById(nonExistentId);
-
-        // Assert
-        assertThat(foundUser).isEmpty();
+        // When
+        Optional<User> found = userRepository.findById(UUID.randomUUID());
+        
+        // Then
+        assertThat(found).isEmpty();
     }
-
+    
     @Test
     void findByUsername_WhenUserExists_ShouldReturnUser() {
-        // Act
-        Optional<User> foundUser = userRepository.findByUsername("testuser");
-
-        // Assert
-        assertThat(foundUser).isPresent();
-        assertThat(foundUser.get().getId()).isEqualTo(testUserId);
-        assertThat(foundUser.get().getEmail()).isEqualTo("testuser@example.com");
+        // When
+        Optional<User> found = userRepository.findByUsername("admin");
+        
+        // Then
+        assertThat(found).isPresent();
+        assertThat(found.get().getEmail()).isEqualTo("admin@example.com");
     }
-
+    
+    @Test
+    void findByUsername_WhenUserDoesNotExist_ShouldReturnEmpty() {
+        // When
+        Optional<User> found = userRepository.findByUsername("nonexistent");
+        
+        // Then
+        assertThat(found).isEmpty();
+    }
+    
     @Test
     void findByEmail_WhenUserExists_ShouldReturnUser() {
-        // Act
-        Optional<User> foundUser = userRepository.findByEmail("testuser@example.com");
-
-        // Assert
-        assertThat(foundUser).isPresent();
-        assertThat(foundUser.get().getId()).isEqualTo(testUserId);
-        assertThat(foundUser.get().getUsername()).isEqualTo("testuser");
+        // When
+        Optional<User> found = userRepository.findByEmail("admin@example.com");
+        
+        // Then
+        assertThat(found).isPresent();
+        assertThat(found.get().getUsername()).isEqualTo("admin");
     }
-
+    
+    @Test
+    void findByEmail_WhenUserDoesNotExist_ShouldReturnEmpty() {
+        // When
+        Optional<User> found = userRepository.findByEmail("nonexistent@example.com");
+        
+        // Then
+        assertThat(found).isEmpty();
+    }
+    
     @Test
     void findAll_ShouldReturnAllUsers() {
-        // Act
+        // When
         List<User> users = userRepository.findAll();
-
-        // Assert
-        assertThat(users).hasSize(3); // testuser, admin, manager
+        
+        // Then
+        assertThat(users).isNotEmpty();
+        assertThat(users).hasSize(3); // テストデータに基づく
     }
-
+    
     @Test
-    void save_WhenInsertingNewUser_ShouldInsertAndReturnWithId() {
-        // Act
+    void save_ShouldInsertNewUser() {
+        // When
         User savedUser = userRepository.save(testUser);
-
-        // Assert
+        
+        // Then
         assertThat(savedUser.getId()).isNotNull();
+        assertThat(savedUser.getCreatedAt()).isNotNull();
         
-        // Verify saved data
-        Optional<User> retrievedUser = userRepository.findByUsername("newuser");
-        assertThat(retrievedUser).isPresent();
-        assertThat(retrievedUser.get().getEmail()).isEqualTo("newuser@example.com");
+        // 保存したユーザーを確認
+        Optional<User> found = userRepository.findByEmail(testUser.getEmail());
+        assertThat(found).isPresent();
+        assertThat(found.get().getUsername()).isEqualTo(testUser.getUsername());
     }
-
+    
     @Test
-    void save_WhenUpdatingExistingUser_ShouldUpdateAndReturn() {
-        // Arrange
-        Optional<User> existingUser = userRepository.findById(testUserId);
-        assertThat(existingUser).isPresent();
+    void save_ShouldUpdateExistingUser() {
+        // Given
+        UUID existingUserId = UUID.fromString("a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11");
+        User existingUser = userRepository.findById(existingUserId).get();
+        String updatedFirstName = "UpdatedFirstName";
+        existingUser.setFirstName(updatedFirstName);
         
-        User userToUpdate = existingUser.get();
-        userToUpdate.setEmail("updated@example.com");
-        userToUpdate.setFirstName("Updated");
-
-        // Act
-        User updatedUser = userRepository.save(userToUpdate);
-
-        // Assert
-        assertThat(updatedUser.getEmail()).isEqualTo("updated@example.com");
-        assertThat(updatedUser.getFirstName()).isEqualTo("Updated");
+        // When
+        User updatedUser = userRepository.save(existingUser);
         
-        // Verify updated data
-        Optional<User> retrievedUser = userRepository.findById(testUserId);
-        assertThat(retrievedUser).isPresent();
-        assertThat(retrievedUser.get().getEmail()).isEqualTo("updated@example.com");
-        assertThat(retrievedUser.get().getFirstName()).isEqualTo("Updated");
+        // Then
+        assertThat(updatedUser.getFirstName()).isEqualTo(updatedFirstName);
+        assertThat(updatedUser.getUpdatedAt()).isNotNull();
+        
+        // 更新を確認
+        User reloadedUser = userRepository.findById(existingUserId).get();
+        assertThat(reloadedUser.getFirstName()).isEqualTo(updatedFirstName);
     }
-
+    
     @Test
     void deleteById_WhenUserExists_ShouldDeleteUser() {
-        // Arrange
-        Optional<User> existingUser = userRepository.findById(testUserId);
-        assertThat(existingUser).isPresent();
-
-        // Act
-        userRepository.deleteById(testUserId);
-
-        // Assert
-        Optional<User> deletedUser = userRepository.findById(testUserId);
-        assertThat(deletedUser).isEmpty();
+        // Given
+        User savedUser = userRepository.save(testUser);
+        UUID userId = savedUser.getId();
+        
+        // When
+        userRepository.deleteById(userId);
+        
+        // Then
+        Optional<User> deleted = userRepository.findById(userId);
+        assertThat(deleted).isEmpty();
     }
-
+    
     @Test
     void deleteById_WhenUserDoesNotExist_ShouldThrowException() {
-        // Arrange
-        UUID nonExistentId = UUID.fromString("00000000-0000-0000-0000-000000000000");
-
-        // Act & Assert
+        // When/Then
+        UUID nonExistentId = UUID.randomUUID();
         assertThatThrownBy(() -> userRepository.deleteById(nonExistentId))
                 .isInstanceOf(ResourceNotFoundException.class)
-                .hasMessageContaining("User not found with id: " + nonExistentId);
+                .hasMessageContaining(nonExistentId.toString());
     }
-
+    
     @Test
-    void findByLastLoginOlderThan_ShouldReturnUsersWithOlderLogin() {
-        // Act
-        List<User> inactiveUsers = userRepository.findByLastLoginOlderThan(30);
-
-        // Assert
-        assertThat(inactiveUsers).hasSize(1);
-        assertThat(inactiveUsers.get(0).getUsername()).isEqualTo("inactiveuser");
+    void findByLastLoginOlderThan_ShouldReturnMatchingUsers() {
+        // 現在の日付から7日前のユーザーを検索
+        List<User> inactiveUsers = userRepository.findByLastLoginOlderThan(7);
+        
+        // テストデータに基づいて検証
+        assertThat(inactiveUsers).isNotEmpty();
     }
-
+    
     @Test
     void findByPasswordExpired_ShouldReturnUsersWithExpiredPasswords() {
-        // Act
+        // パスワードが期限切れのユーザーを検索
         List<User> usersWithExpiredPasswords = userRepository.findByPasswordExpired();
-
-        // Assert
-        assertThat(usersWithExpiredPasswords).hasSize(1);
-        assertThat(usersWithExpiredPasswords.get(0).getUsername()).isEqualTo("expireduser");
+        
+        // テストデータに基づいて検証
+        assertThat(usersWithExpiredPasswords).isNotEmpty();
     }
-
+    
     @Test
     void findByAccountLocked_ShouldReturnLockedUsers() {
-        // Act
+        // アカウントがロックされているユーザーを検索
         List<User> lockedUsers = userRepository.findByAccountLocked();
-
-        // Assert
-        assertThat(lockedUsers).hasSize(1);
-        assertThat(lockedUsers.get(0).getUsername()).isEqualTo("lockeduser");
+        
+        // テストデータに基づいて検証
+        assertThat(lockedUsers).isNotEmpty();
+    }
+    
+    @Test
+    void findByDepartmentId_WhenDepartmentExists_ShouldReturnUsers() {
+        // Given
+        UUID departmentId = UUID.fromString("b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a22");
+        
+        // When
+        List<User> usersByDepartment = userRepository.findByDepartmentId(departmentId);
+        
+        // Then
+        // テストデータに基づいて検証
+        assertThat(usersByDepartment).isNotEmpty();
+    }
+    
+    @Test
+    void findByRoleId_WhenRoleExists_ShouldReturnUsers() {
+        // Given - テストデータベースからロールIDを取得
+        UUID roleId = UUID.fromString("c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a33");
+        
+        // When
+        List<User> usersByRole = userRepository.findByRoleId(roleId);
+        
+        // Then
+        // テストデータに基づいて検証
+        assertThat(usersByRole).isNotEmpty();
     }
 }

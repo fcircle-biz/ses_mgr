@@ -1,0 +1,56 @@
+services:
+  postgres-test:
+    image: postgres:17
+    container_name: ses-mgr-postgres-test
+    ports:
+      - "5433:5432"  # メインDBと競合しないようにポートを変更
+    environment:
+      POSTGRES_DB: ses_mgr_test
+      POSTGRES_USER: postgres_test
+      POSTGRES_PASSWORD: postgres_test
+    volumes:
+      - postgres-test-data:/var/lib/postgresql/data
+    command: >
+      postgres
+      -c shared_buffers=128MB
+      -c work_mem=4MB
+      -c effective_cache_size=512MB
+      -c max_connections=50
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres_test"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - ses-mgr-test-network
+
+  # テスト用のMinIOも必要な場合は追加
+  minio-test:
+    image: minio/minio
+    container_name: ses-mgr-minio-test
+    ports:
+      - "9010:9000"
+      - "9011:9001"
+    environment:
+      MINIO_ROOT_USER: miniotest
+      MINIO_ROOT_PASSWORD: miniotest
+    volumes:
+      - minio-test-data:/data
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - ses-mgr-test-network
+
+volumes:
+  postgres-test-data:
+  minio-test-data:
+
+networks:
+  ses-mgr-test-network:
+    driver: bridge
